@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,17 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				finance: {
+					success: '#10B981',
+					warning: '#F59E0B',
+					danger: '#EF4444',
+					info: '#3B82F6',
+					primary: '#6366F1',
+					gradient: {
+						start: '#10B981',
+						end: '#3B82F6'
+					}
 				}
 			},
 			borderRadius: {
@@ -84,11 +96,46 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'slide-up': {
+					'0%': {
+						transform: 'translateY(20px)',
+						opacity: '0'
+					},
+					'100%': {
+						transform: 'translateY(0)',
+						opacity: '1'
+					}
+				},
+				'scale-in': {
+					'0%': {
+						transform: 'scale(0.95)',
+						opacity: '0'
+					},
+					'100%': {
+						transform: 'scale(1)',
+						opacity: '1'
+					}
+				},
+				'progress-fill': {
+					'0%': {
+						width: '0%'
+					},
+					'100%': {
+						width: 'var(--progress-width, 50%)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'slide-up': 'slide-up 0.3s ease-out',
+				'scale-in': 'scale-in 0.2s ease-out',
+				'progress-fill': 'progress-fill 1s ease-out'
+			},
+			backgroundImage: {
+				'gradient-finance': 'linear-gradient(135deg, #10B981 0%, #3B82F6 100%)',
+				'gradient-card': 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)'
 			}
 		}
 	},
