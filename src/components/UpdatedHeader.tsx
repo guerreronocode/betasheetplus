@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useNavigate } from 'react-router-dom';
 
-const Header = () => {
+const UpdatedHeader = () => {
   const { user, signOut } = useAuth();
   const { userStats } = useUserStats();
   const navigate = useNavigate();
@@ -99,4 +99,4 @@ const Header = () => {
   );
 };
 
-export default Header;
+export default UpdatedHeader;

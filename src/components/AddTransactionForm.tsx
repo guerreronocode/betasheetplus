@@ -1,0 +1,251 @@
+
+import React, { useState } from 'react';
+import { Plus, DollarSign, Tag, Calendar } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useFinancialData } from '@/hooks/useFinancialData';
+
+const incomeCategories = [
+  'Salário',
+  'Freelance',
+  'Investimentos',
+  'Aluguel',
+  'Vendas',
+  'Outros'
+];
+
+const expenseCategories = [
+  'Alimentação',
+  'Transporte',
+  'Moradia',
+  'Saúde',
+  'Educação',
+  'Entretenimento',
+  'Compras',
+  'Outros'
+];
+
+const AddTransactionForm = () => {
+  const { addIncome, addExpense, isAddingIncome, isAddingExpense } = useFinancialData();
+  
+  const [incomeForm, setIncomeForm] = useState({
+    description: '',
+    amount: '',
+    category: '',
+    date: new Date().toISOString().split('T')[0]
+  });
+
+  const [expenseForm, setExpenseForm] = useState({
+    description: '',
+    amount: '',
+    category: '',
+    date: new Date().toISOString().split('T')[0]
+  });
+
+  const handleIncomeSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!incomeForm.description || !incomeForm.amount || !incomeForm.category) return;
+    
+    addIncome({
+      description: incomeForm.description,
+      amount: parseFloat(incomeForm.amount),
+      category: incomeForm.category,
+      date: incomeForm.date
+    });
+    
+    setIncomeForm({
+      description: '',
+      amount: '',
+      category: '',
+      date: new Date().toISOString().split('T')[0]
+    });
+  };
+
+  const handleExpenseSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!expenseForm.description || !expenseForm.amount || !expenseForm.category) return;
+    
+    addExpense({
+      description: expenseForm.description,
+      amount: parseFloat(expenseForm.amount),
+      category: expenseForm.category,
+      date: expenseForm.date
+    });
+    
+    setExpenseForm({
+      description: '',
+      amount: '',
+      category: '',
+      date: new Date().toISOString().split('T')[0]
+    });
+  };
+
+  return (
+    <Card className="p-6">
+      <div className="flex items-center space-x-3 mb-6">
+        <div className="p-2 bg-green-100 rounded-lg">
+          <Plus className="w-6 h-6 text-green-600" />
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">Adicionar Transação</h3>
+          <p className="text-sm text-gray-600">Registre suas receitas e despesas</p>
+        </div>
+      </div>
+
+      <Tabs defaultValue="income" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="income" className="text-green-600">Receita</TabsTrigger>
+          <TabsTrigger value="expense" className="text-red-600">Despesa</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="income">
+          <form onSubmit={handleIncomeSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="income-description">Descrição</Label>
+              <Input
+                id="income-description"
+                value={incomeForm.description}
+                onChange={(e) => setIncomeForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Ex: Salário de janeiro"
+                required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="income-amount">Valor</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="income-amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={incomeForm.amount}
+                  onChange={(e) => setIncomeForm(prev => ({ ...prev, amount: e.target.value }))}
+                  placeholder="0.00"
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="income-category">Categoria</Label>
+              <Select
+                value={incomeForm.category}
+                onValueChange={(value) => setIncomeForm(prev => ({ ...prev, category: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  {incomeCategories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="income-date">Data</Label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="income-date"
+                  type="date"
+                  value={incomeForm.date}
+                  onChange={(e) => setIncomeForm(prev => ({ ...prev, date: e.target.value }))}
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+            
+            <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={isAddingIncome}>
+              {isAddingIncome ? 'Adicionando...' : 'Adicionar Receita'}
+            </Button>
+          </form>
+        </TabsContent>
+        
+        <TabsContent value="expense">
+          <form onSubmit={handleExpenseSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="expense-description">Descrição</Label>
+              <Input
+                id="expense-description"
+                value={expenseForm.description}
+                onChange={(e) => setExpenseForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Ex: Compras no supermercado"
+                required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="expense-amount">Valor</Label>
+              <div className="relative">
+                <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="expense-amount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={expenseForm.amount}
+                  onChange={(e) => setExpenseForm(prev => ({ ...prev, amount: e.target.value }))}
+                  placeholder="0.00"
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label htmlFor="expense-category">Categoria</Label>
+              <Select
+                value={expenseForm.category}
+                onValueChange={(value) => setExpenseForm(prev => ({ ...prev, category: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  {expenseCategories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="expense-date">Data</Label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="expense-date"
+                  type="date"
+                  value={expenseForm.date}
+                  onChange={(e) => setExpenseForm(prev => ({ ...prev, date: e.target.value }))}
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+            
+            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700" disabled={isAddingExpense}>
+              {isAddingExpense ? 'Adicionando...' : 'Adicionar Despesa'}
+            </Button>
+          </form>
+        </TabsContent>
+      </Tabs>
+    </Card>
+  );
+};
+
+export default AddTransactionForm;

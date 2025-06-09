@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { useFinancialData } from '@/hooks/useFinancialData';
 
-const Goals = () => {
+const UpdatedGoals = () => {
   const { goals, updateGoal, isUpdatingGoal } = useFinancialData();
   const [updatingGoalId, setUpdatingGoalId] = useState<string | null>(null);
   const [depositAmount, setDepositAmount] = useState('');
@@ -159,4 +159,4 @@ const Goals = () => {
   );
 };
 
-export default Goals;
+export default UpdatedGoals;

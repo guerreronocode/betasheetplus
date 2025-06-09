@@ -77,7 +77,7 @@ const achievementDefinitions = [
   }
 ];
 
-const Achievements = () => {
+const InteractiveAchievements = () => {
   const { achievements, awardAchievement, isAwarding } = useUserStats();
   const financialData = useFinancialData();
   
@@ -207,4 +207,4 @@ const Achievements = () => {
   );
 };
 
-export default Achievements;
+export default InteractiveAchievements;

@@ -4,7 +4,7 @@ import { TrendingUp, TrendingDown, Wallet, PiggyBank } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useFinancialData } from '@/hooks/useFinancialData';
 
-const QuickStats = () => {
+const UpdatedQuickStats = () => {
   const { income, expenses, investments, isLoading } = useFinancialData();
 
   if (isLoading) {
@@ -127,4 +127,4 @@ const QuickStats = () => {
   );
 };
 
-export default QuickStats;
+export default UpdatedQuickStats;
