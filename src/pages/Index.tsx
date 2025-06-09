@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import Header from '@/components/Header';
 import QuickStats from '@/components/QuickStats';
 import FinancialScore from '@/components/FinancialScore';
@@ -8,6 +9,18 @@ import Achievements from '@/components/Achievements';
 import MonthlyObjectives from '@/components/MonthlyObjectives';
 
 const Index = () => {
+  const { user } = useAuth();
+  
+  const getUserDisplayName = () => {
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name.split(' ')[0];
+    }
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return 'Usuário';
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -17,7 +30,7 @@ const Index = () => {
         <div className="mb-8">
           <div className="mb-6">
             <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Olá, João! 👋
+              Olá, {getUserDisplayName()}! 👋
             </h2>
             <p className="text-gray-600">
               Você está no <span className="font-semibold text-green-600">Nível 7</span> e ganhou <span className="font-semibold text-yellow-600">+120 pontos</span> esta semana!
