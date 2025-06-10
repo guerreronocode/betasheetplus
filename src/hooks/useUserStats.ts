@@ -82,11 +82,11 @@ export const useUserStats = () => {
     enabled: !!user,
   });
 
-  // Achievement definitions - using RPC to access new table
+  // Achievement definitions - using edge function
   const { data: achievementDefinitions = [], isLoading: definitionsLoading } = useQuery({
     queryKey: ['achievement_definitions'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_achievement_definitions');
+      const { data, error } = await supabase.functions.invoke('get-achievement-definitions');
       if (error) {
         console.log('Error fetching achievement definitions:', error);
         return [];

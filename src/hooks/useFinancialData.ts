@@ -246,11 +246,11 @@ export const useFinancialData = () => {
     },
   });
 
-  // Yield rates query - using raw SQL to access new table
+  // Yield rates query - using edge function
   const { data: yieldRates = [] } = useQuery({
     queryKey: ['yield_rates'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_yield_rates');
+      const { data, error } = await supabase.functions.invoke('get-yield-rates');
       if (error) {
         console.log('Error fetching yield rates:', error);
         return [];
@@ -259,11 +259,11 @@ export const useFinancialData = () => {
     },
   });
 
-  // Asset prices query - using raw SQL to access new table
+  // Asset prices query - using edge function
   const { data: assetPrices = [] } = useQuery({
     queryKey: ['asset_prices'],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_asset_prices');
+      const { data, error } = await supabase.functions.invoke('get-asset-prices');
       if (error) {
         console.log('Error fetching asset prices:', error);
         return [];
