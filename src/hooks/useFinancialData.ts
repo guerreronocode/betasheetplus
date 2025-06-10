@@ -147,7 +147,19 @@ export const useFinancialData = () => {
         .order('purchase_date', { ascending: false });
       
       if (error) throw error;
-      return data as Investment[];
+      
+      // Transform data to match our Investment interface
+      return (data || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        type: item.type,
+        amount: item.amount,
+        current_value: item.current_value || item.amount,
+        purchase_date: item.purchase_date,
+        yield_type: (item as any).yield_type || 'fixed',
+        yield_rate: (item as any).yield_rate || 0,
+        last_yield_update: (item as any).last_yield_update || item.purchase_date,
+      })) as Investment[];
     },
     enabled: !!user,
   });
@@ -234,31 +246,29 @@ export const useFinancialData = () => {
     },
   });
 
-  // Yield rates query
+  // Yield rates query - using raw SQL to access new table
   const { data: yieldRates = [] } = useQuery({
     queryKey: ['yield_rates'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('yield_rates')
-        .select('*')
-        .order('reference_date', { ascending: false });
-      
-      if (error) throw error;
-      return data as YieldRate[];
+      const { data, error } = await supabase.rpc('get_yield_rates');
+      if (error) {
+        console.log('Error fetching yield rates:', error);
+        return [];
+      }
+      return (data || []) as YieldRate[];
     },
   });
 
-  // Asset prices query
+  // Asset prices query - using raw SQL to access new table
   const { data: assetPrices = [] } = useQuery({
     queryKey: ['asset_prices'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('asset_prices')
-        .select('*')
-        .order('last_update', { ascending: false });
-      
-      if (error) throw error;
-      return data as AssetPrice[];
+      const { data, error } = await supabase.rpc('get_asset_prices');
+      if (error) {
+        console.log('Error fetching asset prices:', error);
+        return [];
+      }
+      return (data || []) as AssetPrice[];
     },
   });
 

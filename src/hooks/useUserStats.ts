@@ -48,7 +48,20 @@ export const useUserStats = () => {
         .single();
       
       if (error) throw error;
-      return data as UserStats;
+      
+      // Transform data to match our UserStats interface
+      return {
+        user_id: data.user_id,
+        level: data.level || 1,
+        total_points: data.total_points || 0,
+        current_streak: data.current_streak || 0,
+        longest_streak: data.longest_streak || 0,
+        last_activity: data.last_activity || new Date().toISOString().split('T')[0],
+        consecutive_days_accessed: (data as any).consecutive_days_accessed || 0,
+        total_transactions: (data as any).total_transactions || 0,
+        positive_balance_days: (data as any).positive_balance_days || 0,
+        goals_completed: (data as any).goals_completed || 0,
+      } as UserStats;
     },
     enabled: !!user,
   });
@@ -69,16 +82,16 @@ export const useUserStats = () => {
     enabled: !!user,
   });
 
+  // Achievement definitions - using RPC to access new table
   const { data: achievementDefinitions = [], isLoading: definitionsLoading } = useQuery({
     queryKey: ['achievement_definitions'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('achievement_definitions')
-        .select('*')
-        .order('category', { ascending: true });
-      
-      if (error) throw error;
-      return data as AchievementDefinition[];
+      const { data, error } = await supabase.rpc('get_achievement_definitions');
+      if (error) {
+        console.log('Error fetching achievement definitions:', error);
+        return [];
+      }
+      return (data || []) as AchievementDefinition[];
     },
   });
 

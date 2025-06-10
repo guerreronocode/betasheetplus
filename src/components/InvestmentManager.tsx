@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { TrendingUp, Plus, Building, Coins } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -28,7 +27,8 @@ const InvestmentManager = () => {
     name: '',
     type: '',
     amount: '',
-    current_value: '',
+    yield_type: 'fixed' as 'fixed' | 'cdi' | 'selic' | 'ipca',
+    yield_rate: '',
     purchase_date: new Date().toISOString().split('T')[0]
   });
 
@@ -40,15 +40,17 @@ const InvestmentManager = () => {
       name: form.name,
       type: form.type,
       amount: parseFloat(form.amount),
-      current_value: parseFloat(form.current_value) || parseFloat(form.amount),
-      purchase_date: form.purchase_date
+      purchase_date: form.purchase_date,
+      yield_type: form.yield_type,
+      yield_rate: parseFloat(form.yield_rate) || 0
     });
     
     setForm({
       name: '',
       type: '',
       amount: '',
-      current_value: '',
+      yield_type: 'fixed',
+      yield_rate: '',
       purchase_date: new Date().toISOString().split('T')[0]
     });
     
@@ -144,15 +146,33 @@ const InvestmentManager = () => {
               </div>
               
               <div>
-                <Label htmlFor="current_value">Valor Atual (opcional)</Label>
+                <Label htmlFor="yield_type">Tipo de Rendimento</Label>
+                <Select
+                  value={form.yield_type}
+                  onValueChange={(value: 'fixed' | 'cdi' | 'selic' | 'ipca') => setForm(prev => ({ ...prev, yield_type: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo de rendimento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fixed">Taxa Fixa</SelectItem>
+                    <SelectItem value="cdi">CDI</SelectItem>
+                    <SelectItem value="selic">SELIC</SelectItem>
+                    <SelectItem value="ipca">IPCA</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="yield_rate">Taxa de Rendimento (%)</Label>
                 <Input
-                  id="current_value"
+                  id="yield_rate"
                   type="number"
                   step="0.01"
                   min="0"
-                  value={form.current_value}
-                  onChange={(e) => setForm(prev => ({ ...prev, current_value: e.target.value }))}
-                  placeholder="Deixe vazio para usar o valor investido"
+                  value={form.yield_rate}
+                  onChange={(e) => setForm(prev => ({ ...prev, yield_rate: e.target.value }))}
+                  placeholder="Ex: 12.5"
                 />
               </div>
               
