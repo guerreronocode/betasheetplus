@@ -27,6 +27,9 @@ export interface Investment {
   amount: number;
   current_value: number;
   purchase_date: string;
+  yield_type: 'fixed' | 'cdi' | 'selic' | 'ipca';
+  yield_rate: number;
+  last_yield_update: string;
 }
 
 export interface Goal {
@@ -37,6 +40,22 @@ export interface Goal {
   deadline: string | null;
   color: string;
   completed: boolean;
+}
+
+export interface YieldRate {
+  id: string;
+  rate_type: string;
+  rate_value: number;
+  reference_date: string;
+}
+
+export interface AssetPrice {
+  id: string;
+  symbol: string;
+  price: number;
+  currency: string;
+  last_update: string;
+  source: string;
 }
 
 export const useFinancialData = () => {
@@ -75,10 +94,8 @@ export const useFinancialData = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['income'] });
+      queryClient.invalidateQueries({ queryKey: ['user_stats'] });
       toast({ title: 'Receita adicionada com sucesso!' });
-    },
-    onError: (error) => {
-      toast({ title: 'Erro ao adicionar receita', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -113,10 +130,8 @@ export const useFinancialData = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['user_stats'] });
       toast({ title: 'Despesa adicionada com sucesso!' });
-    },
-    onError: (error) => {
-      toast({ title: 'Erro ao adicionar despesa', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -138,11 +153,16 @@ export const useFinancialData = () => {
   });
 
   const addInvestmentMutation = useMutation({
-    mutationFn: async (investment: Omit<Investment, 'id'>) => {
+    mutationFn: async (investment: Omit<Investment, 'id' | 'current_value' | 'last_yield_update'>) => {
       if (!user) throw new Error('User not authenticated');
       const { data, error } = await supabase
         .from('investments')
-        .insert([{ ...investment, user_id: user.id }])
+        .insert([{ 
+          ...investment, 
+          user_id: user.id,
+          current_value: investment.amount,
+          last_yield_update: new Date().toISOString().split('T')[0]
+        }])
         .select()
         .single();
       
@@ -151,10 +171,8 @@ export const useFinancialData = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['investments'] });
+      queryClient.invalidateQueries({ queryKey: ['user_stats'] });
       toast({ title: 'Investimento adicionado com sucesso!' });
-    },
-    onError: (error) => {
-      toast({ title: 'Erro ao adicionar investimento', description: error.message, variant: 'destructive' });
     },
   });
 
@@ -175,6 +193,29 @@ export const useFinancialData = () => {
     enabled: !!user,
   });
 
+  const addGoalMutation = useMutation({
+    mutationFn: async (goal: Omit<Goal, 'id' | 'current_amount' | 'completed'>) => {
+      if (!user) throw new Error('User not authenticated');
+      const { data, error } = await supabase
+        .from('goals')
+        .insert([{ 
+          ...goal, 
+          user_id: user.id,
+          current_amount: 0,
+          completed: false
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['goals'] });
+      toast({ title: 'Meta criada com sucesso!' });
+    },
+  });
+
   const updateGoalMutation = useMutation({
     mutationFn: async ({ id, current_amount }: { id: string; current_amount: number }) => {
       const { data, error } = await supabase
@@ -191,24 +232,76 @@ export const useFinancialData = () => {
       queryClient.invalidateQueries({ queryKey: ['goals'] });
       toast({ title: 'Meta atualizada com sucesso!' });
     },
-    onError: (error) => {
-      toast({ title: 'Erro ao atualizar meta', description: error.message, variant: 'destructive' });
+  });
+
+  // Yield rates query
+  const { data: yieldRates = [] } = useQuery({
+    queryKey: ['yield_rates'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('yield_rates')
+        .select('*')
+        .order('reference_date', { ascending: false });
+      
+      if (error) throw error;
+      return data as YieldRate[];
     },
   });
+
+  // Asset prices query
+  const { data: assetPrices = [] } = useQuery({
+    queryKey: ['asset_prices'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('asset_prices')
+        .select('*')
+        .order('last_update', { ascending: false });
+      
+      if (error) throw error;
+      return data as AssetPrice[];
+    },
+  });
+
+  // Calculate financial metrics
+  const totalIncome = income.reduce((sum, item) => sum + item.amount, 0);
+  const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
+  const totalInvested = investments.reduce((sum, item) => sum + item.amount, 0);
+  const currentInvestmentValue = investments.reduce((sum, item) => sum + item.current_value, 0);
+  
+  // Available balance = Income - Expenses - Invested Amount
+  const availableBalance = totalIncome - totalExpenses - totalInvested;
+  
+  // Net worth = Available balance + Current investment value
+  const netWorth = availableBalance + currentInvestmentValue;
+  
+  // Investment return
+  const investmentReturn = currentInvestmentValue - totalInvested;
 
   return {
     income,
     expenses,
     investments,
     goals,
+    yieldRates,
+    assetPrices,
     isLoading: incomeLoading || expensesLoading || investmentsLoading || goalsLoading,
     addIncome: addIncomeMutation.mutate,
     addExpense: addExpenseMutation.mutate,
     addInvestment: addInvestmentMutation.mutate,
+    addGoal: addGoalMutation.mutate,
     updateGoal: updateGoalMutation.mutate,
     isAddingIncome: addIncomeMutation.isPending,
     isAddingExpense: addExpenseMutation.isPending,
     isAddingInvestment: addInvestmentMutation.isPending,
     isUpdatingGoal: updateGoalMutation.isPending,
+    
+    // Financial metrics
+    totalIncome,
+    totalExpenses,
+    totalInvested,
+    currentInvestmentValue,
+    availableBalance,
+    netWorth,
+    investmentReturn,
   };
 };

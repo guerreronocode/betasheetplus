@@ -10,6 +10,10 @@ export interface UserStats {
   current_streak: number;
   longest_streak: number;
   last_activity: string;
+  consecutive_days_accessed: number;
+  total_transactions: number;
+  positive_balance_days: number;
+  goals_completed: number;
 }
 
 export interface Achievement {
@@ -17,6 +21,16 @@ export interface Achievement {
   achievement_id: string;
   unlocked_at: string;
   points_earned: number;
+}
+
+export interface AchievementDefinition {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  points: number;
+  icon: string;
+  criteria: any;
 }
 
 export const useUserStats = () => {
@@ -55,6 +69,19 @@ export const useUserStats = () => {
     enabled: !!user,
   });
 
+  const { data: achievementDefinitions = [], isLoading: definitionsLoading } = useQuery({
+    queryKey: ['achievement_definitions'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('achievement_definitions')
+        .select('*')
+        .order('category', { ascending: true });
+      
+      if (error) throw error;
+      return data as AchievementDefinition[];
+    },
+  });
+
   const awardAchievementMutation = useMutation({
     mutationFn: async ({ achievement_id, points }: { achievement_id: string; points: number }) => {
       if (!user) throw new Error('User not authenticated');
@@ -73,11 +100,46 @@ export const useUserStats = () => {
     },
   });
 
+  const updateUserStatsMutation = useMutation({
+    mutationFn: async (updates: Partial<UserStats>) => {
+      if (!user) throw new Error('User not authenticated');
+      const { data, error } = await supabase
+        .from('user_stats')
+        .update(updates)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user_stats'] });
+    },
+  });
+
+  // Group achievements by category for easier display
+  const achievementsByCategory = achievementDefinitions.reduce((acc, def) => {
+    if (!acc[def.category]) {
+      acc[def.category] = [];
+    }
+    acc[def.category].push(def);
+    return acc;
+  }, {} as Record<string, AchievementDefinition[]>);
+
+  // Get unlocked achievement IDs for quick lookup
+  const unlockedAchievementIds = new Set(achievements.map(a => a.achievement_id));
+
   return {
     userStats,
     achievements,
-    isLoading: statsLoading || achievementsLoading,
+    achievementDefinitions,
+    achievementsByCategory,
+    unlockedAchievementIds,
+    isLoading: statsLoading || achievementsLoading || definitionsLoading,
     awardAchievement: awardAchievementMutation.mutate,
+    updateUserStats: updateUserStatsMutation.mutate,
     isAwarding: awardAchievementMutation.isPending,
+    isUpdatingStats: updateUserStatsMutation.isPending,
   };
 };

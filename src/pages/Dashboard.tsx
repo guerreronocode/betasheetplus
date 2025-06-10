@@ -1,106 +1,63 @@
 
-import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useState } from 'react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Header from '@/components/Header';
 import UpdatedQuickStats from '@/components/UpdatedQuickStats';
-import FinancialScore from '@/components/FinancialScore';
-import AddTransactionForm from '@/components/AddTransactionForm';
 import TransactionsList from '@/components/TransactionsList';
-import InvestmentManager from '@/components/InvestmentManager';
-import UpdatedGoals from '@/components/UpdatedGoals';
-import InteractiveAchievements from '@/components/InteractiveAchievements';
-import MonthlyObjectives from '@/components/MonthlyObjectives';
+import AdvancedInvestmentManager from '@/components/AdvancedInvestmentManager';
+import AdvancedGoalsPanel from '@/components/AdvancedGoalsPanel';
+import AchievementsPanel from '@/components/AchievementsPanel';
+import AddTransactionForm from '@/components/AddTransactionForm';
 
 const Dashboard = () => {
-  const { user } = useAuth();
-  
-  const getUserDisplayName = () => {
-    if (user?.user_metadata?.full_name) {
-      return user.user_metadata.full_name.split(' ')[0];
-    }
-    if (user?.email) {
-      return user.email.split('@')[0];
-    }
-    return 'Usuário';
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Boas vindas e estatísticas rápidas */}
         <div className="mb-8">
-          <div className="mb-6">
-            <h2 className="text-3xl font-bold text-gray-900 mb-2">
-              Olá, {getUserDisplayName()}! 👋
-            </h2>
-            <p className="text-gray-600">
-              Gerencie suas finanças de forma inteligente e divertida!
-            </p>
-          </div>
-          
           <UpdatedQuickStats />
         </div>
 
-        {/* Layout em grid responsivo */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Coluna principal */}
-          <div className="lg:col-span-2 space-y-8">
-            <AddTransactionForm />
-            <TransactionsList />
-            <InvestmentManager />
-            <FinancialScore />
-            <UpdatedGoals />
-            <InteractiveAchievements />
-          </div>
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="grid w-full grid-cols-5">
+            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="transactions">Transações</TabsTrigger>
+            <TabsTrigger value="investments">Investimentos</TabsTrigger>
+            <TabsTrigger value="goals">Metas</TabsTrigger>
+            <TabsTrigger value="achievements">Conquistas</TabsTrigger>
+          </TabsList>
 
-          {/* Sidebar */}
-          <div className="space-y-8">
-            <MonthlyObjectives />
-            
-            {/* Card de dica rápida */}
-            <div className="bg-gradient-finance p-6 rounded-lg text-white">
-              <h4 className="font-semibold mb-2">💡 Dica do Dia</h4>
-              <p className="text-sm opacity-90 mb-4">
-                Revisar seus gastos semanalmente pode aumentar sua taxa de poupança em até 15%!
-              </p>
-              <button className="bg-white text-green-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors">
-                Revisar Gastos
-              </button>
+          <TabsContent value="overview" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <AddTransactionForm />
+              <TransactionsList />
             </div>
+          </TabsContent>
 
-            {/* Progresso semanal */}
-            <div className="bg-white p-6 rounded-lg border border-gray-200">
-              <h4 className="font-semibold mb-4 text-gray-900">Progresso Semanal</h4>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Receitas registradas</span>
-                  <span className="text-sm font-medium">100%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-green-500 h-2 rounded-full w-full"></div>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Gastos controlados</span>
-                  <span className="text-sm font-medium">78%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-blue-500 h-2 rounded-full w-3/4"></div>
-                </div>
-                
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Metas atingidas</span>
-                  <span className="text-sm font-medium">60%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-purple-500 h-2 rounded-full w-3/5"></div>
-                </div>
+          <TabsContent value="transactions">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-1">
+                <AddTransactionForm />
+              </div>
+              <div className="lg:col-span-2">
+                <TransactionsList />
               </div>
             </div>
-          </div>
-        </div>
+          </TabsContent>
+
+          <TabsContent value="investments">
+            <AdvancedInvestmentManager />
+          </TabsContent>
+
+          <TabsContent value="goals">
+            <AdvancedGoalsPanel />
+          </TabsContent>
+
+          <TabsContent value="achievements">
+            <AchievementsPanel />
+          </TabsContent>
+        </Tabs>
       </main>
     </div>
   );
