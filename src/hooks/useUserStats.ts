@@ -31,6 +31,7 @@ export interface AchievementDefinition {
   points: number;
   icon: string;
   criteria: any;
+  is_active: boolean;
 }
 
 export const useUserStats = () => {
@@ -57,10 +58,10 @@ export const useUserStats = () => {
         current_streak: data.current_streak || 0,
         longest_streak: data.longest_streak || 0,
         last_activity: data.last_activity || new Date().toISOString().split('T')[0],
-        consecutive_days_accessed: (data as any).consecutive_days_accessed || 0,
-        total_transactions: (data as any).total_transactions || 0,
-        positive_balance_days: (data as any).positive_balance_days || 0,
-        goals_completed: (data as any).goals_completed || 0,
+        consecutive_days_accessed: data.consecutive_days_accessed || 0,
+        total_transactions: data.total_transactions || 0,
+        positive_balance_days: data.positive_balance_days || 0,
+        goals_completed: data.goals_completed || 0,
       } as UserStats;
     },
     enabled: !!user,

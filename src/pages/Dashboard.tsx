@@ -7,6 +7,8 @@ import TransactionsList from '@/components/TransactionsList';
 import AdvancedInvestmentManager from '@/components/AdvancedInvestmentManager';
 import AdvancedGoalsPanel from '@/components/AdvancedGoalsPanel';
 import AchievementsPanel from '@/components/AchievementsPanel';
+import AdvancedAchievements from '@/components/AdvancedAchievements';
+import BankAccountManager from '@/components/BankAccountManager';
 import AddTransactionForm from '@/components/AddTransactionForm';
 
 const Dashboard = () => {
@@ -20,8 +22,9 @@ const Dashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="accounts">Contas</TabsTrigger>
             <TabsTrigger value="transactions">Transações</TabsTrigger>
             <TabsTrigger value="investments">Investimentos</TabsTrigger>
             <TabsTrigger value="goals">Metas</TabsTrigger>
@@ -33,6 +36,10 @@ const Dashboard = () => {
               <AddTransactionForm />
               <TransactionsList />
             </div>
+          </TabsContent>
+
+          <TabsContent value="accounts">
+            <BankAccountManager />
           </TabsContent>
 
           <TabsContent value="transactions">
@@ -55,7 +62,7 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="achievements">
-            <AchievementsPanel />
+            <AdvancedAchievements />
           </TabsContent>
         </Tabs>
       </main>

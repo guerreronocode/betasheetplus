@@ -18,9 +18,10 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const { data, error } = await supabaseClient
+    const { data: achievements, error } = await supabaseClient
       .from('achievement_definitions')
       .select('*')
+      .eq('is_active', true)
       .order('category', { ascending: true })
 
     if (error) {
@@ -28,13 +29,14 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify(data),
+      JSON.stringify(achievements || []),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200
       }
     )
   } catch (error) {
+    console.error('Error fetching achievement definitions:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 

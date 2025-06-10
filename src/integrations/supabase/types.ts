@@ -9,9 +9,85 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      achievement_definitions: {
+        Row: {
+          category: string
+          created_at: string
+          criteria: Json
+          description: string
+          icon: string
+          id: string
+          is_active: boolean | null
+          points: number
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          criteria: Json
+          description: string
+          icon: string
+          id: string
+          is_active?: boolean | null
+          points?: number
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          criteria?: Json
+          description?: string
+          icon?: string
+          id?: string
+          is_active?: boolean | null
+          points?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      bank_accounts: {
+        Row: {
+          account_type: string
+          balance: number
+          bank_name: string
+          color: string | null
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          account_type?: string
+          balance?: number
+          bank_name: string
+          color?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          account_type?: string
+          balance?: number
+          bank_name?: string
+          color?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
+          bank_account_id: string | null
           category: string
           created_at: string
           date: string
@@ -22,6 +98,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          bank_account_id?: string | null
           category: string
           created_at?: string
           date?: string
@@ -32,6 +109,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          bank_account_id?: string | null
           category?: string
           created_at?: string
           date?: string
@@ -40,7 +118,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "expenses_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       goals: {
         Row: {
@@ -84,6 +170,7 @@ export type Database = {
       income: {
         Row: {
           amount: number
+          bank_account_id: string | null
           category: string
           created_at: string
           date: string
@@ -94,6 +181,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          bank_account_id?: string | null
           category: string
           created_at?: string
           date?: string
@@ -104,6 +192,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          bank_account_id?: string | null
           category?: string
           created_at?: string
           date?: string
@@ -112,41 +201,129 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "income_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      interest_rates: {
+        Row: {
+          id: string
+          last_update: string
+          rate_type: string
+          rate_value: number
+          reference_date: string
+        }
+        Insert: {
+          id?: string
+          last_update?: string
+          rate_type: string
+          rate_value: number
+          reference_date: string
+        }
+        Update: {
+          id?: string
+          last_update?: string
+          rate_type?: string
+          rate_value?: number
+          reference_date?: string
+        }
         Relationships: []
       }
       investments: {
         Row: {
           amount: number
+          bank_account_id: string | null
           created_at: string
           current_value: number | null
           id: string
+          last_yield_update: string | null
           name: string
           purchase_date: string
           type: string
           updated_at: string
           user_id: string
+          yield_rate: number | null
+          yield_type: string | null
         }
         Insert: {
           amount: number
+          bank_account_id?: string | null
           created_at?: string
           current_value?: number | null
           id?: string
+          last_yield_update?: string | null
           name: string
           purchase_date?: string
           type: string
           updated_at?: string
           user_id: string
+          yield_rate?: number | null
+          yield_type?: string | null
         }
         Update: {
           amount?: number
+          bank_account_id?: string | null
           created_at?: string
           current_value?: number | null
           id?: string
+          last_yield_update?: string | null
           name?: string
           purchase_date?: string
           type?: string
           updated_at?: string
           user_id?: string
+          yield_rate?: number | null
+          yield_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investments_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      market_data: {
+        Row: {
+          change_percent: number | null
+          current_price: number | null
+          data_source: string | null
+          id: string
+          last_update: string
+          market_cap: number | null
+          name: string
+          symbol: string
+          volume: number | null
+        }
+        Insert: {
+          change_percent?: number | null
+          current_price?: number | null
+          data_source?: string | null
+          id?: string
+          last_update?: string
+          market_cap?: number | null
+          name: string
+          symbol: string
+          volume?: number | null
+        }
+        Update: {
+          change_percent?: number | null
+          current_price?: number | null
+          data_source?: string | null
+          id?: string
+          last_update?: string
+          market_cap?: number | null
+          name?: string
+          symbol?: string
+          volume?: number | null
         }
         Relationships: []
       }
@@ -203,32 +380,44 @@ export type Database = {
       }
       user_stats: {
         Row: {
+          consecutive_days_accessed: number | null
           created_at: string
           current_streak: number | null
+          goals_completed: number | null
           last_activity: string | null
           level: number | null
           longest_streak: number | null
+          positive_balance_days: number | null
           total_points: number | null
+          total_transactions: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          consecutive_days_accessed?: number | null
           created_at?: string
           current_streak?: number | null
+          goals_completed?: number | null
           last_activity?: string | null
           level?: number | null
           longest_streak?: number | null
+          positive_balance_days?: number | null
           total_points?: number | null
+          total_transactions?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          consecutive_days_accessed?: number | null
           created_at?: string
           current_streak?: number | null
+          goals_completed?: number | null
           last_activity?: string | null
           level?: number | null
           longest_streak?: number | null
+          positive_balance_days?: number | null
           total_points?: number | null
+          total_transactions?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -242,6 +431,10 @@ export type Database = {
       award_achievement: {
         Args: { p_user_id: string; p_achievement_id: string; p_points: number }
         Returns: boolean
+      }
+      update_investment_yields: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {

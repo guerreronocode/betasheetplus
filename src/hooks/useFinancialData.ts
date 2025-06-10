@@ -10,6 +10,7 @@ export interface IncomeEntry {
   amount: number;
   category: string;
   date: string;
+  bank_account_id?: string;
 }
 
 export interface ExpenseEntry {
@@ -18,6 +19,7 @@ export interface ExpenseEntry {
   amount: number;
   category: string;
   date: string;
+  bank_account_id?: string;
 }
 
 export interface Investment {
@@ -30,6 +32,7 @@ export interface Investment {
   yield_type: 'fixed' | 'cdi' | 'selic' | 'ipca';
   yield_rate: number;
   last_yield_update: string;
+  bank_account_id?: string;
 }
 
 export interface Goal {
@@ -40,6 +43,16 @@ export interface Goal {
   deadline: string | null;
   color: string;
   completed: boolean;
+}
+
+export interface BankAccount {
+  id: string;
+  name: string;
+  bank_name: string;
+  account_type: string;
+  balance: number;
+  color: string;
+  is_active: boolean;
 }
 
 export interface YieldRate {
@@ -63,6 +76,42 @@ export const useFinancialData = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Bank accounts queries and mutations
+  const { data: bankAccounts = [], isLoading: bankAccountsLoading } = useQuery({
+    queryKey: ['bank_accounts', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('bank_accounts')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as BankAccount[];
+    },
+    enabled: !!user,
+  });
+
+  const addBankAccountMutation = useMutation({
+    mutationFn: async (account: Omit<BankAccount, 'id' | 'is_active'>) => {
+      if (!user) throw new Error('User not authenticated');
+      const { data, error } = await supabase
+        .from('bank_accounts')
+        .insert([{ ...account, user_id: user.id }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
+      toast({ title: 'Conta bancária adicionada com sucesso!' });
+    },
+  });
+
   // Income queries and mutations
   const { data: income = [], isLoading: incomeLoading } = useQuery({
     queryKey: ['income', user?.id],
@@ -83,6 +132,21 @@ export const useFinancialData = () => {
   const addIncomeMutation = useMutation({
     mutationFn: async (income: Omit<IncomeEntry, 'id'>) => {
       if (!user) throw new Error('User not authenticated');
+      
+      // If bank account is specified, update its balance
+      if (income.bank_account_id) {
+        const { error: balanceError } = await supabase
+          .from('bank_accounts')
+          .update({ 
+            balance: supabase.sql`balance + ${income.amount}`,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', income.bank_account_id)
+          .eq('user_id', user.id);
+        
+        if (balanceError) throw balanceError;
+      }
+
       const { data, error } = await supabase
         .from('income')
         .insert([{ ...income, user_id: user.id }])
@@ -94,6 +158,7 @@ export const useFinancialData = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['income'] });
+      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
       queryClient.invalidateQueries({ queryKey: ['user_stats'] });
       toast({ title: 'Receita adicionada com sucesso!' });
     },
@@ -119,6 +184,21 @@ export const useFinancialData = () => {
   const addExpenseMutation = useMutation({
     mutationFn: async (expense: Omit<ExpenseEntry, 'id'>) => {
       if (!user) throw new Error('User not authenticated');
+      
+      // If bank account is specified, update its balance
+      if (expense.bank_account_id) {
+        const { error: balanceError } = await supabase
+          .from('bank_accounts')
+          .update({ 
+            balance: supabase.sql`balance - ${expense.amount}`,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', expense.bank_account_id)
+          .eq('user_id', user.id);
+        
+        if (balanceError) throw balanceError;
+      }
+
       const { data, error } = await supabase
         .from('expenses')
         .insert([{ ...expense, user_id: user.id }])
@@ -130,6 +210,7 @@ export const useFinancialData = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
       queryClient.invalidateQueries({ queryKey: ['user_stats'] });
       toast({ title: 'Despesa adicionada com sucesso!' });
     },
@@ -159,6 +240,7 @@ export const useFinancialData = () => {
         yield_type: (item as any).yield_type || 'fixed',
         yield_rate: (item as any).yield_rate || 0,
         last_yield_update: (item as any).last_yield_update || item.purchase_date,
+        bank_account_id: (item as any).bank_account_id,
       })) as Investment[];
     },
     enabled: !!user,
@@ -167,6 +249,22 @@ export const useFinancialData = () => {
   const addInvestmentMutation = useMutation({
     mutationFn: async (investment: Omit<Investment, 'id' | 'current_value' | 'last_yield_update'>) => {
       if (!user) throw new Error('User not authenticated');
+      
+      // Investment transfers money from available balance to invested amount
+      // This doesn't increase net worth, just moves money between categories
+      if (investment.bank_account_id) {
+        const { error: balanceError } = await supabase
+          .from('bank_accounts')
+          .update({ 
+            balance: supabase.sql`balance - ${investment.amount}`,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', investment.bank_account_id)
+          .eq('user_id', user.id);
+        
+        if (balanceError) throw balanceError;
+      }
+
       const { data, error } = await supabase
         .from('investments')
         .insert([{ 
@@ -183,6 +281,7 @@ export const useFinancialData = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['investments'] });
+      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
       queryClient.invalidateQueries({ queryKey: ['user_stats'] });
       toast({ title: 'Investimento adicionado com sucesso!' });
     },
@@ -277,12 +376,13 @@ export const useFinancialData = () => {
   const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
   const totalInvested = investments.reduce((sum, item) => sum + item.amount, 0);
   const currentInvestmentValue = investments.reduce((sum, item) => sum + item.current_value, 0);
+  const totalBankBalance = bankAccounts.reduce((sum, account) => sum + account.balance, 0);
   
-  // Available balance = Income - Expenses - Invested Amount
-  const availableBalance = totalIncome - totalExpenses - totalInvested;
+  // Correct net worth calculation: bank balances + current investment value
+  const netWorth = totalBankBalance + currentInvestmentValue;
   
-  // Net worth = Available balance + Current investment value
-  const netWorth = availableBalance + currentInvestmentValue;
+  // Available balance is the sum of all bank account balances
+  const availableBalance = totalBankBalance;
   
   // Investment return
   const investmentReturn = currentInvestmentValue - totalInvested;
@@ -292,20 +392,23 @@ export const useFinancialData = () => {
     expenses,
     investments,
     goals,
+    bankAccounts,
     yieldRates,
     assetPrices,
-    isLoading: incomeLoading || expensesLoading || investmentsLoading || goalsLoading,
+    isLoading: incomeLoading || expensesLoading || investmentsLoading || goalsLoading || bankAccountsLoading,
     addIncome: addIncomeMutation.mutate,
     addExpense: addExpenseMutation.mutate,
     addInvestment: addInvestmentMutation.mutate,
     addGoal: addGoalMutation.mutate,
+    addBankAccount: addBankAccountMutation.mutate,
     updateGoal: updateGoalMutation.mutate,
     isAddingIncome: addIncomeMutation.isPending,
     isAddingExpense: addExpenseMutation.isPending,
     isAddingInvestment: addInvestmentMutation.isPending,
+    isAddingBankAccount: addBankAccountMutation.isPending,
     isUpdatingGoal: updateGoalMutation.isPending,
     
-    // Financial metrics
+    // Financial metrics with corrected calculations
     totalIncome,
     totalExpenses,
     totalInvested,
