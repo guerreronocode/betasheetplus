@@ -135,10 +135,22 @@ export const useFinancialData = () => {
       
       // If bank account is specified, update its balance
       if (income.bank_account_id) {
+        // First get the current balance
+        const { data: currentAccount, error: fetchError } = await supabase
+          .from('bank_accounts')
+          .select('balance')
+          .eq('id', income.bank_account_id)
+          .eq('user_id', user.id)
+          .single();
+        
+        if (fetchError) throw fetchError;
+        
+        // Update the balance
+        const newBalance = currentAccount.balance + income.amount;
         const { error: balanceError } = await supabase
           .from('bank_accounts')
           .update({ 
-            balance: supabase.sql`balance + ${income.amount}`,
+            balance: newBalance,
             updated_at: new Date().toISOString()
           })
           .eq('id', income.bank_account_id)
@@ -187,10 +199,22 @@ export const useFinancialData = () => {
       
       // If bank account is specified, update its balance
       if (expense.bank_account_id) {
+        // First get the current balance
+        const { data: currentAccount, error: fetchError } = await supabase
+          .from('bank_accounts')
+          .select('balance')
+          .eq('id', expense.bank_account_id)
+          .eq('user_id', user.id)
+          .single();
+        
+        if (fetchError) throw fetchError;
+        
+        // Update the balance
+        const newBalance = currentAccount.balance - expense.amount;
         const { error: balanceError } = await supabase
           .from('bank_accounts')
           .update({ 
-            balance: supabase.sql`balance - ${expense.amount}`,
+            balance: newBalance,
             updated_at: new Date().toISOString()
           })
           .eq('id', expense.bank_account_id)
@@ -253,10 +277,22 @@ export const useFinancialData = () => {
       // Investment transfers money from available balance to invested amount
       // This doesn't increase net worth, just moves money between categories
       if (investment.bank_account_id) {
+        // First get the current balance
+        const { data: currentAccount, error: fetchError } = await supabase
+          .from('bank_accounts')
+          .select('balance')
+          .eq('id', investment.bank_account_id)
+          .eq('user_id', user.id)
+          .single();
+        
+        if (fetchError) throw fetchError;
+        
+        // Update the balance
+        const newBalance = currentAccount.balance - investment.amount;
         const { error: balanceError } = await supabase
           .from('bank_accounts')
           .update({ 
-            balance: supabase.sql`balance - ${investment.amount}`,
+            balance: newBalance,
             updated_at: new Date().toISOString()
           })
           .eq('id', investment.bank_account_id)
