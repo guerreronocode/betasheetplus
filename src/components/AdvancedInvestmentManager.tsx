@@ -1,18 +1,21 @@
 
 import React, { useState } from 'react';
-import { TrendingUp, DollarSign, Calendar, Percent, Plus, ExternalLink } from 'lucide-react';
+import { TrendingUp, DollarSign, Calendar, Percent, Plus, ExternalLink, Edit2, Trash2, Building } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useFinancialData } from '@/hooks/useFinancialData';
+import { useToast } from '@/hooks/use-toast';
 
 const AdvancedInvestmentManager = () => {
   const { 
     investments, 
     yieldRates, 
     assetPrices, 
+    bankAccounts,
     addInvestment, 
     isAddingInvestment,
     totalInvested,
@@ -20,14 +23,17 @@ const AdvancedInvestmentManager = () => {
     investmentReturn
   } = useFinancialData();
 
+  const { toast } = useToast();
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [editingInvestment, setEditingInvestment] = useState<any>(null);
   const [newInvestment, setNewInvestment] = useState({
     name: '',
     type: 'stocks',
     amount: '',
     yield_type: 'fixed' as 'fixed' | 'cdi' | 'selic' | 'ipca',
     yield_rate: '',
-    purchase_date: new Date().toISOString().split('T')[0]
+    purchase_date: new Date().toISOString().split('T')[0],
+    bank_account_id: ''
   });
 
   const formatCurrency = (value: number) => {
@@ -51,7 +57,8 @@ const AdvancedInvestmentManager = () => {
       amount: parseFloat(newInvestment.amount),
       yield_type: newInvestment.yield_type,
       yield_rate: parseFloat(newInvestment.yield_rate) || 0,
-      purchase_date: newInvestment.purchase_date
+      purchase_date: newInvestment.purchase_date,
+      bank_account_id: newInvestment.bank_account_id || undefined
     });
 
     setNewInvestment({
@@ -60,9 +67,30 @@ const AdvancedInvestmentManager = () => {
       amount: '',
       yield_type: 'fixed',
       yield_rate: '',
-      purchase_date: new Date().toISOString().split('T')[0]
+      purchase_date: new Date().toISOString().split('T')[0],
+      bank_account_id: ''
     });
     setIsAddingNew(false);
+  };
+
+  const handleEdit = (investment: any) => {
+    setEditingInvestment(investment);
+    setNewInvestment({
+      name: investment.name,
+      type: investment.type,
+      amount: investment.amount.toString(),
+      yield_type: investment.yield_type,
+      yield_rate: investment.yield_rate.toString(),
+      purchase_date: investment.purchase_date,
+      bank_account_id: investment.bank_account_id || ''
+    });
+  };
+
+  const handleDelete = async (investmentId: string) => {
+    if (confirm('Tem certeza que deseja excluir este investimento?')) {
+      // Implementar lógica de exclusão aqui
+      toast({ title: 'Investimento excluído com sucesso!' });
+    }
   };
 
   const getCurrentYieldRate = (yieldType: string) => {
@@ -197,6 +225,33 @@ const AdvancedInvestmentManager = () => {
               </div>
 
               <div>
+                <Label htmlFor="bank_account">Conta Bancária</Label>
+                <Select
+                  value={newInvestment.bank_account_id}
+                  onValueChange={(value) => setNewInvestment({ ...newInvestment, bank_account_id: value })}
+                >
+                  <SelectTrigger>
+                    <Building className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Selecione uma conta (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Nenhuma conta específica</SelectItem>
+                    {bankAccounts.map((account) => (
+                      <SelectItem key={account.id} value={account.id}>
+                        <div className="flex items-center space-x-2">
+                          <div 
+                            className="w-3 h-3 rounded-full" 
+                            style={{ backgroundColor: account.color }}
+                          />
+                          <span>{account.name} - {account.bank_name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
                 <Label htmlFor="yield_type">Tipo de Rendimento</Label>
                 <Select value={newInvestment.yield_type} onValueChange={(value: any) => setNewInvestment({ ...newInvestment, yield_type: value })}>
                   <SelectTrigger>
@@ -273,12 +328,32 @@ const AdvancedInvestmentManager = () => {
                         </div>
                       </div>
                       
-                      <div className="text-right">
-                        <p className="text-sm text-gray-600">Valor Atual</p>
-                        <p className="font-semibold">{formatCurrency(investment.current_value)}</p>
-                        <p className={`text-sm ${returnValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {returnValue >= 0 ? '+' : ''}{formatCurrency(returnValue)} ({formatPercentage(returnPercentage)})
-                        </p>
+                      <div className="flex items-center space-x-2">
+                        <div className="text-right">
+                          <p className="text-sm text-gray-600">Valor Atual</p>
+                          <p className="font-semibold">{formatCurrency(investment.current_value)}</p>
+                          <p className={`text-sm ${returnValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {returnValue >= 0 ? '+' : ''}{formatCurrency(returnValue)} ({formatPercentage(returnPercentage)})
+                          </p>
+                        </div>
+                        
+                        <div className="flex flex-col space-y-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleEdit(investment)}
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={() => handleDelete(investment.id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Plus, DollarSign, Tag, Calendar } from 'lucide-react';
+import { Plus, DollarSign, Tag, Calendar, Building } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,20 +30,22 @@ const expenseCategories = [
 ];
 
 const AddTransactionForm = () => {
-  const { addIncome, addExpense, isAddingIncome, isAddingExpense } = useFinancialData();
+  const { addIncome, addExpense, isAddingIncome, isAddingExpense, bankAccounts } = useFinancialData();
   
   const [incomeForm, setIncomeForm] = useState({
     description: '',
     amount: '',
     category: '',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    bank_account_id: ''
   });
 
   const [expenseForm, setExpenseForm] = useState({
     description: '',
     amount: '',
     category: '',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    bank_account_id: ''
   });
 
   const handleIncomeSubmit = (e: React.FormEvent) => {
@@ -54,14 +56,16 @@ const AddTransactionForm = () => {
       description: incomeForm.description,
       amount: parseFloat(incomeForm.amount),
       category: incomeForm.category,
-      date: incomeForm.date
+      date: incomeForm.date,
+      bank_account_id: incomeForm.bank_account_id || undefined
     });
     
     setIncomeForm({
       description: '',
       amount: '',
       category: '',
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      bank_account_id: ''
     });
   };
 
@@ -73,14 +77,16 @@ const AddTransactionForm = () => {
       description: expenseForm.description,
       amount: parseFloat(expenseForm.amount),
       category: expenseForm.category,
-      date: expenseForm.date
+      date: expenseForm.date,
+      bank_account_id: expenseForm.bank_account_id || undefined
     });
     
     setExpenseForm({
       description: '',
       amount: '',
       category: '',
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      bank_account_id: ''
     });
   };
 
@@ -146,6 +152,33 @@ const AddTransactionForm = () => {
                   {incomeCategories.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="income-bank-account">Conta Bancária</Label>
+              <Select
+                value={incomeForm.bank_account_id}
+                onValueChange={(value) => setIncomeForm(prev => ({ ...prev, bank_account_id: value }))}
+              >
+                <SelectTrigger>
+                  <Building className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="Selecione uma conta (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Nenhuma conta específica</SelectItem>
+                  {bankAccounts.map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      <div className="flex items-center space-x-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: account.color }}
+                        />
+                        <span>{account.name} - {account.bank_name}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -217,6 +250,33 @@ const AddTransactionForm = () => {
                   {expenseCategories.map((category) => (
                     <SelectItem key={category} value={category}>
                       {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label htmlFor="expense-bank-account">Conta Bancária</Label>
+              <Select
+                value={expenseForm.bank_account_id}
+                onValueChange={(value) => setExpenseForm(prev => ({ ...prev, bank_account_id: value }))}
+              >
+                <SelectTrigger>
+                  <Building className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="Selecione uma conta (opcional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Nenhuma conta específica</SelectItem>
+                  {bankAccounts.map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      <div className="flex items-center space-x-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: account.color }}
+                        />
+                        <span>{account.name} - {account.bank_name}</span>
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>

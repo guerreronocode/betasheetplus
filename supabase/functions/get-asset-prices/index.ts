@@ -53,7 +53,7 @@ serve(async (req) => {
 
     // Fetch fresh data from APIs
     const symbols = ['PETR4', 'VALE3', 'ITUB4', 'BBDC4', 'ABEV3', 'WEGE3']
-    const currencies = ['USD-BRL', 'EUR-BRL']
+    const currencies = ['USD-BRL', 'EUR-BRL', 'EUR-USD', 'USD-EUR', 'BTC-BRL', 'ETH-BRL']
     const updatedPrices = []
 
     try {

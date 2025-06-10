@@ -1,89 +1,27 @@
 
-import React from 'react';
-import { TrendingUp, TrendingDown, Wallet, PiggyBank } from 'lucide-react';
+import React, { useEffect } from 'react';
+import { TrendingUp, TrendingDown, DollarSign, Target, Wallet } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useFinancialData } from '@/hooks/useFinancialData';
+import { useGamification } from '@/hooks/useGamification';
+import UserLevelDisplay from './UserLevelDisplay';
 
 const UpdatedQuickStats = () => {
-  const { income, expenses, investments, isLoading } = useFinancialData();
+  const { 
+    totalIncome, 
+    totalExpenses, 
+    netWorth, 
+    availableBalance,
+    currentInvestmentValue,
+    isLoading 
+  } = useFinancialData();
+  
+  const { trackActivity } = useGamification();
 
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="p-6 animate-pulse">
-            <div className="h-4 bg-gray-200 rounded w-3/4 mb-4"></div>
-            <div className="h-8 bg-gray-200 rounded w-1/2"></div>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-
-  // Calculate monthly income
-  const monthlyIncome = income
-    .filter(item => {
-      const date = new Date(item.date);
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-    })
-    .reduce((sum, item) => sum + item.amount, 0);
-
-  // Calculate monthly expenses
-  const monthlyExpenses = expenses
-    .filter(item => {
-      const date = new Date(item.date);
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
-    })
-    .reduce((sum, item) => sum + item.amount, 0);
-
-  // Calculate total savings (total income - total expenses)
-  const totalIncome = income.reduce((sum, item) => sum + item.amount, 0);
-  const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
-  const totalSavings = totalIncome - totalExpenses;
-
-  // Calculate total investment value
-  const totalInvestments = investments.reduce((sum, inv) => sum + (inv.current_value || inv.amount), 0);
-
-  // Calculate net worth (savings + investments)
-  const netWorth = totalSavings + totalInvestments;
-
-  const stats = [
-    {
-      title: 'Receitas do Mês',
-      value: monthlyIncome,
-      change: '+12%',
-      positive: true,
-      icon: TrendingUp,
-      color: 'green'
-    },
-    {
-      title: 'Gastos do Mês',
-      value: monthlyExpenses,
-      change: '-5%',
-      positive: true,
-      icon: TrendingDown,
-      color: 'blue'
-    },
-    {
-      title: 'Patrimônio Líquido',
-      value: netWorth,
-      change: '+8%',
-      positive: true,
-      icon: Wallet,
-      color: 'purple'
-    },
-    {
-      title: 'Total Poupado',
-      value: totalSavings,
-      change: '+15%',
-      positive: totalSavings >= 0,
-      icon: PiggyBank,
-      color: 'yellow'
-    }
-  ];
+  // Track daily access when component mounts
+  useEffect(() => {
+    trackActivity('daily_access');
+  }, []);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -92,37 +30,93 @@ const UpdatedQuickStats = () => {
     }).format(value);
   };
 
-  const getColorClasses = (color: string) => {
-    const colors = {
-      green: 'bg-green-100 text-green-600 border-green-200',
-      blue: 'bg-blue-100 text-blue-600 border-blue-200',
-      purple: 'bg-purple-100 text-purple-600 border-purple-200',
-      yellow: 'bg-yellow-100 text-yellow-600 border-yellow-200'
-    };
-    return colors[color as keyof typeof colors];
-  };
+  const monthlyBalance = totalIncome - totalExpenses;
+  const isPositive = monthlyBalance >= 0;
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i} className="p-6">
+            <div className="animate-pulse">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 bg-gray-200 rounded-lg"></div>
+                <div className="flex-1">
+                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                  <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+                </div>
+              </div>
+            </div>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {stats.map((stat, index) => (
-        <Card key={index} className="p-6 hover:shadow-lg transition-all duration-200 animate-slide-up border-l-4" style={{ animationDelay: `${index * 100}ms` }}>
-          <div className="flex items-center justify-between mb-4">
-            <div className={`p-3 rounded-lg ${getColorClasses(stat.color)}`}>
-              <stat.icon className="w-6 h-6" />
+    <div className="space-y-6">
+      {/* User Level Display */}
+      <UserLevelDisplay />
+      
+      {/* Financial Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card className="p-6 hover:shadow-lg transition-shadow">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-blue-100 rounded-lg">
+              <Wallet className="w-6 h-6 text-blue-600" />
             </div>
-            <span className={`text-sm font-medium px-2 py-1 rounded ${
-              stat.positive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-            }`}>
-              {stat.change}
-            </span>
-          </div>
-          
-          <div>
-            <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
-            <p className="text-2xl font-bold text-gray-900">{formatCurrency(stat.value)}</p>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Patrimônio Líquido</p>
+              <p className="text-2xl font-bold text-gray-900">{formatCurrency(netWorth)}</p>
+              <p className="text-xs text-gray-500">
+                Disponível: {formatCurrency(availableBalance)} | 
+                Investido: {formatCurrency(currentInvestmentValue)}
+              </p>
+            </div>
           </div>
         </Card>
-      ))}
+
+        <Card className="p-6 hover:shadow-lg transition-shadow">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-green-100 rounded-lg">
+              <TrendingUp className="w-6 h-6 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Receitas do Mês</p>
+              <p className="text-2xl font-bold text-green-600">{formatCurrency(totalIncome)}</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 hover:shadow-lg transition-shadow">
+          <div className="flex items-center space-x-3">
+            <div className="p-3 bg-red-100 rounded-lg">
+              <TrendingDown className="w-6 h-6 text-red-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Despesas do Mês</p>
+              <p className="text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</p>
+            </div>
+          </div>
+        </Card>
+
+        <Card className="p-6 hover:shadow-lg transition-shadow">
+          <div className="flex items-center space-x-3">
+            <div className={`p-3 rounded-lg ${isPositive ? 'bg-green-100' : 'bg-red-100'}`}>
+              <Target className={`w-6 h-6 ${isPositive ? 'text-green-600' : 'text-red-600'}`} />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Saldo do Mês</p>
+              <p className={`text-2xl font-bold ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+                {formatCurrency(monthlyBalance)}
+              </p>
+              <p className="text-xs text-gray-500">
+                {isPositive ? 'Superávit' : 'Déficit'} mensal
+              </p>
+            </div>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 };
