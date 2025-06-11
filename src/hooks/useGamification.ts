@@ -1,129 +1,129 @@
 
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  points: number;
+  unlocked_at?: string;
+  category: string;
+}
+
+export interface UserStats {
+  level: number;
+  total_points: number;
+  current_streak: number;
+  longest_streak: number;
+  goals_completed: number;
+  total_transactions: number;
+  positive_balance_days: number;
+  consecutive_days_accessed: number;
+}
 
 export const useGamification = () => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { user } = useAuth();
 
-  // Fetch user stats
+  // Get user stats
   const { data: userStats, isLoading: statsLoading } = useQuery({
-    queryKey: ['userStats'],
+    queryKey: ['user_stats', user?.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
+      if (!user) return null;
+      
       const { data, error } = await supabase
         .from('user_stats')
         .select('*')
         .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) throw error;
+        .single();
       
-      if (!data) {
-        // Create initial user stats
-        const { data: newStats, error: createError } = await supabase
-          .from('user_stats')
-          .insert({
-            user_id: user.id,
-            level: 1,
-            total_points: 0,
-            current_streak: 0,
-            best_streak: 0,
-            goals_completed: 0,
-            achievements_unlocked: 0
-          })
-          .select()
-          .single();
-
-        if (createError) throw createError;
-        return newStats;
+      if (error && error.code !== 'PGRST116') {
+        throw error;
       }
       
-      return data;
-    }
+      // Return default stats if no record exists
+      return data || {
+        level: 1,
+        total_points: 0,
+        current_streak: 0,
+        longest_streak: 0,
+        goals_completed: 0,
+        total_transactions: 0,
+        positive_balance_days: 0,
+        consecutive_days_accessed: 0
+      };
+    },
+    enabled: !!user,
   });
 
-  // Fetch user achievements
-  const { data: userAchievements = [], isLoading: achievementsLoading } = useQuery({
-    queryKey: ['userAchievements'],
+  // Get user achievements
+  const { data: achievements = [], isLoading: achievementsLoading } = useQuery({
+    queryKey: ['user_achievements', user?.id],
     queryFn: async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
+      if (!user) return [];
+      
       const { data, error } = await supabase
         .from('user_achievements')
-        .select(`
-          *,
-          achievement_definitions (
-            title,
-            description,
-            icon,
-            points,
-            category
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('unlocked_at', { ascending: false });
-
+        .select('*')
+        .eq('user_id', user.id);
+      
       if (error) throw error;
       
-      return data.map(ua => ({
-        id: ua.id,
-        title: ua.achievement_definitions?.title || '',
-        description: ua.achievement_definitions?.description || '',
-        icon: ua.achievement_definitions?.icon || '🏆',
-        points_earned: ua.achievement_definitions?.points || 0,
-        unlocked_at: ua.unlocked_at,
-        category: ua.achievement_definitions?.category || 'general'
-      }));
-    }
-  });
-
-  // Track activity mutation
-  const trackActivityMutation = useMutation({
-    mutationFn: async (activityType: string) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      // Call the track activity function
-      const { data, error } = await supabase.rpc('track_user_activity', {
-        p_user_id: user.id,
-        p_activity_type: activityType
-      });
-
-      if (error) throw error;
-      return data;
+      // Transform to Achievement format
+      return (data || []).map(item => ({
+        id: item.achievement_id,
+        title: `Achievement ${item.achievement_id}`,
+        description: `You earned this achievement!`,
+        icon: '🏆',
+        points: item.points_earned || 0,
+        unlocked_at: item.unlocked_at,
+        category: 'general'
+      })) as Achievement[];
     },
-    onSuccess: (data) => {
-      // Invalidate and refetch user stats and achievements
-      queryClient.invalidateQueries({ queryKey: ['userStats'] });
-      queryClient.invalidateQueries({ queryKey: ['userAchievements'] });
-      
-      // Show toast for new achievements
-      if (data && Array.isArray(data) && data.length > 0) {
-        data.forEach((achievement: any) => {
-          toast({
-            title: '🎉 Nova Conquista!',
-            description: `${achievement.title} - +${achievement.points} pontos`
-          });
-        });
-      }
-    }
+    enabled: !!user,
   });
 
-  const trackActivity = (activityType: string) => {
-    trackActivityMutation.mutate(activityType);
+  // Get achievement definitions (available achievements)
+  const { data: availableAchievements = [] } = useQuery({
+    queryKey: ['achievement_definitions'],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('get-achievement-definitions');
+      if (error) {
+        console.log('Error fetching achievement definitions:', error);
+        return [];
+      }
+      return data || [];
+    },
+  });
+
+  // Calculate level from points
+  const calculateLevel = (points: number) => {
+    return Math.floor(points / 100) + 1;
+  };
+
+  // Calculate points needed for next level
+  const getPointsForNextLevel = (currentPoints: number) => {
+    const currentLevel = calculateLevel(currentPoints);
+    const nextLevelPoints = currentLevel * 100;
+    return nextLevelPoints - currentPoints;
+  };
+
+  // Calculate progress to next level
+  const getLevelProgress = (currentPoints: number) => {
+    const currentLevel = calculateLevel(currentPoints);
+    const pointsInCurrentLevel = currentPoints - ((currentLevel - 1) * 100);
+    return (pointsInCurrentLevel / 100) * 100;
   };
 
   return {
-    userStats,
-    userAchievements,
-    trackActivity,
+    userStats: userStats as UserStats | null,
+    achievements,
+    availableAchievements,
     isLoading: statsLoading || achievementsLoading,
-    isTrackingActivity: trackActivityMutation.isPending
+    calculateLevel,
+    getPointsForNextLevel,
+    getLevelProgress,
   };
 };

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -323,6 +322,84 @@ export const useFinancialData = () => {
     },
   });
 
+  const updateInvestmentMutation = useMutation({
+    mutationFn: async ({ id, ...investmentData }: { id: string } & Partial<Investment>) => {
+      if (!user) throw new Error('User not authenticated');
+      
+      const { data, error } = await supabase
+        .from('investments')
+        .update(investmentData)
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['investments'] });
+      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['user_stats'] });
+      toast({ title: 'Investimento atualizado com sucesso!' });
+    },
+  });
+
+  const deleteInvestmentMutation = useMutation({
+    mutationFn: async (investmentId: string) => {
+      if (!user) throw new Error('User not authenticated');
+      
+      // Get the investment details first
+      const { data: investment, error: getError } = await supabase
+        .from('investments')
+        .select('*')
+        .eq('id', investmentId)
+        .eq('user_id', user.id)
+        .single();
+      
+      if (getError) throw getError;
+      
+      // If the investment has a bank account, return the current value to the account
+      if (investment.bank_account_id) {
+        const { data: currentAccount, error: fetchError } = await supabase
+          .from('bank_accounts')
+          .select('balance')
+          .eq('id', investment.bank_account_id)
+          .eq('user_id', user.id)
+          .single();
+        
+        if (fetchError) throw fetchError;
+        
+        // Return the current value to the account balance
+        const newBalance = currentAccount.balance + (investment.current_value || investment.amount);
+        const { error: balanceError } = await supabase
+          .from('bank_accounts')
+          .update({ 
+            balance: newBalance,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', investment.bank_account_id)
+          .eq('user_id', user.id);
+        
+        if (balanceError) throw balanceError;
+      }
+
+      const { error } = await supabase
+        .from('investments')
+        .delete()
+        .eq('id', investmentId)
+        .eq('user_id', user.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['investments'] });
+      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['user_stats'] });
+      toast({ title: 'Investimento excluído com sucesso!' });
+    },
+  });
+
   // Goals queries and mutations
   const { data: goals = [], isLoading: goalsLoading } = useQuery({
     queryKey: ['goals', user?.id],
@@ -435,6 +512,8 @@ export const useFinancialData = () => {
     addIncome: addIncomeMutation.mutate,
     addExpense: addExpenseMutation.mutate,
     addInvestment: addInvestmentMutation.mutate,
+    updateInvestment: updateInvestmentMutation.mutate,
+    deleteInvestment: deleteInvestmentMutation.mutate,
     addGoal: addGoalMutation.mutate,
     addBankAccount: addBankAccountMutation.mutate,
     updateGoal: updateGoalMutation.mutate,
