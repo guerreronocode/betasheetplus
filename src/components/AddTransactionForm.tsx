@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Plus, DollarSign, Tag, Calendar, Building } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -37,7 +36,7 @@ const AddTransactionForm = () => {
     amount: '',
     category: '',
     date: new Date().toISOString().split('T')[0],
-    bank_account_id: ''
+    bank_account_id: 'none'
   });
 
   const [expenseForm, setExpenseForm] = useState({
@@ -45,7 +44,7 @@ const AddTransactionForm = () => {
     amount: '',
     category: '',
     date: new Date().toISOString().split('T')[0],
-    bank_account_id: ''
+    bank_account_id: 'none'
   });
 
   const handleIncomeSubmit = (e: React.FormEvent) => {
@@ -57,7 +56,7 @@ const AddTransactionForm = () => {
       amount: parseFloat(incomeForm.amount),
       category: incomeForm.category,
       date: incomeForm.date,
-      bank_account_id: incomeForm.bank_account_id || undefined
+      bank_account_id: incomeForm.bank_account_id === 'none' ? undefined : incomeForm.bank_account_id
     });
     
     setIncomeForm({
@@ -65,7 +64,7 @@ const AddTransactionForm = () => {
       amount: '',
       category: '',
       date: new Date().toISOString().split('T')[0],
-      bank_account_id: ''
+      bank_account_id: 'none'
     });
   };
 
@@ -78,7 +77,7 @@ const AddTransactionForm = () => {
       amount: parseFloat(expenseForm.amount),
       category: expenseForm.category,
       date: expenseForm.date,
-      bank_account_id: expenseForm.bank_account_id || undefined
+      bank_account_id: expenseForm.bank_account_id === 'none' ? undefined : expenseForm.bank_account_id
     });
     
     setExpenseForm({
@@ -86,7 +85,7 @@ const AddTransactionForm = () => {
       amount: '',
       category: '',
       date: new Date().toISOString().split('T')[0],
-      bank_account_id: ''
+      bank_account_id: 'none'
     });
   };
 
@@ -169,7 +168,7 @@ const AddTransactionForm = () => {
                   <SelectValue placeholder="Selecione uma conta (opcional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma conta específica</SelectItem>
+                  <SelectItem value="none">Nenhuma conta específica</SelectItem>
                   {bankAccounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
                       <div className="flex items-center space-x-2">
@@ -267,7 +266,7 @@ const AddTransactionForm = () => {
                   <SelectValue placeholder="Selecione uma conta (opcional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Nenhuma conta específica</SelectItem>
+                  <SelectItem value="none">Nenhuma conta específica</SelectItem>
                   {bankAccounts.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
                       <div className="flex items-center space-x-2">

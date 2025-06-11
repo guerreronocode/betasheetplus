@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { TrendingUp, DollarSign, Calendar, Percent, Plus, ExternalLink, Edit2, Trash2, Building } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -17,6 +16,8 @@ const AdvancedInvestmentManager = () => {
     assetPrices, 
     bankAccounts,
     addInvestment, 
+    updateInvestment,
+    deleteInvestment,
     isAddingInvestment,
     totalInvested,
     currentInvestmentValue,
@@ -33,7 +34,7 @@ const AdvancedInvestmentManager = () => {
     yield_type: 'fixed' as 'fixed' | 'cdi' | 'selic' | 'ipca',
     yield_rate: '',
     purchase_date: new Date().toISOString().split('T')[0],
-    bank_account_id: ''
+    bank_account_id: 'none'
   });
 
   const formatCurrency = (value: number) => {
@@ -51,15 +52,22 @@ const AdvancedInvestmentManager = () => {
     e.preventDefault();
     if (!newInvestment.name || !newInvestment.amount) return;
 
-    addInvestment({
+    const investmentData = {
       name: newInvestment.name,
       type: newInvestment.type,
       amount: parseFloat(newInvestment.amount),
       yield_type: newInvestment.yield_type,
       yield_rate: parseFloat(newInvestment.yield_rate) || 0,
       purchase_date: newInvestment.purchase_date,
-      bank_account_id: newInvestment.bank_account_id || undefined
-    });
+      bank_account_id: newInvestment.bank_account_id === 'none' ? undefined : newInvestment.bank_account_id
+    };
+
+    if (editingInvestment) {
+      updateInvestment(editingInvestment.id, investmentData);
+      setEditingInvestment(null);
+    } else {
+      addInvestment(investmentData);
+    }
 
     setNewInvestment({
       name: '',
@@ -68,7 +76,7 @@ const AdvancedInvestmentManager = () => {
       yield_type: 'fixed',
       yield_rate: '',
       purchase_date: new Date().toISOString().split('T')[0],
-      bank_account_id: ''
+      bank_account_id: 'none'
     });
     setIsAddingNew(false);
   };
@@ -82,13 +90,14 @@ const AdvancedInvestmentManager = () => {
       yield_type: investment.yield_type,
       yield_rate: investment.yield_rate.toString(),
       purchase_date: investment.purchase_date,
-      bank_account_id: investment.bank_account_id || ''
+      bank_account_id: investment.bank_account_id || 'none'
     });
+    setIsAddingNew(true);
   };
 
   const handleDelete = async (investmentId: string) => {
     if (confirm('Tem certeza que deseja excluir este investimento?')) {
-      // Implementar lógica de exclusão aqui
+      await deleteInvestment(investmentId);
       toast({ title: 'Investimento excluído com sucesso!' });
     }
   };
@@ -174,7 +183,7 @@ const AdvancedInvestmentManager = () => {
           <h3 className="text-lg font-semibold">Gerenciar Investimentos</h3>
           <Button onClick={() => setIsAddingNew(!isAddingNew)}>
             <Plus className="w-4 h-4 mr-2" />
-            Novo Investimento
+            {editingInvestment ? 'Cancelar Edição' : 'Novo Investimento'}
           </Button>
         </div>
 
@@ -235,7 +244,7 @@ const AdvancedInvestmentManager = () => {
                     <SelectValue placeholder="Selecione uma conta (opcional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nenhuma conta específica</SelectItem>
+                    <SelectItem value="none">Nenhuma conta específica</SelectItem>
                     {bankAccounts.map((account) => (
                       <SelectItem key={account.id} value={account.id}>
                         <div className="flex items-center space-x-2">
@@ -294,9 +303,21 @@ const AdvancedInvestmentManager = () => {
 
             <div className="flex space-x-2">
               <Button type="submit" disabled={isAddingInvestment}>
-                {isAddingInvestment ? 'Adicionando...' : 'Adicionar Investimento'}
+                {isAddingInvestment ? 'Salvando...' : editingInvestment ? 'Atualizar Investimento' : 'Adicionar Investimento'}
               </Button>
-              <Button type="button" variant="outline" onClick={() => setIsAddingNew(false)}>
+              <Button type="button" variant="outline" onClick={() => {
+                setIsAddingNew(false);
+                setEditingInvestment(null);
+                setNewInvestment({
+                  name: '',
+                  type: 'stocks',
+                  amount: '',
+                  yield_type: 'fixed',
+                  yield_rate: '',
+                  purchase_date: new Date().toISOString().split('T')[0],
+                  bank_account_id: 'none'
+                });
+              }}>
                 Cancelar
               </Button>
             </div>
@@ -406,3 +427,5 @@ const AdvancedInvestmentManager = () => {
 };
 
 export default AdvancedInvestmentManager;
+
+</edits_to_apply>
