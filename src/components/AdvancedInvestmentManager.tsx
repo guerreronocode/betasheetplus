@@ -416,5 +416,3 @@ const AdvancedInvestmentManager = () => {
 };
 
 export default AdvancedInvestmentManager;
-
-</edits_to_apply>
