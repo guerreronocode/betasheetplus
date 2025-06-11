@@ -59,6 +59,7 @@ export interface YieldRate {
   rate_type: string;
   rate_value: number;
   reference_date: string;
+  last_update: string;
 }
 
 export interface AssetPrice {

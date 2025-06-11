@@ -87,7 +87,9 @@ const YieldRatesDisplay: React.FC<YieldRatesDisplayProps> = ({ yieldRates, isLoa
           <TrendingUp className="w-5 h-5 text-green-600" />
           <h3 className="text-lg font-semibold">Taxas de Rendimento Atuais</h3>
           {isDataStale() && (
-            <AlertCircle className="w-4 h-4 text-amber-500" title="Dados podem estar desatualizados" />
+            <div className="w-4 h-4 text-amber-500" title="Dados podem estar desatualizados">
+              <AlertCircle className="w-4 h-4" />
+            </div>
           )}
         </div>
         

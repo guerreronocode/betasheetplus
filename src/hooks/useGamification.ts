@@ -59,43 +59,54 @@ export const useGamification = () => {
     enabled: !!user,
   });
 
-  // Get user achievements with proper data
+  // Get user achievements - simplified query to avoid relationship issues
   const { data: achievements = [], isLoading: achievementsLoading } = useQuery({
     queryKey: ['user_achievements', user?.id],
     queryFn: async () => {
       if (!user) return [];
       
-      const { data, error } = await supabase
-        .from('user_achievements')
-        .select(`
-          *,
-          achievement_definitions (
-            title,
-            description,
-            icon,
-            category,
-            points
-          )
-        `)
-        .eq('user_id', user.id)
-        .order('unlocked_at', { ascending: false });
-      
-      if (error) {
-        console.log('Error fetching achievements:', error);
+      try {
+        // First get user achievements
+        const { data: userAchievements, error: userError } = await supabase
+          .from('user_achievements')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('unlocked_at', { ascending: false });
+        
+        if (userError) {
+          console.log('Error fetching user achievements:', userError);
+          return [];
+        }
+
+        // Then get achievement definitions separately
+        const { data: definitions, error: defError } = await supabase
+          .from('achievement_definitions')
+          .select('*');
+        
+        if (defError) {
+          console.log('Error fetching achievement definitions:', defError);
+          return [];
+        }
+
+        // Combine the data manually
+        return (userAchievements || []).map(userAchievement => {
+          const definition = definitions?.find(def => def.id === userAchievement.achievement_id);
+          
+          return {
+            id: userAchievement.achievement_id,
+            title: definition?.title || `Conquista ${userAchievement.achievement_id}`,
+            description: definition?.description || 'Conquista desbloqueada!',
+            icon: definition?.icon || '🏆',
+            points: definition?.points || userAchievement.points_earned || 0,
+            points_earned: userAchievement.points_earned || 0,
+            unlocked_at: userAchievement.unlocked_at,
+            category: definition?.category || 'general'
+          };
+        }) as Achievement[];
+      } catch (error) {
+        console.log('Error in achievements query:', error);
         return [];
       }
-      
-      // Transform to Achievement format with real data
-      return (data || []).map(item => ({
-        id: item.achievement_id,
-        title: item.achievement_definitions?.title || `Conquista ${item.achievement_id}`,
-        description: item.achievement_definitions?.description || 'Conquista desbloqueada!',
-        icon: item.achievement_definitions?.icon || '🏆',
-        points: item.achievement_definitions?.points || item.points_earned || 0,
-        points_earned: item.points_earned || 0,
-        unlocked_at: item.unlocked_at,
-        category: item.achievement_definitions?.category || 'general'
-      })) as Achievement[];
     },
     enabled: !!user,
   });
