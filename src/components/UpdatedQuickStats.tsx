@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Target, Wallet } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -20,7 +19,9 @@ const UpdatedQuickStats = () => {
 
   // Track daily access when component mounts
   useEffect(() => {
-    trackActivity('daily_access');
+    if (trackActivity) {
+      trackActivity('daily_access');
+    }
   }, [trackActivity]);
 
   const formatCurrency = (value: number) => {

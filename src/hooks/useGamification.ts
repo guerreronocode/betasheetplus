@@ -120,7 +120,7 @@ export const useGamification = () => {
   };
 
   // Track activity function
-  const trackActivity = async (activityType: string) => {
+  const trackActivity = (activityType: string) => {
     if (!user) return;
     
     try {
