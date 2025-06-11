@@ -1,508 +1,80 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
-import { useToast } from '@/hooks/use-toast';
 
-export interface IncomeEntry {
-  id: string;
-  description: string;
-  amount: number;
-  category: string;
-  date: string;
-  bank_account_id?: string;
-}
+import { useBankAccounts } from './useBankAccounts';
+import { useIncome } from './useIncome';
+import { useExpenses } from './useExpenses';
+import { useInvestments } from './useInvestments';
+import { useGoals } from './useGoals';
+import { useMarketData } from './useMarketData';
+import { usePatrimony } from './usePatrimony';
+import { calculateFinancialMetrics } from '@/utils/financialCalculations';
 
-export interface ExpenseEntry {
-  id: string;
-  description: string;
-  amount: number;
-  category: string;
-  date: string;
-  bank_account_id?: string;
-}
-
-export interface Investment {
-  id: string;
-  name: string;
-  type: string;
-  amount: number;
-  current_value: number;
-  purchase_date: string;
-  yield_type: 'fixed' | 'cdi' | 'selic' | 'ipca';
-  yield_rate: number;
-  last_yield_update: string;
-  bank_account_id?: string;
-}
-
-export interface Goal {
-  id: string;
-  title: string;
-  target_amount: number;
-  current_amount: number;
-  deadline: string | null;
-  color: string;
-  completed: boolean;
-  linked_investment_id?: string | null;
-}
-
-export interface BankAccount {
-  id: string;
-  name: string;
-  bank_name: string;
-  account_type: string;
-  balance: number;
-  color: string;
-  is_active: boolean;
-}
-
-export interface YieldRate {
-  id: string;
-  rate_type: string;
-  rate_value: number;
-  reference_date: string;
-  last_update: string;
-}
-
-export interface AssetPrice {
-  id: string;
-  symbol: string;
-  price: number;
-  currency: string;
-  last_update: string;
-  source: string;
-}
+// Re-export all interfaces for backward compatibility
+export type { IncomeEntry } from './useIncome';
+export type { ExpenseEntry } from './useExpenses';
+export type { Investment } from './useInvestments';
+export type { Goal } from './useGoals';
+export type { BankAccount } from './useBankAccounts';
+export type { YieldRate, AssetPrice } from './useMarketData';
 
 export const useFinancialData = () => {
-  const { user } = useAuth();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { 
+    bankAccounts, 
+    bankAccountsLoading, 
+    addBankAccount, 
+    isAddingBankAccount 
+  } = useBankAccounts();
 
-  // Bank accounts queries and mutations
-  const { data: bankAccounts = [], isLoading: bankAccountsLoading } = useQuery({
-    queryKey: ['bank_accounts', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from('bank_accounts')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as BankAccount[];
-    },
-    enabled: !!user,
-  });
+  const { 
+    income, 
+    incomeLoading, 
+    addIncome, 
+    isAddingIncome 
+  } = useIncome();
 
-  const addBankAccountMutation = useMutation({
-    mutationFn: async (account: Omit<BankAccount, 'id' | 'is_active'>) => {
-      if (!user) throw new Error('User not authenticated');
-      const { data, error } = await supabase
-        .from('bank_accounts')
-        .insert([{ ...account, user_id: user.id }])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
-      toast({ title: 'Conta bancária adicionada com sucesso!' });
-    },
-  });
+  const { 
+    expenses, 
+    expensesLoading, 
+    addExpense, 
+    isAddingExpense 
+  } = useExpenses();
 
-  // Income queries and mutations
-  const { data: income = [], isLoading: incomeLoading } = useQuery({
-    queryKey: ['income', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from('income')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('date', { ascending: false });
-      
-      if (error) throw error;
-      return data as IncomeEntry[];
-    },
-    enabled: !!user,
-  });
+  const { 
+    investments, 
+    investmentsLoading, 
+    addInvestment, 
+    updateInvestment, 
+    deleteInvestment, 
+    isAddingInvestment 
+  } = useInvestments();
 
-  const addIncomeMutation = useMutation({
-    mutationFn: async (income: Omit<IncomeEntry, 'id'>) => {
-      if (!user) throw new Error('User not authenticated');
-      
-      // If bank account is specified, update its balance
-      if (income.bank_account_id) {
-        // First get the current balance
-        const { data: currentAccount, error: fetchError } = await supabase
-          .from('bank_accounts')
-          .select('balance')
-          .eq('id', income.bank_account_id)
-          .eq('user_id', user.id)
-          .single();
-        
-        if (fetchError) throw fetchError;
-        
-        // Update the balance
-        const newBalance = currentAccount.balance + income.amount;
-        const { error: balanceError } = await supabase
-          .from('bank_accounts')
-          .update({ 
-            balance: newBalance,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', income.bank_account_id)
-          .eq('user_id', user.id);
-        
-        if (balanceError) throw balanceError;
-      }
+  const { 
+    goals, 
+    goalsLoading, 
+    addGoal, 
+    updateGoal, 
+    isAddingGoal, 
+    isUpdatingGoal 
+  } = useGoals();
 
-      const { data, error } = await supabase
-        .from('income')
-        .insert([{ ...income, user_id: user.id }])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['income'] });
-      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['user_stats'] });
-      toast({ title: 'Receita adicionada com sucesso!' });
-    },
-  });
+  const { yieldRates, assetPrices } = useMarketData();
+  const { assets, liabilities } = usePatrimony();
 
-  // Expenses queries and mutations
-  const { data: expenses = [], isLoading: expensesLoading } = useQuery({
-    queryKey: ['expenses', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from('expenses')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('date', { ascending: false });
-      
-      if (error) throw error;
-      return data as ExpenseEntry[];
-    },
-    enabled: !!user,
-  });
-
-  const addExpenseMutation = useMutation({
-    mutationFn: async (expense: Omit<ExpenseEntry, 'id'>) => {
-      if (!user) throw new Error('User not authenticated');
-      
-      // If bank account is specified, update its balance
-      if (expense.bank_account_id) {
-        // First get the current balance
-        const { data: currentAccount, error: fetchError } = await supabase
-          .from('bank_accounts')
-          .select('balance')
-          .eq('id', expense.bank_account_id)
-          .eq('user_id', user.id)
-          .single();
-        
-        if (fetchError) throw fetchError;
-        
-        // Update the balance
-        const newBalance = currentAccount.balance - expense.amount;
-        const { error: balanceError } = await supabase
-          .from('bank_accounts')
-          .update({ 
-            balance: newBalance,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', expense.bank_account_id)
-          .eq('user_id', user.id);
-        
-        if (balanceError) throw balanceError;
-      }
-
-      const { data, error } = await supabase
-        .from('expenses')
-        .insert([{ ...expense, user_id: user.id }])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['user_stats'] });
-      toast({ title: 'Despesa adicionada com sucesso!' });
-    },
-  });
-
-  // Investments queries and mutations
-  const { data: investments = [], isLoading: investmentsLoading } = useQuery({
-    queryKey: ['investments', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from('investments')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('purchase_date', { ascending: false });
-      
-      if (error) throw error;
-      
-      // Transform data to match our Investment interface
-      return (data || []).map(item => ({
-        id: item.id,
-        name: item.name,
-        type: item.type,
-        amount: item.amount,
-        current_value: item.current_value || item.amount,
-        purchase_date: item.purchase_date,
-        yield_type: (item as any).yield_type || 'fixed',
-        yield_rate: (item as any).yield_rate || 0,
-        last_yield_update: (item as any).last_yield_update || item.purchase_date,
-        bank_account_id: (item as any).bank_account_id,
-      })) as Investment[];
-    },
-    enabled: !!user,
-  });
-
-  const addInvestmentMutation = useMutation({
-    mutationFn: async (investment: Omit<Investment, 'id' | 'current_value' | 'last_yield_update'>) => {
-      if (!user) throw new Error('User not authenticated');
-      
-      // Investment transfers money from available balance to invested amount
-      // This doesn't increase net worth, just moves money between categories
-      if (investment.bank_account_id) {
-        // First get the current balance
-        const { data: currentAccount, error: fetchError } = await supabase
-          .from('bank_accounts')
-          .select('balance')
-          .eq('id', investment.bank_account_id)
-          .eq('user_id', user.id)
-          .single();
-        
-        if (fetchError) throw fetchError;
-        
-        // Update the balance
-        const newBalance = currentAccount.balance - investment.amount;
-        const { error: balanceError } = await supabase
-          .from('bank_accounts')
-          .update({ 
-            balance: newBalance,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', investment.bank_account_id)
-          .eq('user_id', user.id);
-        
-        if (balanceError) throw balanceError;
-      }
-
-      const { data, error } = await supabase
-        .from('investments')
-        .insert([{ 
-          ...investment, 
-          user_id: user.id,
-          current_value: investment.amount,
-          last_yield_update: new Date().toISOString().split('T')[0]
-        }])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['investments'] });
-      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['user_stats'] });
-      toast({ title: 'Investimento adicionado com sucesso!' });
-    },
-  });
-
-  const updateInvestmentMutation = useMutation({
-    mutationFn: async ({ id, ...investmentData }: { id: string } & Partial<Investment>) => {
-      if (!user) throw new Error('User not authenticated');
-      
-      const { data, error } = await supabase
-        .from('investments')
-        .update(investmentData)
-        .eq('id', id)
-        .eq('user_id', user.id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['investments'] });
-      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['user_stats'] });
-      toast({ title: 'Investimento atualizado com sucesso!' });
-    },
-  });
-
-  const deleteInvestmentMutation = useMutation({
-    mutationFn: async (investmentId: string) => {
-      if (!user) throw new Error('User not authenticated');
-      
-      // Get the investment details first
-      const { data: investment, error: getError } = await supabase
-        .from('investments')
-        .select('*')
-        .eq('id', investmentId)
-        .eq('user_id', user.id)
-        .single();
-      
-      if (getError) throw getError;
-      
-      // If the investment has a bank account, return the current value to the account
-      if (investment.bank_account_id) {
-        const { data: currentAccount, error: fetchError } = await supabase
-          .from('bank_accounts')
-          .select('balance')
-          .eq('id', investment.bank_account_id)
-          .eq('user_id', user.id)
-          .single();
-        
-        if (fetchError) throw fetchError;
-        
-        // Return the current value to the account balance
-        const newBalance = currentAccount.balance + (investment.current_value || investment.amount);
-        const { error: balanceError } = await supabase
-          .from('bank_accounts')
-          .update({ 
-            balance: newBalance,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', investment.bank_account_id)
-          .eq('user_id', user.id);
-        
-        if (balanceError) throw balanceError;
-      }
-
-      const { error } = await supabase
-        .from('investments')
-        .delete()
-        .eq('id', investmentId)
-        .eq('user_id', user.id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['investments'] });
-      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
-      queryClient.invalidateQueries({ queryKey: ['user_stats'] });
-      toast({ title: 'Investimento excluído com sucesso!' });
-    },
-  });
-
-  // Goals queries and mutations - Updated to include linked_investment_id
-  const { data: goals = [], isLoading: goalsLoading } = useQuery({
-    queryKey: ['goals', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from('goals')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as Goal[];
-    },
-    enabled: !!user,
-  });
-
-  const addGoalMutation = useMutation({
-    mutationFn: async (goal: Omit<Goal, 'id' | 'current_amount' | 'completed'>) => {
-      if (!user) throw new Error('User not authenticated');
-      const { data, error } = await supabase
-        .from('goals')
-        .insert([{ 
-          ...goal, 
-          user_id: user.id,
-          current_amount: 0,
-          completed: false
-        }])
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
-      toast({ title: 'Meta criada com sucesso!' });
-    },
-  });
-
-  const updateGoalMutation = useMutation({
-    mutationFn: async ({ id, current_amount }: { id: string; current_amount: number }) => {
-      const { data, error } = await supabase
-        .from('goals')
-        .update({ current_amount })
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['goals'] });
-      toast({ title: 'Meta atualizada com sucesso!' });
-    },
-  });
-
-  // Yield rates query - using edge function
-  const { data: yieldRates = [] } = useQuery({
-    queryKey: ['yield_rates'],
-    queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke('get-yield-rates');
-      if (error) {
-        console.log('Error fetching yield rates:', error);
-        return [];
-      }
-      return (data || []) as YieldRate[];
-    },
-  });
-
-  // Asset prices query - using edge function
-  const { data: assetPrices = [] } = useQuery({
-    queryKey: ['asset_prices'],
-    queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke('get-asset-prices');
-      if (error) {
-        console.log('Error fetching asset prices:', error);
-        return [];
-      }
-      return (data || []) as AssetPrice[];
-    },
-  });
-
-  // Calculate financial metrics
-  const totalIncome = income.reduce((sum, item) => sum + item.amount, 0);
-  const totalExpenses = expenses.reduce((sum, item) => sum + item.amount, 0);
-  const totalInvested = investments.reduce((sum, item) => sum + item.amount, 0);
+  // Calculate current investment value
   const currentInvestmentValue = investments.reduce((sum, item) => sum + item.current_value, 0);
-  const totalBankBalance = bankAccounts.reduce((sum, account) => sum + account.balance, 0);
-  
-  // Correct net worth calculation: bank balances + current investment value
-  const netWorth = totalBankBalance + currentInvestmentValue;
-  
-  // Available balance is the sum of all bank account balances
-  const availableBalance = totalBankBalance;
-  
-  // Investment return
-  const investmentReturn = currentInvestmentValue - totalInvested;
+
+  // Calculate financial metrics using the utility function
+  const financialMetrics = calculateFinancialMetrics(
+    income,
+    expenses,
+    investments,
+    bankAccounts,
+    currentInvestmentValue
+  );
+
+  const isLoading = incomeLoading || expensesLoading || investmentsLoading || goalsLoading || bankAccountsLoading;
 
   return {
+    // Data
     income,
     expenses,
     investments,
@@ -510,29 +82,31 @@ export const useFinancialData = () => {
     bankAccounts,
     yieldRates,
     assetPrices,
-    isLoading: incomeLoading || expensesLoading || investmentsLoading || goalsLoading || bankAccountsLoading,
-    addIncome: addIncomeMutation.mutate,
-    addExpense: addExpenseMutation.mutate,
-    addInvestment: addInvestmentMutation.mutate,
-    updateInvestment: updateInvestmentMutation.mutate,
-    deleteInvestment: deleteInvestmentMutation.mutate,
-    addGoal: addGoalMutation.mutate,
-    addBankAccount: addBankAccountMutation.mutate,
-    updateGoal: updateGoalMutation.mutate,
-    isAddingIncome: addIncomeMutation.isPending,
-    isAddingExpense: addExpenseMutation.isPending,
-    isAddingInvestment: addInvestmentMutation.isPending,
-    isAddingBankAccount: addBankAccountMutation.isPending,
-    isAddingGoal: addGoalMutation.isPending,
-    isUpdatingGoal: updateGoalMutation.isPending,
+    assets,
+    liabilities,
     
-    // Financial metrics with corrected calculations
-    totalIncome,
-    totalExpenses,
-    totalInvested,
-    currentInvestmentValue,
-    availableBalance,
-    netWorth,
-    investmentReturn,
+    // Loading states
+    isLoading,
+    
+    // Mutations
+    addIncome,
+    addExpense,
+    addInvestment,
+    updateInvestment,
+    deleteInvestment,
+    addGoal,
+    addBankAccount,
+    updateGoal,
+    
+    // Mutation loading states
+    isAddingIncome,
+    isAddingExpense,
+    isAddingInvestment,
+    isAddingBankAccount,
+    isAddingGoal,
+    isUpdatingGoal,
+    
+    // Financial metrics
+    ...financialMetrics,
   };
 };
