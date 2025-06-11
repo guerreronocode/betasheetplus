@@ -523,6 +523,7 @@ export const useFinancialData = () => {
     isAddingExpense: addExpenseMutation.isPending,
     isAddingInvestment: addInvestmentMutation.isPending,
     isAddingBankAccount: addBankAccountMutation.isPending,
+    isAddingGoal: addGoalMutation.isPending,
     isUpdatingGoal: updateGoalMutation.isPending,
     
     // Financial metrics with corrected calculations
