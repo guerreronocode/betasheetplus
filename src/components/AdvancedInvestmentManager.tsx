@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useToast } from '@/hooks/use-toast';
+import YieldRatesDisplay from './YieldRatesDisplay';
 
 const AdvancedInvestmentManager = () => {
   const { 
@@ -162,20 +163,8 @@ const AdvancedInvestmentManager = () => {
         </Card>
       </div>
 
-      {/* Current Yield Rates */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Taxas de Rendimento Atuais</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {yieldRates.map((rate) => (
-            <div key={rate.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-              <span className="font-medium uppercase">{rate.rate_type}</span>
-              <span className="text-lg font-semibold text-green-600">
-                {formatPercentage(rate.rate_value)}
-              </span>
-            </div>
-          ))}
-        </div>
-      </Card>
+      {/* Current Yield Rates with improved component */}
+      <YieldRatesDisplay yieldRates={yieldRates} />
 
       {/* Add New Investment */}
       <Card className="p-6">
@@ -427,3 +416,5 @@ const AdvancedInvestmentManager = () => {
 };
 
 export default AdvancedInvestmentManager;
+
+</edits_to_apply>

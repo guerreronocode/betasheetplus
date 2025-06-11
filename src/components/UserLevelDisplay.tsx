@@ -6,7 +6,14 @@ import { Progress } from '@/components/ui/progress';
 import { useGamification } from '@/hooks/useGamification';
 
 const UserLevelDisplay = () => {
-  const { userStats, achievements, isLoading } = useGamification();
+  const { 
+    userStats, 
+    achievements, 
+    isLoading,
+    calculateLevel,
+    getPointsForNextLevel,
+    getLevelProgress
+  } = useGamification();
 
   if (isLoading || !userStats) {
     return (
@@ -22,22 +29,18 @@ const UserLevelDisplay = () => {
     );
   }
 
-  const currentLevel = userStats.level || 1;
   const totalPoints = userStats.total_points || 0;
-  const pointsForCurrentLevel = (currentLevel - 1) * 100;
-  const pointsForNextLevel = currentLevel * 100;
-  const progressInCurrentLevel = totalPoints - pointsForCurrentLevel;
-  const progressPercentage = (progressInCurrentLevel / 100) * 100;
+  const currentLevel = calculateLevel(totalPoints);
+  const pointsForNextLevel = getPointsForNextLevel(totalPoints);
+  const progressPercentage = getLevelProgress(totalPoints);
 
   const recentAchievements = achievements
+    .filter(a => a.unlocked_at)
     .sort((a, b) => new Date(b.unlocked_at || 0).getTime() - new Date(a.unlocked_at || 0).getTime())
     .slice(0, 3);
 
   return (
-    <Card className="p-6 cursor-pointer hover:shadow-lg transition-shadow" onClick={() => {
-      // Navigate to achievements page or show detailed stats
-      console.log('Navigate to user profile/achievements');
-    }}>
+    <Card className="p-6 cursor-pointer hover:shadow-lg transition-shadow">
       <div className="flex items-center space-x-4 mb-4">
         <div className="relative">
           <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
@@ -58,7 +61,7 @@ const UserLevelDisplay = () => {
           <div className="mt-2">
             <div className="flex justify-between items-center mb-1">
               <span className="text-xs text-gray-500">Progresso para o nível {currentLevel + 1}</span>
-              <span className="text-xs text-gray-500">{progressInCurrentLevel}/100</span>
+              <span className="text-xs text-gray-500">{pointsForNextLevel} pontos restantes</span>
             </div>
             <Progress value={progressPercentage} className="h-2" />
           </div>
@@ -78,7 +81,11 @@ const UserLevelDisplay = () => {
                 <span className="text-lg">{achievement.icon}</span>
                 <div className="flex-1">
                   <p className="text-sm font-medium">{achievement.title}</p>
-                  <p className="text-xs text-gray-600">+{achievement.points_earned} pontos</p>
+                  <p className="text-xs text-gray-500">{achievement.description}</p>
+                  <p className="text-xs text-green-600">+{achievement.points_earned} pontos</p>
+                </div>
+                <div className="text-xs text-gray-400">
+                  {achievement.unlocked_at && new Date(achievement.unlocked_at).toLocaleDateString('pt-BR')}
                 </div>
               </div>
             ))}

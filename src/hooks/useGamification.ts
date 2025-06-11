@@ -59,7 +59,7 @@ export const useGamification = () => {
     enabled: !!user,
   });
 
-  // Get user achievements
+  // Get user achievements with proper data
   const { data: achievements = [], isLoading: achievementsLoading } = useQuery({
     queryKey: ['user_achievements', user?.id],
     queryFn: async () => {
@@ -67,21 +67,34 @@ export const useGamification = () => {
       
       const { data, error } = await supabase
         .from('user_achievements')
-        .select('*')
-        .eq('user_id', user.id);
+        .select(`
+          *,
+          achievement_definitions (
+            title,
+            description,
+            icon,
+            category,
+            points
+          )
+        `)
+        .eq('user_id', user.id)
+        .order('unlocked_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.log('Error fetching achievements:', error);
+        return [];
+      }
       
-      // Transform to Achievement format
+      // Transform to Achievement format with real data
       return (data || []).map(item => ({
         id: item.achievement_id,
-        title: `Achievement ${item.achievement_id}`,
-        description: `You earned this achievement!`,
-        icon: '🏆',
-        points: item.points_earned || 0,
+        title: item.achievement_definitions?.title || `Conquista ${item.achievement_id}`,
+        description: item.achievement_definitions?.description || 'Conquista desbloqueada!',
+        icon: item.achievement_definitions?.icon || '🏆',
+        points: item.achievement_definitions?.points || item.points_earned || 0,
         points_earned: item.points_earned || 0,
         unlocked_at: item.unlocked_at,
-        category: 'general'
+        category: item.achievement_definitions?.category || 'general'
       })) as Achievement[];
     },
     enabled: !!user,
@@ -91,7 +104,11 @@ export const useGamification = () => {
   const { data: availableAchievements = [] } = useQuery({
     queryKey: ['achievement_definitions'],
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke('get-achievement-definitions');
+      const { data, error } = await supabase
+        .from('achievement_definitions')
+        .select('*')
+        .eq('is_active', true);
+      
       if (error) {
         console.log('Error fetching achievement definitions:', error);
         return [];
@@ -100,23 +117,28 @@ export const useGamification = () => {
     },
   });
 
-  // Calculate level from points
+  // Correct level calculation - each level requires 100 points more than the previous
   const calculateLevel = (points: number) => {
-    return Math.floor(points / 100) + 1;
+    if (points <= 0) return 1;
+    return Math.floor(Math.sqrt(points / 50)) + 1;
   };
 
   // Calculate points needed for next level
   const getPointsForNextLevel = (currentPoints: number) => {
     const currentLevel = calculateLevel(currentPoints);
-    const nextLevelPoints = currentLevel * 100;
-    return nextLevelPoints - currentPoints;
+    const pointsNeededForNextLevel = Math.pow(currentLevel, 2) * 50;
+    return pointsNeededForNextLevel - currentPoints;
   };
 
-  // Calculate progress to next level
+  // Calculate progress to next level (0-100%)
   const getLevelProgress = (currentPoints: number) => {
     const currentLevel = calculateLevel(currentPoints);
-    const pointsInCurrentLevel = currentPoints - ((currentLevel - 1) * 100);
-    return (pointsInCurrentLevel / 100) * 100;
+    const pointsForCurrentLevel = Math.pow(currentLevel - 1, 2) * 50;
+    const pointsForNextLevel = Math.pow(currentLevel, 2) * 50;
+    const pointsInCurrentLevel = currentPoints - pointsForCurrentLevel;
+    const pointsNeededForLevel = pointsForNextLevel - pointsForCurrentLevel;
+    
+    return Math.min((pointsInCurrentLevel / pointsNeededForLevel) * 100, 100);
   };
 
   // Track activity function
