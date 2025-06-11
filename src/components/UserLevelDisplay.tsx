@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { useGamification } from '@/hooks/useGamification';
 
 const UserLevelDisplay = () => {
-  const { userStats, userAchievements, isLoading } = useGamification();
+  const { userStats, achievements, isLoading } = useGamification();
 
   if (isLoading || !userStats) {
     return (
@@ -29,7 +29,7 @@ const UserLevelDisplay = () => {
   const progressInCurrentLevel = totalPoints - pointsForCurrentLevel;
   const progressPercentage = (progressInCurrentLevel / 100) * 100;
 
-  const recentAchievements = userAchievements
+  const recentAchievements = achievements
     .sort((a, b) => new Date(b.unlocked_at || 0).getTime() - new Date(a.unlocked_at || 0).getTime())
     .slice(0, 3);
 
@@ -97,7 +97,7 @@ const UserLevelDisplay = () => {
             <p className="text-xs text-gray-600">Metas Completas</p>
           </div>
           <div>
-            <p className="text-lg font-bold text-purple-600">{userAchievements.length}</p>
+            <p className="text-lg font-bold text-purple-600">{achievements.length}</p>
             <p className="text-xs text-gray-600">Conquistas</p>
           </div>
         </div>

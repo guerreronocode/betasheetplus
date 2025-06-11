@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { TrendingUp, DollarSign, Calendar, Percent, Plus, ExternalLink, Edit2, Trash2, Building } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -64,7 +63,7 @@ const AdvancedInvestmentManager = () => {
     };
 
     if (editingInvestment) {
-      updateInvestment(editingInvestment.id, investmentData);
+      updateInvestment({ id: editingInvestment.id, ...investmentData });
       setEditingInvestment(null);
     } else {
       addInvestment(investmentData);

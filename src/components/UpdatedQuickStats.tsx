@@ -21,7 +21,7 @@ const UpdatedQuickStats = () => {
   // Track daily access when component mounts
   useEffect(() => {
     trackActivity('daily_access');
-  }, []);
+  }, [trackActivity]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {

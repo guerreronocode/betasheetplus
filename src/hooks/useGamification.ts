@@ -11,6 +11,7 @@ export interface Achievement {
   points: number;
   unlocked_at?: string;
   category: string;
+  points_earned?: number;
 }
 
 export interface UserStats {
@@ -78,6 +79,7 @@ export const useGamification = () => {
         description: `You earned this achievement!`,
         icon: '🏆',
         points: item.points_earned || 0,
+        points_earned: item.points_earned || 0,
         unlocked_at: item.unlocked_at,
         category: 'general'
       })) as Achievement[];
@@ -117,6 +119,18 @@ export const useGamification = () => {
     return (pointsInCurrentLevel / 100) * 100;
   };
 
+  // Track activity function
+  const trackActivity = async (activityType: string) => {
+    if (!user) return;
+    
+    try {
+      console.log(`Tracking activity: ${activityType} for user ${user.id}`);
+      // For now, just log the activity - can be expanded later
+    } catch (error) {
+      console.error('Error tracking activity:', error);
+    }
+  };
+
   return {
     userStats: userStats as UserStats | null,
     achievements,
@@ -125,5 +139,6 @@ export const useGamification = () => {
     calculateLevel,
     getPointsForNextLevel,
     getLevelProgress,
+    trackActivity,
   };
 };
