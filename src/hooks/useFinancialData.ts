@@ -42,6 +42,7 @@ export interface Goal {
   deadline: string | null;
   color: string;
   completed: boolean;
+  linked_investment_id?: string | null;
 }
 
 export interface BankAccount {
@@ -401,7 +402,7 @@ export const useFinancialData = () => {
     },
   });
 
-  // Goals queries and mutations
+  // Goals queries and mutations - Updated to include linked_investment_id
   const { data: goals = [], isLoading: goalsLoading } = useQuery({
     queryKey: ['goals', user?.id],
     queryFn: async () => {

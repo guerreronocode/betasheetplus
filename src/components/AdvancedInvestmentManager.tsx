@@ -163,9 +163,6 @@ const AdvancedInvestmentManager = () => {
         </Card>
       </div>
 
-      {/* Current Yield Rates with improved component */}
-      <YieldRatesDisplay yieldRates={yieldRates} />
-
       {/* Add New Investment */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">

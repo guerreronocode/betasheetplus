@@ -45,6 +45,45 @@ export type Database = {
         }
         Relationships: []
       }
+      assets: {
+        Row: {
+          category: string
+          created_at: string | null
+          current_value: number
+          description: string | null
+          id: string
+          name: string
+          purchase_date: string | null
+          purchase_value: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          current_value?: number
+          description?: string | null
+          id?: string
+          name: string
+          purchase_date?: string | null
+          purchase_value?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          current_value?: number
+          description?: string | null
+          id?: string
+          name?: string
+          purchase_date?: string | null
+          purchase_value?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       bank_accounts: {
         Row: {
           account_type: string
@@ -136,6 +175,7 @@ export type Database = {
           current_amount: number | null
           deadline: string | null
           id: string
+          linked_investment_id: string | null
           target_amount: number
           title: string
           updated_at: string
@@ -148,6 +188,7 @@ export type Database = {
           current_amount?: number | null
           deadline?: string | null
           id?: string
+          linked_investment_id?: string | null
           target_amount: number
           title: string
           updated_at?: string
@@ -160,12 +201,21 @@ export type Database = {
           current_amount?: number | null
           deadline?: string | null
           id?: string
+          linked_investment_id?: string | null
           target_amount?: number
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "goals_linked_investment_id_fkey"
+            columns: ["linked_investment_id"]
+            isOneToOne: false
+            referencedRelation: "investments"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       income: {
         Row: {
@@ -290,6 +340,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      liabilities: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          interest_rate: number | null
+          monthly_payment: number | null
+          name: string
+          remaining_amount: number
+          total_amount: number
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          interest_rate?: number | null
+          monthly_payment?: number | null
+          name: string
+          remaining_amount: number
+          total_amount: number
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          interest_rate?: number | null
+          monthly_payment?: number | null
+          name?: string
+          remaining_amount?: number
+          total_amount?: number
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       market_data: {
         Row: {
@@ -420,6 +515,30 @@ export type Database = {
           total_transactions?: number | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      yield_rates_history: {
+        Row: {
+          created_at: string | null
+          id: string
+          rate_type: string
+          rate_value: number
+          reference_date: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          rate_type: string
+          rate_value: number
+          reference_date: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          rate_type?: string
+          rate_value?: number
+          reference_date?: string
         }
         Relationships: []
       }
