@@ -20,7 +20,7 @@ serve(async (req) => {
 
     // Fetch from database first
     const { data: dbPrices, error: dbError } = await supabaseClient
-      .from('market_data')
+      .from('asset_prices')
       .select('*')
       .order('last_update', { ascending: false })
 
@@ -28,21 +28,14 @@ serve(async (req) => {
       console.error('Database error:', dbError)
     }
 
-    // If we have recent data (less than 1 hour old), return it
+    // If we have recent data (less than 4 hours old), return it
     if (dbPrices && dbPrices.length > 0) {
       const lastUpdate = new Date(dbPrices[0].last_update)
       const hoursSinceUpdate = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60)
       
-      if (hoursSinceUpdate < 1) {
+      if (hoursSinceUpdate < 4) {
         return new Response(
-          JSON.stringify(dbPrices.map(price => ({
-            id: price.id,
-            symbol: price.symbol,
-            price: price.current_price,
-            currency: 'BRL',
-            last_update: price.last_update,
-            source: price.data_source
-          }))),
+          JSON.stringify(dbPrices),
           { 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200
@@ -52,105 +45,81 @@ serve(async (req) => {
     }
 
     // Fetch fresh data from APIs
-    const symbols = ['PETR4', 'VALE3', 'ITUB4', 'BBDC4', 'ABEV3', 'WEGE3']
-    const currencies = ['USD-BRL', 'EUR-BRL', 'EUR-USD', 'USD-EUR', 'BTC-BRL', 'ETH-BRL']
-    const updatedPrices = []
+    const freshPrices = []
 
-    try {
-      // Fetch stock prices from brapi.dev
-      for (const symbol of symbols) {
-        try {
-          const response = await fetch(`https://brapi.dev/api/quote/${symbol}`)
-          const data = await response.json()
-          
-          if (data.results && data.results.length > 0) {
-            const stock = data.results[0]
-            
-            const priceData = {
-              symbol: stock.symbol,
-              name: stock.longName || stock.symbol,
-              current_price: stock.regularMarketPrice,
-              change_percent: stock.regularMarketChangePercent,
-              market_cap: stock.marketCap,
-              volume: stock.regularMarketVolume,
-              last_update: new Date().toISOString(),
-              data_source: 'brapi'
-            }
-
-            await supabaseClient
-              .from('market_data')
-              .upsert(priceData, { onConflict: 'symbol' })
-
-            updatedPrices.push({
-              id: stock.symbol,
-              symbol: stock.symbol,
-              price: stock.regularMarketPrice,
-              currency: 'BRL',
-              last_update: new Date().toISOString(),
-              source: 'brapi'
-            })
-          }
-        } catch (error) {
-          console.error(`Error fetching ${symbol}:`, error)
+    // Fetch stock prices from Brapi
+    const stocks = ['PETR4', 'VALE3', 'ITUB4', 'BBDC4', 'ABEV3', 'WEGE3', 'RENT3', 'MGLU3']
+    for (const symbol of stocks) {
+      try {
+        const response = await fetch(`https://brapi.dev/api/quote/${symbol}`)
+        const data = await response.json()
+        
+        if (data.results && data.results.length > 0) {
+          const stock = data.results[0]
+          freshPrices.push({
+            symbol: stock.symbol,
+            market_type: 'stock',
+            price: stock.regularMarketPrice,
+            change_percent: stock.regularMarketChangePercent || 0,
+            quote_currency: stock.currency || 'BRL',
+            source: 'brapi',
+            exchange: 'B3',
+            update_date: new Date().toISOString().split('T')[0]
+          })
         }
+      } catch (error) {
+        console.error(`Error fetching ${symbol}:`, error)
       }
-
-      // Fetch currency rates from AwesomeAPI
-      for (const currency of currencies) {
-        try {
-          const response = await fetch(`https://economia.awesomeapi.com.br/json/last/${currency}`)
-          const data = await response.json()
-          
-          const key = currency.replace('-', '')
-          if (data[key]) {
-            const rate = data[key]
-            
-            const priceData = {
-              symbol: currency,
-              name: `${currency} Rate`,
-              current_price: parseFloat(rate.bid),
-              change_percent: parseFloat(rate.pctChange),
-              last_update: new Date().toISOString(),
-              data_source: 'awesomeapi'
-            }
-
-            await supabaseClient
-              .from('market_data')
-              .upsert(priceData, { onConflict: 'symbol' })
-
-            updatedPrices.push({
-              id: currency,
-              symbol: currency,
-              price: parseFloat(rate.bid),
-              currency: 'BRL',
-              last_update: new Date().toISOString(),
-              source: 'awesomeapi'
-            })
-          }
-        } catch (error) {
-          console.error(`Error fetching ${currency}:`, error)
-        }
-      }
-
-      return new Response(
-        JSON.stringify(updatedPrices),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200
-        }
-      )
-    } catch (apiError) {
-      console.error('API error, returning cached data:', apiError)
-      
-      // Return cached data if API fails
-      return new Response(
-        JSON.stringify(dbPrices || []),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200
-        }
-      )
     }
+
+    // Fetch currency rates from AwesomeAPI
+    const currencies = ['USD-BRL', 'EUR-BRL', 'BTC-BRL']
+    for (const currency of currencies) {
+      try {
+        const response = await fetch(`https://economia.awesomeapi.com.br/json/last/${currency}`)
+        const data = await response.json()
+        
+        const key = currency.replace('-', '')
+        if (data[key]) {
+          const rate = data[key]
+          const [base, quote] = currency.split('-')
+          
+          freshPrices.push({
+            symbol: currency,
+            market_type: 'currency',
+            price: parseFloat(rate.bid),
+            change_percent: parseFloat(rate.pctChange) || 0,
+            base_currency: base,
+            quote_currency: quote,
+            source: 'awesomeapi',
+            exchange: null,
+            update_date: new Date().toISOString().split('T')[0]
+          })
+        }
+      } catch (error) {
+        console.error(`Error fetching ${currency}:`, error)
+      }
+    }
+
+    // Update database with fresh data
+    if (freshPrices.length > 0) {
+      for (const price of freshPrices) {
+        await supabaseClient
+          .from('asset_prices')
+          .upsert(price, {
+            onConflict: 'symbol,update_date'
+          })
+      }
+    }
+
+    // Return fresh data or cached data if API fails
+    return new Response(
+      JSON.stringify(freshPrices.length > 0 ? freshPrices : dbPrices || []),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200
+      }
+    )
   } catch (error) {
     console.error('General error:', error)
     return new Response(

@@ -13,10 +13,15 @@ export interface YieldRate {
 export interface AssetPrice {
   id: string;
   symbol: string;
+  market_type: string;
   price: number;
-  currency: string;
-  last_update: string;
+  change_percent: number;
+  base_currency?: string;
+  quote_currency: string;
   source: string;
+  exchange?: string;
+  update_date: string;
+  last_update: string;
 }
 
 export const useMarketData = () => {

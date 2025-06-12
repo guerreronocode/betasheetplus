@@ -45,6 +45,51 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_prices: {
+        Row: {
+          base_currency: string | null
+          change_percent: number | null
+          created_at: string
+          exchange: string | null
+          id: string
+          last_update: string
+          market_type: string
+          price: number
+          quote_currency: string | null
+          source: string
+          symbol: string
+          update_date: string
+        }
+        Insert: {
+          base_currency?: string | null
+          change_percent?: number | null
+          created_at?: string
+          exchange?: string | null
+          id?: string
+          last_update?: string
+          market_type?: string
+          price: number
+          quote_currency?: string | null
+          source: string
+          symbol: string
+          update_date?: string
+        }
+        Update: {
+          base_currency?: string | null
+          change_percent?: number | null
+          created_at?: string
+          exchange?: string | null
+          id?: string
+          last_update?: string
+          market_type?: string
+          price?: number
+          quote_currency?: string | null
+          source?: string
+          symbol?: string
+          update_date?: string
+        }
+        Relationships: []
+      }
       assets: {
         Row: {
           category: string
@@ -515,6 +560,36 @@ export type Database = {
           total_transactions?: number | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      yield_rates: {
+        Row: {
+          created_at: string
+          id: string
+          last_update: string
+          periodicity: string | null
+          rate_type: string
+          rate_value: number
+          reference_date: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_update?: string
+          periodicity?: string | null
+          rate_type: string
+          rate_value: number
+          reference_date: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_update?: string
+          periodicity?: string | null
+          rate_type?: string
+          rate_value?: number
+          reference_date?: string
         }
         Relationships: []
       }

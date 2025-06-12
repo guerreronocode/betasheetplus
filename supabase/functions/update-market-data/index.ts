@@ -111,12 +111,15 @@ async function updateStockPrices(supabaseClient: any) {
             .from('asset_prices')
             .upsert({
               symbol: stock.symbol,
+              market_type: 'stock',
               price: stock.regularMarketPrice,
-              currency: stock.currency,
+              change_percent: stock.regularMarketChangePercent || 0,
+              quote_currency: stock.currency || 'BRL',
               source: 'brapi',
-              last_update: new Date().toISOString()
+              exchange: 'B3',
+              update_date: new Date().toISOString().split('T')[0]
             }, {
-              onConflict: 'symbol,last_update::date'
+              onConflict: 'symbol,update_date'
             })
           
           updatedCount++
@@ -146,17 +149,22 @@ async function updateCurrencyRates(supabaseClient: any) {
         const key = currency.replace('-', '')
         if (data[key]) {
           const rate = data[key]
+          const [base, quote] = currency.split('-')
           
           await supabaseClient
             .from('asset_prices')
             .upsert({
               symbol: currency,
+              market_type: 'currency',
               price: parseFloat(rate.bid),
-              currency: 'BRL',
+              change_percent: parseFloat(rate.pctChange) || 0,
+              base_currency: base,
+              quote_currency: quote,
               source: 'awesomeapi',
-              last_update: new Date().toISOString()
+              exchange: null,
+              update_date: new Date().toISOString().split('T')[0]
             }, {
-              onConflict: 'symbol,last_update::date'
+              onConflict: 'symbol,update_date'
             })
           
           updatedCount++
