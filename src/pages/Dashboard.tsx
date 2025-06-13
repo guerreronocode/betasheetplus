@@ -14,6 +14,7 @@ import ImprovedYieldRatesDisplay from '@/components/ImprovedYieldRatesDisplay';
 import PatrimonyManager from '@/components/PatrimonyManager';
 import LinkedGoalsManager from '@/components/LinkedGoalsManager';
 import TransferBetweenAccounts from '@/components/TransferBetweenAccounts';
+import RecurringTransactions from '@/components/RecurringTransactions';
 import { useFinancialData } from '@/hooks/useFinancialData';
 
 const Dashboard = () => {
@@ -74,6 +75,7 @@ const Dashboard = () => {
                 <AddTransactionForm />
                 <TransferBetweenAccounts />
               </div>
+              <RecurringTransactions />
               <TransactionsList />
             </div>
           </TabsContent>

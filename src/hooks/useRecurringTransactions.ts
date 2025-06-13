@@ -25,6 +25,7 @@ export const useRecurringTransactions = () => {
     queryKey: ['recurring_transactions', user?.id],
     queryFn: async () => {
       if (!user) return [];
+      
       const { data, error } = await supabase
         .from('recurring_transactions')
         .select('*')
@@ -32,8 +33,12 @@ export const useRecurringTransactions = () => {
         .eq('is_active', true)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data as RecurringTransaction[];
+      if (error) {
+        console.error('Error fetching recurring transactions:', error);
+        throw error;
+      }
+      
+      return data || [];
     },
     enabled: !!user,
   });
@@ -41,18 +46,35 @@ export const useRecurringTransactions = () => {
   const addRecurringTransactionMutation = useMutation({
     mutationFn: async (transaction: Omit<RecurringTransaction, 'id' | 'is_active'>) => {
       if (!user) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
         .from('recurring_transactions')
-        .insert([{ ...transaction, user_id: user.id, is_active: true }])
+        .insert([{ 
+          ...transaction, 
+          user_id: user.id, 
+          is_active: true,
+          end_date: transaction.end_date || null 
+        }])
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error creating recurring transaction:', error);
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['recurring_transactions'] });
       toast({ title: 'Transação recorrente criada com sucesso!' });
+    },
+    onError: (error) => {
+      console.error('Error in addRecurringTransaction:', error);
+      toast({ 
+        title: 'Erro ao criar transação recorrente', 
+        description: 'Tente novamente mais tarde.',
+        variant: 'destructive'
+      });
     },
   });
 
