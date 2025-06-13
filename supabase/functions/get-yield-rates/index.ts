@@ -20,7 +20,7 @@ serve(async (req) => {
 
     // Fetch from database first
     const { data: dbRates, error: dbError } = await supabaseClient
-      .from('interest_rates')
+      .from('yield_rates')
       .select('*')
       .order('last_update', { ascending: false })
 
@@ -39,7 +39,8 @@ serve(async (req) => {
             id: rate.id,
             rate_type: rate.rate_type,
             rate_value: rate.rate_value,
-            reference_date: rate.reference_date
+            reference_date: rate.reference_date,
+            last_update: rate.last_update
           }))),
           { 
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -49,50 +50,89 @@ serve(async (req) => {
       }
     }
 
-    // Fetch fresh data from BACEN API
+    // Fetch fresh data from BACEN API and store historical data
     try {
-      const [selicResponse, cdiResponse, ipcaResponse] = await Promise.all([
-        fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json'),
-        fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados/ultimos/1?formato=json'),
-        fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados/ultimos/12?formato=json')
-      ])
+      // Get historical SELIC data (last 30 days)
+      const selicResponse = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/30?formato=json')
+      const selicData = await selicResponse.json()
+      
+      // Get historical CDI data (last 30 days)
+      const cdiResponse = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados/ultimos/30?formato=json')
+      const cdiData = await cdiResponse.json()
+      
+      // Get historical IPCA data (last 24 months for rolling 12-month calculation)
+      const ipcaResponse = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados/ultimos/24?formato=json')
+      const ipcaData = await ipcaResponse.json()
 
-      const [selicData, cdiData, ipcaData] = await Promise.all([
-        selicResponse.json(),
-        cdiResponse.json(),
-        ipcaResponse.json()
-      ])
-
-      // Calculate IPCA annual rate from last 12 months
-      const ipcaAnnual = ipcaData.reduce((acc: number, month: any) => acc + parseFloat(month.valor), 0)
-
-      const rates = [
-        { rate_type: 'selic', rate_value: parseFloat(selicData[0].valor) },
-        { rate_type: 'cdi', rate_value: parseFloat(cdiData[0].valor) },
-        { rate_type: 'ipca', rate_value: ipcaAnnual }
-      ]
-
-      // Update database with fresh data
-      for (const rate of rates) {
-        await supabaseClient
-          .from('interest_rates')
-          .upsert({
-            rate_type: rate.rate_type,
-            rate_value: rate.rate_value,
-            reference_date: new Date().toISOString().split('T')[0],
-            last_update: new Date().toISOString()
-          }, {
-            onConflict: 'rate_type'
-          })
+      // Store historical SELIC data
+      for (const entry of selicData) {
+        if (entry.data && entry.valor) {
+          const date = entry.data.split('/').reverse().join('-') // Convert DD/MM/YYYY to YYYY-MM-DD
+          await supabaseClient
+            .from('yield_rates')
+            .upsert({
+              rate_type: 'selic',
+              rate_value: parseFloat(entry.valor),
+              reference_date: date,
+              periodicity: 'daily'
+            }, {
+              onConflict: 'rate_type,reference_date'
+            })
+        }
       }
 
+      // Store historical CDI data
+      for (const entry of cdiData) {
+        if (entry.data && entry.valor) {
+          const date = entry.data.split('/').reverse().join('-')
+          await supabaseClient
+            .from('yield_rates')
+            .upsert({
+              rate_type: 'cdi',
+              rate_value: parseFloat(entry.valor),
+              reference_date: date,
+              periodicity: 'daily'
+            }, {
+              onConflict: 'rate_type,reference_date'
+            })
+        }
+      }
+
+      // Store historical IPCA data and calculate rolling 12-month periods
+      for (let i = 11; i < ipcaData.length; i++) {
+        const currentEntry = ipcaData[i]
+        if (currentEntry.data && currentEntry.valor) {
+          const date = `${currentEntry.data.split('/')[2]}-${currentEntry.data.split('/')[1]}-01`
+          
+          // Calculate 12-month accumulated IPCA
+          const last12Months = ipcaData.slice(i - 11, i + 1)
+          const accumulated12Month = last12Months.reduce((acc, month) => {
+            const monthlyRate = parseFloat(month.valor) / 100
+            return acc * (1 + monthlyRate)
+          }, 1) - 1
+          
+          await supabaseClient
+            .from('yield_rates')
+            .upsert({
+              rate_type: 'ipca',
+              rate_value: accumulated12Month * 100,
+              reference_date: date,
+              periodicity: 'monthly'
+            }, {
+              onConflict: 'rate_type,reference_date'
+            })
+        }
+      }
+
+      // Get latest rates for response
+      const { data: updatedRates } = await supabaseClient
+        .from('yield_rates')
+        .select('*')
+        .order('reference_date', { ascending: false })
+        .limit(100)
+
       return new Response(
-        JSON.stringify(rates.map(rate => ({
-          id: rate.rate_type,
-          rate_type: rate.rate_type,
-          rate_value: rate.rate_value,
-          reference_date: new Date().toISOString().split('T')[0]
-        }))),
+        JSON.stringify(updatedRates || []),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200

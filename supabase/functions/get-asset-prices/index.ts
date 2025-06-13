@@ -46,29 +46,84 @@ serve(async (req) => {
 
     // Fetch fresh data from APIs
     const freshPrices = []
+    const brapiToken = Deno.env.get('BRAPI_TOKEN')
 
-    // Fetch stock prices from Brapi
-    const stocks = ['PETR4', 'VALE3', 'ITUB4', 'BBDC4', 'ABEV3', 'WEGE3', 'RENT3', 'MGLU3']
-    for (const symbol of stocks) {
-      try {
-        const response = await fetch(`https://brapi.dev/api/quote/${symbol}`)
-        const data = await response.json()
+    // Get a comprehensive list of Brazilian stocks from Brapi
+    try {
+      const listResponse = await fetch(`https://brapi.dev/api/quote/list?token=${brapiToken}`)
+      const listData = await listResponse.json()
+      
+      // Get the most liquid stocks (top 100)
+      const symbols = listData.stocks?.slice(0, 100)?.map((stock: any) => stock.stock) || [
+        'PETR4', 'VALE3', 'ITUB4', 'BBDC4', 'ABEV3', 'WEGE3', 'RENT3', 'MGLU3',
+        'BBAS3', 'JBSS3', 'SUZB3', 'RAIL3', 'UGPA3', 'CSAN3', 'USIM5', 'CSNA3',
+        'GOAU4', 'CCRO3', 'ECOR3', 'CPLE6', 'EGIE3', 'TAEE11', 'CMIG4', 'SBSP3',
+        'VIVT3', 'TOTS3', 'QUAL3', 'HAPV3', 'PLAN3', 'FLRY3', 'RADL3', 'RAIA3',
+        'PCAR3', 'ASAI3', 'CRFB3', 'NTCO3', 'LWSA3', 'SOMA3', 'LREN3', 'GMAT3'
+      ]
+
+      // Fetch in batches to avoid rate limits
+      const batchSize = 20
+      for (let i = 0; i < symbols.length; i += batchSize) {
+        const batch = symbols.slice(i, i + batchSize).join(',')
         
-        if (data.results && data.results.length > 0) {
-          const stock = data.results[0]
-          freshPrices.push({
-            symbol: stock.symbol,
-            market_type: 'stock',
-            price: stock.regularMarketPrice,
-            change_percent: stock.regularMarketChangePercent || 0,
-            quote_currency: stock.currency || 'BRL',
-            source: 'brapi',
-            exchange: 'B3',
-            update_date: new Date().toISOString().split('T')[0]
-          })
+        try {
+          const response = await fetch(`https://brapi.dev/api/quote/${batch}?token=${brapiToken}`)
+          const data = await response.json()
+          
+          if (data.results && Array.isArray(data.results)) {
+            for (const stock of data.results) {
+              if (stock.regularMarketPrice && stock.symbol) {
+                freshPrices.push({
+                  symbol: stock.symbol,
+                  market_type: 'stock',
+                  price: stock.regularMarketPrice,
+                  change_percent: stock.regularMarketChangePercent || 0,
+                  quote_currency: stock.currency || 'BRL',
+                  source: 'brapi',
+                  exchange: 'B3',
+                  update_date: new Date().toISOString().split('T')[0]
+                })
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Error fetching batch ${i}-${i + batchSize}:`, error)
         }
-      } catch (error) {
-        console.error(`Error fetching ${symbol}:`, error)
+        
+        // Add small delay between batches
+        await new Promise(resolve => setTimeout(resolve, 200))
+      }
+    } catch (error) {
+      console.error('Error fetching comprehensive stock list:', error)
+      
+      // Fallback to hardcoded list
+      const fallbackSymbols = [
+        'PETR4', 'VALE3', 'ITUB4', 'BBDC4', 'ABEV3', 'WEGE3', 'RENT3', 'MGLU3',
+        'BBAS3', 'JBSS3', 'SUZB3', 'RAIL3', 'UGPA3', 'CSAN3', 'USIM5', 'CSNA3'
+      ]
+      
+      for (const symbol of fallbackSymbols) {
+        try {
+          const response = await fetch(`https://brapi.dev/api/quote/${symbol}?token=${brapiToken}`)
+          const data = await response.json()
+          
+          if (data.results && data.results.length > 0) {
+            const stock = data.results[0]
+            freshPrices.push({
+              symbol: stock.symbol,
+              market_type: 'stock',
+              price: stock.regularMarketPrice,
+              change_percent: stock.regularMarketChangePercent || 0,
+              quote_currency: stock.currency || 'BRL',
+              source: 'brapi',
+              exchange: 'B3',
+              update_date: new Date().toISOString().split('T')[0]
+            })
+          }
+        } catch (error) {
+          console.error(`Error fetching ${symbol}:`, error)
+        }
       }
     }
 
@@ -111,6 +166,8 @@ serve(async (req) => {
           })
       }
     }
+
+    console.log(`Updated ${freshPrices.length} asset prices`)
 
     // Return fresh data or cached data if API fails
     return new Response(
