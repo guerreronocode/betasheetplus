@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TrendingUp, DollarSign, Calendar, Percent, Plus, ExternalLink, Edit2, Trash2, Building } from 'lucide-react';
+import { TrendingUp, DollarSign, Calendar, Percent, Plus, Edit2, Trash2, Building } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,13 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useToast } from '@/hooks/use-toast';
-import YieldRatesDisplay from './YieldRatesDisplay';
+import AssetPricesPanel from './AssetPricesPanel';
+import YieldRatesEvolutionPanel from './YieldRatesEvolutionPanel';
 
 const AdvancedInvestmentManager = () => {
   const { 
     investments, 
     yieldRates, 
-    assetPrices, 
     bankAccounts,
     addInvestment, 
     updateInvestment,
@@ -388,26 +388,11 @@ const AdvancedInvestmentManager = () => {
         </div>
       </Card>
 
-      {/* Asset Prices */}
-      {assetPrices.length > 0 && (
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Preços de Ativos</h3>
-            <ExternalLink className="w-4 h-4 text-gray-400" />
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {assetPrices.slice(0, 6).map((asset) => (
-              <div key={asset.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                <span className="font-medium">{asset.symbol}</span>
-                <div className="text-right">
-                  <p className="font-semibold">{formatCurrency(asset.price)}</p>
-                  <p className="text-xs text-gray-500">{asset.source}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </Card>
-      )}
+      {/* Updated Asset Prices Panel */}
+      <AssetPricesPanel />
+
+      {/* Updated Yield Rates Panel */}
+      <YieldRatesEvolutionPanel />
     </div>
   );
 };
