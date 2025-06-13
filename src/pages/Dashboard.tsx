@@ -11,7 +11,7 @@ import AdvancedAchievements from '@/components/AdvancedAchievements';
 import BankAccountManager from '@/components/BankAccountManager';
 import AddTransactionForm from '@/components/AddTransactionForm';
 import ImprovedYieldRatesDisplay from '@/components/ImprovedYieldRatesDisplay';
-import PatrimonyManager from '@/components/PatrimonyManager';
+import ImprovedPatrimonyManager from '@/components/ImprovedPatrimonyManager';
 import LinkedGoalsManager from '@/components/LinkedGoalsManager';
 import TransferBetweenAccounts from '@/components/TransferBetweenAccounts';
 import RecurringTransactions from '@/components/RecurringTransactions';
@@ -92,7 +92,7 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="patrimony">
-            <PatrimonyManager />
+            <ImprovedPatrimonyManager />
           </TabsContent>
 
           <TabsContent value="achievements">
