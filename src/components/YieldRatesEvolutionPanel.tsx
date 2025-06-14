@@ -29,7 +29,7 @@ const YieldRatesEvolutionPanel = () => {
     const descriptions = {
       selic: 'Taxa básica de juros da economia brasileira',
       cdi: 'Certificado de Depósito Interbancário',
-      ipca: 'Índice Nacional de Preços ao Consumidor Amplo'
+      ipca: 'Índice Nacional de Preços ao Consumidor Amplo (acumulado 12 meses)'
     };
     return descriptions[rateType as keyof typeof descriptions] || 'Taxa de rendimento';
   };
@@ -62,15 +62,24 @@ const YieldRatesEvolutionPanel = () => {
     setShowChart(true);
   };
 
+  // Get current date for display
+  const getCurrentDate = () => {
+    return new Date().toLocaleDateString('pt-BR', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric' 
+    });
+  };
+
   return (
     <>
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold">Taxas de Rendimento</h3>
+          <h3 className="text-lg font-semibold">Indicadores BACEN</h3>
           <TrendingUp className="w-5 h-5 text-gray-400" />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           {yieldRates.map((rate) => (
             <div
               key={rate.id}
@@ -93,10 +102,7 @@ const YieldRatesEvolutionPanel = () => {
               
               <div className="mb-2">
                 <p className="text-2xl font-bold text-gray-900">
-                  {formatPercentage(rate.rate_value)}
-                </p>
-                <p className="text-xs text-gray-600">
-                  {new Date(rate.reference_date).toLocaleDateString('pt-BR')}
+                  {formatPercentage(rate.rate_value)} a.a
                 </p>
               </div>
               
@@ -107,10 +113,17 @@ const YieldRatesEvolutionPanel = () => {
           ))}
         </div>
 
+        {/* Current Date Display */}
+        <div className="text-center pt-4 border-t border-gray-200">
+          <p className="text-sm text-gray-600">
+            <strong>Última atualização:</strong> {getCurrentDate()}
+          </p>
+        </div>
+
         {yieldRates.length === 0 && (
           <div className="text-center py-8 text-gray-500">
             <TrendingUp className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-            <p>Carregando taxas de rendimento...</p>
+            <p>Carregando indicadores BACEN...</p>
           </div>
         )}
       </Card>
@@ -131,13 +144,11 @@ const YieldRatesEvolutionPanel = () => {
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-sm text-gray-600">Taxa Atual</p>
-                    <p className="text-2xl font-bold">{formatPercentage(selectedRate.rate_value)}</p>
+                    <p className="text-2xl font-bold">{formatPercentage(selectedRate.rate_value)} a.a</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Última Atualização</p>
-                    <p className="font-medium">
-                      {new Date(selectedRate.reference_date).toLocaleDateString('pt-BR')}
-                    </p>
+                    <p className="font-medium">{getCurrentDate()}</p>
                   </div>
                 </div>
               </div>
