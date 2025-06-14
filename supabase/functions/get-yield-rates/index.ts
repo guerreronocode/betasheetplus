@@ -18,7 +18,7 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    // Check for recent data with improved cache logic
+    // Check for recent data first
     const { data: dbRates, error: dbError } = await supabaseClient
       .from('yield_rates')
       .select('*')
@@ -29,14 +29,13 @@ serve(async (req) => {
       console.error('Database error:', dbError)
     }
 
-    // Check if we have recent data (less than 12 hours old for yield rates)
+    // Check if we have recent data (less than 6 hours old for yield rates)
     if (dbRates && dbRates.length > 0) {
       const lastUpdate = new Date(dbRates[0].last_update)
       const hoursSinceUpdate = (Date.now() - lastUpdate.getTime()) / (1000 * 60 * 60)
       
-      if (hoursSinceUpdate < 12) {
+      if (hoursSinceUpdate < 6) {
         console.log('Returning cached yield rates data')
-        // Return latest rates for each type
         const latestRates = []
         const rateTypes = ['selic', 'cdi', 'ipca']
         
@@ -55,189 +54,128 @@ serve(async (req) => {
       }
     }
 
-    console.log('Fetching fresh yield rates data with historical data...')
+    console.log('Fetching fresh yield rates data from BACEN API...')
 
-    // Fetch comprehensive historical data from BACEN API
     try {
-      // Get SELIC historical data (last 90 days for better trend analysis)
-      const selicResponse = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/90?formato=json')
+      // SELIC - Taxa básica de juros (série 432)
+      const selicResponse = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.432/dados/ultimos/1?formato=json')
       const selicData = await selicResponse.json()
       
-      // Get CDI historical data (last 90 days)
-      const cdiResponse = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados/ultimos/90?formato=json')
+      // CDI - Certificados de Depósito Interbancário (série 12)
+      const cdiResponse = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados/ultimos/1?formato=json')
       const cdiData = await cdiResponse.json()
       
-      // Get IPCA historical data (last 36 months for rolling 12-month calculation)
-      const ipcaResponse = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados/ultimos/36?formato=json')
+      // IPCA - Índice de preços (série 433) - últimos 12 meses para calcular acumulado
+      const ipcaResponse = await fetch('https://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados/ultimos/12?formato=json')
       const ipcaData = await ipcaResponse.json()
 
-      console.log(`Fetched ${selicData.length} SELIC entries, ${cdiData.length} CDI entries, ${ipcaData.length} IPCA entries`)
+      console.log(`Fetched SELIC: ${selicData?.length || 0} entries, CDI: ${cdiData?.length || 0} entries, IPCA: ${ipcaData?.length || 0} entries`)
 
-      // Store comprehensive SELIC historical data
-      for (const entry of selicData) {
-        if (entry.data && entry.valor) {
-          const dateParts = entry.data.split('/')
-          const date = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}` // Convert DD/MM/YYYY to YYYY-MM-DD
-          
-          try {
-            await supabaseClient
-              .from('yield_rates')
-              .upsert({
-                rate_type: 'selic',
-                rate_value: parseFloat(entry.valor),
-                reference_date: date,
-                periodicity: 'daily'
-              }, {
-                onConflict: 'rate_type,reference_date'
-              })
-          } catch (error) {
-            console.error('Error storing SELIC data:', error)
-          }
-        }
-      }
+      const ratesToStore = []
 
-      // Store comprehensive CDI historical data
-      for (const entry of cdiData) {
-        if (entry.data && entry.valor) {
-          const dateParts = entry.data.split('/')
+      // Process SELIC data
+      if (selicData && Array.isArray(selicData) && selicData.length > 0) {
+        const latestSelic = selicData[selicData.length - 1]
+        if (latestSelic.data && latestSelic.valor) {
+          const dateParts = latestSelic.data.split('/')
           const date = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`
           
-          try {
-            await supabaseClient
-              .from('yield_rates')
-              .upsert({
-                rate_type: 'cdi',
-                rate_value: parseFloat(entry.valor),
-                reference_date: date,
-                periodicity: 'daily'
-              }, {
-                onConflict: 'rate_type,reference_date'
-              })
-          } catch (error) {
-            console.error('Error storing CDI data:', error)
-          }
-        }
-      }
-
-      // Store IPCA data with proper 12-month accumulated calculation
-      for (let i = 11; i < ipcaData.length; i++) {
-        const currentEntry = ipcaData[i]
-        if (currentEntry.data && currentEntry.valor) {
-          const dateParts = currentEntry.data.split('/')
-          const date = `${dateParts[2]}-${dateParts[1]}-01` // First day of month
-          
-          // Calculate 12-month accumulated IPCA
-          const last12Months = ipcaData.slice(i - 11, i + 1)
-          let accumulated12Month = 1
-          
-          for (const month of last12Months) {
-            if (month.valor) {
-              const monthlyRate = parseFloat(month.valor) / 100
-              accumulated12Month *= (1 + monthlyRate)
-            }
-          }
-          
-          const annual12MonthRate = (accumulated12Month - 1) * 100
-          
-          try {
-            await supabaseClient
-              .from('yield_rates')
-              .upsert({
-                rate_type: 'ipca',
-                rate_value: annual12MonthRate,
-                reference_date: date,
-                periodicity: 'monthly'
-              }, {
-                onConflict: 'rate_type,reference_date'
-              })
-          } catch (error) {
-            console.error('Error storing IPCA data:', error)
-          }
-        }
-      }
-
-      // Also store historical data in yield_rates_history for trend analysis
-      const currentDate = new Date().toISOString().split('T')[0]
-      
-      // Store latest values in history table
-      if (selicData.length > 0) {
-        const latestSelic = selicData[selicData.length - 1]
-        await supabaseClient
-          .from('yield_rates_history')
-          .upsert({
+          ratesToStore.push({
             rate_type: 'selic',
             rate_value: parseFloat(latestSelic.valor),
-            reference_date: currentDate
-          }, {
-            onConflict: 'rate_type,reference_date'
+            reference_date: date,
+            periodicity: 'daily'
           })
+        }
       }
 
-      if (cdiData.length > 0) {
+      // Process CDI data
+      if (cdiData && Array.isArray(cdiData) && cdiData.length > 0) {
         const latestCdi = cdiData[cdiData.length - 1]
-        await supabaseClient
-          .from('yield_rates_history')
-          .upsert({
+        if (latestCdi.data && latestCdi.valor) {
+          const dateParts = latestCdi.data.split('/')
+          const date = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`
+          
+          ratesToStore.push({
             rate_type: 'cdi',
             rate_value: parseFloat(latestCdi.valor),
-            reference_date: currentDate
-          }, {
-            onConflict: 'rate_type,reference_date'
+            reference_date: date,
+            periodicity: 'daily'
           })
+        }
       }
 
-      if (ipcaData.length >= 12) {
-        // Calculate current 12-month IPCA
-        const last12Months = ipcaData.slice(-12)
+      // Process IPCA data - calculate 12-month accumulated
+      if (ipcaData && Array.isArray(ipcaData) && ipcaData.length >= 12) {
         let accumulated = 1
+        const last12Months = ipcaData.slice(-12)
+        
         for (const month of last12Months) {
           if (month.valor) {
-            accumulated *= (1 + parseFloat(month.valor) / 100)
+            const monthlyRate = parseFloat(month.valor) / 100
+            accumulated *= (1 + monthlyRate)
           }
         }
-        const annualRate = (accumulated - 1) * 100
         
-        await supabaseClient
-          .from('yield_rates_history')
-          .upsert({
+        const annualRate = (accumulated - 1) * 100
+        const latestIpca = ipcaData[ipcaData.length - 1]
+        
+        if (latestIpca.data) {
+          const dateParts = latestIpca.data.split('/')
+          const date = `${dateParts[2]}-${dateParts[1]}-01` // First day of month
+          
+          ratesToStore.push({
             rate_type: 'ipca',
             rate_value: annualRate,
-            reference_date: currentDate
-          }, {
-            onConflict: 'rate_type,reference_date'
+            reference_date: date,
+            periodicity: 'monthly'
           })
-      }
-
-      console.log('Successfully stored comprehensive historical yield rates data')
-
-      // Get latest rates for response
-      const { data: updatedRates } = await supabaseClient
-        .from('yield_rates')
-        .select('*')
-        .order('reference_date', { ascending: false })
-
-      // Return only the latest rate for each type
-      const latestRates = []
-      const rateTypes = ['selic', 'cdi', 'ipca']
-      
-      for (const rateType of rateTypes) {
-        const rates = updatedRates?.filter(r => r.rate_type === rateType) || []
-        if (rates.length > 0) {
-          latestRates.push(rates[0])
         }
       }
 
-      console.log(`Returning ${latestRates.length} latest yield rates`)
+      // Store rates in database
+      for (const rate of ratesToStore) {
+        try {
+          await supabaseClient
+            .from('yield_rates')
+            .upsert(rate, {
+              onConflict: 'rate_type,reference_date'
+            })
+        } catch (error) {
+          console.error(`Error storing ${rate.rate_type} data:`, error)
+        }
+      }
+
+      // Store in history table for trend analysis
+      const currentDate = new Date().toISOString().split('T')[0]
+      for (const rate of ratesToStore) {
+        try {
+          await supabaseClient
+            .from('yield_rates_history')
+            .upsert({
+              rate_type: rate.rate_type,
+              rate_value: rate.rate_value,
+              reference_date: currentDate
+            }, {
+              onConflict: 'rate_type,reference_date'
+            })
+        } catch (error) {
+          console.error(`Error storing ${rate.rate_type} history:`, error)
+        }
+      }
+
+      console.log(`Successfully stored ${ratesToStore.length} yield rates`)
 
       return new Response(
-        JSON.stringify(latestRates),
+        JSON.stringify(ratesToStore),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 200
         }
       )
+
     } catch (apiError) {
-      console.error('API error, returning cached data:', apiError)
+      console.error('BACEN API error, returning cached data:', apiError)
       
       // Return cached data if API fails
       const latestRates = []
