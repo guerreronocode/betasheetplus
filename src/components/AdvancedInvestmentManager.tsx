@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { TrendingUp, DollarSign, Calendar, Percent, Plus, Edit2, Trash2, Building } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -83,14 +84,19 @@ const AdvancedInvestmentManager = () => {
       bank_account_id: formData.bank_account_id === 'none' ? undefined : formData.bank_account_id,
       category: formData.category,
     };
+
     // Se estiver editando, inclua o id!
-    if (editingInvestment) {
-      // DEBUG
-      console.log('Updating investment:', { id: editingInvestment.id, ...investmentData });
+    if (editingInvestment && formData.id) {
+      // DEBUG: Certificando que o id está presente na atualização
+      console.log('Updating investment (with id):', { id: formData.id, ...investmentData });
+      updateInvestment({ id: formData.id, ...investmentData });
+      setEditingInvestment(null);
+    } else if (editingInvestment) {
+      // fallback caso formData.id não esteja setado
+      console.log('Updating investment (with fallback id):', { id: editingInvestment.id, ...investmentData });
       updateInvestment({ id: editingInvestment.id, ...investmentData });
       setEditingInvestment(null);
     } else {
-      // DEBUG
       console.log('Adding new investment:', investmentData);
       addInvestment(investmentData);
     }
@@ -112,6 +118,8 @@ const AdvancedInvestmentManager = () => {
   const handleEdit = (investment: any) => {
     setEditingInvestment(investment);
     setNewInvestment({
+      // todos os campos possíveis para edição:
+      id: investment.id,
       name: investment.name,
       type: investment.type,
       amount: investment.amount.toString(),

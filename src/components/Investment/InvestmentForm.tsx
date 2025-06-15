@@ -1,3 +1,4 @@
+
 // Refatorado! InvestimentoForm agora usa subcomponentes para cada campo.
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -132,4 +133,5 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
     </form>
   );
 };
+
 export default InvestmentForm;
