@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useFinancialData } from "@/hooks/useFinancialData";
 import { useToast } from "@/hooks/use-toast";
 import InvestmentSummary from "./InvestmentSummary";
