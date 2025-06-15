@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { TrendingUp, DollarSign, Calendar, Percent, Plus, Edit2, Trash2, Building } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -85,7 +84,6 @@ const AdvancedInvestmentManager = () => {
       category: formData.category,
     };
 
-    // Se estiver editando, inclua o id!
     if (editingInvestment && formData.id) {
       // DEBUG: Certificando que o id está presente na atualização
       console.log('Updating investment (with id):', { id: formData.id, ...investmentData });
@@ -118,8 +116,6 @@ const AdvancedInvestmentManager = () => {
   const handleEdit = (investment: any) => {
     setEditingInvestment(investment);
     setNewInvestment({
-      // todos os campos possíveis para edição:
-      id: investment.id,
       name: investment.name,
       type: investment.type,
       amount: investment.amount.toString(),
@@ -180,7 +176,7 @@ const AdvancedInvestmentManager = () => {
           <InvestmentForm
             isAdding={isAddingInvestment}
             isEditing={!!editingInvestment}
-            initialValues={newInvestment}
+            initialValues={editingInvestment ? { ...newInvestment, id: editingInvestment.id } : newInvestment}
             bankAccounts={bankAccounts}
             yieldRates={yieldRates}
             onSubmit={handleInvestmentFormSubmit}
