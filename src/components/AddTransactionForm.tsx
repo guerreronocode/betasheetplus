@@ -51,11 +51,20 @@ const getStoredCustom = (key: string): string[] => {
   if (typeof window === "undefined") return [];
   try {
     const item = window.localStorage.getItem(key);
-    return item ? JSON.parse(item) : [];
+    const arr = item ? JSON.parse(item) : [];
+    // Verifica se é realmente um array de strings seguro
+    if (!Array.isArray(arr)) return [];
+    return arr.filter((v) =>
+      typeof v === "string" && v.length <= 50 && /^[\w À-ÿ',.-]+$/.test(v) // sanitização básica
+    );
   } catch {
     return [];
   }
 };
+
+function sanitizeCategory(str: string): string {
+  return str.trim().replace(/[^\w À-ÿ',.-]/g, '').slice(0, 50);
+}
 
 const AddTransactionForm = () => {
   const { addIncome, addExpense, isAddingIncome, isAddingExpense, bankAccounts } = useFinancialData();
@@ -93,18 +102,44 @@ const AddTransactionForm = () => {
     bank_account_id: 'none'
   });
 
-  const handleIncomeSubmit = (e: React.FormEvent) => {
+  // Estado para travar submission enquanto processa
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Timestamp para debounce
+  const [lastSubmit, setLastSubmit] = useState(0);
+
+  const handleAddCustomIncomeCategory = (cat: string) => {
+    const sanitized = sanitizeCategory(cat);
+    if (!sanitized) return;
+    setIncomeCategories((prev) =>
+      prev.includes(sanitized) ? prev : [...prev, sanitized]
+    );
+  };
+  const handleAddCustomExpenseCategory = (cat: string) => {
+    const sanitized = sanitizeCategory(cat);
+    if (!sanitized) return;
+    setExpenseCustomCategories((prev) =>
+      prev.includes(sanitized) ? prev : [...prev, sanitized]
+    );
+  };
+
+  const handleIncomeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!incomeForm.description || !incomeForm.amount || !incomeForm.category) return;
-    
-    addIncome({
+    if (isSubmitting) return;
+    const now = Date.now();
+    if (now - lastSubmit < 800) return; // debounce de 800ms
+    setLastSubmit(now);
+    setIsSubmitting(true);
+    if (!incomeForm.description || !incomeForm.amount || !incomeForm.category) {
+      setIsSubmitting(false);
+      return;
+    }
+    await addIncome({
       description: incomeForm.description,
       amount: parseFloat(incomeForm.amount),
       category: incomeForm.category,
       date: incomeForm.date,
       bank_account_id: incomeForm.bank_account_id === 'none' ? undefined : incomeForm.bank_account_id
     });
-    
     setIncomeForm({
       description: '',
       amount: '',
@@ -112,20 +147,27 @@ const AddTransactionForm = () => {
       date: new Date().toISOString().split('T')[0],
       bank_account_id: 'none'
     });
+    setIsSubmitting(false);
   };
 
-  const handleExpenseSubmit = (e: React.FormEvent) => {
+  const handleExpenseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!expenseForm.description || !expenseForm.amount || !expenseForm.category) return;
-    
-    addExpense({
+    if (isSubmitting) return;
+    const now = Date.now();
+    if (now - lastSubmit < 800) return;
+    setLastSubmit(now);
+    setIsSubmitting(true);
+    if (!expenseForm.description || !expenseForm.amount || !expenseForm.category) {
+      setIsSubmitting(false);
+      return;
+    }
+    await addExpense({
       description: expenseForm.description,
       amount: parseFloat(expenseForm.amount),
       category: expenseForm.category,
       date: expenseForm.date,
       bank_account_id: expenseForm.bank_account_id === 'none' ? undefined : expenseForm.bank_account_id
     });
-    
     setExpenseForm({
       description: '',
       amount: '',
@@ -133,6 +175,7 @@ const AddTransactionForm = () => {
       date: new Date().toISOString().split('T')[0],
       bank_account_id: 'none'
     });
+    setIsSubmitting(false);
   };
 
   return (
@@ -201,9 +244,9 @@ const AddTransactionForm = () => {
               </Select>
               <CustomCategoryInput
                 value={incomeForm.category}
-                setValue={(cat) => setIncomeForm(prev => ({ ...prev, category: cat }))}
+                setValue={cat => setIncomeForm(prev => ({ ...prev, category: sanitizeCategory(cat) }))}
                 categories={incomeCategories}
-                setCategories={setIncomeCategories}
+                setCategories={cats => setIncomeCategories(cats.map(sanitizeCategory))}
                 placeholder="Nova categoria de Receita"
               />
             </div>
@@ -250,8 +293,8 @@ const AddTransactionForm = () => {
               </div>
             </div>
             
-            <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={isAddingIncome}>
-              {isAddingIncome ? 'Adicionando...' : 'Adicionar Receita'}
+            <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={isAddingIncome || isSubmitting}>
+              {(isAddingIncome || isSubmitting) ? "Adicionando..." : "Adicionar Receita"}
             </Button>
           </form>
         </TabsContent>
@@ -320,9 +363,9 @@ const AddTransactionForm = () => {
               </Select>
               <CustomCategoryInput
                 value={expenseForm.category}
-                setValue={(cat) => setExpenseForm(prev => ({ ...prev, category: cat }))}
+                setValue={cat => setExpenseForm(prev => ({ ...prev, category: sanitizeCategory(cat) }))}
                 categories={expenseCustomCategories}
-                setCategories={setExpenseCustomCategories}
+                setCategories={cats => setExpenseCustomCategories(cats.map(sanitizeCategory))}
                 placeholder="Nova categoria de Despesa"
               />
             </div>
@@ -369,8 +412,8 @@ const AddTransactionForm = () => {
               </div>
             </div>
             
-            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700" disabled={isAddingExpense}>
-              {isAddingExpense ? 'Adicionando...' : 'Adicionar Despesa'}
+            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700" disabled={isAddingExpense || isSubmitting}>
+              {(isAddingExpense || isSubmitting) ? "Adicionando..." : "Adicionar Despesa"}
             </Button>
           </form>
         </TabsContent>
