@@ -338,6 +338,8 @@ export type Database = {
           current_value: number | null
           id: string
           last_yield_update: string | null
+          liquidity: string | null
+          maturity_date: string | null
           name: string
           purchase_date: string
           type: string
@@ -353,6 +355,8 @@ export type Database = {
           current_value?: number | null
           id?: string
           last_yield_update?: string | null
+          liquidity?: string | null
+          maturity_date?: string | null
           name: string
           purchase_date?: string
           type: string
@@ -368,6 +372,8 @@ export type Database = {
           current_value?: number | null
           id?: string
           last_yield_update?: string | null
+          liquidity?: string | null
+          maturity_date?: string | null
           name?: string
           purchase_date?: string
           type?: string

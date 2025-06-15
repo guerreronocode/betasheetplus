@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -15,6 +14,8 @@ export interface Investment {
   yield_rate: number;
   last_yield_update: string;
   bank_account_id?: string;
+  liquidity?: string;
+  maturity_date?: string;
 }
 
 export const useInvestments = () => {
@@ -34,7 +35,6 @@ export const useInvestments = () => {
       
       if (error) throw error;
       
-      // Transform data to match our Investment interface
       return (data || []).map(item => ({
         id: item.id,
         name: item.name,
@@ -46,6 +46,8 @@ export const useInvestments = () => {
         yield_rate: (item as any).yield_rate || 0,
         last_yield_update: (item as any).last_yield_update || item.purchase_date,
         bank_account_id: (item as any).bank_account_id,
+        liquidity: (item as any).liquidity || "",
+        maturity_date: (item as any).maturity_date || "",
       })) as Investment[];
     },
     enabled: !!user,
@@ -54,11 +56,9 @@ export const useInvestments = () => {
   const addInvestmentMutation = useMutation({
     mutationFn: async (investment: Omit<Investment, 'id' | 'current_value' | 'last_yield_update'>) => {
       if (!user) throw new Error('User not authenticated');
-      
-      // Investment transfers money from available balance to invested amount
-      // This doesn't increase net worth, just moves money between categories
       if (investment.bank_account_id) {
-        // First get the current balance
+        // Investment transfers money from available balance to invested amount
+        // This doesn't increase net worth, just moves money between categories
         const { data: currentAccount, error: fetchError } = await supabase
           .from('bank_accounts')
           .select('balance')
@@ -68,7 +68,6 @@ export const useInvestments = () => {
         
         if (fetchError) throw fetchError;
         
-        // Update the balance
         const newBalance = currentAccount.balance - investment.amount;
         const { error: balanceError } = await supabase
           .from('bank_accounts')
@@ -88,7 +87,9 @@ export const useInvestments = () => {
           ...investment, 
           user_id: user.id,
           current_value: investment.amount,
-          last_yield_update: new Date().toISOString().split('T')[0]
+          last_yield_update: new Date().toISOString().split('T')[0],
+          liquidity: investment.liquidity ?? null,
+          maturity_date: investment.maturity_date ?? null
         }])
         .select()
         .single();
@@ -107,10 +108,15 @@ export const useInvestments = () => {
   const updateInvestmentMutation = useMutation({
     mutationFn: async ({ id, ...investmentData }: { id: string } & Partial<Investment>) => {
       if (!user) throw new Error('User not authenticated');
-      
+
+      // Garante liquidez e vencimento na atualização
       const { data, error } = await supabase
         .from('investments')
-        .update(investmentData)
+        .update({
+          ...investmentData,
+          liquidity: investmentData.liquidity ?? null,
+          maturity_date: investmentData.maturity_date ?? null,
+        })
         .eq('id', id)
         .eq('user_id', user.id)
         .select()
@@ -152,7 +158,6 @@ export const useInvestments = () => {
         
         if (fetchError) throw fetchError;
         
-        // Return the current value to the account balance
         const newBalance = currentAccount.balance + (investment.current_value || investment.amount);
         const { error: balanceError } = await supabase
           .from('bank_accounts')
