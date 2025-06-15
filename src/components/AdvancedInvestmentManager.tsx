@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import AssetPricesPanel from './AssetPricesPanel';
 import YieldRatesEvolutionPanel from './YieldRatesEvolutionPanel';
 import InvestmentForm from './Investment/InvestmentForm';
+import InvestmentSummary from './Investment/InvestmentSummary';
+import InvestmentList from './Investment/InvestmentList';
 
 const AdvancedInvestmentManager = () => {
   const { 
@@ -128,45 +130,11 @@ const AdvancedInvestmentManager = () => {
   return (
     <div className="space-y-6">
       {/* Investment Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="p-4">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <DollarSign className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Total Investido</p>
-              <p className="text-lg font-semibold">{formatCurrency(totalInvested)}</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-green-100 rounded-lg">
-              <TrendingUp className="w-5 h-5 text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Valor Atual</p>
-              <p className="text-lg font-semibold">{formatCurrency(currentInvestmentValue)}</p>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="flex items-center space-x-3">
-            <div className={`p-2 rounded-lg ${investmentReturn >= 0 ? 'bg-green-100' : 'bg-red-100'}`}>
-              <Percent className={`w-5 h-5 ${investmentReturn >= 0 ? 'text-green-600' : 'text-red-600'}`} />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">Rendimento</p>
-              <p className={`text-lg font-semibold ${investmentReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {formatCurrency(investmentReturn)}
-              </p>
-            </div>
-          </div>
-        </Card>
-      </div>
+      <InvestmentSummary
+        totalInvested={totalInvested}
+        currentInvestmentValue={currentInvestmentValue}
+        investmentReturn={investmentReturn}
+      />
 
       {/* Add New Investment */}
       <Card className="p-6">
@@ -174,10 +142,9 @@ const AdvancedInvestmentManager = () => {
           <h3 className="text-lg font-semibold">Gerenciar Investimentos</h3>
           <Button onClick={() => setIsAddingNew(!isAddingNew)}>
             <Plus className="w-4 h-4 mr-2" />
-            {editingInvestment ? 'Cancelar Edição' : 'Novo Investimento'}
+            {editingInvestment ? "Cancelar Edição" : "Novo Investimento"}
           </Button>
         </div>
-
         {isAddingNew && (
           <InvestmentForm
             isAdding={isAddingInvestment}
@@ -190,95 +157,24 @@ const AdvancedInvestmentManager = () => {
               setIsAddingNew(false);
               setEditingInvestment(null);
               setNewInvestment({
-                name: '',
-                type: 'stocks',
-                amount: '',
-                yield_type: 'fixed',
-                yield_rate: '',
-                purchase_date: new Date().toISOString().split('T')[0],
-                bank_account_id: 'none',
-                category: 'other',
+                name: "",
+                type: "stocks",
+                amount: "",
+                yield_type: "fixed",
+                yield_rate: "",
+                purchase_date: new Date().toISOString().split("T")[0],
+                bank_account_id: "none",
+                category: "other",
               });
             }}
           />
         )}
-
         {/* Investment List */}
-        <div className="space-y-4">
-          {investments.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <TrendingUp className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-              <p>Nenhum investimento encontrado</p>
-              <p className="text-sm">Adicione seus primeiros investimentos!</p>
-            </div>
-          ) : (
-            investments.map((investment, index) => {
-              const returnValue = investment.current_value - investment.amount;
-              const returnPercentage = ((investment.current_value - investment.amount) / investment.amount) * 100;
-              
-              return (
-                <div key={investment.id} className="animate-slide-up" style={{ animationDelay: `${index * 150}ms` }}>
-                  <Card className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <span className="text-2xl">{getInvestmentTypeIcon(investment.type)}</span>
-                        <div>
-                          <h4 className="font-medium">{investment.name}</h4>
-                          <p className="text-sm text-gray-600 capitalize">{investment.type}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2">
-                        <div className="text-right">
-                          <p className="text-sm text-gray-600">Valor Atual</p>
-                          <p className="font-semibold">{formatCurrency(investment.current_value)}</p>
-                          <p className={`text-sm ${returnValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                            {returnValue >= 0 ? '+' : ''}{formatCurrency(returnValue)} ({formatPercentage(returnPercentage)})
-                          </p>
-                        </div>
-                        
-                        <div className="flex flex-col space-y-1">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleEdit(investment)}
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            onClick={() => handleDelete(investment.id)}
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="mt-3 pt-3 border-t border-gray-100">
-                      <div className="grid grid-cols-3 gap-4 text-sm">
-                        <div>
-                          <p className="text-gray-600">Investido</p>
-                          <p className="font-medium">{formatCurrency(investment.amount)}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600">Rendimento</p>
-                          <p className="font-medium">{investment.yield_type.toUpperCase()} {formatPercentage(investment.yield_rate)}</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-600">Data</p>
-                          <p className="font-medium">{new Date(investment.purchase_date).toLocaleDateString('pt-BR')}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-                </div>
-              );
-            })
-          )}
-        </div>
+        <InvestmentList
+          investments={investments}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+        />
       </Card>
 
       {/* Yield Rates Panel Mantido */}
