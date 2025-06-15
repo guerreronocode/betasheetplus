@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useFinancialData } from '@/hooks/useFinancialData';
 
+type YieldType = 'fixed' | 'cdi' | 'cdi_plus' | 'selic' | 'selic_plus' | 'ipca' | 'ipca_plus';
+
 const investmentTypes = [
   { value: 'Ações', label: 'Ações' },
   { value: 'Títulos', label: 'Títulos' },
@@ -47,24 +49,32 @@ const InvestmentManager = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   // Ensure all values are initialized as strings as needed for controlled inputs.
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    name: string;
+    type: string;
+    amount: string;
+    yield_type: YieldType;
+    yield_rate: string;
+    yield_extra: string;
+    purchase_date: string;
+  }>({
     name: '',
     type: '',
     amount: '',
-    yield_type: 'fixed' as 'fixed' | 'cdi' | 'selic' | 'ipca',
+    yield_type: 'fixed',
     yield_rate: '',
     yield_extra: '',
     purchase_date: new Date().toISOString().split('T')[0]
   });
 
-  const handleYieldTypeChange = (type: string) => {
+  const handleYieldTypeChange = (type: YieldType) => {
     let extra = {};
     if (!type.endsWith("_plus")) {
       extra = { yield_extra: "" };
     }
     setForm(prev => ({
       ...prev,
-      yield_type: type as 'fixed' | 'cdi' | 'selic' | 'ipca' | 'cdi_plus' | 'selic_plus' | 'ipca_plus',
+      yield_type: type,
       ...extra
     }));
   };
@@ -89,12 +99,19 @@ const InvestmentManager = () => {
       yield_rate_final = parseFloat(form.yield_rate || "0");
     }
 
+    // If yield_type has "_plus", submit only the base type to the backend (if required)
+    const submittedYieldType = (
+      form.yield_type.endsWith("_plus") ?
+        (form.yield_type.replace("_plus", "") as 'fixed' | 'cdi' | 'selic' | 'ipca')
+        : form.yield_type
+    );
+
     addInvestment({
       name: form.name,
       type: form.type,
       amount: parseFloat(form.amount),
       purchase_date: form.purchase_date,
-      yield_type: (form.yield_type as 'fixed' | 'cdi' | 'selic' | 'ipca'), // must be correct type
+      yield_type: submittedYieldType,
       yield_rate: yield_rate_final
     });
     
