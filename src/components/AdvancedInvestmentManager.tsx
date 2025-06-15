@@ -10,6 +10,7 @@ import { useFinancialData } from '@/hooks/useFinancialData';
 import { useToast } from '@/hooks/use-toast';
 import AssetPricesPanel from './AssetPricesPanel';
 import YieldRatesEvolutionPanel from './YieldRatesEvolutionPanel';
+import InvestmentForm from './Investment/InvestmentForm';
 
 const AdvancedInvestmentManager = () => {
   const { 
@@ -50,22 +51,20 @@ const AdvancedInvestmentManager = () => {
     return `${value.toFixed(2)}%`;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newInvestment.name || !newInvestment.amount) return;
-
-    // Trata "other" como categoria indefinida
-    const categoryProcessed = (newInvestment.category === "other" ? undefined : newInvestment.category);
+  // Função tratadora para envio do formulário
+  const handleInvestmentFormSubmit = (formData: any) => {
+    if (!formData.name || !formData.amount) return;
+    const categoryProcessed = (formData.category === "other" ? undefined : formData.category);
 
     const investmentData = {
-      name: newInvestment.name,
-      type: newInvestment.type,
-      amount: parseFloat(newInvestment.amount),
-      yield_type: newInvestment.yield_type,
-      yield_rate: parseFloat(newInvestment.yield_rate) || 0,
-      purchase_date: newInvestment.purchase_date,
-      bank_account_id: newInvestment.bank_account_id === 'none' ? undefined : newInvestment.bank_account_id,
-      category: categoryProcessed, // Corrigido para passar undefined quando escolhido "outros"
+      name: formData.name,
+      type: formData.type,
+      amount: parseFloat(formData.amount),
+      yield_type: formData.yield_type,
+      yield_rate: parseFloat(formData.yield_rate) || 0,
+      purchase_date: formData.purchase_date,
+      bank_account_id: formData.bank_account_id === 'none' ? undefined : formData.bank_account_id,
+      category: categoryProcessed,
     };
 
     if (editingInvestment) {
@@ -74,7 +73,6 @@ const AdvancedInvestmentManager = () => {
     } else {
       addInvestment(investmentData);
     }
-
     setNewInvestment({
       name: '',
       type: 'stocks',
@@ -181,157 +179,28 @@ const AdvancedInvestmentManager = () => {
         </div>
 
         {isAddingNew && (
-          <form onSubmit={handleSubmit} className="space-y-4 mb-6 p-4 bg-gray-50 rounded-lg">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name">Nome do Investimento</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={newInvestment.name}
-                  onChange={(e) => setNewInvestment({ ...newInvestment, name: e.target.value })}
-                  placeholder="Ex: PETR4, Tesouro Selic 2027"
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="type">Tipo</Label>
-                <Select value={newInvestment.type} onValueChange={(value) => setNewInvestment({ ...newInvestment, type: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="stocks">Ações</SelectItem>
-                    <SelectItem value="crypto">Criptomoedas</SelectItem>
-                    <SelectItem value="bonds">Títulos Públicos</SelectItem>
-                    <SelectItem value="real-estate">Fundos Imobiliários</SelectItem>
-                    <SelectItem value="funds">Fundos de Investimento</SelectItem>
-                    <SelectItem value="savings">Poupança</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="amount">Valor Investido</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={newInvestment.amount}
-                  onChange={(e) => setNewInvestment({ ...newInvestment, amount: e.target.value })}
-                  placeholder="0,00"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="bank_account">Conta Bancária</Label>
-                <Select
-                  value={newInvestment.bank_account_id}
-                  onValueChange={(value) => setNewInvestment({ ...newInvestment, bank_account_id: value })}
-                >
-                  <SelectTrigger>
-                    <Building className="w-4 h-4 mr-2" />
-                    <SelectValue placeholder="Selecione uma conta (opcional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nenhuma conta específica</SelectItem>
-                    {bankAccounts.map((account) => (
-                      <SelectItem key={account.id} value={account.id}>
-                        <div className="flex items-center space-x-2">
-                          <div 
-                            className="w-3 h-3 rounded-full" 
-                            style={{ backgroundColor: account.color }}
-                          />
-                          <span>{account.name} - {account.bank_name}</span>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="yield_type">Tipo de Rendimento</Label>
-                <Select value={newInvestment.yield_type} onValueChange={(value: any) => setNewInvestment({ ...newInvestment, yield_type: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="fixed">Taxa Pré-fixada</SelectItem>
-                    <SelectItem value="cdi">CDI ({formatPercentage(getCurrentYieldRate('cdi'))})</SelectItem>
-                    <SelectItem value="selic">SELIC ({formatPercentage(getCurrentYieldRate('selic'))})</SelectItem>
-                    <SelectItem value="ipca">IPCA ({formatPercentage(getCurrentYieldRate('ipca'))})</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="yield_rate">Taxa de Rendimento (%)</Label>
-                <Input
-                  id="yield_rate"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={newInvestment.yield_rate}
-                  onChange={(e) => setNewInvestment({ ...newInvestment, yield_rate: e.target.value })}
-                  placeholder={newInvestment.yield_type === 'fixed' ? 'Ex: 12.50' : 'Automático'}
-                  disabled={newInvestment.yield_type !== 'fixed'}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="purchase_date">Data de Compra</Label>
-                <Input
-                  id="purchase_date"
-                  type="date"
-                  value={newInvestment.purchase_date}
-                  onChange={(e) => setNewInvestment({ ...newInvestment, purchase_date: e.target.value })}
-                  required
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="investment_category">Categoria do investimento</Label>
-                <Select
-                  value={newInvestment.category}
-                  onValueChange={cat => setNewInvestment({ ...newInvestment, category: cat })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="other">Investimento (outros)</SelectItem>
-                    <SelectItem value="reserva_emergencia">Reserva de emergência</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex space-x-2">
-              <Button type="submit" disabled={isAddingInvestment}>
-                {isAddingInvestment ? 'Salvando...' : editingInvestment ? 'Atualizar Investimento' : 'Adicionar Investimento'}
-              </Button>
-              <Button type="button" variant="outline" onClick={() => {
-                setIsAddingNew(false);
-                setEditingInvestment(null);
-                setNewInvestment({
-                  name: '',
-                  type: 'stocks',
-                  amount: '',
-                  yield_type: 'fixed',
-                  yield_rate: '',
-                  purchase_date: new Date().toISOString().split('T')[0],
-                  bank_account_id: 'none',
-                  category: 'other',
-                });
-              }}>
-                Cancelar
-              </Button>
-            </div>
-          </form>
+          <InvestmentForm
+            isAdding={isAddingInvestment}
+            isEditing={!!editingInvestment}
+            initialValues={newInvestment}
+            bankAccounts={bankAccounts}
+            yieldRates={yieldRates}
+            onSubmit={handleInvestmentFormSubmit}
+            onCancel={() => {
+              setIsAddingNew(false);
+              setEditingInvestment(null);
+              setNewInvestment({
+                name: '',
+                type: 'stocks',
+                amount: '',
+                yield_type: 'fixed',
+                yield_rate: '',
+                purchase_date: new Date().toISOString().split('T')[0],
+                bank_account_id: 'none',
+                category: 'other',
+              });
+            }}
+          />
         )}
 
         {/* Investment List */}
