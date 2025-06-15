@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { TrendingUp, TrendingDown, Plus, Edit, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -133,6 +132,7 @@ const ImprovedPatrimonyManager = () => {
           category: form.category,
           total_amount: valueNum,
           remaining_amount: valueNum,
+          interest_rate: 0, // <-- Fix: add required field with default value 0
         });
       }
     }
@@ -314,4 +314,3 @@ const ImprovedPatrimonyManager = () => {
 };
 
 export default ImprovedPatrimonyManager;
-
