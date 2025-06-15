@@ -35,7 +35,8 @@ const AdvancedInvestmentManager = () => {
     yield_type: 'fixed' as 'fixed' | 'cdi' | 'selic' | 'ipca',
     yield_rate: '',
     purchase_date: new Date().toISOString().split('T')[0],
-    bank_account_id: 'none'
+    bank_account_id: 'none',
+    category: '', // NOVO: categoria extra para reserva de emergência
   });
 
   const formatCurrency = (value: number) => {
@@ -60,7 +61,8 @@ const AdvancedInvestmentManager = () => {
       yield_type: newInvestment.yield_type,
       yield_rate: parseFloat(newInvestment.yield_rate) || 0,
       purchase_date: newInvestment.purchase_date,
-      bank_account_id: newInvestment.bank_account_id === 'none' ? undefined : newInvestment.bank_account_id
+      bank_account_id: newInvestment.bank_account_id === 'none' ? undefined : newInvestment.bank_account_id,
+      category: newInvestment.category || undefined, // IMPORTANTE
     };
 
     if (editingInvestment) {
@@ -77,7 +79,8 @@ const AdvancedInvestmentManager = () => {
       yield_type: 'fixed',
       yield_rate: '',
       purchase_date: new Date().toISOString().split('T')[0],
-      bank_account_id: 'none'
+      bank_account_id: 'none',
+      category: '',
     });
     setIsAddingNew(false);
   };
@@ -91,7 +94,8 @@ const AdvancedInvestmentManager = () => {
       yield_type: investment.yield_type,
       yield_rate: investment.yield_rate.toString(),
       purchase_date: investment.purchase_date,
-      bank_account_id: investment.bank_account_id || 'none'
+      bank_account_id: investment.bank_account_id || 'none',
+      category: investment.category || '',
     });
     setIsAddingNew(true);
   };
@@ -285,6 +289,22 @@ const AdvancedInvestmentManager = () => {
                   required
                 />
               </div>
+
+              <div>
+                <Label htmlFor="investment_category">Categoria do investimento</Label>
+                <Select
+                  value={newInvestment.category}
+                  onValueChange={cat => setNewInvestment({ ...newInvestment, category: cat })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Investimento (outros)</SelectItem>
+                    <SelectItem value="reserva_emergencia">Reserva de emergência</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="flex space-x-2">
@@ -301,7 +321,8 @@ const AdvancedInvestmentManager = () => {
                   yield_type: 'fixed',
                   yield_rate: '',
                   purchase_date: new Date().toISOString().split('T')[0],
-                  bank_account_id: 'none'
+                  bank_account_id: 'none',
+                  category: '',
                 });
               }}>
                 Cancelar
@@ -388,10 +409,7 @@ const AdvancedInvestmentManager = () => {
         </div>
       </Card>
 
-      {/* Updated Asset Prices Panel */}
-      <AssetPricesPanel />
-
-      {/* Updated Yield Rates Panel */}
+      {/* Yield Rates Panel Mantido */}
       <YieldRatesEvolutionPanel />
     </div>
   );

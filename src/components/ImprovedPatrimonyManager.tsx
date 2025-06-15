@@ -64,6 +64,8 @@ const patrimonyCategoryRules: Record<string, PatrimonyGroup> = {
   financiamento_imovel: 'passivo_nao_circulante',
   financiamento_carro: 'passivo_nao_circulante',
   emprestimo_pessoal_longo: 'passivo_nao_circulante',
+  // Emergência:
+  reserva_emergencia: 'ativo_circulante',
 };
 
 const patrimonyGroupLabels: Record<PatrimonyGroup, string> = {
@@ -206,12 +208,10 @@ const ImprovedPatrimonyManager = () => {
       return acc ? acc.id : '';
     });
 
-  // Somar investimentos não vinculados a ativos
+  // NOVA LÓGICA: Identificar investimentos de reserva de emergência como ativos circulantes
   const nonLinkedInvestments = investments.filter(inv => !linkedInvestmentIds.includes(inv.id));
-  // Idem para contas bancárias
-  const nonLinkedBankAccounts = bankAccounts.filter(acc => !linkedBankAccountIds.includes(acc.id));
-
-  // Agrupar conforme grupo patrimonial
+  
+  // Agrupar conforme grupo patrimonial - REGRA ESPECIAL para reserva de emergência:
   const classifyAssetsLiabilities = () => {
     const groups: Record<PatrimonyGroup, any[]> = {
       ativo_circulante: [],
@@ -221,10 +221,20 @@ const ImprovedPatrimonyManager = () => {
     };
 
     assets.forEach(asset => {
-      const group = patrimonyCategoryRules[asset.category as string];
-      if (group === 'ativo_circulante' || group === 'ativo_nao_circulante')
+      let group = patrimonyCategoryRules[asset.category as string];
+      // Se for um investimento com categoria reserva_emergencia, considerar sempre ativo circulante
+      if (
+        asset.category === 'investimento_longo_prazo' &&
+        investments.find(inv => inv.name === asset.name && inv.category === 'reserva_emergencia')
+      ) {
+        group = 'ativo_circulante';
+      }
+      if (group === 'ativo_circulante' || group === 'ativo_nao_circulante') {
         groups[group].push(asset);
+      }
     });
+
+    // Adicionar contas bancárias como ativos circulantes normalmente
     nonLinkedBankAccounts.forEach(acc => {
       groups.ativo_circulante.push({
         id: acc.id,
@@ -233,14 +243,26 @@ const ImprovedPatrimonyManager = () => {
         current_value: acc.balance,
       });
     });
+
     nonLinkedInvestments.forEach(inv => {
-      groups.ativo_nao_circulante.push({
-        id: inv.id,
-        name: inv.name,
-        category: 'investimento_longo_prazo',
-        current_value: inv.current_value,
-      });
+      // Se for reserva de emergência, push em circulante
+      if (inv.category === 'reserva_emergencia') {
+        groups.ativo_circulante.push({
+          id: inv.id,
+          name: inv.name,
+          category: 'reserva_emergencia',
+          current_value: inv.current_value,
+        });
+      } else {
+        groups.ativo_nao_circulante.push({
+          id: inv.id,
+          name: inv.name,
+          category: 'investimento_longo_prazo',
+          current_value: inv.current_value,
+        });
+      }
     });
+    // ... keep liabilities grouping ...
     liabilities.forEach(liab => {
       const group = patrimonyCategoryRules[liab.category as string];
       if (group === 'passivo_circulante' || group === 'passivo_nao_circulante')
