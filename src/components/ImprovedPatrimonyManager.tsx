@@ -1,15 +1,14 @@
 
 import React, { useState, useCallback } from 'react';
-import { Card } from '@/components/ui/card';
 import { usePatrimony } from '@/hooks/usePatrimony';
 import { useFinancialData } from '@/hooks/useFinancialData';
-import PatrimonyFormContainer from "./PatrimonyFormContainer";
-import PatrimonyItemSection from "./PatrimonyItemSection";
-import PatrimonySummary from "./PatrimonySummary";
-import PatrimonyNetWorthCard from "./PatrimonyNetWorthCard";
 import { patrimonyGroupLabels } from "./patrimonyCategories";
 import { usePatrimonyGroupsFull } from "@/hooks/usePatrimonyGroupsFull";
+import PatrimonyHeaderSection from "./PatrimonyHeaderSection";
+import PatrimonyListSection from "./PatrimonyListSection";
+import PatrimonyManagerFormSection from "./PatrimonyManagerFormSection";
 
+// Centralizar regras só para passagem por props
 const patrimonyCategoryRules: Record<string, string> = {
   conta_corrente: 'ativo_circulante',
   dinheiro: 'ativo_circulante',
@@ -50,7 +49,7 @@ const ImprovedPatrimonyManager = () => {
 
   const { bankAccounts, investments } = useFinancialData();
 
-  // State do formulário simplificado
+  // Form state
   const [entryType, setEntryType] = useState<'asset' | 'liability'>('asset');
   const [form, setForm] = useState({
     name: '',
@@ -77,7 +76,6 @@ const ImprovedPatrimonyManager = () => {
       linkedBankAccountId: '',
     }), []);
 
-  // Usa hook externo de agrupamento e totais
   const {
     groups,
     totals,
@@ -104,21 +102,18 @@ const ImprovedPatrimonyManager = () => {
   if (isLoading) return <div>Carregando...</div>;
 
   return (
-    <Card className="p-4">
-      <h2 className="text-lg font-bold mb-3">Meu Patrimônio</h2>
-      <PatrimonySummary
+    <div>
+      <PatrimonyHeaderSection
         groups={groups}
         totals={totals}
         selectedGroup={selectedGroup}
         onGroupSelect={handleGroupSelect}
+        netWorth={patrimonioLiquido}
       />
-      <PatrimonyNetWorthCard netWorth={patrimonioLiquido} />
-
       {selectedGroup && (
-        <PatrimonyItemSection
-          groupKey={selectedGroup}
-          groupLabel={patrimonyGroupLabels[selectedGroup]}
-          items={groups[selectedGroup]}
+        <PatrimonyListSection
+          selectedGroup={selectedGroup}
+          groups={groups}
           onEdit={item => setForm({
             name: item.name,
             value: String(item.current_value ?? ""),
@@ -140,7 +135,7 @@ const ImprovedPatrimonyManager = () => {
         />
       )}
 
-      <PatrimonyFormContainer
+      <PatrimonyManagerFormSection
         entryType={entryType}
         setEntryType={setEntryType}
         onResetForm={resetForm}
@@ -159,7 +154,7 @@ const ImprovedPatrimonyManager = () => {
         updateLiability={updateLiability}
         deleteLiability={deleteLiability}
       />
-    </Card>
+    </div>
   );
 };
 
