@@ -41,14 +41,56 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
   deleteAsset,
   addLiability,
   updateLiability,
-  deleteLiability
+  deleteLiability,
 }) => {
   const [formError, setFormError] = useState<string | null>(null);
 
+  // Novo submit totalmente revisado e simplificado
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
+    if (entryType === "liability") {
+      // Validação básica
+      if (!form.name || !form.value || !form.category) {
+        setFormError("Preencha todos os campos obrigatórios.");
+        return;
+      }
+      // Sempre usar form.value para ambos
+      const valueNum = Number(String(form.value).replace(",", "."));
+      if (isNaN(valueNum) || valueNum < 0) {
+        setFormError("Informe um valor positivo.");
+        return;
+      }
+      const categoryRule = patrimonyCategoryRules[form.category];
+      if (!categoryRule || !form.category) {
+        setFormError("Categoria inválida.");
+        return;
+      }
+
+      // Criação ou edição de passivo
+      if (form.isEdit && form.id) {
+        updateLiability({
+          id: form.id,
+          name: form.name,
+          category: form.category,
+          total_amount: valueNum,
+          remaining_amount: valueNum,
+        });
+      } else {
+        addLiability({
+          name: form.name,
+          category: form.category,
+          total_amount: valueNum,
+          remaining_amount: valueNum,
+          interest_rate: 0,
+        });
+      }
+      onResetForm();
+      return;
+    }
+
+    // O fluxo de ativos permanece igual ao anterior
     if (entryType === "asset") {
       if (form.linkType === "manual" || !form.linkType) {
         if (!form.name || !form.value || !form.category) {
@@ -72,12 +114,12 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
             name: form.name,
             category: form.category,
             current_value: valueNum,
-            purchase_date: new Date().toISOString().split("T")[0]
+            purchase_date: new Date().toISOString().split("T")[0],
           });
         }
       }
       if (form.linkType === "investment" && form.linkedInvestmentId) {
-        const selectedInv = investments.find(inv => inv.id === form.linkedInvestmentId);
+        const selectedInv = investments.find((inv) => inv.id === form.linkedInvestmentId);
         if (!selectedInv) {
           setFormError("Selecione um investimento válido.");
           return;
@@ -86,11 +128,11 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
           name: selectedInv.name,
           category: "investimento_longo_prazo",
           current_value: selectedInv.current_value,
-          purchase_date: selectedInv.purchase_date
+          purchase_date: selectedInv.purchase_date,
         });
       }
       if (form.linkType === "bank" && form.linkedBankAccountId) {
-        const account = bankAccounts.find(acc => acc.id === form.linkedBankAccountId);
+        const account = bankAccounts.find((acc) => acc.id === form.linkedBankAccountId);
         if (!account) {
           setFormError("Selecione uma conta bancária válida.");
           return;
@@ -99,46 +141,11 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
           name: account.name + " (" + account.bank_name + ")",
           category: "conta_corrente",
           current_value: account.balance,
-          purchase_date: new Date().toISOString().split("T")[0]
+          purchase_date: new Date().toISOString().split("T")[0],
         });
       }
-    } else {
-      // NOVO AJUSTE: garantir o uso correto do campo value como total_amount/remaining_amount para passivos
-      if (!form.name || !form.value || !form.category) {
-        setFormError("Preencha todos os campos obrigatórios.");
-        return;
-      }
-      // Garantir número válido
-      const valueNum = parseFloat(String(form.value).replace(",", "."));
-      if (isNaN(valueNum) || valueNum < 0) {
-        setFormError("Informe um valor positivo.");
-        return;
-      }
-      const categoryRule = patrimonyCategoryRules[form.category];
-      if (!categoryRule) {
-        setFormError("Categoria inválida.");
-        return;
-      }
-      if (form.isEdit && form.id) {
-        updateLiability({
-          id: form.id,
-          name: form.name,
-          category: form.category,
-          remaining_amount: valueNum,
-          total_amount: valueNum, // sempre atualizar ambos ao editar
-        });
-      } else {
-        // OBRIGATÓRIO: preencher total_amount e remaining_amount
-        addLiability({
-          name: form.name,
-          category: form.category,
-          total_amount: valueNum,
-          remaining_amount: valueNum,
-          interest_rate: 0
-        });
-      }
+      onResetForm();
     }
-    onResetForm();
   };
 
   return (
@@ -147,7 +154,10 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
       <PatrimonyForm
         form={form}
         entryType={entryType}
-        onChange={setForm}
+        onChange={(val) => {
+          setFormError(null);
+          setForm(val);
+        }}
         onSubmit={handleSubmit}
         onCancelEdit={onResetForm}
         isSaving={isAddingAsset || isAddingLiability}
@@ -159,4 +169,3 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
 };
 
 export default PatrimonyFormContainer;
-
