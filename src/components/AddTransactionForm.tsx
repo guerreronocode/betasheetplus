@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, DollarSign, Tag, Calendar, Building, Utensils, Car, ShoppingBag, Dog, Film, Book, Smartphone, Shirt, HeartPulse } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFinancialData } from '@/hooks/useFinancialData';
+import CustomCategoryInput from './CustomCategoryInput';
 
-const expenseCategoriesGrouped = [
+const expenseCategoriesGroupedPredef = [
   {
     title: 'Básicas',
     items: [
@@ -37,7 +38,7 @@ const expenseCategoriesGrouped = [
   },
 ];
 
-const incomeCategories = [
+const baseIncomeCategories = [
   'Salário',
   'Freelance',
   'Investimentos',
@@ -46,9 +47,36 @@ const incomeCategories = [
   'Outros'
 ];
 
+const getStoredCustom = (key: string): string[] => {
+  if (typeof window === "undefined") return [];
+  try {
+    const item = window.localStorage.getItem(key);
+    return item ? JSON.parse(item) : [];
+  } catch {
+    return [];
+  }
+};
+
 const AddTransactionForm = () => {
   const { addIncome, addExpense, isAddingIncome, isAddingExpense, bankAccounts } = useFinancialData();
-  
+
+  // Carregar categorias customizadas do localStorage
+  const [incomeCategories, setIncomeCategories] = useState<string[]>([
+    ...baseIncomeCategories,
+    ...getStoredCustom("custom-categories-receita"),
+  ]);
+  const [expenseCustomCategories, setExpenseCustomCategories] = useState<string[]>(
+    getStoredCustom("custom-categories-despesa")
+  );
+
+  useEffect(() => {
+    window.localStorage.setItem("custom-categories-receita", JSON.stringify(incomeCategories.filter(c => !baseIncomeCategories.includes(c))));
+  }, [incomeCategories]);
+
+  useEffect(() => {
+    window.localStorage.setItem("custom-categories-despesa", JSON.stringify(expenseCustomCategories));
+  }, [expenseCustomCategories]);
+
   const [incomeForm, setIncomeForm] = useState({
     description: '',
     amount: '',
@@ -171,6 +199,13 @@ const AddTransactionForm = () => {
                   ))}
                 </SelectContent>
               </Select>
+              <CustomCategoryInput
+                value={incomeForm.category}
+                setValue={(cat) => setIncomeForm(prev => ({ ...prev, category: cat }))}
+                categories={incomeCategories}
+                setCategories={setIncomeCategories}
+                placeholder="Nova categoria de Receita"
+              />
             </div>
 
             <div>
@@ -262,7 +297,7 @@ const AddTransactionForm = () => {
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  {expenseCategoriesGrouped.map(group => (
+                  {expenseCategoriesGroupedPredef.map(group => (
                     <React.Fragment key={group.title}>
                       <div className="text-xs font-semibold px-2 py-1 text-gray-400">{group.title}</div>
                       {group.items.map(category => (
@@ -272,8 +307,24 @@ const AddTransactionForm = () => {
                       ))}
                     </React.Fragment>
                   ))}
+                  {/* Opções customizadas */}
+                  {expenseCustomCategories.length > 0 && (
+                    <>
+                      <div className="text-xs font-semibold px-2 py-1 text-gray-400 mt-2">Personalizadas</div>
+                      {expenseCustomCategories.map(cat => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </>
+                  )}
                 </SelectContent>
               </Select>
+              <CustomCategoryInput
+                value={expenseForm.category}
+                setValue={(cat) => setExpenseForm(prev => ({ ...prev, category: cat }))}
+                categories={expenseCustomCategories}
+                setCategories={setExpenseCustomCategories}
+                placeholder="Nova categoria de Despesa"
+              />
             </div>
 
             <div>
