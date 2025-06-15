@@ -68,11 +68,18 @@ const AdvancedInvestmentManager = () => {
 
   // Função tratadora para envio do formulário
   const handleInvestmentFormSubmit = (formData: any) => {
-    if (!formData.name || !formData.amount) return;
+    if (!formData.name || !formData.amount) {
+      console.log('Nome ou valor ausentes:', formData);
+      return;
+    }
+
+    // amount deve sempre ser number!
+    const safeAmount = parseFloat(formData.amount);
+
     const investmentData = {
       name: formData.name,
       type: formData.type,
-      amount: parseFloat(formData.amount),
+      amount: safeAmount,
       yield_type: formData.yield_type,
       yield_rate: parseFloat(formData.yield_rate) || 0,
       yield_extra: formData.yield_extra || null,
@@ -82,18 +89,19 @@ const AdvancedInvestmentManager = () => {
       category: formData.category,
     };
 
-    if (editingInvestment && formData.id) {
-      // DEBUG: Certificando que o id está presente na atualização
-      console.log('Updating investment (with id):', { id: formData.id, ...investmentData });
-      updateInvestment({ id: formData.id, ...investmentData });
-      setEditingInvestment(null);
-    } else if (editingInvestment) {
-      // fallback caso formData.id não esteja setado
-      console.log('Updating investment (with fallback id):', { id: editingInvestment.id, ...investmentData });
-      updateInvestment({ id: editingInvestment.id, ...investmentData });
+    if (editingInvestment && (formData.id || editingInvestment.id)) {
+      // EDIT - garantir id correto
+      const _id = formData.id || editingInvestment.id;
+      if (!_id) {
+        console.error('ID ausente para edição!', {formData, editingInvestment});
+        return;
+      }
+      console.log('Atualizando investimento id', _id, investmentData);
+      updateInvestment({ id: _id, ...investmentData });
       setEditingInvestment(null);
     } else {
-      console.log('Adding new investment:', investmentData);
+      // ADD
+      console.log('Adicionando novo investimento:', investmentData);
       addInvestment(investmentData);
     }
     setNewInvestment({
@@ -104,7 +112,7 @@ const AdvancedInvestmentManager = () => {
       yield_rate: '',
       yield_extra: '',
       yield_percent_index: '',
-      purchase_date: new Date().toISOString().split("T")[0],
+      purchase_date: new Date().toISOString().split('T')[0],
       bank_account_id: 'none',
       category: 'other',
     });
@@ -112,6 +120,7 @@ const AdvancedInvestmentManager = () => {
   };
 
   const handleEdit = (investment: any) => {
+    // Não colocar id no setNewInvestment!
     setEditingInvestment(investment);
     setNewInvestment({
       name: investment.name,
@@ -165,7 +174,25 @@ const AdvancedInvestmentManager = () => {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold">Gerenciar Investimentos</h3>
-          <Button onClick={() => setIsAddingNew(!isAddingNew)}>
+          <Button onClick={() => {
+            // Ao abrir para adicionar novo, limpa edição
+            setIsAddingNew(!isAddingNew);
+            if (isAddingNew) {
+              setEditingInvestment(null);
+              setNewInvestment({
+                name: "",
+                type: "stocks",
+                amount: "",
+                yield_type: "fixed",
+                yield_rate: "",
+                yield_extra: "",
+                yield_percent_index: "",
+                purchase_date: new Date().toISOString().split("T")[0],
+                bank_account_id: "none",
+                category: "other",
+              });
+            }
+          }}>
             <Plus className="w-4 h-4 mr-2" />
             {editingInvestment ? "Cancelar Edição" : "Novo Investimento"}
           </Button>
