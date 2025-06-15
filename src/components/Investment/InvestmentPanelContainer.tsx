@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useFinancialData } from "@/hooks/useFinancialData";
 import { useToast } from "@/hooks/use-toast";
@@ -45,17 +44,20 @@ const InvestmentPanelContainer = () => {
     if (!formData.name || !formData.amount) return;
     const safeAmount = parseFloat(formData.amount);
     if (isNaN(safeAmount) || safeAmount <= 0) return;
+
+    // Monta o investimento apenas com campos esperados pelo Supabase
     const investmentData: any = {
       name: formData.name,
       type: formData.type,
       amount: safeAmount,
       yield_type: formData.yield_type,
       yield_rate: parseFloat(formData.yield_rate) || 0,
-      yield_extra: formData.yield_extra || null,
-      yield_percent_index: formData.yield_percent_index || null,
       purchase_date: formData.purchase_date,
       category: formData.category,
+      // current_value, last_yield_update e user_id são definidos no backend.
     };
+
+    // Se for uma conta válida, adiciona. Se for "none" ou vazio, ignora.
     if (
       formData.bank_account_id &&
       typeof formData.bank_account_id === "string" &&
@@ -138,4 +140,3 @@ const InvestmentPanelContainer = () => {
   );
 };
 export default InvestmentPanelContainer;
-
