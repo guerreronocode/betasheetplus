@@ -81,7 +81,7 @@ const AdvancedInvestmentManager = () => {
       yield_percent_index: formData.yield_percent_index || null,
       purchase_date: formData.purchase_date,
       bank_account_id: formData.bank_account_id === 'none' ? undefined : formData.bank_account_id,
-      category: formData.category, // já tratado no InvestmentForm
+      category: formData.category,
     };
 
     if (editingInvestment) {
@@ -112,7 +112,7 @@ const AdvancedInvestmentManager = () => {
       type: investment.type,
       amount: investment.amount.toString(),
       yield_type: investment.yield_type,
-      yield_rate: investment.yield_rate.toString(),
+      yield_rate: investment.yield_rate?.toString() ?? "",
       yield_extra: investment.yield_extra || "",
       yield_percent_index: investment.yield_percent_index || "",
       purchase_date: investment.purchase_date,
@@ -181,6 +181,8 @@ const AdvancedInvestmentManager = () => {
                 amount: "",
                 yield_type: "fixed",
                 yield_rate: "",
+                yield_extra: "",
+                yield_percent_index: "",
                 purchase_date: new Date().toISOString().split("T")[0],
                 bank_account_id: "none",
                 category: "other",
