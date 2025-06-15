@@ -135,12 +135,12 @@ const ImprovedPatrimonyManager = () => {
       });
     });
     nonLinkedInvestments.forEach(inv => {
-      const group = getPatrimonyGroupByCategory(inv.category, inv, investments);
+      const group = getPatrimonyGroupByCategory(inv.type, inv, investments);
       if (group === "ativo_circulante" || group === "ativo_nao_circulante") {
         result[group].push({
           id: inv.id,
           name: inv.name,
-          category: inv.category,
+          category: inv.type,
           current_value: inv.current_value,
         });
       }
