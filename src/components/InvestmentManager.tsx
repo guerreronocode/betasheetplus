@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { TrendingUp, Plus, Building, Coins } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -47,11 +46,12 @@ const InvestmentManager = () => {
   const { investments, addInvestment, isAddingInvestment, yieldRates } = useFinancialData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
+  // Ensure all values are initialized as strings as needed for controlled inputs.
   const [form, setForm] = useState({
     name: '',
     type: '',
     amount: '',
-    yield_type: 'fixed' as string,
+    yield_type: 'fixed' as 'fixed' | 'cdi' | 'selic' | 'ipca',
     yield_rate: '',
     yield_extra: '',
     purchase_date: new Date().toISOString().split('T')[0]
@@ -62,14 +62,18 @@ const InvestmentManager = () => {
     if (!type.endsWith("_plus")) {
       extra = { yield_extra: "" };
     }
-    setForm(prev => ({ ...prev, yield_type: type, ...extra }));
+    setForm(prev => ({
+      ...prev,
+      yield_type: type as 'fixed' | 'cdi' | 'selic' | 'ipca' | 'cdi_plus' | 'selic_plus' | 'ipca_plus',
+      ...extra
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.type || !form.amount) return;
 
-    let yield_rate_final = form.yield_rate;
+    let yield_rate_final: number = 0;
 
     if (form.yield_type === "cdi" || form.yield_type === "selic" || form.yield_type === "ipca") {
       const base = yieldRates.find(rate => rate.rate_type === form.yield_type)?.rate_value || 0;
@@ -90,7 +94,7 @@ const InvestmentManager = () => {
       type: form.type,
       amount: parseFloat(form.amount),
       purchase_date: form.purchase_date,
-      yield_type: form.yield_type,
+      yield_type: (form.yield_type as 'fixed' | 'cdi' | 'selic' | 'ipca'), // must be correct type
       yield_rate: yield_rate_final
     });
     
