@@ -94,7 +94,6 @@ const InvestmentManager = () => {
 
             // Se precisar do tipo simples:
             const simpleYieldType = toSimpleYieldType(
-              // @ts-expect-error: Pode ser string por schema mais permissivo no banco
               (investment.yield_type as YieldType) || "fixed"
             );
 
