@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, DollarSign, Tag, Calendar, Building } from 'lucide-react';
+import { Plus, DollarSign, Tag, Calendar, Building, Utensils, Car, ShoppingBag, Dog, Film, Book, Smartphone, Shirt, HeartPulse } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,23 +8,41 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFinancialData } from '@/hooks/useFinancialData';
 
+const expenseCategoriesGrouped = [
+  {
+    title: 'Básicas',
+    items: [
+      { label: 'Alimentação', value: 'Alimentação', icon: <Utensils className="w-4 h-4 inline mx-1" /> },
+      { label: 'Farmácia', value: 'Farmácia', icon: <HeartPulse className="w-4 h-4 inline mx-1" /> },
+      { label: 'Educação', value: 'Educação', icon: <Book className="w-4 h-4 inline mx-1" />},
+    ],
+  },
+  {
+    title: 'Estilo de Vida',
+    items: [
+      { label: 'Comer fora', value: 'Comer fora', icon: <Utensils className="w-4 h-4 inline mx-1" /> },
+      { label: 'Roupas', value: 'Roupas', icon: <Shirt className="w-4 h-4 inline mx-1" /> },
+      { label: 'Pet', value: 'Pet', icon: <Dog className="w-4 h-4 inline mx-1" /> },
+      { label: 'Lazer', value: 'Lazer', icon: <Film className="w-4 h-4 inline mx-1" /> },
+      { label: 'Assinaturas e apps', value: 'Assinaturas e apps', icon: <Smartphone className="w-4 h-4 inline mx-1" /> },
+    ],
+  },
+  {
+    title: 'Extras',
+    items: [
+      { label: 'Transporte por app', value: 'Transporte por app', icon: <Car className="w-4 h-4 inline mx-1" /> },
+      { label: 'Compras', value: 'Compras', icon: <ShoppingBag className="w-4 h-4 inline mx-1" /> },
+      { label: 'Outros', value: 'Outros', icon: <Tag className="w-4 h-4 inline mx-1" /> },
+    ],
+  },
+];
+
 const incomeCategories = [
   'Salário',
   'Freelance',
   'Investimentos',
   'Aluguel',
   'Vendas',
-  'Outros'
-];
-
-const expenseCategories = [
-  'Alimentação',
-  'Transporte',
-  'Moradia',
-  'Saúde',
-  'Educação',
-  'Entretenimento',
-  'Compras',
   'Outros'
 ];
 
@@ -149,9 +167,7 @@ const AddTransactionForm = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {incomeCategories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
+                    <SelectItem key={category} value={category}>{category}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -246,10 +262,15 @@ const AddTransactionForm = () => {
                   <SelectValue placeholder="Selecione uma categoria" />
                 </SelectTrigger>
                 <SelectContent>
-                  {expenseCategories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
-                    </SelectItem>
+                  {expenseCategoriesGrouped.map(group => (
+                    <React.Fragment key={group.title}>
+                      <div className="text-xs font-semibold px-2 py-1 text-gray-400">{group.title}</div>
+                      {group.items.map(category => (
+                        <SelectItem key={category.value} value={category.value}>
+                          {category.icon}{category.label}
+                        </SelectItem>
+                      ))}
+                    </React.Fragment>
                   ))}
                 </SelectContent>
               </Select>

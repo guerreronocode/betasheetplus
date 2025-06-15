@@ -1,11 +1,13 @@
-
-import React from 'react';
-import { ArrowUpCircle, ArrowDownCircle, Calendar } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowUpCircle, ArrowDownCircle, Calendar, Pencil, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useFinancialData } from '@/hooks/useFinancialData';
+import EditTransactionModal from './EditTransactionModal';
 
 const TransactionsList = () => {
   const { income, expenses, isLoading } = useFinancialData();
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
 
   if (isLoading) {
     return (
@@ -34,13 +36,21 @@ const TransactionsList = () => {
       currency: 'BRL'
     }).format(value);
   };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('pt-BR', {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric'
     });
+  };
+
+  const handleEdit = (transaction: any) => {
+    setSelectedTransaction(transaction);
+    setEditModalOpen(true);
+  };
+  const handleCloseModal = () => {
+    setEditModalOpen(false);
+    setSelectedTransaction(null);
   };
 
   return (
@@ -55,6 +65,9 @@ const TransactionsList = () => {
             <p className="text-sm text-gray-600">Últimas entradas e saídas</p>
           </div>
         </div>
+        <a href="/transactions-history" className="text-blue-600 hover:underline font-medium">
+          Ver todas
+        </a>
       </div>
 
       <div className="space-y-3">
@@ -95,7 +108,20 @@ const TransactionsList = () => {
                   </div>
                 </div>
               </div>
-              
+              <div className="flex items-center gap-2">
+                <button
+                  className="hover:bg-gray-200 rounded p-1"
+                  title="Editar"
+                  onClick={() => handleEdit(transaction)}
+                >
+                  <Pencil className="w-4 h-4 text-blue-500" />
+                </button>
+                <EditTransactionModal
+                  open={editModalOpen}
+                  onOpenChange={handleCloseModal}
+                  transaction={selectedTransaction}
+                />
+              </div>
               <div className="text-right">
                 <p className={`font-semibold ${
                   transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
