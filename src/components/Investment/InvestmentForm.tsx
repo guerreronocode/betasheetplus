@@ -1,9 +1,7 @@
-
 // Refatorado! Agora o formulário só pede o essencial do investimento!
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import InvestmentTypeField from "./fields/InvestmentTypeField";
-import InvestmentCategoryField from "./fields/InvestmentCategoryField";
 import InvestmentAmountField from "./fields/InvestmentAmountField";
 import InvestmentBankAccountField from "./fields/InvestmentBankAccountField";
 import InvestmentDateField from "./fields/InvestmentDateField";
@@ -30,7 +28,6 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
   const [form, setForm] = useState({
     ...initialValues,
     current_value: initialValues.current_value || initialValues.amount || "",
-    reserva_emergencia: initialValues.category === "reserva_emergencia",
   });
 
   const handleChange = (partial: any) => setForm((prev: any) => ({ ...prev, ...partial }));
@@ -38,18 +35,10 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    let submitCategory = form.category;
-    if (form.reserva_emergencia) {
-      submitCategory = "reserva_emergencia";
-    } else if (form.category === "reserva_emergencia") {
-      submitCategory = "other";
-    }
-
     const submitObj = {
       ...form,
-      id: form.id, // pode ser undefined se for novo
+      id: form.id,
       current_value: form.current_value,
-      category: submitCategory,
     };
     onSubmit(submitObj);
   };
@@ -90,12 +79,6 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
       </div>
       <InvestmentDateField value={form.purchase_date} onChange={(date) => handleChange({ purchase_date: date })} />
       <InvestmentBankAccountField value={form.bank_account_id} accounts={bankAccounts} onChange={v => handleChange({ bank_account_id: v })} />
-      <InvestmentCategoryField
-        value={form.category}
-        isEmergency={!!form.reserva_emergencia}
-        onCategoryChange={v => handleChange({ category: v })}
-        onEmergencyChange={(v) => handleChange({ reserva_emergencia: v })}
-      />
       <div className="flex space-x-2">
         <Button type="submit" className="w-full" disabled={isAdding}>
           {isAdding

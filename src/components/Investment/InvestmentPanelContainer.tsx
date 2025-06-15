@@ -27,7 +27,6 @@ const InvestmentPanelContainer = () => {
     amount: "",
     purchase_date: new Date().toISOString().split("T")[0],
     bank_account_id: "none",
-    category: "other",
     current_value: "",
   });
 
@@ -52,7 +51,6 @@ const InvestmentPanelContainer = () => {
       amount: safeAmount,
       purchase_date: formData.purchase_date,
       current_value: safeCurrentValue,
-      category: formData.category || "other",
     };
 
     if (
@@ -78,7 +76,6 @@ const InvestmentPanelContainer = () => {
       amount: "",
       purchase_date: new Date().toISOString().split("T")[0],
       bank_account_id: "none",
-      category: "other",
       current_value: "",
     });
     setIsAddingNew(false);
@@ -92,7 +89,6 @@ const InvestmentPanelContainer = () => {
       amount: (investment.amount ?? '').toString(),
       purchase_date: investment.purchase_date,
       bank_account_id: investment.bank_account_id || 'none',
-      category: investment.category ? investment.category : 'other',
       current_value: investment.current_value?.toString() ?? investment.amount?.toString() ?? "",
     });
     setIsAddingNew(true);
