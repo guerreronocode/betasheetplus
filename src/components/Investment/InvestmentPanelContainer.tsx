@@ -53,7 +53,6 @@ const InvestmentPanelContainer = () => {
       yield_type: formData.yield_type,
       yield_rate: parseFloat(formData.yield_rate) || 0,
       purchase_date: formData.purchase_date,
-      category: formData.category,
       // current_value, last_yield_update e user_id são definidos no backend.
     };
 
@@ -67,8 +66,8 @@ const InvestmentPanelContainer = () => {
       investmentData.bank_account_id = formData.bank_account_id;
     }
 
-    // Limpando possíveis campos extras (Ex: yield_extra, yield_percent_index, reserva_emergencia, etc)
-    // Não devemos enviar nenhum campo que não exista na tabela!
+    // Remover o campo category porque NÃO existe na tabela investments.
+    // Remover quaisquer outros campos que não existem!
 
     if (editingInvestment && (formData.id || editingInvestment.id)) {
       const _id = formData.id || editingInvestment.id;
