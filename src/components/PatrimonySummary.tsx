@@ -6,7 +6,7 @@ interface PatrimonySummaryProps {
   groups: Record<string, any[]>;
   totals: Record<string, number>;
   selectedGroup: string | null;
-  onGroupSelect: (group: string) => void;
+  onGroupSelect: (group: string | null) => void;
 }
 
 const PatrimonySummary: React.FC<PatrimonySummaryProps> = ({

@@ -79,6 +79,7 @@ const ImprovedPatrimonyManager = () => {
   });
 
   const [selectedGroup, setSelectedGroup] = useState<PatrimonyGroup | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // NOVOS HANDLERS para resetar link ao resetar formulário
   const resetForm = () =>
@@ -93,18 +94,48 @@ const ImprovedPatrimonyManager = () => {
       linkedBankAccountId: '',
     });
 
+  // Handler para seleção de grupo (tipagem correta)
+  const handleGroupSelect = (group: string | null) => {
+    // Permite escolher e desmarcar o grupo
+    if (selectedGroup === group) {
+      setSelectedGroup(null);
+    } else if (
+      group === "ativo_circulante" ||
+      group === "ativo_nao_circulante" ||
+      group === "passivo_circulante" ||
+      group === "passivo_nao_circulante"
+    ) {
+      setSelectedGroup(group);
+    } else {
+      setSelectedGroup(null);
+    }
+  };
+
   // Submissão
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // logica de vínculo manual/investimento/conta
-    if (entryType === 'asset') {
-      // Entrada manual
-      if (form.linkType === 'manual' || !form.linkType) {
-        if (!form.name || !form.value || !form.category) return;
-        const categoryRule = patrimonyCategoryRules[form.category];
-        if (!categoryRule) return;
+    setFormError(null);
 
-        const valueNum = parseFloat(form.value.replace(',', '.'));
+    // Ativos
+    if (entryType === 'asset') {
+      if (form.linkType === 'manual' || !form.linkType) {
+        if (!form.name || !form.value || !form.category) {
+          setFormError("Preencha todos os campos obrigatórios.");
+          return;
+        }
+        // Checagem de valor válido
+        const valueNum = parseFloat(String(form.value).replace(',', '.'));
+        if (isNaN(valueNum) || valueNum < 0) {
+          setFormError("Informe um valor positivo.");
+          return;
+        }
+
+        const categoryRule = patrimonyCategoryRules[form.category];
+        if (!categoryRule) {
+          setFormError("Categoria inválida.");
+          return;
+        }
+
         if (form.isEdit && form.id) {
           updateAsset({ id: form.id, name: form.name, category: form.category, current_value: valueNum });
         } else {
@@ -117,11 +148,12 @@ const ImprovedPatrimonyManager = () => {
         }
       }
 
-      // Vínculo com investimento já registrado
       if (form.linkType === 'investment' && form.linkedInvestmentId) {
         const selectedInv = investments.find(inv => inv.id === form.linkedInvestmentId);
-        if (!selectedInv) return;
-        // A categoria será sempre "investimento_longo_prazo"
+        if (!selectedInv) {
+          setFormError("Selecione um investimento válido.");
+          return;
+        }
         addAsset({
           name: selectedInv.name,
           category: 'investimento_longo_prazo',
@@ -130,11 +162,12 @@ const ImprovedPatrimonyManager = () => {
         });
       }
 
-      // Vínculo com conta bancária já cadastrada
       if (form.linkType === 'bank' && form.linkedBankAccountId) {
         const account = bankAccounts.find(acc => acc.id === form.linkedBankAccountId);
-        if (!account) return;
-        // Categoria para conta corrente
+        if (!account) {
+          setFormError("Selecione uma conta bancária válida.");
+          return;
+        }
         addAsset({
           name: account.name + ' (' + account.bank_name + ')',
           category: 'conta_corrente',
@@ -144,11 +177,21 @@ const ImprovedPatrimonyManager = () => {
       }
     } else {
       // Passivos (igual antes)
-      if (!form.name || !form.value || !form.category) return;
+      if (!form.name || !form.value || !form.category) {
+        setFormError("Preencha todos os campos obrigatórios.");
+        return;
+      }
+      const valueNum = parseFloat(String(form.value).replace(',', '.'));
+      if (isNaN(valueNum) || valueNum < 0) {
+        setFormError("Informe um valor positivo.");
+        return;
+      }
       const categoryRule = patrimonyCategoryRules[form.category];
-      if (!categoryRule) return;
+      if (!categoryRule) {
+        setFormError("Categoria inválida.");
+        return;
+      }
 
-      const valueNum = parseFloat(form.value.replace(',', '.'));
       if (form.isEdit && form.id) {
         updateLiability({ id: form.id, name: form.name, category: form.category, remaining_amount: valueNum });
       } else {
@@ -273,7 +316,7 @@ const ImprovedPatrimonyManager = () => {
         groups={groups}
         totals={totals}
         selectedGroup={selectedGroup}
-        onGroupSelect={setSelectedGroup}
+        onGroupSelect={handleGroupSelect}
       />
       <PatrimonyNetWorthCard netWorth={patrimonioLiquido} />
       {selectedGroup && (
@@ -303,6 +346,9 @@ const ImprovedPatrimonyManager = () => {
         </div>
       )}
       <div className="max-w-xl">
+        {formError && (
+          <div className="text-red-600 text-sm mb-2">{formError}</div>
+        )}
         <PatrimonyForm
           form={form}
           entryType={entryType}
