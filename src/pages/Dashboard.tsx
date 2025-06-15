@@ -14,6 +14,7 @@ import ImprovedPatrimonyManager from '@/components/ImprovedPatrimonyManager';
 import LinkedGoalsManager from '@/components/LinkedGoalsManager';
 import TransferBetweenAccounts from '@/components/TransferBetweenAccounts';
 import RecurringTransactions from '@/components/RecurringTransactions';
+import DebtManager from "@/components/debts/DebtManager";
 import { useFinancialData } from '@/hooks/useFinancialData';
 
 const Dashboard = () => {
@@ -29,13 +30,14 @@ const Dashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="accounts">Contas</TabsTrigger>
             <TabsTrigger value="transactions">Transações</TabsTrigger>
             <TabsTrigger value="investments">Investimentos</TabsTrigger>
             <TabsTrigger value="goals">Metas</TabsTrigger>
             <TabsTrigger value="patrimony">Patrimônio</TabsTrigger>
+            <TabsTrigger value="debts">Dívidas</TabsTrigger>
             <TabsTrigger value="achievements">Conquistas</TabsTrigger>
           </TabsList>
 
@@ -92,6 +94,10 @@ const Dashboard = () => {
 
           <TabsContent value="patrimony">
             <ImprovedPatrimonyManager />
+          </TabsContent>
+
+          <TabsContent value="debts">
+            <DebtManager />
           </TabsContent>
 
           <TabsContent value="achievements">
