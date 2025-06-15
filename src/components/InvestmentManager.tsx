@@ -1,9 +1,9 @@
-
 import React from 'react';
 import { TrendingUp, Building, Coins } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import InvestmentCreateDialog from './Investment/InvestmentCreateDialog';
 import { useFinancialData } from '@/hooks/useFinancialData';
+import { toSimpleYieldType, YieldType } from '@/utils/yieldTypeHelpers';
 
 // Funções utilitárias extraídas
 function formatCurrency(value: number) {
@@ -89,7 +89,19 @@ const InvestmentManager = () => {
           </div>
         ) : (
           investments.map((investment, index) => {
-            const returnData = calculateReturn(investment.amount, investment.current_value || investment.amount);
+            // Ajuste: garanta que estamos usando apenas tipos simples onde o backend espera!
+            // (inclui tanto exibição quanto posteriores cálculos que envolvam tipagem simples)
+
+            // Se precisar do tipo simples:
+            const simpleYieldType = toSimpleYieldType(
+              // @ts-expect-error: Pode ser string por schema mais permissivo no banco
+              (investment.yield_type as YieldType) || "fixed"
+            );
+
+            const returnData = calculateReturn(
+              investment.amount,
+              investment.current_value || investment.amount
+            );
             const typeLabel = investment.type;
 
             return (
