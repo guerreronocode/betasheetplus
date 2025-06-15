@@ -32,27 +32,53 @@ export const patrimonyCategoryRules: Record<string, PatrimonyGroup> = {
 };
 
 /**
+ * Classificação automática: Decide o grupo do investimento pelas regras de liquidez e vencimento.
+ */
+export function classifyInvestmentGroup(
+  investment: { liquidity?: string; maturity_date?: string; purchase_date?: string }
+): PatrimonyGroup {
+  const today = new Date();
+  if (investment.liquidity === "diaria") return "ativo_circulante";
+  if (investment.liquidity === "vencimento" && investment.maturity_date) {
+    // Calcula diferença em meses
+    const maturity = new Date(investment.maturity_date);
+    const diffMonths =
+      (maturity.getFullYear() - today.getFullYear()) * 12 +
+      (maturity.getMonth() - today.getMonth());
+    if (diffMonths < 12 || (diffMonths === 12 && maturity.getDate() <= today.getDate())) {
+      return "ativo_circulante";
+    }
+    return "ativo_nao_circulante";
+  }
+  // Default para não informado: longo prazo
+  return "ativo_nao_circulante";
+}
+
+/**
  * Retorna o grupo patrimonial correto de acordo com a categoria e lógica especial.
  * - category: string ou undefined, obrigatório tratar
- * - options: argumentos opcionais para lógica especial (ex: investimento)
+ * - item: asset/liability/investment
  */
 export function getPatrimonyGroupByCategory(
   category: string | undefined,
-  item?: any, // asset/liability/investment
+  item?: any,
   investments?: any[]
 ): PatrimonyGroup | undefined {
-  if (!category) return undefined;
+  if (!category && item && item.liquidity) {
+    // Classificação automática para investimentos
+    return classifyInvestmentGroup(item);
+  }
 
   // Lógica especial: investimento_longo_prazo pode ser RESERVA DE EMERGÊNCIA
   if (
     category === "investimento_longo_prazo" &&
     item &&
     investments &&
-    // busca no array de investimentos, category da instância == 'reserva_emergencia'
     investments.some(inv => inv.name === item.name && inv.category === "reserva_emergencia")
   ) {
     return "ativo_circulante";
   }
 
-  return patrimonyCategoryRules[category];
+  return patrimonyCategoryRules[category ?? ""];
 }
+

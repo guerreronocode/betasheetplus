@@ -69,20 +69,23 @@ export function usePatrimonyGroupsFull({
     nonLinkedBankAccounts.forEach(acc => {
       result.ativo_circulante.push({
         id: acc.id,
-        name: acc.name + ' (' + acc.bank_name + ')',
-        category: 'conta_corrente',
+        name: acc.name + " (" + acc.bank_name + ")",
+        category: "conta_corrente",
         current_value: acc.balance,
       });
     });
     // investimentos não linkados
     nonLinkedInvestments.forEach(inv => {
-      const group = getPatrimonyGroupByCategory(inv.type, inv, investments);
+      // ** NOVA LOGICA DE CLASSIFICACAO AUTOMATICA **
+      const group = getPatrimonyGroupByCategory(undefined, inv);
       if (group === "ativo_circulante" || group === "ativo_nao_circulante") {
         result[group].push({
           id: inv.id,
           name: inv.name,
           category: inv.type,
           current_value: inv.current_value,
+          liquidity: inv.liquidity,
+          maturity_date: inv.maturity_date,
         });
       }
     });

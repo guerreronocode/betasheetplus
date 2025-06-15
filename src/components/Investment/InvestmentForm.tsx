@@ -5,6 +5,7 @@ import InvestmentTypeField from "./fields/InvestmentTypeField";
 import InvestmentAmountField from "./fields/InvestmentAmountField";
 import InvestmentBankAccountField from "./fields/InvestmentBankAccountField";
 import InvestmentDateField from "./fields/InvestmentDateField";
+import InvestmentLiquidityField from "./fields/InvestmentLiquidityField";
 
 interface InvestmentFormProps {
   isAdding: boolean;
@@ -28,9 +29,20 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
   const [form, setForm] = useState({
     ...initialValues,
     current_value: initialValues.current_value || initialValues.amount || "",
+    liquidity: initialValues.liquidity || "",
+    maturity_date: initialValues.maturity_date || "",
   });
 
   const handleChange = (partial: any) => setForm((prev: any) => ({ ...prev, ...partial }));
+
+  // Novo campo: liquidez e data de vencimento
+  const handleLiquidityChange = (liquidity: string, maturity_date?: string) => {
+    setForm(prev => ({
+      ...prev,
+      liquidity,
+      maturity_date: liquidity === "vencimento" ? maturity_date || "" : "",
+    }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +51,8 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
       ...form,
       id: form.id,
       current_value: form.current_value,
+      liquidity: form.liquidity,
+      maturity_date: form.liquidity === "vencimento" ? form.maturity_date : null,
     };
     onSubmit(submitObj);
   };
@@ -58,6 +72,12 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
       </div>
       {/* Tipo */}
       <InvestmentTypeField value={form.type} onChange={(value) => handleChange({ type: value })} />
+      {/* Liquidez */}
+      <InvestmentLiquidityField
+        value={form.liquidity}
+        vencimento={form.maturity_date}
+        onChange={handleLiquidityChange}
+      />
       {/* Valor Inicial */}
       <InvestmentAmountField value={form.amount} onChange={(v) => handleChange({ amount: v })} />
       {/* Saldo Atual */}
