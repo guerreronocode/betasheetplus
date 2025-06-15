@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { FolderOpen, Debt } from "lucide-react";
+import { FolderOpen, Wallet } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,7 +65,7 @@ const DebtManager: React.FC = () => {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-red-100 rounded-lg">
-            <Debt className="w-6 h-6 text-red-600" />
+            <Wallet className="w-6 h-6 text-red-600" />
           </div>
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
