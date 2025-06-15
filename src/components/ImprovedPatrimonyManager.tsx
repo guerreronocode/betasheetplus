@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { usePatrimony } from '@/hooks/usePatrimony';
+import { useFinancialData } from '@/hooks/useFinancialData';
 
 const assetCategoryOptions = [
   { value: 'conta_corrente', label: 'Conta corrente' },
@@ -87,6 +88,9 @@ const ImprovedPatrimonyManager = () => {
     isLoading,
   } = usePatrimony();
 
+  // NOVO: Obter contas bancárias e investimentos
+  const { bankAccounts, investments } = useFinancialData();
+
   // Formulários Simplificados
   const [entryType, setEntryType] = useState<'asset' | 'liability'>('asset');
   const [form, setForm] = useState({
@@ -95,37 +99,84 @@ const ImprovedPatrimonyManager = () => {
     category: '',
     id: '',
     isEdit: false,
+    linkType: '', // 'manual' | 'investment' | 'bank'
+    linkedInvestmentId: '',
+    linkedBankAccountId: '',
   });
 
   const [selectedGroup, setSelectedGroup] = useState<PatrimonyGroup | null>(null);
 
-  // Resetar formulário
-  const resetForm = () => setForm({ name: '', value: '', category: '', id: '', isEdit: false });
+  // NOVOS HANDLERS para resetar link ao resetar formulário
+  const resetForm = () =>
+    setForm({
+      name: '',
+      value: '',
+      category: '',
+      id: '',
+      isEdit: false,
+      linkType: '',
+      linkedInvestmentId: '',
+      linkedBankAccountId: '',
+    });
 
   // Submissão
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name || !form.value || !form.category) return;
+    // logica de vínculo manual/investimento/conta
+    if (entryType === 'asset') {
+      // Entrada manual
+      if (form.linkType === 'manual' || !form.linkType) {
+        if (!form.name || !form.value || !form.category) return;
+        const categoryRule = patrimonyCategoryRules[form.category];
+        if (!categoryRule) return;
 
-    const categoryRule = patrimonyCategoryRules[form.category];
-    if (!categoryRule) return;
-
-    const valueNum = parseFloat(form.value.replace(',', '.'));
-
-    if (form.isEdit && form.id) {
-      if (entryType === 'asset') {
-        updateAsset({ id: form.id, name: form.name, category: form.category, current_value: valueNum });
-      } else {
-        updateLiability({ id: form.id, name: form.name, category: form.category, remaining_amount: valueNum });
+        const valueNum = parseFloat(form.value.replace(',', '.'));
+        if (form.isEdit && form.id) {
+          updateAsset({ id: form.id, name: form.name, category: form.category, current_value: valueNum });
+        } else {
+          addAsset({
+            name: form.name,
+            category: form.category,
+            current_value: valueNum,
+            purchase_date: new Date().toISOString().split('T')[0],
+          });
+        }
       }
-    } else {
-      if (entryType === 'asset') {
+
+      // Vínculo com investimento já registrado
+      if (form.linkType === 'investment' && form.linkedInvestmentId) {
+        const selectedInv = investments.find(inv => inv.id === form.linkedInvestmentId);
+        if (!selectedInv) return;
+        // A categoria será sempre "investimento_longo_prazo"
         addAsset({
-          name: form.name,
-          category: form.category,
-          current_value: valueNum,
+          name: selectedInv.name,
+          category: 'investimento_longo_prazo',
+          current_value: selectedInv.current_value,
+          purchase_date: selectedInv.purchase_date,
+        });
+      }
+
+      // Vínculo com conta bancária já cadastrada
+      if (form.linkType === 'bank' && form.linkedBankAccountId) {
+        const account = bankAccounts.find(acc => acc.id === form.linkedBankAccountId);
+        if (!account) return;
+        // Categoria para conta corrente
+        addAsset({
+          name: account.name + ' (' + account.bank_name + ')',
+          category: 'conta_corrente',
+          current_value: account.balance,
           purchase_date: new Date().toISOString().split('T')[0],
         });
+      }
+    } else {
+      // Passivos (igual antes)
+      if (!form.name || !form.value || !form.category) return;
+      const categoryRule = patrimonyCategoryRules[form.category];
+      if (!categoryRule) return;
+
+      const valueNum = parseFloat(form.value.replace(',', '.'));
+      if (form.isEdit && form.id) {
+        updateLiability({ id: form.id, name: form.name, category: form.category, remaining_amount: valueNum });
       } else {
         addLiability({
           name: form.name,
@@ -141,8 +192,27 @@ const ImprovedPatrimonyManager = () => {
   };
 
   // Classificação dos itens
+  // Eliminar do resumo contas/investimentos que já estejam vinculados como ativos
+  const linkedInvestmentIds = assets
+    .filter(a => a.category === 'investimento_longo_prazo' && investments.find(inv => inv.name === a.name))
+    .map(a => {
+      const inv = investments.find(inv => inv.name === a.name);
+      return inv ? inv.id : '';
+    });
+  const linkedBankAccountIds = assets
+    .filter(a => a.category === 'conta_corrente' && bankAccounts.find(acc => a.name.includes(acc.name)))
+    .map(a => {
+      const acc = bankAccounts.find(acc => a.name.includes(acc.name));
+      return acc ? acc.id : '';
+    });
+
+  // Somar investimentos não vinculados a ativos
+  const nonLinkedInvestments = investments.filter(inv => !linkedInvestmentIds.includes(inv.id));
+  // Idem para contas bancárias
+  const nonLinkedBankAccounts = bankAccounts.filter(acc => !linkedBankAccountIds.includes(acc.id));
+
+  // Agrupar conforme grupo patrimonial
   const classifyAssetsLiabilities = () => {
-    // Agrupar conforme grupo patrimonial
     const groups: Record<PatrimonyGroup, any[]> = {
       ativo_circulante: [],
       ativo_nao_circulante: [],
@@ -154,6 +224,22 @@ const ImprovedPatrimonyManager = () => {
       const group = patrimonyCategoryRules[asset.category as string];
       if (group === 'ativo_circulante' || group === 'ativo_nao_circulante')
         groups[group].push(asset);
+    });
+    nonLinkedBankAccounts.forEach(acc => {
+      groups.ativo_circulante.push({
+        id: acc.id,
+        name: acc.name + ' (' + acc.bank_name + ')',
+        category: 'conta_corrente',
+        current_value: acc.balance,
+      });
+    });
+    nonLinkedInvestments.forEach(inv => {
+      groups.ativo_nao_circulante.push({
+        id: inv.id,
+        name: inv.name,
+        category: 'investimento_longo_prazo',
+        current_value: inv.current_value,
+      });
     });
     liabilities.forEach(liab => {
       const group = patrimonyCategoryRules[liab.category as string];
@@ -226,19 +312,30 @@ const ImprovedPatrimonyManager = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">{formatCurrency(item.current_value ?? item.remaining_amount ?? 0)}</span>
-                  <Button size="icon" variant="outline" onClick={() => setForm({
-                    name: item.name,
-                    value: String(item.current_value ?? item.remaining_amount ?? ''),
-                    category: item.category,
-                    id: item.id,
-                    isEdit: true,
-                  })}>
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button size="icon" variant="outline" onClick={() => item.current_value ?
-                    deleteAsset(item.id) : deleteLiability(item.id)}>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  {item.current_value !== undefined && (
+                    <Button size="icon" variant="outline" onClick={() => setForm({
+                      name: item.name,
+                      value: String(item.current_value ?? ''),
+                      category: item.category,
+                      id: item.id,
+                      isEdit: true,
+                      linkType: 'manual',
+                      linkedInvestmentId: '',
+                      linkedBankAccountId: '',
+                    })}>
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                  )}
+                  {item.current_value !== undefined && (
+                    <Button size="icon" variant="outline" onClick={() => deleteAsset(item.id)}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
+                  {item.remaining_amount !== undefined && (
+                    <Button size="icon" variant="outline" onClick={() => deleteLiability(item.id)}>
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             ))}
@@ -275,35 +372,147 @@ const ImprovedPatrimonyManager = () => {
               </Button>
             )}
           </div>
-          <div>
-            <Label>Nome</Label>
-            <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
-          </div>
-          <div>
-            <Label>Valor</Label>
-            <Input
-              type="number"
-              min={0}
-              value={form.value}
-              onChange={e => setForm(f => ({ ...f, value: e.target.value }))}
-              required
-            />
-          </div>
-          <div>
-            <Label>Categoria</Label>
-            <Select value={form.category} onValueChange={cat => setForm(f => ({ ...f, category: cat }))} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Escolha uma categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                {(entryType === 'asset' ? assetCategoryOptions : liabilityCategoryOptions).map(opt => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {entryType === 'asset' && (
+            // ESCOLHA DO TIPO DE ENTRADA DO ATIVO
+            <div>
+              <Label>Tipo de vínculo</Label>
+              <Select
+                value={form.linkType}
+                onValueChange={linkType =>
+                  setForm(f => ({
+                    ...f,
+                    linkType,
+                    // Resetar outros campos quando trocar o modo
+                    linkedInvestmentId: '',
+                    linkedBankAccountId: '',
+                    name: '',
+                    value: '',
+                    category: '',
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo de ativo" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="manual">Informar valor manualmente</SelectItem>
+                  <SelectItem value="investment">Adicionar investimento já registrado</SelectItem>
+                  <SelectItem value="bank">Adicionar conta bancária já cadastrada</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {/* FORMULÁRIO DINÂMICO */}
+          {entryType === 'asset' && (form.linkType === 'manual' || form.linkType === '') && (
+            <>
+              <div>
+                <Label>Nome</Label>
+                <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
+              </div>
+              <div>
+                <Label>Valor</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={form.value}
+                  onChange={e => setForm(f => ({ ...f, value: e.target.value }))}
+                  required
+                />
+              </div>
+              <div>
+                <Label>Categoria</Label>
+                <Select value={form.category} onValueChange={cat => setForm(f => ({ ...f, category: cat }))} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Escolha uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {assetCategoryOptions.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
+          {entryType === 'asset' && form.linkType === 'investment' && (
+            <div>
+              <Label>Selecionar investimento</Label>
+              <Select
+                value={form.linkedInvestmentId}
+                onValueChange={id => setForm(f => ({ ...f, linkedInvestmentId: id }))}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Escolha um investimento" />
+                </SelectTrigger>
+                <SelectContent>
+                  {investments.map(inv => (
+                    <SelectItem key={inv.id} value={inv.id}>
+                      {inv.name} ({formatCurrency(inv.current_value)})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {entryType === 'asset' && form.linkType === 'bank' && (
+            <div>
+              <Label>Selecionar conta bancária</Label>
+              <Select
+                value={form.linkedBankAccountId}
+                onValueChange={id => setForm(f => ({ ...f, linkedBankAccountId: id }))}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Escolha uma conta" />
+                </SelectTrigger>
+                <SelectContent>
+                  {bankAccounts.map(acc => (
+                    <SelectItem key={acc.id} value={acc.id}>
+                      {acc.name} - {acc.bank_name} ({formatCurrency(acc.balance)})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Passivo: igual ao padrão */}
+          {entryType === 'liability' && (
+            <>
+              <div>
+                <Label>Nome</Label>
+                <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
+              </div>
+              <div>
+                <Label>Valor</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={form.value}
+                  onChange={e => setForm(f => ({ ...f, value: e.target.value }))}
+                  required
+                />
+              </div>
+              <div>
+                <Label>Categoria</Label>
+                <Select value={form.category} onValueChange={cat => setForm(f => ({ ...f, category: cat }))} required>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Escolha uma categoria" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {liabilityCategoryOptions.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
           <Button type="submit" className="w-full" disabled={isAddingAsset || isAddingLiability}>
             {form.isEdit ? "Salvar alterações" : "Adicionar"}
           </Button>
