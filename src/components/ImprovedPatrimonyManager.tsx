@@ -193,14 +193,15 @@ const ImprovedPatrimonyManager = () => {
     resetForm();
   };
 
-  // Classificação dos itens
-  // Eliminar do resumo contas/investimentos que já estejam vinculados como ativos
+  // Identificação de vínculos
   const linkedInvestmentIds = assets
     .filter(a => a.category === 'investimento_longo_prazo' && investments.find(inv => inv.name === a.name))
     .map(a => {
       const inv = investments.find(inv => inv.name === a.name);
       return inv ? inv.id : '';
     });
+
+  // Corrigido: definir corretamente contas bancárias não vinculadas
   const linkedBankAccountIds = assets
     .filter(a => a.category === 'conta_corrente' && bankAccounts.find(acc => a.name.includes(acc.name)))
     .map(a => {
@@ -208,9 +209,12 @@ const ImprovedPatrimonyManager = () => {
       return acc ? acc.id : '';
     });
 
-  // NOVA LÓGICA: Identificar investimentos de reserva de emergência como ativos circulantes
+  // Definir contas bancárias não vinculadas!
+  const nonLinkedBankAccounts = bankAccounts.filter(acc => !linkedBankAccountIds.includes(acc.id));
+
+  // Investimentos que ainda não foram adicionados como ativos
   const nonLinkedInvestments = investments.filter(inv => !linkedInvestmentIds.includes(inv.id));
-  
+
   // Agrupar conforme grupo patrimonial - REGRA ESPECIAL para reserva de emergência:
   const classifyAssetsLiabilities = () => {
     const groups: Record<PatrimonyGroup, any[]> = {
@@ -225,7 +229,7 @@ const ImprovedPatrimonyManager = () => {
       // Se for um investimento com categoria reserva_emergencia, considerar sempre ativo circulante
       if (
         asset.category === 'investimento_longo_prazo' &&
-        investments.find(inv => inv.name === asset.name && inv.category === 'reserva_emergencia')
+        investments.find(inv => inv.name === asset.name && (inv as any).category === 'reserva_emergencia')
       ) {
         group = 'ativo_circulante';
       }
@@ -234,7 +238,7 @@ const ImprovedPatrimonyManager = () => {
       }
     });
 
-    // Adicionar contas bancárias como ativos circulantes normalmente
+    // Adicionar contas bancárias não vinculadas como ativos circulantes normalmente
     nonLinkedBankAccounts.forEach(acc => {
       groups.ativo_circulante.push({
         id: acc.id,
@@ -244,9 +248,10 @@ const ImprovedPatrimonyManager = () => {
       });
     });
 
+    // Adicionar investimentos não vinculados, respeitando categoria "reserva_emergencia"
     nonLinkedInvestments.forEach(inv => {
-      // Se for reserva de emergência, push em circulante
-      if (inv.category === 'reserva_emergencia') {
+      const isEmergencyReserve = (inv as any).category === 'reserva_emergencia';
+      if (isEmergencyReserve) {
         groups.ativo_circulante.push({
           id: inv.id,
           name: inv.name,
@@ -262,7 +267,8 @@ const ImprovedPatrimonyManager = () => {
         });
       }
     });
-    // ... keep liabilities grouping ...
+
+    // ... keep liabilities grouping and return ...
     liabilities.forEach(liab => {
       const group = patrimonyCategoryRules[liab.category as string];
       if (group === 'passivo_circulante' || group === 'passivo_nao_circulante')
