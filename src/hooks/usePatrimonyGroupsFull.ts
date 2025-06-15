@@ -1,11 +1,10 @@
-
 import { useMemo } from 'react';
 import { getPatrimonyGroupByCategory, PatrimonyGroup } from "@/utils/patrimonyHelpers";
 
 // Tipos mínimos esperados
 type Asset = { id: string; name: string; category: string; current_value: number };
 type Liability = { id: string; name: string; category: string; remaining_amount: number };
-type Investment = { id: string; name: string; type: string; current_value: number };
+type Investment = { id: string; name: string; type: string; current_value: number; liquidity?: string; maturity_date?: string };
 type BankAccount = { id: string; name: string; bank_name: string; balance: number };
 
 interface UsePatrimonyGroupsFullArgs {
