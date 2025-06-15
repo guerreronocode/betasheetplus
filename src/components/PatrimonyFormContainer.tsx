@@ -197,8 +197,6 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
         isSaving={isAddingAsset || isAddingLiability}
         investments={investments}
         bankAccounts={bankAccounts}
-        /** Força alternância correta ao clicar nos botões */
-        onEntryTypeChange={handleTypeChange}
       />
     </div>
   );
