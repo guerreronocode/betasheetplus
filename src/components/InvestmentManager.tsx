@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { TrendingUp, Plus, Building, Coins } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -9,40 +10,88 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useFinancialData } from '@/hooks/useFinancialData';
 
 const investmentTypes = [
-  { value: 'stocks', label: 'Ações' },
-  { value: 'bonds', label: 'Títulos' },
-  { value: 'crypto', label: 'Criptomoedas' },
-  { value: 'savings', label: 'Poupança' },
-  { value: 'cdb', label: 'CDB' },
-  { value: 'funds', label: 'Fundos' },
-  { value: 'real_estate', label: 'Imóveis' },
-  { value: 'other', label: 'Outros' }
+  { value: 'Ações', label: 'Ações' },
+  { value: 'Títulos', label: 'Títulos' },
+  { value: 'Criptomoedas', label: 'Criptomoedas' },
+  { value: 'Poupança', label: 'Poupança' },
+  { value: 'CDB', label: 'CDB' },
+  { value: 'Fundos', label: 'Fundos' },
+  { value: 'Imóveis', label: 'Imóveis' },
+  { value: 'ETFs', label: 'ETFs' },
+  { value: 'Debêntures', label: 'Debêntures' },
+  { value: 'BDRs', label: 'BDRs' },
+  { value: 'Tesouro Direto', label: 'Tesouro Direto' },
+  { value: 'LCI', label: 'LCI' },
+  { value: 'LCA', label: 'LCA' },
+  { value: 'Previdência Privada', label: 'Previdência Privada' },
+  { value: 'COE', label: 'COE' },
+  { value: 'FIIs', label: 'FIIs' },
+  { value: 'Commodities', label: 'Commodities' },
+  { value: 'Cashback', label: 'Cashback' },
+  { value: 'Crowdfunding', label: 'Crowdfunding' },
+  { value: 'Offshore', label: 'Offshore' },
+  { value: 'Outros', label: 'Outros' }
+];
+
+const yieldTypes = [
+  { value: "fixed", label: "Taxa Fixa" },
+  { value: "cdi", label: "CDI" },
+  { value: "cdi_plus", label: "CDI + X%" },
+  { value: "selic", label: "SELIC" },
+  { value: "selic_plus", label: "SELIC + X%" },
+  { value: "ipca", label: "IPCA" },
+  { value: "ipca_plus", label: "IPCA + X%" }
 ];
 
 const InvestmentManager = () => {
-  const { investments, addInvestment, isAddingInvestment } = useFinancialData();
+  const { investments, addInvestment, isAddingInvestment, yieldRates } = useFinancialData();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   const [form, setForm] = useState({
     name: '',
     type: '',
     amount: '',
-    yield_type: 'fixed' as 'fixed' | 'cdi' | 'selic' | 'ipca',
+    yield_type: 'fixed' as string,
     yield_rate: '',
+    yield_extra: '',
     purchase_date: new Date().toISOString().split('T')[0]
   });
+
+  const handleYieldTypeChange = (type: string) => {
+    let extra = {};
+    if (!type.endsWith("_plus")) {
+      extra = { yield_extra: "" };
+    }
+    setForm(prev => ({ ...prev, yield_type: type, ...extra }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.name || !form.type || !form.amount) return;
-    
+
+    let yield_rate_final = form.yield_rate;
+
+    if (form.yield_type === "cdi" || form.yield_type === "selic" || form.yield_type === "ipca") {
+      const base = yieldRates.find(rate => rate.rate_type === form.yield_type)?.rate_value || 0;
+      yield_rate_final = base;
+    } else if (
+      ["cdi_plus", "selic_plus", "ipca_plus"].includes(form.yield_type)
+    ) {
+      const baseType = form.yield_type.replace("_plus", "");
+      const base = yieldRates.find(rate => rate.rate_type === baseType)?.rate_value || 0;
+      const extra = parseFloat(form.yield_extra || "0");
+      yield_rate_final = base + extra;
+    } else if (form.yield_type === "fixed") {
+      yield_rate_final = parseFloat(form.yield_rate || "0");
+    }
+
     addInvestment({
       name: form.name,
       type: form.type,
       amount: parseFloat(form.amount),
       purchase_date: form.purchase_date,
       yield_type: form.yield_type,
-      yield_rate: parseFloat(form.yield_rate) || 0
+      yield_rate: yield_rate_final
     });
     
     setForm({
@@ -51,6 +100,7 @@ const InvestmentManager = () => {
       amount: '',
       yield_type: 'fixed',
       yield_rate: '',
+      yield_extra: '',
       purchase_date: new Date().toISOString().split('T')[0]
     });
     
@@ -149,18 +199,32 @@ const InvestmentManager = () => {
                 <Label htmlFor="yield_type">Tipo de Rendimento</Label>
                 <Select
                   value={form.yield_type}
-                  onValueChange={(value: 'fixed' | 'cdi' | 'selic' | 'ipca') => setForm(prev => ({ ...prev, yield_type: value }))}
+                  onValueChange={handleYieldTypeChange}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o tipo de rendimento" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="fixed">Taxa Fixa</SelectItem>
-                    <SelectItem value="cdi">CDI</SelectItem>
-                    <SelectItem value="selic">SELIC</SelectItem>
-                    <SelectItem value="ipca">IPCA</SelectItem>
+                    {yieldTypes.map((yt) => (
+                      <SelectItem key={yt.value} value={yt.value}>{yt.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
+                {form.yield_type && form.yield_type.endsWith("_plus") && (
+                  <div className="mt-2">
+                    <Label htmlFor="yield_extra">Adicional (%)</Label>
+                    <Input
+                      id="yield_extra"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={form.yield_extra || ""}
+                      placeholder="0.00"
+                      onChange={e => setForm(prev => ({ ...prev, yield_extra: e.target.value }))}
+                      required
+                    />
+                  </div>
+                )}
               </div>
               
               <div>
@@ -172,7 +236,9 @@ const InvestmentManager = () => {
                   min="0"
                   value={form.yield_rate}
                   onChange={(e) => setForm(prev => ({ ...prev, yield_rate: e.target.value }))}
-                  placeholder="Ex: 12.5"
+                  placeholder="Ex: 12.5 (apenas para taxa fixa)"
+                  required={form.yield_type === "fixed"}
+                  disabled={form.yield_type !== "fixed"}
                 />
               </div>
               
@@ -239,7 +305,7 @@ const InvestmentManager = () => {
         ) : (
           investments.map((investment, index) => {
             const returnData = calculateReturn(investment.amount, investment.current_value || investment.amount);
-            const typeLabel = investmentTypes.find(t => t.value === investment.type)?.label || investment.type;
+            const typeLabel = investment.type;
             
             return (
               <div

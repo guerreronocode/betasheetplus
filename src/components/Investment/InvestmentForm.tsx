@@ -1,20 +1,53 @@
 
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Building } from 'lucide-react';
+import React, { useState } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface InvestmentFormProps {
   isAdding: boolean;
   isEditing: boolean;
   initialValues: any;
-  bankAccounts: any[];
-  yieldRates: any[];
+  bankAccounts: Array<{ id: string; name: string; bank_name: string; color?: string; }>;
+  yieldRates: Array<{ rate_type: string; rate_value: number }>;
   onSubmit: (data: any) => void;
   onCancel: () => void;
 }
+
+const categories = [
+  "Ações",
+  "Títulos",
+  "Criptomoedas",
+  "Poupança",
+  "CDB",
+  "Fundos",
+  "Imóveis",
+  "ETFs",
+  "Debêntures",
+  "BDRs",
+  "Tesouro Direto",
+  "LCI",
+  "LCA",
+  "Previdência Privada",
+  "COE",
+  "FIIs",
+  "Commodities",
+  "Cashback",
+  "Crowdfunding",
+  "Offshore",
+  "Outros"
+];
+
+const yieldTypes = [
+  { value: "fixed", label: "Taxa Fixa" },
+  { value: "cdi", label: "CDI" },
+  { value: "cdi_plus", label: "CDI + X%" },
+  { value: "selic", label: "SELIC" },
+  { value: "selic_plus", label: "SELIC + X%" },
+  { value: "ipca", label: "IPCA" },
+  { value: "ipca_plus", label: "IPCA + X%" }
+];
 
 const InvestmentForm: React.FC<InvestmentFormProps> = ({
   isAdding,
@@ -23,149 +56,163 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
   bankAccounts,
   yieldRates,
   onSubmit,
-  onCancel,
+  onCancel
 }) => {
-  const [formData, setFormData] = useState(initialValues);
+  const [form, setForm] = useState(initialValues);
 
-  useEffect(() => {
-    setFormData(initialValues);
-  }, [initialValues]);
+  const handleChange = (partial: any) => {
+    setForm((prev: any) => ({ ...prev, ...partial }));
+  };
 
-  const formatPercentage = (value: number) => `${value.toFixed(2)}%`;
+  const handleYieldTypeChange = (type: string) => {
+    let extra = {};
+    if (!type.endsWith("_plus")) {
+      extra = { yield_extra: "" };
+    }
+    handleChange({ yield_type: type, ...extra });
+  };
 
-  const getCurrentYieldRate = (yieldType: string) => {
-    const rate = yieldRates.find(r => r.rate_type === yieldType);
-    return rate ? rate.rate_value : 0;
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Cálculo do yield_rate (salvar valor final conforme input)
+    let yield_rate_final = form.yield_rate;
+
+    if (form.yield_type === "cdi" || form.yield_type === "selic" || form.yield_type === "ipca") {
+      const base = yieldRates.find(rate => rate.rate_type === form.yield_type)?.rate_value || 0;
+      yield_rate_final = base;
+    } else if (
+      ["cdi_plus", "selic_plus", "ipca_plus"].includes(form.yield_type)
+    ) {
+      const baseType = form.yield_type.replace("_plus", "");
+      const base = yieldRates.find(rate => rate.rate_type === baseType)?.rate_value || 0;
+      const extra = parseFloat(form.yield_extra || "0");
+      yield_rate_final = base + extra;
+    } else if (form.yield_type === "fixed") {
+      yield_rate_final = parseFloat(form.yield_rate || "0");
+    }
+
+    onSubmit({
+      ...form,
+      yield_type: form.yield_type,
+      yield_extra: form.yield_extra,
+      yield_rate: yield_rate_final,
+    });
   };
 
   return (
-    <form
-      onSubmit={e => {
-        e.preventDefault();
-        onSubmit(formData);
-      }}
-      className="space-y-4 mb-6 p-4 bg-gray-50 rounded-lg"
-    >
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <Label htmlFor="name">Nome do Investimento</Label>
-          <Input
-            id="name"
-            type="text"
-            value={formData.name}
-            onChange={(e) => setFormData(f => ({ ...f, name: e.target.value }))}
-            placeholder="Ex: PETR4, Tesouro Selic 2027"
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="type">Tipo</Label>
-          <Select value={formData.type} onValueChange={(value) => setFormData(f => ({ ...f, type: value }))}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="stocks">Ações</SelectItem>
-              <SelectItem value="crypto">Criptomoedas</SelectItem>
-              <SelectItem value="bonds">Títulos Públicos</SelectItem>
-              <SelectItem value="real-estate">Fundos Imobiliários</SelectItem>
-              <SelectItem value="funds">Fundos de Investimento</SelectItem>
-              <SelectItem value="savings">Poupança</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="amount">Valor Investido</Label>
-          <Input
-            id="amount"
-            type="number"
-            step="0.01"
-            min="0"
-            value={formData.amount}
-            onChange={e => setFormData(f => ({ ...f, amount: e.target.value }))}
-            placeholder="0,00"
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="bank_account">Conta Bancária</Label>
-          <Select
-            value={formData.bank_account_id}
-            onValueChange={(value) => setFormData(f => ({ ...f, bank_account_id: value }))}
-          >
-            <SelectTrigger>
-              <Building className="w-4 h-4 mr-2" />
-              <SelectValue placeholder="Selecione uma conta (opcional)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Nenhuma conta específica</SelectItem>
-              {bankAccounts.map((account) => (
-                <SelectItem key={account.id} value={account.id}>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: account.color }} />
-                    <span>{account.name} - {account.bank_name}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="yield_type">Tipo de Rendimento</Label>
-          <Select value={formData.yield_type} onValueChange={(value: any) => setFormData(f => ({ ...f, yield_type: value }))}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="fixed">Taxa Pré-fixada</SelectItem>
-              <SelectItem value="cdi">CDI ({formatPercentage(getCurrentYieldRate('cdi'))})</SelectItem>
-              <SelectItem value="selic">SELIC ({formatPercentage(getCurrentYieldRate('selic'))})</SelectItem>
-              <SelectItem value="ipca">IPCA ({formatPercentage(getCurrentYieldRate('ipca'))})</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="yield_rate">Taxa de Rendimento (%)</Label>
-          <Input
-            id="yield_rate"
-            type="number"
-            step="0.01"
-            min="0"
-            value={formData.yield_rate}
-            onChange={e => setFormData(f => ({ ...f, yield_rate: e.target.value }))}
-            placeholder={formData.yield_type === 'fixed' ? 'Ex: 12.50' : 'Automático'}
-            disabled={formData.yield_type !== 'fixed'}
-          />
-        </div>
-        <div>
-          <Label htmlFor="purchase_date">Data de Compra</Label>
-          <Input
-            id="purchase_date"
-            type="date"
-            value={formData.purchase_date}
-            onChange={e => setFormData(f => ({ ...f, purchase_date: e.target.value }))}
-            required
-          />
-        </div>
-        <div>
-          <Label htmlFor="investment_category">Categoria do investimento</Label>
-          <Select
-            value={formData.category}
-            onValueChange={cat => setFormData(f => ({ ...f, category: cat }))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione a categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="other">Investimento (outros)</SelectItem>
-              <SelectItem value="reserva_emergencia">Reserva de emergência</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div>
+        <Label htmlFor="name">Nome do Investimento</Label>
+        <Input
+          id="name"
+          value={form.name}
+          onChange={e => handleChange({ name: e.target.value })}
+          required
+        />
       </div>
+      <div>
+        <Label htmlFor="type">Tipo</Label>
+        <Select
+          value={form.type}
+          onValueChange={value => handleChange({ type: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione o tipo" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map(cat => (
+              <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label htmlFor="amount">Valor Investido</Label>
+        <Input
+          id="amount"
+          type="number"
+          step="0.01"
+          min="0"
+          value={form.amount}
+          onChange={e => handleChange({ amount: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="yield_type">Tipo de Rendimento</Label>
+        <Select
+          value={form.yield_type}
+          onValueChange={handleYieldTypeChange}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione o tipo de rendimento" />
+          </SelectTrigger>
+          <SelectContent>
+            {yieldTypes.map(yt => (
+              <SelectItem key={yt.value} value={yt.value}>{yt.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {/* Exibir campo para "X%" apenas para *_plus */}
+        {form.yield_type && form.yield_type.endsWith("_plus") && (
+          <div className="mt-2">
+            <Label htmlFor="yield_extra">Adicional (%)</Label>
+            <Input
+              id="yield_extra"
+              type="number"
+              step="0.01"
+              min="0"
+              value={form.yield_extra || ""}
+              placeholder="0.00"
+              onChange={e => handleChange({ yield_extra: e.target.value })}
+              required
+            />
+          </div>
+        )}
+      </div>
+      <div>
+        <Label htmlFor="purchase_date">Data da Compra</Label>
+        <Input
+          id="purchase_date"
+          type="date"
+          value={form.purchase_date}
+          onChange={e => handleChange({ purchase_date: e.target.value })}
+          required
+        />
+      </div>
+      <div>
+        <Label htmlFor="bank_account_id">Conta Bancária</Label>
+        <Select
+          value={form.bank_account_id}
+          onValueChange={value => handleChange({ bank_account_id: value })}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione uma conta (opcional)" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Nenhuma conta específica</SelectItem>
+            {bankAccounts.map(acc => (
+              <SelectItem key={acc.id} value={acc.id}>
+                <span className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full" style={{ backgroundColor: acc.color }} />
+                  {acc.name} - {acc.bank_name}
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="flex space-x-2">
-        <Button type="submit" disabled={isAdding}>
-          {isAdding ? 'Salvando...' : isEditing ? 'Atualizar Investimento' : 'Adicionar Investimento'}
+        <Button type="submit" className="w-full" disabled={isAdding}>
+          {isAdding
+            ? isEditing
+              ? "Salvando..."
+              : "Adicionando..."
+            : isEditing
+            ? "Salvar Alterações"
+            : "Adicionar Investimento"}
         </Button>
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancelar
