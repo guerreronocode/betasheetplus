@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { usePatrimony } from '@/hooks/usePatrimony';
 import { useFinancialData } from '@/hooks/useFinancialData';
@@ -7,11 +6,8 @@ import PatrimonyFormContainer from "./PatrimonyFormContainer";
 import PatrimonyItemSection from "./PatrimonyItemSection";
 import PatrimonySummary from "./PatrimonySummary";
 import PatrimonyNetWorthCard from "./PatrimonyNetWorthCard";
-import {
-  patrimonyGroupLabels,
-  assetCategoryOptions,
-  liabilityCategoryOptions,
-} from "./patrimonyCategories";
+import { patrimonyGroupLabels } from "./patrimonyCategories";
+import { formatCurrency } from "@/utils/formatters";
 
 const patrimonyCategoryRules: Record<string, string> = {
   conta_corrente: 'ativo_circulante',
@@ -72,61 +68,57 @@ const ImprovedPatrimonyManager = () => {
     linkedBankAccountId: '',
   });
 
-  const [selectedGroup, setSelectedGroup] = useState<PatrimonyGroup | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState(null);
 
-  const resetForm = () => setForm({
-    name: '',
-    value: '',
-    category: '',
-    id: '',
-    isEdit: false,
-    linkType: '',
-    linkedInvestmentId: '',
-    linkedBankAccountId: '',
-  });
+  const resetForm = useCallback(() =>
+    setForm({
+      name: '',
+      value: '',
+      category: '',
+      id: '',
+      isEdit: false,
+      linkType: '',
+      linkedInvestmentId: '',
+      linkedBankAccountId: '',
+    }), []);
 
-  const handleGroupSelect = (group: string | null) => {
-    if (selectedGroup === group) {
-      setSelectedGroup(null);
-    } else if (
-      group === "ativo_circulante" ||
-      group === "ativo_nao_circulante" ||
-      group === "passivo_circulante" ||
-      group === "passivo_nao_circulante"
-    ) {
-      setSelectedGroup(group);
-    } else {
-      setSelectedGroup(null);
-    }
-  };
+  // Memoize expensive calculations
+  const linkedInvestmentIds = useMemo(() => (
+    assets
+      .filter(a => a.category === 'investimento_longo_prazo' && investments.find(inv => inv.name === a.name))
+      .map(a => {
+        const inv = investments.find(inv => inv.name === a.name);
+        return inv ? inv.id : '';
+      })
+  ), [assets, investments]);
 
-  // Identificação de vínculos
-  const linkedInvestmentIds = assets
-    .filter(a => a.category === 'investimento_longo_prazo' && investments.find(inv => inv.name === a.name))
-    .map(a => {
-      const inv = investments.find(inv => inv.name === a.name);
-      return inv ? inv.id : '';
-    });
+  const linkedBankAccountIds = useMemo(() => (
+    assets
+      .filter(a => a.category === 'conta_corrente' && bankAccounts.find(acc => a.name.includes(acc.name)))
+      .map(a => {
+        const acc = bankAccounts.find(acc => a.name.includes(acc.name));
+        return acc ? acc.id : '';
+      })
+  ), [assets, bankAccounts]);
 
-  const linkedBankAccountIds = assets
-    .filter(a => a.category === 'conta_corrente' && bankAccounts.find(acc => a.name.includes(acc.name)))
-    .map(a => {
-      const acc = bankAccounts.find(acc => a.name.includes(acc.name));
-      return acc ? acc.id : '';
-    });
+  const nonLinkedBankAccounts = useMemo(() =>
+    bankAccounts.filter(acc => !linkedBankAccountIds.includes(acc.id)),
+    [bankAccounts, linkedBankAccountIds]
+  );
 
-  const nonLinkedBankAccounts = bankAccounts.filter(acc => !linkedBankAccountIds.includes(acc.id));
-  const nonLinkedInvestments = investments.filter(inv => !linkedInvestmentIds.includes(inv.id));
+  const nonLinkedInvestments = useMemo(() =>
+    investments.filter(inv => !linkedInvestmentIds.includes(inv.id)),
+    [investments, linkedInvestmentIds]
+  );
 
-  // Agrupar conforme grupo patrimonial
-  const classifyAssetsLiabilities = () => {
-    const groups: Record<PatrimonyGroup, any[]> = {
+  // Agrupar conforme grupo patrimonial (memoizado)
+  const groups = useMemo(() => {
+    const result = {
       ativo_circulante: [],
       ativo_nao_circulante: [],
       passivo_circulante: [],
       passivo_nao_circulante: [],
     };
-
     assets.forEach(asset => {
       let group = patrimonyCategoryRules[asset.category as string];
       if (
@@ -136,30 +128,28 @@ const ImprovedPatrimonyManager = () => {
         group = 'ativo_circulante';
       }
       if (group === 'ativo_circulante' || group === 'ativo_nao_circulante') {
-        groups[group].push(asset);
+        result[group].push(asset);
       }
     });
-
     nonLinkedBankAccounts.forEach(acc => {
-      groups.ativo_circulante.push({
+      result.ativo_circulante.push({
         id: acc.id,
         name: acc.name + ' (' + acc.bank_name + ')',
         category: 'conta_corrente',
         current_value: acc.balance,
       });
     });
-
     nonLinkedInvestments.forEach(inv => {
       const isEmergencyReserve = (inv as any).category === 'reserva_emergencia';
       if (isEmergencyReserve) {
-        groups.ativo_circulante.push({
+        result.ativo_circulante.push({
           id: inv.id,
           name: inv.name,
           category: 'reserva_emergencia',
           current_value: inv.current_value,
         });
       } else {
-        groups.ativo_nao_circulante.push({
+        result.ativo_nao_circulante.push({
           id: inv.id,
           name: inv.name,
           category: 'investimento_longo_prazo',
@@ -167,27 +157,33 @@ const ImprovedPatrimonyManager = () => {
         });
       }
     });
-
     liabilities.forEach(liab => {
       const group = patrimonyCategoryRules[liab.category as string];
       if (group === 'passivo_circulante' || group === 'passivo_nao_circulante')
-        groups[group].push(liab);
+        result[group].push(liab);
     });
-    return groups;
-  };
+    return result;
+  }, [assets, liabilities, investments, nonLinkedBankAccounts, nonLinkedInvestments]);
 
-  const groups = classifyAssetsLiabilities();
-
-  // Totais
-  const totals = {
+  // Totais patrimoniais memoizados
+  const totals = useMemo(() => ({
     ativo_circulante: groups.ativo_circulante.reduce((sum, a) => sum + (a.current_value || 0), 0),
     ativo_nao_circulante: groups.ativo_nao_circulante.reduce((sum, a) => sum + (a.current_value || 0), 0),
     passivo_circulante: groups.passivo_circulante.reduce((sum, l) => sum + (l.remaining_amount || 0), 0),
     passivo_nao_circulante: groups.passivo_nao_circulante.reduce((sum, l) => sum + (l.remaining_amount || 0), 0),
-  };
+  }), [groups]);
+
   const totalAtivos = totals.ativo_circulante + totals.ativo_nao_circulante;
   const totalPassivos = totals.passivo_circulante + totals.passivo_nao_circulante;
   const patrimonioLiquido = totalAtivos - totalPassivos;
+
+  // Memoize handler to avoid extra rerenders
+  const handleGroupSelect = useCallback((group) => {
+    setSelectedGroup(prev =>
+      prev === group ? null :
+      (["ativo_circulante", "ativo_nao_circulante", "passivo_circulante", "passivo_nao_circulante"].includes(group) ? group : null)
+    );
+  }, []);
 
   if (isLoading) return <div>Carregando...</div>;
 
@@ -218,7 +214,7 @@ const ImprovedPatrimonyManager = () => {
             linkedBankAccountId: "",
           })}
           onDelete={id => {
-            const item = groups[selectedGroup].find((x: any) => x.id === id);
+            const item = groups[selectedGroup].find((x) => x.id === id);
             if (item.current_value !== undefined) {
               deleteAsset(id);
             } else if (item.remaining_amount !== undefined) {

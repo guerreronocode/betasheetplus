@@ -26,4 +26,5 @@ const PatrimonyItemSection: React.FC<PatrimonyItemSectionProps> = ({
   );
 };
 
-export default PatrimonyItemSection;
+// React.memo para evitar rerenders se props não mudarem
+export default React.memo(PatrimonyItemSection);
