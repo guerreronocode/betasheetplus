@@ -45,7 +45,7 @@ const InvestmentPanelContainer = () => {
     const safeAmount = parseFloat(formData.amount);
     if (isNaN(safeAmount) || safeAmount <= 0) return;
 
-    // Monta o investimento apenas com campos esperados pelo Supabase
+    // Monta apenas os campos permitidos
     const investmentData: any = {
       name: formData.name,
       type: formData.type,
@@ -57,14 +57,18 @@ const InvestmentPanelContainer = () => {
       // current_value, last_yield_update e user_id são definidos no backend.
     };
 
-    // Se for uma conta válida, adiciona. Se for "none" ou vazio, ignora.
+    // Só inclui bank_account_id se for um valor válido
     if (
       formData.bank_account_id &&
       typeof formData.bank_account_id === "string" &&
-      formData.bank_account_id !== "none"
+      formData.bank_account_id !== "none" &&
+      formData.bank_account_id !== ""
     ) {
       investmentData.bank_account_id = formData.bank_account_id;
     }
+
+    // Limpando possíveis campos extras (Ex: yield_extra, yield_percent_index, reserva_emergencia, etc)
+    // Não devemos enviar nenhum campo que não exista na tabela!
 
     if (editingInvestment && (formData.id || editingInvestment.id)) {
       const _id = formData.id || editingInvestment.id;
