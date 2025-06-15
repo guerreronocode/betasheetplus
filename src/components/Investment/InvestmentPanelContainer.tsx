@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useFinancialData } from "@/hooks/useFinancialData";
 import { useToast } from "@/hooks/use-toast";
@@ -24,34 +23,44 @@ function calculateRetroactiveValue({
   purchase_date: string,
   yieldRates: any[]
 }) {
+  // Normaliza yield_type para minúsculo
+  const normalizedYieldType = yield_type?.toLowerCase() || "";
+
   // Para "stocks", retorna o próprio amount (patrimônio é atualizado externamente)
   if (
-    yield_type === "stocks" ||
-    yield_type === "funds" ||
-    yield_type === "real_estate"
+    normalizedYieldType === "stocks" ||
+    normalizedYieldType === "funds" ||
+    normalizedYieldType === "real_estate"
   ) return amount;
 
   // Busca a taxa base do índice (CDI, SELIC, IPCA) - usa yield_type removendo _plus se houver
-  let rateKey = yield_type.endsWith("_plus")
-    ? yield_type.replace("_plus", "")
-    : yield_type;
+  let rateKey = normalizedYieldType.endsWith("_plus")
+    ? normalizedYieldType.replace("_plus", "")
+    : normalizedYieldType;
 
-  // Busca taxa da base de índices
-  let indexRateObj = yieldRates.find((r) => r.rate_type === rateKey);
+  let indexRateObj = yieldRates.find((r) => r.rate_type.toLowerCase() === rateKey);
   let baseRate = indexRateObj?.rate_value ?? 0;
+
+  // Console log para debug
+  if (!indexRateObj) {
+    console.log(
+      `[Investment Calculation] Nenhuma taxa encontrada para o yield_type: ${rateKey}. yieldRates:`,
+      yieldRates.map((r: any) => r.rate_type)
+    );
+  }
 
   // Percentual do índice (ex: 99% do CDI)
   let indexPercent = Number(yield_percent_index) || 100;
   let rate = baseRate * (indexPercent / 100);
 
   // Adicional caso _plus (CDI+X...)
-  if (yield_type.endsWith("_plus")) {
+  if (normalizedYieldType.endsWith("_plus")) {
     let plus = Number(yield_extra) || 0;
     rate += plus;
   }
 
   // Para taxa fixa: usa própria yield_rate (exibe field para user)
-  if (yield_type === "fixed") {
+  if (normalizedYieldType === "fixed") {
     rate = Number(yield_rate) || 0;
   }
 
@@ -63,7 +72,11 @@ function calculateRetroactiveValue({
   // Compõe juros compostos (diário)
   if (rate > 0 && days > 0) {
     const dailyRate = rate / 100 / 365;
-    return Number(amount) * Math.pow(1 + dailyRate, days);
+    const total = Number(amount) * Math.pow(1 + dailyRate, days);
+    console.log(
+      `[Investment Calculation] amount=${amount} | rate=${rate} | days=${days} | total=${total}`
+    );
+    return total;
   }
   return Number(amount);
 }
@@ -113,7 +126,8 @@ const InvestmentPanelContainer = () => {
       name: formData.name,
       type: formData.type,
       amount: safeAmount,
-      yield_type: formData.yield_type,
+      // Normaliza yield_type para minúsculo sempre
+      yield_type: (formData.yield_type ?? "fixed").toLowerCase(),
       yield_rate: parseFloat(formData.yield_rate) || 0,
       purchase_date: formData.purchase_date,
       // current_value, last_yield_update e user_id são definidos no backend.
@@ -133,7 +147,7 @@ const InvestmentPanelContainer = () => {
     if (formData.purchase_date && formData.yield_type) {
       investmentData.current_value = calculateRetroactiveValue({
         amount: safeAmount,
-        yield_type: formData.yield_type,
+        yield_type: (formData.yield_type ?? "fixed").toLowerCase(),
         yield_rate: formData.yield_rate,
         yield_extra: formData.yield_extra,
         yield_percent_index: formData.yield_percent_index,
@@ -216,4 +230,3 @@ const InvestmentPanelContainer = () => {
   );
 };
 export default InvestmentPanelContainer;
-
