@@ -49,9 +49,7 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
     setFormError(null);
     setEntryType(type);
     if (type === "liability") {
-      // Limpa campos que só existem para ativo
       setForm({
-        ...form,
         entryType: "liability",
         linkType: "",
         linkedInvestmentId: "",
@@ -63,9 +61,7 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
         id: "",
       });
     } else {
-      // Limpa campos específicos de passivo
       setForm({
-        ...form,
         entryType: "asset",
         linkType: "manual",
         linkedInvestmentId: "",
@@ -197,6 +193,7 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
         isSaving={isAddingAsset || isAddingLiability}
         investments={investments}
         bankAccounts={bankAccounts}
+        onEntryTypeChange={handleTypeChange}
       />
     </div>
   );

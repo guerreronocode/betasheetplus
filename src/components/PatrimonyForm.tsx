@@ -13,6 +13,7 @@ interface PatrimonyFormProps {
   isSaving?: boolean;
   investments: any[];
   bankAccounts: any[];
+  onEntryTypeChange?: (type: "asset" | "liability") => void;
 }
 
 const PatrimonyForm: React.FC<PatrimonyFormProps> = ({
@@ -24,6 +25,7 @@ const PatrimonyForm: React.FC<PatrimonyFormProps> = ({
   isSaving,
   investments,
   bankAccounts,
+  onEntryTypeChange,
 }) => {
   const [localError, setLocalError] = React.useState<string | null>(null);
 
@@ -51,14 +53,26 @@ const PatrimonyForm: React.FC<PatrimonyFormProps> = ({
         <Button
           type="button"
           variant={entryType === "asset" ? "default" : "outline"}
-          onClick={() => onChange({ ...form, entryType: "asset" })}
+          onClick={() => {
+            if (onEntryTypeChange) {
+              onEntryTypeChange("asset");
+            } else {
+              onChange({ ...form, entryType: "asset" });
+            }
+          }}
         >
           Ativo
         </Button>
         <Button
           type="button"
           variant={entryType === "liability" ? "default" : "outline"}
-          onClick={() => onChange({ ...form, entryType: "liability" })}
+          onClick={() => {
+            if (onEntryTypeChange) {
+              onEntryTypeChange("liability");
+            } else {
+              onChange({ ...form, entryType: "liability" });
+            }
+          }}
         >
           Passivo
         </Button>
