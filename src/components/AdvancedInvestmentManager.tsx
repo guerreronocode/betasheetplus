@@ -42,6 +42,7 @@ const AdvancedInvestmentManager = () => {
     purchase_date: string,
     bank_account_id: string,
     category: string
+    // OBS: nunca incluir id aqui
   }>({
     name: '',
     type: 'stocks',
@@ -68,6 +69,7 @@ const AdvancedInvestmentManager = () => {
 
   // Função tratadora para envio do formulário
   const handleInvestmentFormSubmit = (formData: any) => {
+    console.log('handleInvestmentFormSubmit: formulário recebeu:', formData);
     if (!formData.name || !formData.amount) {
       console.log('Nome ou valor ausentes:', formData);
       return;
@@ -75,7 +77,12 @@ const AdvancedInvestmentManager = () => {
 
     // amount deve sempre ser number!
     const safeAmount = parseFloat(formData.amount);
+    if (isNaN(safeAmount) || safeAmount <= 0) {
+      console.error('Valor inválido para amount:', formData.amount);
+      return;
+    }
 
+    // Nunca envie id para add!
     const investmentData = {
       name: formData.name,
       type: formData.type,
@@ -96,7 +103,7 @@ const AdvancedInvestmentManager = () => {
         console.error('ID ausente para edição!', {formData, editingInvestment});
         return;
       }
-      console.log('Atualizando investimento id', _id, investmentData);
+      console.log('Atualizando investimento [id:', _id, '], dados:', investmentData);
       updateInvestment({ id: _id, ...investmentData });
       setEditingInvestment(null);
     } else {
@@ -125,7 +132,7 @@ const AdvancedInvestmentManager = () => {
     setNewInvestment({
       name: investment.name,
       type: investment.type,
-      amount: investment.amount.toString(),
+      amount: (investment.amount ?? '').toString(),
       yield_type: investment.yield_type,
       yield_rate: investment.yield_rate?.toString() ?? "",
       yield_extra: investment.yield_extra || "",
@@ -201,7 +208,12 @@ const AdvancedInvestmentManager = () => {
           <InvestmentForm
             isAdding={isAddingInvestment}
             isEditing={!!editingInvestment}
-            initialValues={editingInvestment ? { ...newInvestment, id: editingInvestment.id } : newInvestment}
+            // Passe id apenas nos initialValues se for edição!
+            initialValues={
+              editingInvestment 
+                ? { ...newInvestment, id: editingInvestment.id } 
+                : newInvestment
+            }
             bankAccounts={bankAccounts}
             yieldRates={yieldRates}
             onSubmit={handleInvestmentFormSubmit}
