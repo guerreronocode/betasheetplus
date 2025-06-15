@@ -31,15 +31,28 @@ const AdvancedInvestmentManager = () => {
   const { toast } = useToast();
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingInvestment, setEditingInvestment] = useState<any>(null);
-  const [newInvestment, setNewInvestment] = useState({
+  const [newInvestment, setNewInvestment] = useState<{
+    name: string,
+    type: string,
+    amount: string,
+    yield_type: 'fixed' | 'cdi' | 'selic' | 'ipca',
+    yield_rate: string,
+    yield_extra?: string,
+    yield_percent_index?: string,
+    purchase_date: string,
+    bank_account_id: string,
+    category: string
+  }>({
     name: '',
     type: 'stocks',
     amount: '',
-    yield_type: 'fixed' as 'fixed' | 'cdi' | 'selic' | 'ipca',
+    yield_type: 'fixed',
     yield_rate: '',
+    yield_extra: '',
+    yield_percent_index: '',
     purchase_date: new Date().toISOString().split('T')[0],
     bank_account_id: 'none',
-    category: 'other', // valor default é 'other', não vazio!
+    category: 'other',
   });
 
   const formatCurrency = (value: number) => {
