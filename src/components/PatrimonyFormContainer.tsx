@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import PatrimonyForm from "./PatrimonyForm";
 import { useFinancialData } from "@/hooks/useFinancialData";
@@ -45,42 +44,77 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
 }) => {
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Novo submit totalmente revisado e simplificado
+  // Handler para alternar tipo de entrada corretamente
+  const handleTypeChange = (type: "asset" | "liability") => {
+    setFormError(null);
+    setEntryType(type);
+    if (type === "liability") {
+      // Limpa campos que só existem para ativo
+      setForm({
+        ...form,
+        entryType: "liability",
+        linkType: "",
+        linkedInvestmentId: "",
+        linkedBankAccountId: "",
+        value: "",
+        name: "",
+        category: "",
+        isEdit: false,
+        id: "",
+      });
+    } else {
+      // Limpa campos específicos de passivo
+      setForm({
+        ...form,
+        entryType: "asset",
+        linkType: "manual",
+        linkedInvestmentId: "",
+        linkedBankAccountId: "",
+        value: "",
+        name: "",
+        category: "",
+        isEdit: false,
+        id: "",
+      });
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setFormError(null);
 
     if (entryType === "liability") {
-      // Validação básica
-      if (!form.name || !form.value || !form.category) {
+      // Lógica para formulário de passivo
+      const { name, value, category, isEdit, id } = form;
+      const valueNum = Number(String(value).replace(",", "."));
+
+      if (!name || !value || !category) {
         setFormError("Preencha todos os campos obrigatórios.");
         return;
       }
-      // Sempre usar form.value para ambos
-      const valueNum = Number(String(form.value).replace(",", "."));
       if (isNaN(valueNum) || valueNum < 0) {
         setFormError("Informe um valor positivo.");
         return;
       }
-      const categoryRule = patrimonyCategoryRules[form.category];
-      if (!categoryRule || !form.category) {
+      const categoryRule = patrimonyCategoryRules[category];
+      if (!categoryRule) {
         setFormError("Categoria inválida.");
         return;
       }
 
-      // Criação ou edição de passivo
-      if (form.isEdit && form.id) {
+      // Se edição de passivo
+      if (isEdit && id) {
         updateLiability({
-          id: form.id,
-          name: form.name,
-          category: form.category,
+          id,
+          name,
+          category,
           total_amount: valueNum,
           remaining_amount: valueNum,
         });
       } else {
         addLiability({
-          name: form.name,
-          category: form.category,
+          name,
+          category,
           total_amount: valueNum,
           remaining_amount: valueNum,
           interest_rate: 0,
@@ -163,6 +197,8 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
         isSaving={isAddingAsset || isAddingLiability}
         investments={investments}
         bankAccounts={bankAccounts}
+        /** Força alternância correta ao clicar nos botões */
+        onEntryTypeChange={handleTypeChange}
       />
     </div>
   );
