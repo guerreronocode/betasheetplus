@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { usePatrimony } from '@/hooks/usePatrimony';
 import { useFinancialData } from '@/hooks/useFinancialData';
+import PatrimonyForm from "./PatrimonyForm";
+import PatrimonyItemList from "./PatrimonyItemList";
 
 const assetCategoryOptions = [
   { value: 'conta_corrente', label: 'Conta corrente' },
@@ -320,239 +322,48 @@ const ImprovedPatrimonyManager = () => {
       {/* Patrimônio Líquido */}
       <div className="mb-6">
         <span className="text-blue-700 font-semibold">Patrimônio Líquido: </span>
-        <span className="text-2xl font-bold">
-          {formatCurrency(patrimonioLiquido)}
-        </span>
+        <span className="text-2xl font-bold">{formatCurrency(patrimonioLiquido)}</span>
       </div>
       {/* Itens do grupo selecionado */}
       {selectedGroup && (
         <div className="mb-6">
           <div className="font-semibold mb-1">{patrimonyGroupLabels[selectedGroup]}</div>
-          <div className="space-y-2">
-            {groups[selectedGroup].length === 0 && <span className="text-gray-400">Nenhum item cadastrado.</span>}
-            {groups[selectedGroup].map(item => (
-              <div key={item.id} className="flex items-center justify-between px-3 py-2 bg-white border rounded">
-                <div>
-                  <span className="font-medium">{item.name}</span>
-                  <span className="text-xs text-gray-500 ml-2">
-                    Categoria: {(assetCategoryOptions.concat(liabilityCategoryOptions).find(opt => opt.value === item.category)?.label) || item.category}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">{formatCurrency(item.current_value ?? item.remaining_amount ?? 0)}</span>
-                  {item.current_value !== undefined && (
-                    <Button size="icon" variant="outline" onClick={() => setForm({
-                      name: item.name,
-                      value: String(item.current_value ?? ''),
-                      category: item.category,
-                      id: item.id,
-                      isEdit: true,
-                      linkType: 'manual',
-                      linkedInvestmentId: '',
-                      linkedBankAccountId: '',
-                    })}>
-                      <Edit className="w-4 h-4" />
-                    </Button>
-                  )}
-                  {item.current_value !== undefined && (
-                    <Button size="icon" variant="outline" onClick={() => deleteAsset(item.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                  {item.remaining_amount !== undefined && (
-                    <Button size="icon" variant="outline" onClick={() => deleteLiability(item.id)}>
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          <PatrimonyItemList
+            items={groups[selectedGroup]}
+            onEdit={item => setForm({
+              name: item.name,
+              value: String(item.current_value ?? ""),
+              category: item.category,
+              id: item.id,
+              isEdit: true,
+              linkType: "manual",
+              linkedInvestmentId: "",
+              linkedBankAccountId: "",
+            })}
+            onDelete={id => {
+              const item = groups[selectedGroup].find((x: any) => x.id === id);
+              if (item.current_value !== undefined) {
+                deleteAsset(id);
+              } else if (item.remaining_amount !== undefined) {
+                deleteLiability(id);
+              }
+            }}
+          />
         </div>
       )}
 
       {/* Formulário de Cadastro/Edição */}
       <div className="max-w-xl">
-        <form onSubmit={handleSubmit} className="space-y-2 border rounded p-4 mt-2 bg-gray-50">
-          <div className="flex gap-2 mb-3">
-            <Button
-              type="button"
-              variant={entryType === 'asset' ? "default" : "outline"}
-              onClick={() => setEntryType('asset')}
-            >
-              Ativo
-            </Button>
-            <Button
-              type="button"
-              variant={entryType === 'liability' ? "default" : "outline"}
-              onClick={() => setEntryType('liability')}
-            >
-              Passivo
-            </Button>
-            {form.isEdit && (
-              <Button
-                type="button"
-                variant="secondary"
-                className="ml-2"
-                onClick={() => { resetForm() }}
-              >
-                Cancelar edição
-              </Button>
-            )}
-          </div>
-          {entryType === 'asset' && (
-            // ESCOLHA DO TIPO DE ENTRADA DO ATIVO
-            <div>
-              <Label>Tipo de vínculo</Label>
-              <Select
-                value={form.linkType}
-                onValueChange={linkType =>
-                  setForm(f => ({
-                    ...f,
-                    linkType,
-                    // Resetar outros campos quando trocar o modo
-                    linkedInvestmentId: '',
-                    linkedBankAccountId: '',
-                    name: '',
-                    value: '',
-                    category: '',
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo de ativo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="manual">Informar valor manualmente</SelectItem>
-                  <SelectItem value="investment">Adicionar investimento já registrado</SelectItem>
-                  <SelectItem value="bank">Adicionar conta bancária já cadastrada</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          {/* FORMULÁRIO DINÂMICO */}
-          {entryType === 'asset' && (form.linkType === 'manual' || form.linkType === '') && (
-            <>
-              <div>
-                <Label>Nome</Label>
-                <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
-              </div>
-              <div>
-                <Label>Valor</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={form.value}
-                  onChange={e => setForm(f => ({ ...f, value: e.target.value }))}
-                  required
-                />
-              </div>
-              <div>
-                <Label>Categoria</Label>
-                <Select value={form.category} onValueChange={cat => setForm(f => ({ ...f, category: cat }))} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Escolha uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {assetCategoryOptions
-                      .filter(opt => typeof opt.value === 'string' && opt.value.trim().length > 0)
-                      .map(opt => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
-          )}
-          {entryType === 'asset' && form.linkType === 'investment' && (
-            <div>
-              <Label>Selecionar investimento</Label>
-              <Select
-                value={form.linkedInvestmentId}
-                onValueChange={id => setForm(f => ({ ...f, linkedInvestmentId: id }))}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Escolha um investimento" />
-                </SelectTrigger>
-                <SelectContent>
-                  {investments
-                    .filter(inv => typeof inv.id === 'string' && inv.id.trim().length > 0)
-                    .map(inv => (
-                      <SelectItem key={inv.id} value={inv.id}>
-                        {inv.name} ({formatCurrency(inv.current_value)})
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-          {entryType === 'asset' && form.linkType === 'bank' && (
-            <div>
-              <Label>Selecionar conta bancária</Label>
-              <Select
-                value={form.linkedBankAccountId}
-                onValueChange={id => setForm(f => ({ ...f, linkedBankAccountId: id }))}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Escolha uma conta" />
-                </SelectTrigger>
-                <SelectContent>
-                  {bankAccounts
-                    .filter(acc => typeof acc.id === 'string' && acc.id.trim().length > 0)
-                    .map(acc => (
-                      <SelectItem key={acc.id} value={acc.id}>
-                        {acc.name} - {acc.bank_name} ({formatCurrency(acc.balance)})
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Passivo: igual ao padrão */}
-          {entryType === 'liability' && (
-            <>
-              <div>
-                <Label>Nome</Label>
-                <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
-              </div>
-              <div>
-                <Label>Valor</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={form.value}
-                  onChange={e => setForm(f => ({ ...f, value: e.target.value }))}
-                  required
-                />
-              </div>
-              <div>
-                <Label>Categoria</Label>
-                <Select value={form.category} onValueChange={cat => setForm(f => ({ ...f, category: cat }))} required>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Escolha uma categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {liabilityCategoryOptions
-                      .filter(opt => typeof opt.value === 'string' && opt.value.trim().length > 0)
-                      .map(opt => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
-          )}
-          <Button type="submit" className="w-full" disabled={isAddingAsset || isAddingLiability}>
-            {form.isEdit ? "Salvar alterações" : "Adicionar"}
-          </Button>
-        </form>
+        <PatrimonyForm
+          form={form}
+          entryType={entryType}
+          onChange={setForm}
+          onSubmit={handleSubmit}
+          onCancelEdit={resetForm}
+          isSaving={isAddingAsset || isAddingLiability}
+          investments={investments}
+          bankAccounts={bankAccounts}
+        />
       </div>
     </Card>
   );
