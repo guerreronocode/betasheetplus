@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { TrendingUp, TrendingDown, Plus, Edit2, Trash2, BarChart3, Building2, CreditCard } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -92,6 +91,43 @@ const PatrimonyManager = () => {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
+  };
+
+  // Adiciona handlers de editar/excluir:
+  const handleEditAsset = (asset: any) => {
+    setIsAddingNewAsset(true);
+    setEditingAsset(asset);
+    setNewAsset({
+      name: asset.name,
+      category: asset.category,
+      current_value: asset.current_value.toString(),
+      purchase_date: asset.purchase_date,
+      purchase_value: asset.purchase_value ? asset.purchase_value.toString() : "",
+      description: asset.description || "",
+    });
+  };
+
+  const handleEditLiability = (liability: any) => {
+    setIsAddingNewLiability(true);
+    setEditingLiability(liability);
+    setNewLiability({
+      name: liability.name,
+      category: liability.category,
+      total_amount: liability.total_amount.toString(),
+      remaining_amount: liability.remaining_amount.toString(),
+      interest_rate: liability.interest_rate ? liability.interest_rate.toString() : "",
+      monthly_payment: liability.monthly_payment ? liability.monthly_payment.toString() : "",
+      due_date: liability.due_date || "",
+      description: liability.description || "",
+    });
+  };
+
+  const handleDeleteAsset = (asset: any) => {
+    deleteAsset(asset.id);
+  };
+
+  const handleDeleteLiability = (liability: any) => {
+    deleteLiability(liability.id);
   };
 
   // Calcular valores por categoria
@@ -461,10 +497,10 @@ const PatrimonyManager = () => {
                         <p className="text-lg font-semibold text-green-600">{formatCurrency(asset.current_value)}</p>
                       </div>
                       <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => handleEditAsset(asset)}>
                           <Edit2 className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="outline" className="text-red-600">
+                        <Button size="sm" variant="outline" className="text-red-600" onClick={() => handleDeleteAsset(asset)}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -602,10 +638,10 @@ const PatrimonyManager = () => {
                         </p>
                       </div>
                       <div className="flex space-x-2">
-                        <Button size="sm" variant="outline">
+                        <Button size="sm" variant="outline" onClick={() => handleEditLiability(liability)}>
                           <Edit2 className="w-4 h-4" />
                         </Button>
-                        <Button size="sm" variant="outline" className="text-red-600">
+                        <Button size="sm" variant="outline" className="text-red-600" onClick={() => handleDeleteLiability(liability)}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
