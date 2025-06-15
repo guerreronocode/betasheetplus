@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus, DollarSign, Tag, Calendar, Building, Utensils, Car, ShoppingBag, Dog, Film, Book, Smartphone, Shirt, HeartPulse } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -10,6 +11,20 @@ import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCustomCategories } from "@/hooks/useCustomCategories";
 import { useTransactionForm } from "@/hooks/useTransactionForm";
 import TransactionFormFields from "./TransactionFormFields";
+
+const expenseCategoriesBase = [
+  'Alimentação',
+  'Farmácia',
+  'Educação',
+  'Comer fora',
+  'Roupas',
+  'Pet',
+  'Lazer',
+  'Assinaturas e apps',
+  'Transporte por app',
+  'Compras',
+  'Outros'
+];
 
 const expenseCategoriesGroupedPredef = [
   {
@@ -72,7 +87,8 @@ const AddTransactionForm = () => {
   const { addIncome, addExpense, isAddingIncome, isAddingExpense, bankAccounts } = useFinancialData();
 
   const incomeCategoriesCfg = useCustomCategories("custom-categories-receita", baseIncomeCategories);
-  const expenseCategoriesCfg = useCustomCategories("custom-categories-despesa");
+  // Corrigido: passar as categorias base de despesas
+  const expenseCategoriesCfg = useCustomCategories("custom-categories-despesa", expenseCategoriesBase);
 
   const initialIncomeForm = {
     description: '',
@@ -180,3 +196,4 @@ const AddTransactionForm = () => {
 }
 
 export default AddTransactionForm;
+
