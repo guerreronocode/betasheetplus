@@ -7,7 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFinancialData } from '@/hooks/useFinancialData';
-import CustomCategoryInput from './CustomCategoryInput';
+import { useCustomCategories } from "@/hooks/useCustomCategories";
+import { useTransactionForm } from "@/hooks/useTransactionForm";
+import TransactionFormFields from "./TransactionFormFields";
 
 const expenseCategoriesGroupedPredef = [
   {
@@ -69,114 +71,55 @@ function sanitizeCategory(str: string): string {
 const AddTransactionForm = () => {
   const { addIncome, addExpense, isAddingIncome, isAddingExpense, bankAccounts } = useFinancialData();
 
-  // Carregar categorias customizadas do localStorage
-  const [incomeCategories, setIncomeCategories] = useState<string[]>([
-    ...baseIncomeCategories,
-    ...getStoredCustom("custom-categories-receita"),
-  ]);
-  const [expenseCustomCategories, setExpenseCustomCategories] = useState<string[]>(
-    getStoredCustom("custom-categories-despesa")
-  );
+  const incomeCategoriesCfg = useCustomCategories("custom-categories-receita", baseIncomeCategories);
+  const expenseCategoriesCfg = useCustomCategories("custom-categories-despesa");
 
-  useEffect(() => {
-    window.localStorage.setItem("custom-categories-receita", JSON.stringify(incomeCategories.filter(c => !baseIncomeCategories.includes(c))));
-  }, [incomeCategories]);
-
-  useEffect(() => {
-    window.localStorage.setItem("custom-categories-despesa", JSON.stringify(expenseCustomCategories));
-  }, [expenseCustomCategories]);
-
-  const [incomeForm, setIncomeForm] = useState({
+  const initialIncomeForm = {
     description: '',
     amount: '',
     category: '',
     date: new Date().toISOString().split('T')[0],
     bank_account_id: 'none'
-  });
-
-  const [expenseForm, setExpenseForm] = useState({
+  }
+  const initialExpenseForm = {
     description: '',
     amount: '',
     category: '',
     date: new Date().toISOString().split('T')[0],
     bank_account_id: 'none'
-  });
+  }
 
-  // Estado para travar submission enquanto processa
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  // Timestamp para debounce
-  const [lastSubmit, setLastSubmit] = useState(0);
-
-  const handleAddCustomIncomeCategory = (cat: string) => {
-    const sanitized = sanitizeCategory(cat);
-    if (!sanitized) return;
-    setIncomeCategories((prev) =>
-      prev.includes(sanitized) ? prev : [...prev, sanitized]
-    );
-  };
-  const handleAddCustomExpenseCategory = (cat: string) => {
-    const sanitized = sanitizeCategory(cat);
-    if (!sanitized) return;
-    setExpenseCustomCategories((prev) =>
-      prev.includes(sanitized) ? prev : [...prev, sanitized]
-    );
-  };
-
-  const handleIncomeSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) return;
-    const now = Date.now();
-    if (now - lastSubmit < 800) return; // debounce de 800ms
-    setLastSubmit(now);
-    setIsSubmitting(true);
-    if (!incomeForm.description || !incomeForm.amount || !incomeForm.category) {
-      setIsSubmitting(false);
-      return;
-    }
+  const {
+    form: incomeForm,
+    handleChange: handleIncomeChange,
+    handleSubmit: handleIncomeSubmit,
+    isSubmitting: isIncomeSubmitting
+  } = useTransactionForm(initialIncomeForm, async (values) => {
+    if (!values.description || !values.amount || !values.category) return;
     await addIncome({
-      description: incomeForm.description,
-      amount: parseFloat(incomeForm.amount),
-      category: incomeForm.category,
-      date: incomeForm.date,
-      bank_account_id: incomeForm.bank_account_id === 'none' ? undefined : incomeForm.bank_account_id
+      description: values.description,
+      amount: parseFloat(values.amount),
+      category: values.category,
+      date: values.date,
+      bank_account_id: values.bank_account_id === 'none' ? undefined : values.bank_account_id
     });
-    setIncomeForm({
-      description: '',
-      amount: '',
-      category: '',
-      date: new Date().toISOString().split('T')[0],
-      bank_account_id: 'none'
-    });
-    setIsSubmitting(false);
-  };
+  });
 
-  const handleExpenseSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (isSubmitting) return;
-    const now = Date.now();
-    if (now - lastSubmit < 800) return;
-    setLastSubmit(now);
-    setIsSubmitting(true);
-    if (!expenseForm.description || !expenseForm.amount || !expenseForm.category) {
-      setIsSubmitting(false);
-      return;
-    }
+  const {
+    form: expenseForm,
+    handleChange: handleExpenseChange,
+    handleSubmit: handleExpenseSubmit,
+    isSubmitting: isExpenseSubmitting
+  } = useTransactionForm(initialExpenseForm, async (values) => {
+    if (!values.description || !values.amount || !values.category) return;
     await addExpense({
-      description: expenseForm.description,
-      amount: parseFloat(expenseForm.amount),
-      category: expenseForm.category,
-      date: expenseForm.date,
-      bank_account_id: expenseForm.bank_account_id === 'none' ? undefined : expenseForm.bank_account_id
+      description: values.description,
+      amount: parseFloat(values.amount),
+      category: values.category,
+      date: values.date,
+      bank_account_id: values.bank_account_id === 'none' ? undefined : values.bank_account_id
     });
-    setExpenseForm({
-      description: '',
-      amount: '',
-      category: '',
-      date: new Date().toISOString().split('T')[0],
-      bank_account_id: 'none'
-    });
-    setIsSubmitting(false);
-  };
+  });
 
   return (
     <Card className="p-6">
@@ -195,231 +138,45 @@ const AddTransactionForm = () => {
           <TabsTrigger value="income" className="text-green-600">Receita</TabsTrigger>
           <TabsTrigger value="expense" className="text-red-600">Despesa</TabsTrigger>
         </TabsList>
-        
         <TabsContent value="income">
           <form onSubmit={handleIncomeSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="income-description">Descrição</Label>
-              <Input
-                id="income-description"
-                value={incomeForm.description}
-                onChange={(e) => setIncomeForm(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Ex: Salário de janeiro"
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="income-amount">Valor</Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="income-amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={incomeForm.amount}
-                  onChange={(e) => setIncomeForm(prev => ({ ...prev, amount: e.target.value }))}
-                  placeholder="0.00"
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="income-category">Categoria</Label>
-              <Select
-                value={incomeForm.category}
-                onValueChange={(value) => setIncomeForm(prev => ({ ...prev, category: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {incomeCategories.map((category) => (
-                    <SelectItem key={category} value={category}>{category}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <CustomCategoryInput
-                value={incomeForm.category}
-                setValue={cat => setIncomeForm(prev => ({ ...prev, category: sanitizeCategory(cat) }))}
-                categories={incomeCategories}
-                setCategories={cats => setIncomeCategories(cats.map(sanitizeCategory))}
-                placeholder="Nova categoria de Receita"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="income-bank-account">Conta Bancária</Label>
-              <Select
-                value={incomeForm.bank_account_id}
-                onValueChange={(value) => setIncomeForm(prev => ({ ...prev, bank_account_id: value }))}
-              >
-                <SelectTrigger>
-                  <Building className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Selecione uma conta (opcional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhuma conta específica</SelectItem>
-                  {bankAccounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      <div className="flex items-center space-x-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: account.color }}
-                        />
-                        <span>{account.name} - {account.bank_name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="income-date">Data</Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="income-date"
-                  type="date"
-                  value={incomeForm.date}
-                  onChange={(e) => setIncomeForm(prev => ({ ...prev, date: e.target.value }))}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
-            
-            <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={isAddingIncome || isSubmitting}>
-              {(isAddingIncome || isSubmitting) ? "Adicionando..." : "Adicionar Receita"}
+            <TransactionFormFields
+              type="income"
+              form={incomeForm}
+              handleChange={handleIncomeChange}
+              categoryConfig={incomeCategoriesCfg}
+              bankAccounts={bankAccounts}
+            />
+            <Button
+              type="submit"
+              className="w-full bg-green-600 hover:bg-green-700"
+              disabled={isAddingIncome || isIncomeSubmitting}
+            >
+              {(isAddingIncome || isIncomeSubmitting) ? "Adicionando..." : "Adicionar Receita"}
             </Button>
           </form>
         </TabsContent>
-        
         <TabsContent value="expense">
           <form onSubmit={handleExpenseSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="expense-description">Descrição</Label>
-              <Input
-                id="expense-description"
-                value={expenseForm.description}
-                onChange={(e) => setExpenseForm(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Ex: Compras no supermercado"
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="expense-amount">Valor</Label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="expense-amount"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={expenseForm.amount}
-                  onChange={(e) => setExpenseForm(prev => ({ ...prev, amount: e.target.value }))}
-                  placeholder="0.00"
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="expense-category">Categoria</Label>
-              <Select
-                value={expenseForm.category}
-                onValueChange={(value) => setExpenseForm(prev => ({ ...prev, category: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {expenseCategoriesGroupedPredef.map(group => (
-                    <React.Fragment key={group.title}>
-                      <div className="text-xs font-semibold px-2 py-1 text-gray-400">{group.title}</div>
-                      {group.items.map(category => (
-                        <SelectItem key={category.value} value={category.value}>
-                          {category.icon}{category.label}
-                        </SelectItem>
-                      ))}
-                    </React.Fragment>
-                  ))}
-                  {/* Opções customizadas */}
-                  {expenseCustomCategories.length > 0 && (
-                    <>
-                      <div className="text-xs font-semibold px-2 py-1 text-gray-400 mt-2">Personalizadas</div>
-                      {expenseCustomCategories.map(cat => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
-              <CustomCategoryInput
-                value={expenseForm.category}
-                setValue={cat => setExpenseForm(prev => ({ ...prev, category: sanitizeCategory(cat) }))}
-                categories={expenseCustomCategories}
-                setCategories={cats => setExpenseCustomCategories(cats.map(sanitizeCategory))}
-                placeholder="Nova categoria de Despesa"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="expense-bank-account">Conta Bancária</Label>
-              <Select
-                value={expenseForm.bank_account_id}
-                onValueChange={(value) => setExpenseForm(prev => ({ ...prev, bank_account_id: value }))}
-              >
-                <SelectTrigger>
-                  <Building className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Selecione uma conta (opcional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Nenhuma conta específica</SelectItem>
-                  {bankAccounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      <div className="flex items-center space-x-2">
-                        <div 
-                          className="w-3 h-3 rounded-full" 
-                          style={{ backgroundColor: account.color }}
-                        />
-                        <span>{account.name} - {account.bank_name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <Label htmlFor="expense-date">Data</Label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="expense-date"
-                  type="date"
-                  value={expenseForm.date}
-                  onChange={(e) => setExpenseForm(prev => ({ ...prev, date: e.target.value }))}
-                  className="pl-10"
-                  required
-                />
-              </div>
-            </div>
-            
-            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700" disabled={isAddingExpense || isSubmitting}>
-              {(isAddingExpense || isSubmitting) ? "Adicionando..." : "Adicionar Despesa"}
+            <TransactionFormFields
+              type="expense"
+              form={expenseForm}
+              handleChange={handleExpenseChange}
+              categoryConfig={expenseCategoriesCfg}
+              bankAccounts={bankAccounts}
+            />
+            <Button
+              type="submit"
+              className="w-full bg-red-600 hover:bg-red-700"
+              disabled={isAddingExpense || isExpenseSubmitting}
+            >
+              {(isAddingExpense || isExpenseSubmitting) ? "Adicionando..." : "Adicionar Despesa"}
             </Button>
           </form>
         </TabsContent>
       </Tabs>
     </Card>
-  );
-};
+  )
+}
 
 export default AddTransactionForm;
