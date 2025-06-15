@@ -1,40 +1,17 @@
 import React, { useState } from 'react';
-import { TrendingUp, TrendingDown, Plus, Edit, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { usePatrimony } from '@/hooks/usePatrimony';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import PatrimonyForm from "./PatrimonyForm";
 import PatrimonyItemList from "./PatrimonyItemList";
-
-const assetCategoryOptions = [
-  { value: 'conta_corrente', label: 'Conta corrente' },
-  { value: 'dinheiro', label: 'Dinheiro em espécie' },
-  { value: 'aplicacao_curto_prazo', label: 'Aplicação financeira (curto prazo)' },
-  { value: 'carteira_digital', label: 'Carteira digital' },
-  { value: 'poupanca', label: 'Poupança' },
-  { value: 'emprestimo_a_receber_curto', label: 'Empréstimo a receber (curto prazo)' },
-  { value: 'imovel', label: 'Imóvel' },
-  { value: 'carro', label: 'Carro' },
-  { value: 'moto', label: 'Moto' },
-  { value: 'computador', label: 'Computador' },
-  { value: 'investimento_longo_prazo', label: 'Investimento de longo prazo' },
-  { value: 'outro_duravel', label: 'Outro bem durável' },
-];
-
-const liabilityCategoryOptions = [
-  { value: 'cartao_credito', label: 'Cartão de crédito' },
-  { value: 'parcelamento', label: 'Parcelamento' },
-  { value: 'emprestimo_bancario_curto', label: 'Empréstimo bancário (curto prazo)' },
-  { value: 'conta_pagar', label: 'Conta a pagar' },
-  { value: 'financiamento_imovel', label: 'Financiamento de imóvel' },
-  { value: 'financiamento_carro', label: 'Financiamento de carro (>12 meses)' },
-  { value: 'emprestimo_pessoal_longo', label: 'Empréstimo pessoal (longo prazo)' },
-];
+import PatrimonySummary from "./PatrimonySummary";
+import PatrimonyNetWorthCard from "./PatrimonyNetWorthCard";
+import PatrimonyGroupSelector from "./PatrimonyGroupSelector";
+import {
+  assetCategoryOptions,
+  liabilityCategoryOptions,
+  patrimonyGroupLabels,
+} from "./patrimonyCategories";
 
 type PatrimonyGroup =
   | 'ativo_circulante'
@@ -68,13 +45,6 @@ const patrimonyCategoryRules: Record<string, PatrimonyGroup> = {
   emprestimo_pessoal_longo: 'passivo_nao_circulante',
   // Emergência:
   reserva_emergencia: 'ativo_circulante',
-};
-
-const patrimonyGroupLabels: Record<PatrimonyGroup, string> = {
-  ativo_circulante: 'Ativos Circulantes',
-  ativo_nao_circulante: 'Ativos Não Circulantes',
-  passivo_circulante: 'Passivos Circulantes',
-  passivo_nao_circulante: 'Passivos Não Circulantes',
 };
 
 const ImprovedPatrimonyManager = () => {
@@ -270,7 +240,6 @@ const ImprovedPatrimonyManager = () => {
       }
     });
 
-    // ... keep liabilities grouping and return ...
     liabilities.forEach(liab => {
       const group = patrimonyCategoryRules[liab.category as string];
       if (group === 'passivo_circulante' || group === 'passivo_nao_circulante')
@@ -297,37 +266,19 @@ const ImprovedPatrimonyManager = () => {
 
   if (isLoading) return <div>Carregando...</div>;
 
-  // Render
   return (
     <Card className="p-4">
       <h2 className="text-lg font-bold mb-3">Meu Patrimônio</h2>
-      {/* Resumo Visual */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-8">
-        {(['ativo_circulante', 'ativo_nao_circulante', 'passivo_circulante', 'passivo_nao_circulante'] as PatrimonyGroup[]).map((groupKey) => (
-          <button
-            key={groupKey}
-            className={`rounded shadow p-3 w-full hover:bg-gray-100 text-sm flex flex-col items-center border 
-              ${groupKey.includes('ativo') ? 'border-green-400 bg-green-50' : 'border-red-300 bg-red-50'}
-              ${selectedGroup === groupKey ? 'ring-2 ring-blue-500' : ''}`}
-            onClick={() => setSelectedGroup(selectedGroup === groupKey ? null : groupKey)}
-          >
-            <span className="font-semibold">{patrimonyGroupLabels[groupKey]}</span>
-            <span className="text-lg font-bold">
-              {formatCurrency(totals[groupKey])}
-            </span>
-            <span className="text-xs mt-1 text-gray-500">{groups[groupKey].length} itens</span>
-          </button>
-        ))}
-      </div>
-      {/* Patrimônio Líquido */}
-      <div className="mb-6">
-        <span className="text-blue-700 font-semibold">Patrimônio Líquido: </span>
-        <span className="text-2xl font-bold">{formatCurrency(patrimonioLiquido)}</span>
-      </div>
-      {/* Itens do grupo selecionado */}
+      <PatrimonySummary
+        groups={groups}
+        totals={totals}
+        selectedGroup={selectedGroup}
+        onGroupSelect={setSelectedGroup}
+      />
+      <PatrimonyNetWorthCard netWorth={patrimonioLiquido} />
       {selectedGroup && (
         <div className="mb-6">
-          <div className="font-semibold mb-1">{patrimonyGroupLabels[selectedGroup]}</div>
+          <PatrimonyGroupSelector selectedGroup={selectedGroup} />
           <PatrimonyItemList
             items={groups[selectedGroup]}
             onEdit={item => setForm({
@@ -351,8 +302,6 @@ const ImprovedPatrimonyManager = () => {
           />
         </div>
       )}
-
-      {/* Formulário de Cadastro/Edição */}
       <div className="max-w-xl">
         <PatrimonyForm
           form={form}

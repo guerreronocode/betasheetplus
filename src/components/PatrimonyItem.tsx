@@ -1,8 +1,7 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2 } from "lucide-react";
-import { assetCategoryOptions, liabilityCategoryOptions } from "./ImprovedPatrimonyManager";
+import { assetCategoryOptions, liabilityCategoryOptions, patrimonyGroupLabels } from "./patrimonyCategories";
 
 interface PatrimonyItemProps {
   item: any;

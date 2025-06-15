@@ -1,6 +1,5 @@
-
 import React from "react";
-import { assetCategoryOptions, liabilityCategoryOptions } from "./ImprovedPatrimonyManager";
+import { assetCategoryOptions, liabilityCategoryOptions } from "./patrimonyCategories";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
