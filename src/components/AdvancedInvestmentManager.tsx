@@ -82,8 +82,8 @@ const AdvancedInvestmentManager = () => {
       return;
     }
 
-    // Nunca envie id para add!
-    const investmentData = {
+    // Monta objeto sem campos nulos ou 'none'
+    const investmentData: any = {
       name: formData.name,
       type: formData.type,
       amount: safeAmount,
@@ -92,9 +92,21 @@ const AdvancedInvestmentManager = () => {
       yield_extra: formData.yield_extra || null,
       yield_percent_index: formData.yield_percent_index || null,
       purchase_date: formData.purchase_date,
-      bank_account_id: formData.bank_account_id === 'none' ? undefined : formData.bank_account_id,
       category: formData.category,
     };
+    // Somente inclui bank_account_id se não for "none"
+    if (
+      formData.bank_account_id &&
+      typeof formData.bank_account_id === "string" &&
+      formData.bank_account_id !== "none"
+    ) {
+      investmentData.bank_account_id = formData.bank_account_id;
+    }
+    console.log(
+      "Investment data to submit (tipo de bank_account_id):",
+      typeof investmentData.bank_account_id,
+      investmentData
+    );
 
     if (editingInvestment && (formData.id || editingInvestment.id)) {
       // EDIT - garantir id correto
