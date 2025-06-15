@@ -69,8 +69,6 @@ const AdvancedInvestmentManager = () => {
   // Função tratadora para envio do formulário
   const handleInvestmentFormSubmit = (formData: any) => {
     if (!formData.name || !formData.amount) return;
-
-    // Usar todos os campos processados vindos do formulário, sem sobrescrever
     const investmentData = {
       name: formData.name,
       type: formData.type,
