@@ -56,17 +56,19 @@ const AdvancedInvestmentManager = () => {
   // Função tratadora para envio do formulário
   const handleInvestmentFormSubmit = (formData: any) => {
     if (!formData.name || !formData.amount) return;
-    const categoryProcessed = (formData.category === "other" ? undefined : formData.category);
 
+    // Usar todos os campos processados vindos do formulário, sem sobrescrever
     const investmentData = {
       name: formData.name,
       type: formData.type,
       amount: parseFloat(formData.amount),
       yield_type: formData.yield_type,
       yield_rate: parseFloat(formData.yield_rate) || 0,
+      yield_extra: formData.yield_extra || null,
+      yield_percent_index: formData.yield_percent_index || null,
       purchase_date: formData.purchase_date,
       bank_account_id: formData.bank_account_id === 'none' ? undefined : formData.bank_account_id,
-      category: categoryProcessed,
+      category: formData.category, // já tratado no InvestmentForm
     };
 
     if (editingInvestment) {
@@ -81,6 +83,8 @@ const AdvancedInvestmentManager = () => {
       amount: '',
       yield_type: 'fixed',
       yield_rate: '',
+      yield_extra: '',
+      yield_percent_index: '',
       purchase_date: new Date().toISOString().split('T')[0],
       bank_account_id: 'none',
       category: 'other',
@@ -96,6 +100,8 @@ const AdvancedInvestmentManager = () => {
       amount: investment.amount.toString(),
       yield_type: investment.yield_type,
       yield_rate: investment.yield_rate.toString(),
+      yield_extra: investment.yield_extra || "",
+      yield_percent_index: investment.yield_percent_index || "",
       purchase_date: investment.purchase_date,
       bank_account_id: investment.bank_account_id || 'none',
       category: investment.category ? investment.category : 'other',
