@@ -75,16 +75,19 @@ export function usePatrimonyGroupsFull({
     });
     // investimentos não linkados
     nonLinkedInvestments.forEach(inv => {
-      // ** NOVA LOGICA DE CLASSIFICACAO AUTOMATICA **
-      const group = getPatrimonyGroupByCategory(undefined, inv);
+      // Garante que investment.liquidity caia como string vazia se undefined
+      const liquidity = inv.liquidity ?? "";
+      const maturity_date = inv.maturity_date ?? "";
+      //   Passa undefined explicitamente se liquidez não existe, para disparar classificação automática
+      const group = getPatrimonyGroupByCategory(undefined, { ...inv, liquidity, maturity_date });
       if (group === "ativo_circulante" || group === "ativo_nao_circulante") {
         result[group].push({
           id: inv.id,
           name: inv.name,
           category: inv.type,
           current_value: inv.current_value,
-          liquidity: inv.liquidity,
-          maturity_date: inv.maturity_date,
+          liquidity: liquidity,
+          maturity_date: maturity_date,
         });
       }
     });

@@ -1,4 +1,3 @@
-
 /**
  * Helpers para regras de classificação e agrupamento patrimonial
  */
@@ -38,10 +37,14 @@ export function classifyInvestmentGroup(
   investment: { liquidity?: string; maturity_date?: string; purchase_date?: string }
 ): PatrimonyGroup {
   const today = new Date();
-  if (investment.liquidity === "diaria") return "ativo_circulante";
-  if (investment.liquidity === "vencimento" && investment.maturity_date) {
+  // Adiciona log para debug
+  // Remapeia tipo para string padrão (pode chegar como undefined ou string vazia)
+  const liquidity = investment.liquidity ?? '';
+  const maturity_date = investment.maturity_date ?? '';
+  if (liquidity === "diaria") return "ativo_circulante";
+  if (liquidity === "vencimento" && maturity_date) {
     // Calcula diferença em meses
-    const maturity = new Date(investment.maturity_date);
+    const maturity = new Date(maturity_date);
     const diffMonths =
       (maturity.getFullYear() - today.getFullYear()) * 12 +
       (maturity.getMonth() - today.getMonth());
@@ -64,8 +67,8 @@ export function getPatrimonyGroupByCategory(
   item?: any,
   investments?: any[]
 ): PatrimonyGroup | undefined {
-  if (!category && item && item.liquidity) {
-    // Classificação automática para investimentos
+  if ((!category || category === '') && item && (item.liquidity !== undefined)) {
+    // Classificação automática para investimentos completamente sem categoria
     return classifyInvestmentGroup(item);
   }
 
@@ -81,4 +84,3 @@ export function getPatrimonyGroupByCategory(
 
   return patrimonyCategoryRules[category ?? ""];
 }
-
