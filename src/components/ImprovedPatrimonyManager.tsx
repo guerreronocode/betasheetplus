@@ -455,7 +455,7 @@ const ImprovedPatrimonyManager = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {assetCategoryOptions
-                      .filter(opt => typeof opt.value === 'string' && opt.value.trim() !== "" )
+                      .filter(opt => typeof opt.value === 'string' && opt.value.trim().length > 0)
                       .map(opt => (
                         <SelectItem key={opt.value} value={opt.value}>
                           {opt.label}
@@ -479,12 +479,12 @@ const ImprovedPatrimonyManager = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {investments
-                    .filter(inv => typeof inv.id === 'string' && inv.id.trim() !== "")
+                    .filter(inv => typeof inv.id === 'string' && inv.id.trim().length > 0)
                     .map(inv => (
                       <SelectItem key={inv.id} value={inv.id}>
                         {inv.name} ({formatCurrency(inv.current_value)})
                       </SelectItem>
-                  ))}
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -502,12 +502,12 @@ const ImprovedPatrimonyManager = () => {
                 </SelectTrigger>
                 <SelectContent>
                   {bankAccounts
-                    .filter(acc => typeof acc.id === 'string' && acc.id.trim() !== "")
+                    .filter(acc => typeof acc.id === 'string' && acc.id.trim().length > 0)
                     .map(acc => (
                       <SelectItem key={acc.id} value={acc.id}>
                         {acc.name} - {acc.bank_name} ({formatCurrency(acc.balance)})
                       </SelectItem>
-                  ))}
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -538,7 +538,7 @@ const ImprovedPatrimonyManager = () => {
                   </SelectTrigger>
                   <SelectContent>
                     {liabilityCategoryOptions
-                      .filter(opt => typeof opt.value === 'string' && opt.value.trim() !== "")
+                      .filter(opt => typeof opt.value === 'string' && opt.value.trim().length > 0)
                       .map(opt => (
                         <SelectItem key={opt.value} value={opt.value}>
                           {opt.label}
