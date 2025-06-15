@@ -103,10 +103,12 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
         });
       }
     } else {
+      // NOVO AJUSTE: garantir o uso correto do campo value como total_amount/remaining_amount para passivos
       if (!form.name || !form.value || !form.category) {
         setFormError("Preencha todos os campos obrigatórios.");
         return;
       }
+      // Garantir número válido
       const valueNum = parseFloat(String(form.value).replace(",", "."));
       if (isNaN(valueNum) || valueNum < 0) {
         setFormError("Informe um valor positivo.");
@@ -118,8 +120,15 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
         return;
       }
       if (form.isEdit && form.id) {
-        updateLiability({ id: form.id, name: form.name, category: form.category, remaining_amount: valueNum });
+        updateLiability({
+          id: form.id,
+          name: form.name,
+          category: form.category,
+          remaining_amount: valueNum,
+          total_amount: valueNum, // sempre atualizar ambos ao editar
+        });
       } else {
+        // OBRIGATÓRIO: preencher total_amount e remaining_amount
         addLiability({
           name: form.name,
           category: form.category,
@@ -150,3 +159,4 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
 };
 
 export default PatrimonyFormContainer;
+
