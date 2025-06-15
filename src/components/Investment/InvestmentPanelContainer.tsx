@@ -21,6 +21,8 @@ const InvestmentPanelContainer = () => {
   const { toast } = useToast();
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingInvestment, setEditingInvestment] = useState<any>(null);
+
+  // Add liquidity and maturity_date to the initial state type
   const [newInvestment, setNewInvestment] = useState({
     name: "",
     type: "stocks",
@@ -28,6 +30,8 @@ const InvestmentPanelContainer = () => {
     purchase_date: new Date().toISOString().split("T")[0],
     bank_account_id: "none",
     current_value: "",
+    liquidity: "",
+    maturity_date: "",
   });
 
   // Formatação auxiliar
@@ -95,6 +99,8 @@ const InvestmentPanelContainer = () => {
       purchase_date: investment.purchase_date,
       bank_account_id: investment.bank_account_id || 'none',
       current_value: investment.current_value?.toString() ?? investment.amount?.toString() ?? "",
+      liquidity: investment.liquidity ?? "",
+      maturity_date: investment.maturity_date ?? "",
     });
     setIsAddingNew(true);
   };
