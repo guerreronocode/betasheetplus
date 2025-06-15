@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 import { getPatrimonyGroupByCategory, PatrimonyGroup } from "@/utils/patrimonyHelpers";
 
@@ -14,38 +15,60 @@ interface UsePatrimonyGroupsFullArgs {
   bankAccounts: BankAccount[];
 }
 
+// Função utilitária para obter IDs de ativos vinculados
+function getLinkedItems<T>(
+  assets: Asset[],
+  externalItems: T[],
+  assetCategory: string,
+  matchFn: (asset: Asset, item: T) => boolean,
+  itemIdKey: keyof T
+) {
+  return assets
+    .filter(a => a.category === assetCategory && externalItems.find(item => matchFn(a, item)))
+    .map(a => {
+      const item = externalItems.find(item => matchFn(a, item));
+      return item ? String(item[itemIdKey]) : '';
+    });
+}
+
+// Filtra itens não vinculados por ID
+function getNonLinkedItems<T>(all: T[], linkedIds: string[], itemIdKey: keyof T) {
+  return all.filter(item => !linkedIds.includes(String(item[itemIdKey])));
+}
+
 export function usePatrimonyGroupsFull({
   assets,
   liabilities,
   investments,
   bankAccounts,
 }: UsePatrimonyGroupsFullArgs) {
-  // Linked investments and bank accounts IDs
   const linkedInvestmentIds = useMemo(() => (
-    assets
-      .filter(a => a.category === 'investimento_longo_prazo' && investments.find(inv => inv.name === a.name))
-      .map(a => {
-        const inv = investments.find(inv => inv.name === a.name);
-        return inv ? inv.id : '';
-      })
+    getLinkedItems(
+      assets,
+      investments,
+      'investimento_longo_prazo',
+      (asset, inv) => inv.name === asset.name,
+      'id'
+    )
   ), [assets, investments]);
 
   const linkedBankAccountIds = useMemo(() => (
-    assets
-      .filter(a => a.category === 'conta_corrente' && bankAccounts.find(acc => a.name.includes(acc.name)))
-      .map(a => {
-        const acc = bankAccounts.find(acc => a.name.includes(acc.name));
-        return acc ? acc.id : '';
-      })
+    getLinkedItems(
+      assets,
+      bankAccounts,
+      'conta_corrente',
+      (asset, acc) => asset.name.includes(acc.name),
+      'id'
+    )
   ), [assets, bankAccounts]);
 
-  const nonLinkedBankAccounts = useMemo(() =>
-    bankAccounts.filter(acc => !linkedBankAccountIds.includes(acc.id)),
+  const nonLinkedBankAccounts = useMemo(
+    () => getNonLinkedItems(bankAccounts, linkedBankAccountIds, 'id'),
     [bankAccounts, linkedBankAccountIds]
   );
 
-  const nonLinkedInvestments = useMemo(() =>
-    investments.filter(inv => !linkedInvestmentIds.includes(inv.id)),
+  const nonLinkedInvestments = useMemo(
+    () => getNonLinkedItems(investments, linkedInvestmentIds, 'id'),
     [investments, linkedInvestmentIds]
   );
 
@@ -68,17 +91,15 @@ export function usePatrimonyGroupsFull({
     nonLinkedBankAccounts.forEach(acc => {
       result.ativo_circulante.push({
         id: acc.id,
-        name: acc.name + " (" + acc.bank_name + ")",
+        name: `${acc.name} (${acc.bank_name})`,
         category: "conta_corrente",
         current_value: acc.balance,
       });
     });
     // investimentos não linkados
     nonLinkedInvestments.forEach(inv => {
-      // Garante que investment.liquidity caia como string vazia se undefined
       const liquidity = inv.liquidity ?? "";
       const maturity_date = inv.maturity_date ?? "";
-      //   Passa undefined explicitamente se liquidez não existe, para disparar classificação automática
       const group = getPatrimonyGroupByCategory(undefined, { ...inv, liquidity, maturity_date });
       if (group === "ativo_circulante" || group === "ativo_nao_circulante") {
         result[group].push({
@@ -86,8 +107,8 @@ export function usePatrimonyGroupsFull({
           name: inv.name,
           category: inv.type,
           current_value: inv.current_value,
-          liquidity: liquidity,
-          maturity_date: maturity_date,
+          liquidity,
+          maturity_date,
         });
       }
     });
@@ -118,3 +139,4 @@ export function usePatrimonyGroupsFull({
     nonLinkedInvestments,
   };
 }
+
