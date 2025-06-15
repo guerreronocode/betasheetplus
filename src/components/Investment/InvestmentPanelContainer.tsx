@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { useFinancialData } from "@/hooks/useFinancialData";
 import { useToast } from "@/hooks/use-toast";
 import InvestmentSummary from "./InvestmentSummary";
-import YieldRatesEvolutionPanel from "@/components/YieldRatesEvolutionPanel";
 import ManageInvestmentCard from "./ManageInvestmentCard";
 
 const InvestmentPanelContainer = () => {
@@ -32,7 +31,7 @@ const InvestmentPanelContainer = () => {
     current_value: "",
   });
 
-  // Formatações auxiliares
+  // Formatação auxiliar
   const formatCurrency = (value: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
@@ -46,16 +45,16 @@ const InvestmentPanelContainer = () => {
         : safeAmount;
     if (isNaN(safeAmount) || safeAmount <= 0) return;
 
-    // Monta apenas os campos básicos
+    // Só os campos essenciais
     const investmentData: any = {
       name: formData.name,
       type: formData.type,
       amount: safeAmount,
       purchase_date: formData.purchase_date,
       current_value: safeCurrentValue,
+      category: formData.category || "other",
     };
 
-    // Só inclui bank_account_id se for válido
     if (
       formData.bank_account_id &&
       typeof formData.bank_account_id === "string" &&
@@ -123,12 +122,11 @@ const InvestmentPanelContainer = () => {
         isAddingInvestment={isAddingInvestment}
         handleInvestmentFormSubmit={handleInvestmentFormSubmit}
         bankAccounts={bankAccounts}
-        yieldRates={[]} // NÃO USADO MAIS
+        yieldRates={[]} // Mantém vazio apenas por compatibilidade com a tipagem do componente.
         investments={investments}
         handleEdit={handleEdit}
         handleDelete={handleDelete}
       />
-      <YieldRatesEvolutionPanel />
     </div>
   );
 };
