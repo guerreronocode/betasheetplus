@@ -1,549 +1,317 @@
+
 import React, { useState } from 'react';
-import { TrendingUp, TrendingDown, Plus, Edit, Trash2, Building, Car, Diamond, Banknote, CreditCard, Home } from 'lucide-react';
+import { TrendingUp, TrendingDown, Plus, Edit, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { usePatrimony } from '@/hooks/usePatrimony';
 
-const assetCategories = [
-  { value: 'imoveis', label: 'Imóveis', icon: Home },
-  { value: 'veiculos', label: 'Veículos', icon: Car },
-  { value: 'joias', label: 'Joias e Metais Preciosos', icon: Diamond },
-  { value: 'investimentos', label: 'Investimentos', icon: TrendingUp },
-  { value: 'dinheiro', label: 'Dinheiro em Espécie', icon: Banknote },
-  { value: 'outros', label: 'Outros Bens', icon: Building }
+const assetCategoryOptions = [
+  { value: 'conta_corrente', label: 'Conta corrente' },
+  { value: 'dinheiro', label: 'Dinheiro em espécie' },
+  { value: 'aplicacao_curto_prazo', label: 'Aplicação financeira (curto prazo)' },
+  { value: 'carteira_digital', label: 'Carteira digital' },
+  { value: 'poupanca', label: 'Poupança' },
+  { value: 'emprestimo_a_receber_curto', label: 'Empréstimo a receber (curto prazo)' },
+  { value: 'imovel', label: 'Imóvel' },
+  { value: 'carro', label: 'Carro' },
+  { value: 'moto', label: 'Moto' },
+  { value: 'computador', label: 'Computador' },
+  { value: 'investimento_longo_prazo', label: 'Investimento de longo prazo' },
+  { value: 'outro_duravel', label: 'Outro bem durável' },
 ];
 
-const liabilityCategories = [
-  { value: 'financiamento_imovel', label: 'Financiamento Imobiliário', icon: Home },
-  { value: 'financiamento_veiculo', label: 'Financiamento de Veículo', icon: Car },
-  { value: 'cartao_credito', label: 'Cartão de Crédito', icon: CreditCard },
-  { value: 'emprestimo_pessoal', label: 'Empréstimo Pessoal', icon: Banknote },
-  { value: 'outros', label: 'Outras Dívidas', icon: Building }
+const liabilityCategoryOptions = [
+  { value: 'cartao_credito', label: 'Cartão de crédito' },
+  { value: 'parcelamento', label: 'Parcelamento' },
+  { value: 'emprestimo_bancario_curto', label: 'Empréstimo bancário (curto prazo)' },
+  { value: 'conta_pagar', label: 'Conta a pagar' },
+  { value: 'financiamento_imovel', label: 'Financiamento de imóvel' },
+  { value: 'financiamento_carro', label: 'Financiamento de carro (>12 meses)' },
+  { value: 'emprestimo_pessoal_longo', label: 'Empréstimo pessoal (longo prazo)' },
 ];
+
+type PatrimonyGroup =
+  | 'ativo_circulante'
+  | 'ativo_nao_circulante'
+  | 'passivo_circulante'
+  | 'passivo_nao_circulante';
+
+const patrimonyCategoryRules: Record<string, PatrimonyGroup> = {
+  // Ativos Circulantes
+  conta_corrente: 'ativo_circulante',
+  dinheiro: 'ativo_circulante',
+  aplicacao_curto_prazo: 'ativo_circulante',
+  carteira_digital: 'ativo_circulante',
+  poupanca: 'ativo_circulante',
+  emprestimo_a_receber_curto: 'ativo_circulante',
+  // Ativos Não Circulantes
+  imovel: 'ativo_nao_circulante',
+  carro: 'ativo_nao_circulante',
+  moto: 'ativo_nao_circulante',
+  computador: 'ativo_nao_circulante',
+  investimento_longo_prazo: 'ativo_nao_circulante',
+  outro_duravel: 'ativo_nao_circulante',
+  // Passivos Circulantes
+  cartao_credito: 'passivo_circulante',
+  parcelamento: 'passivo_circulante',
+  emprestimo_bancario_curto: 'passivo_circulante',
+  conta_pagar: 'passivo_circulante',
+  // Passivos Não Circulantes
+  financiamento_imovel: 'passivo_nao_circulante',
+  financiamento_carro: 'passivo_nao_circulante',
+  emprestimo_pessoal_longo: 'passivo_nao_circulante',
+};
+
+const patrimonyGroupLabels: Record<PatrimonyGroup, string> = {
+  ativo_circulante: 'Ativos Circulantes',
+  ativo_nao_circulante: 'Ativos Não Circulantes',
+  passivo_circulante: 'Passivos Circulantes',
+  passivo_nao_circulante: 'Passivos Não Circulantes',
+};
 
 const ImprovedPatrimonyManager = () => {
-  const { 
-    assets, 
-    liabilities, 
-    isLoading, 
-    addAsset, 
-    updateAsset, 
+  const {
+    assets,
+    liabilities,
+    addAsset,
+    addLiability,
+    updateAsset,
+    updateLiability,
     deleteAsset,
-    addLiability, 
-    updateLiability, 
     deleteLiability,
-    totalAssets, 
-    totalLiabilities 
+    isAddingAsset,
+    isAddingLiability,
+    isLoading,
   } = usePatrimony();
 
-  const [activeTab, setActiveTab] = useState('assets');
-  const [isAssetDialogOpen, setIsAssetDialogOpen] = useState(false);
-  const [isLiabilityDialogOpen, setIsLiabilityDialogOpen] = useState(false);
-  const [editingAsset, setEditingAsset] = useState(null);
-  const [editingLiability, setEditingLiability] = useState(null);
-
-  const [assetForm, setAssetForm] = useState({
+  // Formulários Simplificados
+  const [entryType, setEntryType] = useState<'asset' | 'liability'>('asset');
+  const [form, setForm] = useState({
     name: '',
+    value: '',
     category: '',
-    current_value: '',
-    purchase_value: '',
-    purchase_date: new Date().toISOString().split('T')[0],
-    description: ''
+    id: '',
+    isEdit: false,
   });
 
-  const [liabilityForm, setLiabilityForm] = useState({
-    name: '',
-    category: '',
-    total_amount: '',
-    remaining_amount: '',
-    interest_rate: '',
-    monthly_payment: '',
-    due_date: '',
-    description: ''
-  });
+  const [selectedGroup, setSelectedGroup] = useState<PatrimonyGroup | null>(null);
 
-  const handleAssetSubmit = (e: React.FormEvent) => {
+  // Resetar formulário
+  const resetForm = () => setForm({ name: '', value: '', category: '', id: '', isEdit: false });
+
+  // Submissão
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!assetForm.name || !assetForm.category || !assetForm.current_value) return;
-    
-    const assetData = {
-      name: assetForm.name,
-      category: assetForm.category,
-      current_value: parseFloat(assetForm.current_value),
-      purchase_value: assetForm.purchase_value ? parseFloat(assetForm.purchase_value) : undefined,
-      purchase_date: assetForm.purchase_date,
-      description: assetForm.description || undefined
+    if (!form.name || !form.value || !form.category) return;
+
+    const categoryRule = patrimonyCategoryRules[form.category];
+    if (!categoryRule) return;
+
+    const valueNum = parseFloat(form.value.replace(',', '.'));
+
+    if (form.isEdit && form.id) {
+      if (entryType === 'asset') {
+        updateAsset({ id: form.id, name: form.name, category: form.category, current_value: valueNum });
+      } else {
+        updateLiability({ id: form.id, name: form.name, category: form.category, remaining_amount: valueNum });
+      }
+    } else {
+      if (entryType === 'asset') {
+        addAsset({
+          name: form.name,
+          category: form.category,
+          current_value: valueNum,
+          purchase_date: new Date().toISOString().split('T')[0],
+        });
+      } else {
+        addLiability({
+          name: form.name,
+          category: form.category,
+          total_amount: valueNum,
+          remaining_amount: valueNum,
+        });
+      }
+    }
+
+    resetForm();
+  };
+
+  // Classificação dos itens
+  const classifyAssetsLiabilities = () => {
+    // Agrupar conforme grupo patrimonial
+    const groups: Record<PatrimonyGroup, any[]> = {
+      ativo_circulante: [],
+      ativo_nao_circulante: [],
+      passivo_circulante: [],
+      passivo_nao_circulante: [],
     };
 
-    if (editingAsset) {
-      updateAsset({ id: editingAsset.id, ...assetData });
-      setEditingAsset(null);
-    } else {
-      addAsset(assetData);
-    }
-    
-    setAssetForm({
-      name: '',
-      category: '',
-      current_value: '',
-      purchase_value: '',
-      purchase_date: new Date().toISOString().split('T')[0],
-      description: ''
+    assets.forEach(asset => {
+      const group = patrimonyCategoryRules[asset.category as string];
+      if (group === 'ativo_circulante' || group === 'ativo_nao_circulante')
+        groups[group].push(asset);
     });
-    
-    setIsAssetDialogOpen(false);
-  };
-
-  const handleLiabilitySubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!liabilityForm.name || !liabilityForm.category || !liabilityForm.total_amount || !liabilityForm.remaining_amount) return;
-    
-    const liabilityData = {
-      name: liabilityForm.name,
-      category: liabilityForm.category,
-      total_amount: parseFloat(liabilityForm.total_amount),
-      remaining_amount: parseFloat(liabilityForm.remaining_amount),
-      interest_rate: liabilityForm.interest_rate ? parseFloat(liabilityForm.interest_rate) : 0,
-      monthly_payment: liabilityForm.monthly_payment ? parseFloat(liabilityForm.monthly_payment) : undefined,
-      due_date: liabilityForm.due_date || undefined,
-      description: liabilityForm.description || undefined
-    };
-
-    if (editingLiability) {
-      updateLiability({ id: editingLiability.id, ...liabilityData });
-      setEditingLiability(null);
-    } else {
-      addLiability(liabilityData);
-    }
-    
-    setLiabilityForm({
-      name: '',
-      category: '',
-      total_amount: '',
-      remaining_amount: '',
-      interest_rate: '',
-      monthly_payment: '',
-      due_date: '',
-      description: ''
+    liabilities.forEach(liab => {
+      const group = patrimonyCategoryRules[liab.category as string];
+      if (group === 'passivo_circulante' || group === 'passivo_nao_circulante')
+        groups[group].push(liab);
     });
-    
-    setIsLiabilityDialogOpen(false);
+    return groups;
   };
 
-  const editAsset = (asset: any) => {
-    setEditingAsset(asset);
-    setAssetForm({
-      name: asset.name,
-      category: asset.category,
-      current_value: asset.current_value.toString(),
-      purchase_value: asset.purchase_value?.toString() || '',
-      purchase_date: asset.purchase_date || new Date().toISOString().split('T')[0],
-      description: asset.description || ''
-    });
-    setIsAssetDialogOpen(true);
+  const groups = classifyAssetsLiabilities();
+
+  // Totais
+  const totals = {
+    ativo_circulante: groups.ativo_circulante.reduce((sum, a) => sum + (a.current_value || 0), 0),
+    ativo_nao_circulante: groups.ativo_nao_circulante.reduce((sum, a) => sum + (a.current_value || 0), 0),
+    passivo_circulante: groups.passivo_circulante.reduce((sum, l) => sum + (l.remaining_amount || 0), 0),
+    passivo_nao_circulante: groups.passivo_nao_circulante.reduce((sum, l) => sum + (l.remaining_amount || 0), 0),
   };
+  const totalAtivos = totals.ativo_circulante + totals.ativo_nao_circulante;
+  const totalPassivos = totals.passivo_circulante + totals.passivo_nao_circulante;
+  const patrimonioLiquido = totalAtivos - totalPassivos;
 
-  const editLiability = (liability: any) => {
-    setEditingLiability(liability);
-    setLiabilityForm({
-      name: liability.name,
-      category: liability.category,
-      total_amount: liability.total_amount.toString(),
-      remaining_amount: liability.remaining_amount.toString(),
-      interest_rate: liability.interest_rate?.toString() || '',
-      monthly_payment: liability.monthly_payment?.toString() || '',
-      due_date: liability.due_date || '',
-      description: liability.description || ''
-    });
-    setIsLiabilityDialogOpen(true);
-  };
+  const formatCurrency = (val: number) =>
+    val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
+  if (isLoading) return <div>Carregando...</div>;
 
-  const getCategoryIcon = (category: string, isAsset: boolean) => {
-    const categories = isAsset ? assetCategories : liabilityCategories;
-    const categoryData = categories.find(cat => cat.value === category);
-    return categoryData?.icon || Building;
-  };
-
-  const getCategoryLabel = (category: string, isAsset: boolean) => {
-    const categories = isAsset ? assetCategories : liabilityCategories;
-    const categoryData = categories.find(cat => cat.value === category);
-    return categoryData?.label || category;
-  };
-
-  const netWorth = totalAssets - totalLiabilities;
-
-  if (isLoading) {
-    return <div>Carregando...</div>;
-  }
-
+  // Render
   return (
-    <Card className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <TrendingUp className="w-6 h-6 text-purple-600" />
+    <Card className="p-4">
+      <h2 className="text-lg font-bold mb-3">Meu Patrimônio</h2>
+      {/* Resumo Visual */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-8">
+        {(['ativo_circulante', 'ativo_nao_circulante', 'passivo_circulante', 'passivo_nao_circulante'] as PatrimonyGroup[]).map((groupKey) => (
+          <button
+            key={groupKey}
+            className={`rounded shadow p-3 w-full hover:bg-gray-100 text-sm flex flex-col items-center border 
+              ${groupKey.includes('ativo') ? 'border-green-400 bg-green-50' : 'border-red-300 bg-red-50'}
+              ${selectedGroup === groupKey ? 'ring-2 ring-blue-500' : ''}`}
+            onClick={() => setSelectedGroup(selectedGroup === groupKey ? null : groupKey)}
+          >
+            <span className="font-semibold">{patrimonyGroupLabels[groupKey]}</span>
+            <span className="text-lg font-bold">
+              {formatCurrency(totals[groupKey])}
+            </span>
+            <span className="text-xs mt-1 text-gray-500">{groups[groupKey].length} itens</span>
+          </button>
+        ))}
+      </div>
+      {/* Patrimônio Líquido */}
+      <div className="mb-6">
+        <span className="text-blue-700 font-semibold">Patrimônio Líquido: </span>
+        <span className="text-2xl font-bold">
+          {formatCurrency(patrimonioLiquido)}
+        </span>
+      </div>
+      {/* Itens do grupo selecionado */}
+      {selectedGroup && (
+        <div className="mb-6">
+          <div className="font-semibold mb-1">{patrimonyGroupLabels[selectedGroup]}</div>
+          <div className="space-y-2">
+            {groups[selectedGroup].length === 0 && <span className="text-gray-400">Nenhum item cadastrado.</span>}
+            {groups[selectedGroup].map(item => (
+              <div key={item.id} className="flex items-center justify-between px-3 py-2 bg-white border rounded">
+                <div>
+                  <span className="font-medium">{item.name}</span>
+                  <span className="text-xs text-gray-500 ml-2">
+                    Categoria: {(assetCategoryOptions.concat(liabilityCategoryOptions).find(opt => opt.value === item.category)?.label) || item.category}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold">{formatCurrency(item.current_value ?? item.remaining_amount ?? 0)}</span>
+                  <Button size="icon" variant="outline" onClick={() => setForm({
+                    name: item.name,
+                    value: String(item.current_value ?? item.remaining_amount ?? ''),
+                    category: item.category,
+                    id: item.id,
+                    isEdit: true,
+                  })}>
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button size="icon" variant="outline" onClick={() => item.current_value ?
+                    deleteAsset(item.id) : deleteLiability(item.id)}>
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Formulário de Cadastro/Edição */}
+      <div className="max-w-xl">
+        <form onSubmit={handleSubmit} className="space-y-2 border rounded p-4 mt-2 bg-gray-50">
+          <div className="flex gap-2 mb-3">
+            <Button
+              type="button"
+              variant={entryType === 'asset' ? "default" : "outline"}
+              onClick={() => setEntryType('asset')}
+            >
+              Ativo
+            </Button>
+            <Button
+              type="button"
+              variant={entryType === 'liability' ? "default" : "outline"}
+              onClick={() => setEntryType('liability')}
+            >
+              Passivo
+            </Button>
+            {form.isEdit && (
+              <Button
+                type="button"
+                variant="secondary"
+                className="ml-2"
+                onClick={() => { resetForm() }}
+              >
+                Cancelar edição
+              </Button>
+            )}
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Controle de Patrimônio</h3>
-            <p className="text-sm text-gray-600">Gerencie seus ativos e passivos</p>
+            <Label>Nome</Label>
+            <Input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} required />
           </div>
-        </div>
+          <div>
+            <Label>Valor</Label>
+            <Input
+              type="number"
+              min={0}
+              value={form.value}
+              onChange={e => setForm(f => ({ ...f, value: e.target.value }))}
+              required
+            />
+          </div>
+          <div>
+            <Label>Categoria</Label>
+            <Select value={form.category} onValueChange={cat => setForm(f => ({ ...f, category: cat }))} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Escolha uma categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                {(entryType === 'asset' ? assetCategoryOptions : liabilityCategoryOptions).map(opt => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button type="submit" className="w-full" disabled={isAddingAsset || isAddingLiability}>
+            {form.isEdit ? "Salvar alterações" : "Adicionar"}
+          </Button>
+        </form>
       </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-green-50 p-4 rounded-lg">
-          <div className="flex items-center space-x-2 mb-2">
-            <TrendingUp className="w-5 h-5 text-green-600" />
-            <span className="text-sm font-medium text-green-900">Total de Ativos</span>
-          </div>
-          <p className="text-xl font-bold text-green-900">{formatCurrency(totalAssets)}</p>
-        </div>
-        
-        <div className="bg-red-50 p-4 rounded-lg">
-          <div className="flex items-center space-x-2 mb-2">
-            <TrendingDown className="w-5 h-5 text-red-600" />
-            <span className="text-sm font-medium text-red-900">Total de Passivos</span>
-          </div>
-          <p className="text-xl font-bold text-red-900">{formatCurrency(totalLiabilities)}</p>
-        </div>
-        
-        <div className={`p-4 rounded-lg ${netWorth >= 0 ? 'bg-blue-50' : 'bg-orange-50'}`}>
-          <div className="flex items-center space-x-2 mb-2">
-            <TrendingUp className={`w-5 h-5 ${netWorth >= 0 ? 'text-blue-600' : 'text-orange-600'}`} />
-            <span className={`text-sm font-medium ${netWorth >= 0 ? 'text-blue-900' : 'text-orange-900'}`}>
-              Patrimônio Líquido
-            </span>
-          </div>
-          <p className={`text-xl font-bold ${netWorth >= 0 ? 'text-blue-900' : 'text-orange-900'}`}>
-            {formatCurrency(netWorth)}
-          </p>
-        </div>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="assets">Ativos</TabsTrigger>
-          <TabsTrigger value="liabilities">Passivos</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="assets">
-          <div className="flex justify-between items-center mb-4">
-            <h4 className="font-medium">Meus Ativos</h4>
-            <Dialog open={isAssetDialogOpen} onOpenChange={setIsAssetDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-green-600 hover:bg-green-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Ativo
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>{editingAsset ? 'Editar Ativo' : 'Novo Ativo'}</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleAssetSubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="asset-name">Nome</Label>
-                    <Input
-                      id="asset-name"
-                      value={assetForm.name}
-                      onChange={(e) => setAssetForm(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Ex: Casa própria, Carro, etc."
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="asset-category">Categoria</Label>
-                    <Select
-                      value={assetForm.category}
-                      onValueChange={(value) => setAssetForm(prev => ({ ...prev, category: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {assetCategories.map((category) => (
-                          <SelectItem key={category.value} value={category.value}>
-                            {category.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="asset-current-value">Valor Atual</Label>
-                    <Input
-                      id="asset-current-value"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={assetForm.current_value}
-                      onChange={(e) => setAssetForm(prev => ({ ...prev, current_value: e.target.value }))}
-                      placeholder="0.00"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="asset-purchase-value">Valor de Compra (Opcional)</Label>
-                    <Input
-                      id="asset-purchase-value"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={assetForm.purchase_value}
-                      onChange={(e) => setAssetForm(prev => ({ ...prev, purchase_value: e.target.value }))}
-                      placeholder="0.00"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="asset-purchase-date">Data da Compra</Label>
-                    <Input
-                      id="asset-purchase-date"
-                      type="date"
-                      value={assetForm.purchase_date}
-                      onChange={(e) => setAssetForm(prev => ({ ...prev, purchase_date: e.target.value }))}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="asset-description">Descrição (Opcional)</Label>
-                    <Input
-                      id="asset-description"
-                      type="text"
-                      value={assetForm.description}
-                      onChange={(e) => setAssetForm(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Detalhes adicionais"
-                    />
-                  </div>
-                  
-                  <Button type="submit" className="w-full">
-                    {editingAsset ? 'Atualizar Ativo' : 'Adicionar Ativo'}
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-          
-          <div className="space-y-3">
-            {assets.map((asset) => {
-              const IconComponent = getCategoryIcon(asset.category, true);
-              return (
-                <div key={asset.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-green-100 rounded-lg">
-                      <IconComponent className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{asset.name}</p>
-                      <p className="text-sm text-gray-600">{getCategoryLabel(asset.category, true)}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-3">
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900">{formatCurrency(asset.current_value)}</p>
-                    </div>
-                    <div className="flex space-x-1">
-                      <Button size="sm" variant="outline" onClick={() => editAsset(asset)}>
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => deleteAsset(asset.id)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </TabsContent>
-        
-        <TabsContent value="liabilities">
-          <div className="flex justify-between items-center mb-4">
-            <h4 className="font-medium">Meus Passivos</h4>
-            <Dialog open={isLiabilityDialogOpen} onOpenChange={setIsLiabilityDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="bg-red-600 hover:bg-red-700">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Adicionar Passivo
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>{editingLiability ? 'Editar Passivo' : 'Novo Passivo'}</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleLiabilitySubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="liability-name">Nome</Label>
-                    <Input
-                      id="liability-name"
-                      value={liabilityForm.name}
-                      onChange={(e) => setLiabilityForm(prev => ({ ...prev, name: e.target.value }))}
-                      placeholder="Ex: Financiamento casa, Cartão de crédito"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="liability-category">Categoria</Label>
-                    <Select
-                      value={liabilityForm.category}
-                      onValueChange={(value) => setLiabilityForm(prev => ({ ...prev, category: value }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma categoria" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {liabilityCategories.map((category) => (
-                          <SelectItem key={category.value} value={category.value}>
-                            {category.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="liability-total">Valor Total</Label>
-                    <Input
-                      id="liability-total"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={liabilityForm.total_amount}
-                      onChange={(e) => setLiabilityForm(prev => ({ ...prev, total_amount: e.target.value }))}
-                      placeholder="0.00"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="liability-remaining">Valor Restante</Label>
-                    <Input
-                      id="liability-remaining"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={liabilityForm.remaining_amount}
-                      onChange={(e) => setLiabilityForm(prev => ({ ...prev, remaining_amount: e.target.value }))}
-                      placeholder="0.00"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="liability-interest">Taxa de Juros (%)</Label>
-                    <Input
-                      id="liability-interest"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={liabilityForm.interest_rate}
-                      onChange={(e) => setLiabilityForm(prev => ({ ...prev, interest_rate: e.target.value }))}
-                      placeholder="0.00"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="liability-payment">Pagamento Mensal (Opcional)</Label>
-                    <Input
-                      id="liability-payment"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={liabilityForm.monthly_payment}
-                      onChange={(e) => setLiabilityForm(prev => ({ ...prev, monthly_payment: e.target.value }))}
-                      placeholder="0.00"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="liability-due-date">Data de Vencimento (Opcional)</Label>
-                    <Input
-                      id="liability-due-date"
-                      type="date"
-                      value={liabilityForm.due_date}
-                      onChange={(e) => setLiabilityForm(prev => ({ ...prev, due_date: e.target.value }))}
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="liability-description">Descrição (Opcional)</Label>
-                    <Input
-                      id="liability-description"
-                      type="text"
-                      value={liabilityForm.description}
-                      onChange={(e) => setLiabilityForm(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Detalhes adicionais"
-                    />
-                  </div>
-                  
-                  <Button type="submit" className="w-full">
-                    {editingLiability ? 'Atualizar Passivo' : 'Adicionar Passivo'}
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
-          
-          <div className="space-y-3">
-            {liabilities.map((liability) => {
-              const IconComponent = getCategoryIcon(liability.category, false);
-              return (
-                <div key={liability.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-red-100 rounded-lg">
-                      <IconComponent className="w-5 h-5 text-red-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{liability.name}</p>
-                      <p className="text-sm text-gray-600">{getCategoryLabel(liability.category, false)}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center space-x-3">
-                    <div className="text-right">
-                      <p className="font-semibold text-gray-900">{formatCurrency(liability.remaining_amount)}</p>
-                      {liability.monthly_payment && (
-                        <p className="text-sm text-gray-600">
-                          {formatCurrency(liability.monthly_payment)}/mês
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex space-x-1">
-                      <Button size="sm" variant="outline" onClick={() => editLiability(liability)}>
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => deleteLiability(liability.id)}>
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </TabsContent>
-      </Tabs>
     </Card>
   );
 };
 
 export default ImprovedPatrimonyManager;
+
