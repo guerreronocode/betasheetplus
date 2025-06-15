@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 
 interface InvestmentFormProps {
   isAdding: boolean;
@@ -58,7 +59,11 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
   onSubmit,
   onCancel
 }) => {
-  const [form, setForm] = useState(initialValues);
+  const [form, setForm] = useState({
+    ...initialValues,
+    // Garante que o campo abaixo sempre existe para não quebrar o switch
+    reserva_emergencia: initialValues.category === "reserva_emergencia"
+  });
 
   const handleChange = (partial: any) => {
     setForm((prev: any) => ({ ...prev, ...partial }));
@@ -69,18 +74,21 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
     if (!type.endsWith("_plus")) {
       extra = { yield_extra: "" };
     }
+    if (!(type === "cdi" || type === "selic" || type === "ipca")) {
+      extra = { ...extra, yield_percent_index: "" };
+    }
     handleChange({ yield_type: type, ...extra });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Cálculo do yield_rate (salvar valor final conforme input)
     let yield_rate_final = form.yield_rate;
-
-    if (form.yield_type === "cdi" || form.yield_type === "selic" || form.yield_type === "ipca") {
+    // Cálculo por índice com percentual
+    if (["cdi", "selic", "ipca"].includes(form.yield_type)) {
       const base = yieldRates.find(rate => rate.rate_type === form.yield_type)?.rate_value || 0;
-      yield_rate_final = base;
+      const percent = parseFloat(form.yield_percent_index || "100") / 100;
+      yield_rate_final = base * percent;
     } else if (
       ["cdi_plus", "selic_plus", "ipca_plus"].includes(form.yield_type)
     ) {
@@ -92,11 +100,18 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
       yield_rate_final = parseFloat(form.yield_rate || "0");
     }
 
+    let submitCategory = form.category;
+    if (form.reserva_emergencia) {
+      submitCategory = "reserva_emergencia";
+    } else if (form.category === "reserva_emergencia") {
+      submitCategory = "other"; // ou deixe como estava originalmente
+    }
     onSubmit({
       ...form,
       yield_type: form.yield_type,
       yield_extra: form.yield_extra,
       yield_rate: yield_rate_final,
+      category: submitCategory,
     });
   };
 
@@ -154,7 +169,6 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
             ))}
           </SelectContent>
         </Select>
-        {/* Exibir campo para "X%" apenas para *_plus */}
         {form.yield_type && form.yield_type.endsWith("_plus") && (
           <div className="mt-2">
             <Label htmlFor="yield_extra">Adicional (%)</Label>
@@ -168,6 +182,25 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
               onChange={e => handleChange({ yield_extra: e.target.value })}
               required
             />
+          </div>
+        )}
+        {/* Percentual do índice para CDI, SELIC, IPCA */}
+        {["cdi", "selic", "ipca"].includes(form.yield_type) && (
+          <div className="mt-2">
+            <Label htmlFor="yield_percent_index">Percentual do índice (%)</Label>
+            <Input
+              id="yield_percent_index"
+              type="number"
+              step="0.01"
+              min="0"
+              max="200"
+              value={form.yield_percent_index || ""}
+              placeholder="Ex: 99 para 99% do índice"
+              onChange={e => handleChange({ yield_percent_index: e.target.value })}
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Exemplo: 103 para 103% do índice. Deixe em branco para 100%.
+            </p>
           </div>
         )}
       </div>
@@ -203,7 +236,19 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
           </SelectContent>
         </Select>
       </div>
-
+      {/* Switch para reserva de emergência */}
+      <div className="flex items-center gap-3 mt-3">
+        <Switch
+          id="reserva_emergencia"
+          checked={!!form.reserva_emergencia}
+          onCheckedChange={(checked) => {
+            handleChange({ reserva_emergencia: checked });
+          }}
+        />
+        <Label htmlFor="reserva_emergencia" className="cursor-pointer">
+          Este investimento faz parte da minha <span className="font-bold text-blue-600">reserva de emergência</span>
+        </Label>
+      </div>
       <div className="flex space-x-2">
         <Button type="submit" className="w-full" disabled={isAdding}>
           {isAdding
