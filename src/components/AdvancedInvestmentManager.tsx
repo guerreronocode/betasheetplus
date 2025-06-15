@@ -36,7 +36,7 @@ const AdvancedInvestmentManager = () => {
     yield_rate: '',
     purchase_date: new Date().toISOString().split('T')[0],
     bank_account_id: 'none',
-    category: '', // NOVO: categoria extra para reserva de emergência
+    category: 'other', // valor default é 'other', não vazio!
   });
 
   const formatCurrency = (value: number) => {
@@ -54,6 +54,9 @@ const AdvancedInvestmentManager = () => {
     e.preventDefault();
     if (!newInvestment.name || !newInvestment.amount) return;
 
+    // Trata "other" como categoria indefinida
+    const categoryProcessed = (newInvestment.category === "other" ? undefined : newInvestment.category);
+
     const investmentData = {
       name: newInvestment.name,
       type: newInvestment.type,
@@ -62,7 +65,7 @@ const AdvancedInvestmentManager = () => {
       yield_rate: parseFloat(newInvestment.yield_rate) || 0,
       purchase_date: newInvestment.purchase_date,
       bank_account_id: newInvestment.bank_account_id === 'none' ? undefined : newInvestment.bank_account_id,
-      category: newInvestment.category || undefined, // IMPORTANTE
+      category: categoryProcessed, // Corrigido para passar undefined quando escolhido "outros"
     };
 
     if (editingInvestment) {
@@ -80,7 +83,7 @@ const AdvancedInvestmentManager = () => {
       yield_rate: '',
       purchase_date: new Date().toISOString().split('T')[0],
       bank_account_id: 'none',
-      category: '',
+      category: 'other',
     });
     setIsAddingNew(false);
   };
@@ -95,7 +98,7 @@ const AdvancedInvestmentManager = () => {
       yield_rate: investment.yield_rate.toString(),
       purchase_date: investment.purchase_date,
       bank_account_id: investment.bank_account_id || 'none',
-      category: investment.category || '',
+      category: investment.category ? investment.category : 'other',
     });
     setIsAddingNew(true);
   };
@@ -300,7 +303,7 @@ const AdvancedInvestmentManager = () => {
                     <SelectValue placeholder="Selecione a categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Investimento (outros)</SelectItem>
+                    <SelectItem value="other">Investimento (outros)</SelectItem>
                     <SelectItem value="reserva_emergencia">Reserva de emergência</SelectItem>
                   </SelectContent>
                 </Select>
@@ -322,7 +325,7 @@ const AdvancedInvestmentManager = () => {
                   yield_rate: '',
                   purchase_date: new Date().toISOString().split('T')[0],
                   bank_account_id: 'none',
-                  category: '',
+                  category: 'other',
                 });
               }}>
                 Cancelar
