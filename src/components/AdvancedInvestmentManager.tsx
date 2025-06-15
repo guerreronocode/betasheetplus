@@ -83,11 +83,15 @@ const AdvancedInvestmentManager = () => {
       bank_account_id: formData.bank_account_id === 'none' ? undefined : formData.bank_account_id,
       category: formData.category,
     };
-
+    // Se estiver editando, inclua o id!
     if (editingInvestment) {
+      // DEBUG
+      console.log('Updating investment:', { id: editingInvestment.id, ...investmentData });
       updateInvestment({ id: editingInvestment.id, ...investmentData });
       setEditingInvestment(null);
     } else {
+      // DEBUG
+      console.log('Adding new investment:', investmentData);
       addInvestment(investmentData);
     }
     setNewInvestment({
@@ -98,7 +102,7 @@ const AdvancedInvestmentManager = () => {
       yield_rate: '',
       yield_extra: '',
       yield_percent_index: '',
-      purchase_date: new Date().toISOString().split('T')[0],
+      purchase_date: new Date().toISOString().split("T")[0],
       bank_account_id: 'none',
       category: 'other',
     });

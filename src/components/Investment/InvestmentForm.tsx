@@ -1,4 +1,3 @@
-
 // Refatorado! InvestimentoForm agora usa subcomponentes para cada campo.
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -69,13 +68,19 @@ const InvestmentForm: React.FC<InvestmentFormProps> = ({
     } else if (form.category === "reserva_emergencia") {
       submitCategory = "other";
     }
-    onSubmit({
+
+    // Se houver id, repasse ao submit
+    const submitObj = {
       ...form,
+      id: form.id, // pode ser undefined se for novo
       yield_type: form.yield_type,
       yield_extra: form.yield_extra,
       yield_rate: yield_rate_final,
       category: submitCategory,
-    });
+    };
+    // DEBUG
+    console.log('InvestmentForm - submit:', submitObj);
+    onSubmit(submitObj);
   };
 
   return (
