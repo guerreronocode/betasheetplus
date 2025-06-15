@@ -30,3 +30,29 @@ export const patrimonyCategoryRules: Record<string, PatrimonyGroup> = {
   emprestimo_pessoal_longo: "passivo_nao_circulante",
   reserva_emergencia: "ativo_circulante",
 };
+
+/**
+ * Retorna o grupo patrimonial correto de acordo com a categoria e lógica especial.
+ * - category: string ou undefined, obrigatório tratar
+ * - options: argumentos opcionais para lógica especial (ex: investimento)
+ */
+export function getPatrimonyGroupByCategory(
+  category: string | undefined,
+  item?: any, // asset/liability/investment
+  investments?: any[]
+): PatrimonyGroup | undefined {
+  if (!category) return undefined;
+
+  // Lógica especial: investimento_longo_prazo pode ser RESERVA DE EMERGÊNCIA
+  if (
+    category === "investimento_longo_prazo" &&
+    item &&
+    investments &&
+    // busca no array de investimentos, category da instância == 'reserva_emergencia'
+    investments.some(inv => inv.name === item.name && inv.category === "reserva_emergencia")
+  ) {
+    return "ativo_circulante";
+  }
+
+  return patrimonyCategoryRules[category];
+}

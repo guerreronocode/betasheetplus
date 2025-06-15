@@ -8,6 +8,7 @@ import PatrimonySummary from "./PatrimonySummary";
 import PatrimonyNetWorthCard from "./PatrimonyNetWorthCard";
 import { patrimonyGroupLabels } from "./patrimonyCategories";
 import { formatCurrency } from "@/utils/formatters";
+import { getPatrimonyGroupByCategory } from "@/utils/patrimonyHelpers";
 
 const patrimonyCategoryRules: Record<string, string> = {
   conta_corrente: 'ativo_circulante',
@@ -120,14 +121,8 @@ const ImprovedPatrimonyManager = () => {
       passivo_nao_circulante: [],
     };
     assets.forEach(asset => {
-      let group = patrimonyCategoryRules[asset.category as string];
-      if (
-        asset.category === 'investimento_longo_prazo' &&
-        investments.find(inv => inv.name === asset.name && (inv as any).category === 'reserva_emergencia')
-      ) {
-        group = 'ativo_circulante';
-      }
-      if (group === 'ativo_circulante' || group === 'ativo_nao_circulante') {
+      const group = getPatrimonyGroupByCategory(asset.category, asset, investments);
+      if (group === "ativo_circulante" || group === "ativo_nao_circulante") {
         result[group].push(asset);
       }
     });
@@ -140,26 +135,19 @@ const ImprovedPatrimonyManager = () => {
       });
     });
     nonLinkedInvestments.forEach(inv => {
-      const isEmergencyReserve = (inv as any).category === 'reserva_emergencia';
-      if (isEmergencyReserve) {
-        result.ativo_circulante.push({
+      const group = getPatrimonyGroupByCategory(inv.category, inv, investments);
+      if (group === "ativo_circulante" || group === "ativo_nao_circulante") {
+        result[group].push({
           id: inv.id,
           name: inv.name,
-          category: 'reserva_emergencia',
-          current_value: inv.current_value,
-        });
-      } else {
-        result.ativo_nao_circulante.push({
-          id: inv.id,
-          name: inv.name,
-          category: 'investimento_longo_prazo',
+          category: inv.category,
           current_value: inv.current_value,
         });
       }
     });
     liabilities.forEach(liab => {
-      const group = patrimonyCategoryRules[liab.category as string];
-      if (group === 'passivo_circulante' || group === 'passivo_nao_circulante')
+      const group = getPatrimonyGroupByCategory(liab.category);
+      if (group === "passivo_circulante" || group === "passivo_nao_circulante")
         result[group].push(liab);
     });
     return result;
