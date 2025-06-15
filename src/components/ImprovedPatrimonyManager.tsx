@@ -454,10 +454,12 @@ const ImprovedPatrimonyManager = () => {
                     <SelectValue placeholder="Escolha uma categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    {assetCategoryOptions.map(opt => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
+                    {assetCategoryOptions
+                      .filter(opt => opt.value && opt.value.trim() !== "")
+                      .map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -476,10 +478,12 @@ const ImprovedPatrimonyManager = () => {
                   <SelectValue placeholder="Escolha um investimento" />
                 </SelectTrigger>
                 <SelectContent>
-                  {investments.map(inv => (
-                    <SelectItem key={inv.id} value={inv.id}>
-                      {inv.name} ({formatCurrency(inv.current_value)})
-                    </SelectItem>
+                  {investments
+                    .filter(inv => inv.id && inv.id.trim() !== "")
+                    .map(inv => (
+                      <SelectItem key={inv.id} value={inv.id}>
+                        {inv.name} ({formatCurrency(inv.current_value)})
+                      </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -497,10 +501,12 @@ const ImprovedPatrimonyManager = () => {
                   <SelectValue placeholder="Escolha uma conta" />
                 </SelectTrigger>
                 <SelectContent>
-                  {bankAccounts.map(acc => (
-                    <SelectItem key={acc.id} value={acc.id}>
-                      {acc.name} - {acc.bank_name} ({formatCurrency(acc.balance)})
-                    </SelectItem>
+                  {bankAccounts
+                    .filter(acc => acc.id && acc.id.trim() !== "")
+                    .map(acc => (
+                      <SelectItem key={acc.id} value={acc.id}>
+                        {acc.name} - {acc.bank_name} ({formatCurrency(acc.balance)})
+                      </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -531,10 +537,12 @@ const ImprovedPatrimonyManager = () => {
                     <SelectValue placeholder="Escolha uma categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    {liabilityCategoryOptions.map(opt => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
+                    {liabilityCategoryOptions
+                      .filter(opt => opt.value && opt.value.trim() !== "")
+                      .map(opt => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
