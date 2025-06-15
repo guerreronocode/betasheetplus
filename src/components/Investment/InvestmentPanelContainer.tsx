@@ -37,6 +37,7 @@ const InvestmentPanelContainer = () => {
   // Envio do formulário
   const handleInvestmentFormSubmit = (formData: any) => {
     if (!formData.name || !formData.amount) return;
+
     const safeAmount = parseFloat(formData.amount);
     const safeCurrentValue =
       formData.current_value !== "" && formData.current_value !== undefined
@@ -44,13 +45,15 @@ const InvestmentPanelContainer = () => {
         : safeAmount;
     if (isNaN(safeAmount) || safeAmount <= 0) return;
 
-    // Só os campos essenciais
+    // Só os campos essenciais, agora incluindo liquidez e maturidade
     const investmentData: any = {
       name: formData.name,
       type: formData.type,
       amount: safeAmount,
       purchase_date: formData.purchase_date,
       current_value: safeCurrentValue,
+      liquidity: formData.liquidity,
+      maturity_date: formData.liquidity === "vencimento" ? formData.maturity_date : null,
     };
 
     if (
@@ -77,6 +80,8 @@ const InvestmentPanelContainer = () => {
       purchase_date: new Date().toISOString().split("T")[0],
       bank_account_id: "none",
       current_value: "",
+      liquidity: "",
+      maturity_date: "",
     });
     setIsAddingNew(false);
   };

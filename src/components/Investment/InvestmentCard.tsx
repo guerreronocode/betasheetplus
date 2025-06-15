@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -69,14 +68,10 @@ const InvestmentCard: React.FC<InvestmentCardProps> = ({
           </div>
         </div>
         <div className="mt-3 pt-3 border-t border-gray-100">
-          <div className="grid grid-cols-3 gap-4 text-sm">
+          <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-gray-600">Investido</p>
               <p className="font-medium">{formatCurrency(investment.amount)}</p>
-            </div>
-            <div>
-              <p className="text-gray-600">Rendimento</p>
-              <p className="font-medium">{investment.yield_type.toUpperCase()} {formatPercentage(investment.yield_rate)}</p>
             </div>
             <div>
               <p className="text-gray-600">Data</p>
