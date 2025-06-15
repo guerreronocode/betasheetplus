@@ -190,13 +190,26 @@ const PatrimonyManager = () => {
 
   const handleLiabilitySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newLiability.name || !newLiability.category || !newLiability.total_amount || !newLiability.remaining_amount) return;
+    console.log('Submitting liability', newLiability); // debug
+
+    // Ajuste para garantir que os campos são numéricos válidos
+    const totalAmountNum = parseFloat(newLiability.total_amount || "0");
+    const remainingAmountNum = parseFloat(newLiability.remaining_amount || "0");
+
+    if (!newLiability.name || !newLiability.category || !newLiability.total_amount || !newLiability.remaining_amount) {
+      console.log('Formulário incompleto', newLiability); // debug
+      return;
+    }
+    if (isNaN(totalAmountNum) || isNaN(remainingAmountNum)) {
+      console.log('Valores de passivo inválidos', newLiability); // debug
+      return;
+    }
 
     const liabilityData = {
       name: newLiability.name,
       category: newLiability.category,
-      total_amount: parseFloat(newLiability.total_amount),
-      remaining_amount: parseFloat(newLiability.remaining_amount),
+      total_amount: totalAmountNum,
+      remaining_amount: remainingAmountNum,
       interest_rate: newLiability.interest_rate ? parseFloat(newLiability.interest_rate) : 0,
       monthly_payment: newLiability.monthly_payment ? parseFloat(newLiability.monthly_payment) : undefined,
       due_date: newLiability.due_date || undefined,
@@ -289,7 +302,22 @@ const PatrimonyManager = () => {
           <div>
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-semibold">Gestão de Passivos</h3>
-              <Button onClick={() => setIsAddingNewLiability(!isAddingNewLiability)}>
+              <Button
+                onClick={() => {
+                  setIsAddingNewLiability((prev) => !prev);
+                  setEditingLiability(null); // sempre limpa a edição se abrir novo passivo
+                  setNewLiability({
+                    name: '',
+                    category: '',
+                    total_amount: '',
+                    remaining_amount: '',
+                    interest_rate: '',
+                    monthly_payment: '',
+                    due_date: '',
+                    description: ''
+                  });
+                }}
+              >
                 Novo Passivo
               </Button>
             </div>
@@ -299,6 +327,16 @@ const PatrimonyManager = () => {
                 onCancel={() => {
                   setIsAddingNewLiability(false);
                   setEditingLiability(null);
+                  setNewLiability({
+                    name: '',
+                    category: '',
+                    total_amount: '',
+                    remaining_amount: '',
+                    interest_rate: '',
+                    monthly_payment: '',
+                    due_date: '',
+                    description: ''
+                  });
                 }}
                 isLoading={isAddingLiability}
                 editingLiability={editingLiability}
