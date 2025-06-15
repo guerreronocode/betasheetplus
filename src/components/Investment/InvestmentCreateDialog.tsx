@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, ReactElement } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -50,15 +49,16 @@ interface InvestmentCreateDialogProps {}
 
 const InvestmentCreateDialog: React.FC<InvestmentCreateDialogProps> = () => {
   const { addInvestment, isAddingInvestment, yieldRates } = useFinancialData();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
-  const [form, setForm] = useState<{
+  const [form, setForm] = React.useState<{
     name: string;
     type: string;
     amount: string;
     yield_type: YieldType;
     yield_rate: string;
     yield_extra: string;
+    yield_percent_index: string;
     purchase_date: string;
   }>({
     name: '',
@@ -67,13 +67,18 @@ const InvestmentCreateDialog: React.FC<InvestmentCreateDialogProps> = () => {
     yield_type: 'fixed',
     yield_rate: '',
     yield_extra: '',
+    yield_percent_index: '',
     purchase_date: new Date().toISOString().split('T')[0]
   });
 
   const handleYieldTypeChange = (type: YieldType) => {
     let extra = {};
+    // Limpa campos conforme tipo de rendimento
     if (!type.endsWith("_plus")) {
       extra = { yield_extra: "" };
+    }
+    if (!(type === "cdi" || type === "selic" || type === "ipca")) {
+      extra = { ...extra, yield_percent_index: "" };
     }
     setForm(prev => ({
       ...prev,
@@ -88,9 +93,11 @@ const InvestmentCreateDialog: React.FC<InvestmentCreateDialogProps> = () => {
 
     let yield_rate_final: number = 0;
 
-    if (form.yield_type === "cdi" || form.yield_type === "selic" || form.yield_type === "ipca") {
+    if (["cdi", "selic", "ipca"].includes(form.yield_type)) {
+      // Se preencheu percentual, multiplica pelo valor base do índice
       const base = yieldRates.find(rate => rate.rate_type === form.yield_type)?.rate_value || 0;
-      yield_rate_final = base;
+      const percent = parseFloat(form.yield_percent_index || "100") / 100;
+      yield_rate_final = base * percent;
     } else if (["cdi_plus", "selic_plus", "ipca_plus"].includes(form.yield_type)) {
       // Use base plus extra
       const baseType = form.yield_type.replace("_plus", "") as SimpleYield;
@@ -101,7 +108,6 @@ const InvestmentCreateDialog: React.FC<InvestmentCreateDialogProps> = () => {
       yield_rate_final = parseFloat(form.yield_rate || "0");
     }
 
-    // O backend espera apenas o tipo simples!
     const submittedYieldType: SimpleYield =
       form.yield_type.endsWith('_plus')
         ? (form.yield_type.replace('_plus', '') as SimpleYield)
@@ -123,6 +129,7 @@ const InvestmentCreateDialog: React.FC<InvestmentCreateDialogProps> = () => {
       yield_type: 'fixed',
       yield_rate: '',
       yield_extra: '',
+      yield_percent_index: '',
       purchase_date: new Date().toISOString().split('T')[0]
     });
     setIsDialogOpen(false);
@@ -197,6 +204,7 @@ const InvestmentCreateDialog: React.FC<InvestmentCreateDialogProps> = () => {
                 ))}
               </SelectContent>
             </Select>
+            {/* Exibe campo “Adicional” para *_plus */}
             {form.yield_type && form.yield_type.endsWith("_plus") && (
               <div className="mt-2">
                 <Label htmlFor="yield_extra">Adicional (%)</Label>
@@ -210,6 +218,23 @@ const InvestmentCreateDialog: React.FC<InvestmentCreateDialogProps> = () => {
                   onChange={e => setForm(prev => ({ ...prev, yield_extra: e.target.value }))}
                   required
                 />
+              </div>
+            )}
+            {/* Exibe campo “Percentual do índice” para cdi, selic ou ipca */}
+            {["cdi", "selic", "ipca"].includes(form.yield_type) && (
+              <div className="mt-2">
+                <Label htmlFor="yield_percent_index">Percentual do índice (%)</Label>
+                <Input
+                  id="yield_percent_index"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  max="200"
+                  value={form.yield_percent_index || ""}
+                  placeholder="Ex: 99 para 99% do índice"
+                  onChange={e => setForm(prev => ({ ...prev, yield_percent_index: e.target.value }))}
+                />
+                <p className="text-xs text-gray-400 mt-1">Exemplo: 103 para 103% do índice. Deixe em branco para 100%.</p>
               </div>
             )}
           </div>
