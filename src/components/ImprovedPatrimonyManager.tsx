@@ -4,33 +4,11 @@ import { usePatrimony } from '@/hooks/usePatrimony';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { patrimonyGroupLabels } from "./patrimonyCategories";
 import { usePatrimonyGroupsFull } from "@/hooks/usePatrimonyGroupsFull";
+import { PatrimonyFormFactory, PatrimonyFormData } from "@/services/patrimonyService";
+import { patrimonyCategoryRules } from "@/utils/patrimonyHelpers";
 import PatrimonyHeaderSection from "./PatrimonyHeaderSection";
 import PatrimonyListSection from "./PatrimonyListSection";
 import PatrimonyManagerFormSection from "./PatrimonyManagerFormSection";
-
-// Centralizar regras só para passagem por props
-const patrimonyCategoryRules: Record<string, string> = {
-  conta_corrente: 'ativo_circulante',
-  dinheiro: 'ativo_circulante',
-  aplicacao_curto_prazo: 'ativo_circulante',
-  carteira_digital: 'ativo_circulante',
-  poupanca: 'ativo_circulante',
-  emprestimo_a_receber_curto: 'ativo_circulante',
-  imovel: 'ativo_nao_circulante',
-  carro: 'ativo_nao_circulante',
-  moto: 'ativo_nao_circulante',
-  computador: 'ativo_nao_circulante',
-  investimento_longo_prazo: 'ativo_nao_circulante',
-  outro_duravel: 'ativo_nao_circulante',
-  cartao_credito: 'passivo_circulante',
-  parcelamento: 'passivo_circulante',
-  emprestimo_bancario_curto: 'passivo_circulante',
-  conta_pagar: 'passivo_circulante',
-  financiamento_imovel: 'passivo_nao_circulante',
-  financiamento_carro: 'passivo_nao_circulante',
-  emprestimo_pessoal_longo: 'passivo_nao_circulante',
-  reserva_emergencia: 'ativo_circulante',
-};
 
 const ImprovedPatrimonyManager = () => {
   const {
@@ -51,30 +29,16 @@ const ImprovedPatrimonyManager = () => {
 
   // Form state
   const [entryType, setEntryType] = useState<'asset' | 'liability'>('asset');
-  const [form, setForm] = useState({
-    name: '',
-    value: '',
-    category: '',
-    id: '',
-    isEdit: false,
-    linkType: '',
-    linkedInvestmentId: '',
-    linkedBankAccountId: '',
-  });
-
+  const [form, setForm] = useState<PatrimonyFormData>(PatrimonyFormFactory.createEmptyAssetForm());
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
-  const resetForm = useCallback(() =>
-    setForm({
-      name: '',
-      value: '',
-      category: '',
-      id: '',
-      isEdit: false,
-      linkType: '',
-      linkedInvestmentId: '',
-      linkedBankAccountId: '',
-    }), []);
+  const resetForm = useCallback(() => {
+    if (entryType === 'asset') {
+      setForm(PatrimonyFormFactory.createEmptyAssetForm());
+    } else {
+      setForm(PatrimonyFormFactory.createEmptyLiabilityForm());
+    }
+  }, [entryType]);
 
   const {
     groups,
@@ -99,6 +63,22 @@ const ImprovedPatrimonyManager = () => {
     );
   }, []);
 
+  const handleEditItem = useCallback((item: any) => {
+    const isAsset = item.current_value !== undefined;
+    const entryType = isAsset ? 'asset' : 'liability';
+    setEntryType(entryType);
+    setForm(PatrimonyFormFactory.createEditForm(item, entryType));
+  }, []);
+
+  const handleDeleteItem = useCallback((id: string) => {
+    const item = Object.values(groups).flat().find((x: any) => x.id === id);
+    if (item && item.current_value !== undefined) {
+      deleteAsset(id);
+    } else if (item && item.remaining_amount !== undefined) {
+      deleteLiability(id);
+    }
+  }, [groups, deleteAsset, deleteLiability]);
+
   if (isLoading) return <div>Carregando...</div>;
 
   return (
@@ -114,24 +94,8 @@ const ImprovedPatrimonyManager = () => {
         <PatrimonyListSection
           selectedGroup={selectedGroup}
           groups={groups}
-          onEdit={item => setForm({
-            name: item.name,
-            value: String(item.current_value ?? ""),
-            category: item.category,
-            id: item.id,
-            isEdit: true,
-            linkType: "manual",
-            linkedInvestmentId: "",
-            linkedBankAccountId: "",
-          })}
-          onDelete={id => {
-            const item = groups[selectedGroup].find((x: any) => x.id === id);
-            if (item && item.current_value !== undefined) {
-              deleteAsset(id);
-            } else if (item && item.remaining_amount !== undefined) {
-              deleteLiability(id);
-            }
-          }}
+          onEdit={handleEditItem}
+          onDelete={handleDeleteItem}
         />
       )}
 
