@@ -46,6 +46,11 @@ export const useCreditCardBills = () => {
     mutationFn: async ({ billId, paymentData }: { billId: string; paymentData: BillPaymentFormData }) => {
       console.log('Paying bill:', billId, paymentData);
       
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+      
       const { data, error } = await supabase
         .from('credit_card_bills')
         .update({
@@ -69,6 +74,7 @@ export const useCreditCardBills = () => {
         const { error: expenseError } = await supabase
           .from('expenses')
           .insert({
+            user_id: user.id,
             description: `Fatura Cartão ${billData.credit_cards?.name || 'Cartão'}`,
             amount: billData.total_amount,
             date: paymentData.paid_date,

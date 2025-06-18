@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +8,7 @@ import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { BillPaymentDialog } from './BillPaymentDialog';
-import { CreditCardBill } from '@/types/creditCard';
+import { CreditCardBill, BillPaymentFormData } from '@/types/creditCard';
 
 export const BillsList: React.FC = () => {
   const { bills, upcomingBills, overdueBills, isLoading, payBill, isPaying } = useCreditCardBills();
@@ -19,6 +18,10 @@ export const BillsList: React.FC = () => {
   const handlePayBill = (bill: CreditCardBill) => {
     setSelectedBill(bill);
     setIsPaymentDialogOpen(true);
+  };
+
+  const handlePayBillSubmit = (billId: string, paymentData: BillPaymentFormData) => {
+    payBill({ billId, paymentData });
   };
 
   if (isLoading) {
@@ -176,7 +179,7 @@ export const BillsList: React.FC = () => {
           setIsPaymentDialogOpen(false);
           setSelectedBill(null);
         }}
-        onPayBill={payBill}
+        onPayBill={handlePayBillSubmit}
         isPaying={isPaying}
       />
     </>
