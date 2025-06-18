@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -48,20 +49,27 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
 
   const onSubmit = (data: PurchaseFormData) => {
     console.log('Submitting purchase form:', data);
+    console.log('Manual installments enabled:', isManualInstallments);
+    console.log('Manual installments data:', manualInstallments);
+    
     const submitData = {
       ...data,
-      manual_installments: isManualInstallments ? manualInstallments : undefined,
+      manual_installments: isManualInstallments && manualInstallments.length > 0 ? manualInstallments : undefined,
     };
+    
+    console.log('Final submit data:', submitData);
     createPurchase(submitData);
     onClose();
   };
 
   const handleManualInstallmentsChange = (installments: ManualInstallmentData[]) => {
+    console.log('Manual installments changed:', installments);
     setManualInstallments(installments);
     form.setValue('manual_installments', installments);
   };
 
   const handleToggleManual = (enabled: boolean) => {
+    console.log('Toggling manual installments:', enabled);
     setIsManualInstallments(enabled);
     if (!enabled) {
       setManualInstallments([]);
@@ -220,7 +228,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
               />
             )}
 
-            {!isManualInstallments && installmentValue > 0 && (
+            {!isManualInstallments && installmentValue > 0 && installments > 1 && (
               <div className="p-3 bg-muted rounded-lg">
                 <p className="text-sm">
                   <span className="font-medium">Valor por parcela:</span>{' '}
@@ -230,7 +238,10 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
             )}
 
             <div className="flex gap-2 pt-4">
-              <Button type="submit" disabled={isCreating}>
+              <Button 
+                type="submit" 
+                disabled={isCreating || (isManualInstallments && manualInstallments.length === 0)}
+              >
                 {isCreating ? 'Registrando...' : 'Registrar Compra'}
               </Button>
               <Button type="button" variant="outline" onClick={onClose}>

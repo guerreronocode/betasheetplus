@@ -12,14 +12,10 @@ export const useUnifiedCategories = () => {
     queryFn: async () => {
       console.log('Fetching unified categories...');
       
-      // Buscar categorias únicas de todas as fontes: despesas, receitas e compras de cartão
-      const [expensesResult, incomeResult, purchasesResult] = await Promise.all([
+      // Buscar categorias únicas apenas de despesas e compras de cartão (não receitas)
+      const [expensesResult, purchasesResult] = await Promise.all([
         supabase
           .from('expenses')
-          .select('category')
-          .order('category'),
-        supabase
-          .from('income')
           .select('category')
           .order('category'),
         supabase
@@ -37,11 +33,6 @@ export const useUnifiedCategories = () => {
         throw expensesResult.error;
       }
 
-      if (incomeResult.error) {
-        console.error('Error fetching income categories:', incomeResult.error);
-        throw incomeResult.error;
-      }
-
       if (purchasesResult.error) {
         console.error('Error fetching purchase categories:', purchasesResult.error);
         throw purchasesResult.error;
@@ -50,14 +41,13 @@ export const useUnifiedCategories = () => {
       // Combinar todas as categorias e deduplificar
       const allCategories = [
         ...expensesResult.data.map(item => item.category),
-        ...incomeResult.data.map(item => item.category),
         ...purchasesResult.data.map(item => item.category)
       ];
       
       const uniqueCategories = [...new Set(allCategories)].filter(Boolean);
 
-      // Categorias padrão que devem estar sempre disponíveis (baseadas no AddTransactionForm)
-      const defaultCategories = [
+      // Categorias padrão de despesas (excluindo categorias de receita)
+      const defaultExpenseCategories = [
         'Alimentação',
         'Farmácia',
         'Educação',
@@ -74,18 +64,13 @@ export const useUnifiedCategories = () => {
         'Tecnologia',
         'Viagem',
         'Cartão de Crédito',
-        'Salário',
-        'Freelance',
-        'Investimentos',
-        'Aluguel',
-        'Vendas',
         'Outros'
       ];
 
       // Mesclar categorias do banco com as padrão, removendo duplicatas
-      const finalCategories = [...new Set([...defaultCategories, ...uniqueCategories])].sort();
+      const finalCategories = [...new Set([...defaultExpenseCategories, ...uniqueCategories])].sort();
       
-      console.log('Unified categories fetched:', finalCategories);
+      console.log('Unified expense categories fetched:', finalCategories);
       
       return finalCategories;
     },
