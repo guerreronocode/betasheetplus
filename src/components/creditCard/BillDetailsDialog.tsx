@@ -3,6 +3,7 @@ import React from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -48,10 +49,10 @@ export const BillDetailsDialog: React.FC<BillDetailsDialogProps> = ({
             <Receipt className="h-5 w-5" />
             Detalhes da Fatura - {bill.credit_cards?.name}
           </DialogTitle>
-          <div className="text-sm text-gray-600">
+          <DialogDescription>
             Fatura de {format(new Date(bill.bill_month), 'MMMM/yyyy', { locale: ptBR })} • 
             Vencimento: {format(new Date(bill.due_date), 'dd/MM/yyyy')}
-          </div>
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
