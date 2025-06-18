@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -42,7 +41,8 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({ onClose }) => {
 
   const onSubmit = (data: CreditCardFormData) => {
     console.log('Submitting credit card form:', data);
-    createCreditCard(data);
+    // Force data to match the exact form type
+    createCreditCard(data as CreditCardFormData);
     onClose();
   };
 

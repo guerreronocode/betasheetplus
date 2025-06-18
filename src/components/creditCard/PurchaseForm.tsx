@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -56,7 +55,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
 
   const onSubmit = (data: PurchaseFormData) => {
     console.log('Submitting purchase form:', data);
-    createPurchase(data);
+    // Force data to match the exact form type
+    createPurchase(data as PurchaseFormData);
     onClose();
   };
 
