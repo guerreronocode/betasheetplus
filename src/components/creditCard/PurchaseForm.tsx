@@ -39,20 +39,38 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
 
   const amount = form.watch('amount');
   const installments = form.watch('installments');
+  const manualInstallments = form.watch('manual_installments') || [];
+
+  // Gerar parcelas iniciais quando o número de parcelas mudar
+  React.useEffect(() => {
+    if (installments > 0 && amount > 0) {
+      const defaultAmount = amount / installments;
+      const newInstallments = Array.from({ length: installments }, (_, index) => ({
+        installment_number: index + 1,
+        amount: Number(defaultAmount.toFixed(2)),
+      }));
+      form.setValue('manual_installments', newInstallments);
+    }
+  }, [installments, amount, form]);
+
+  const handleInstallmentChange = (index: number, value: string) => {
+    const newAmount = parseFloat(value) || 0;
+    const updated = [...manualInstallments];
+    updated[index] = { ...updated[index], amount: newAmount };
+    form.setValue('manual_installments', updated);
+  };
+
+  const calculateTotal = () => {
+    return manualInstallments.reduce((sum, inst) => sum + inst.amount, 0);
+  };
+
+  const currentTotal = calculateTotal();
+  const difference = currentTotal - amount;
+  const hasInterest = difference > 0.01;
+  const interestPercentage = amount > 0 ? (difference / amount) * 100 : 0;
 
   const onSubmit = (data: PurchaseFormData) => {
     console.log('Submitting purchase form:', data);
-    
-    // Se temos mais de 1 parcela, criar manual_installments com valores iguais
-    let manualInstallments: ManualInstallmentData[] = [];
-    
-    if (installments > 1 && amount > 0) {
-      const installmentValue = amount / installments;
-      manualInstallments = Array.from({ length: installments }, (_, index) => ({
-        installment_number: index + 1,
-        amount: Number(installmentValue.toFixed(2))
-      }));
-    }
     
     const submitData = {
       ...data,
@@ -63,9 +81,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
     createPurchase(submitData);
     onClose();
   };
-
-  // Calcular valor da parcela
-  const installmentValue = installments > 0 && amount > 0 ? amount / installments : 0;
 
   return (
     <Card>
@@ -197,20 +212,63 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
               )}
             />
 
-            {/* Exibir valor da parcela quando há mais de 1 parcela */}
-            {installments > 1 && amount > 0 && (
+            {/* Valores das parcelas */}
+            {installments > 0 && amount > 0 && (
               <div className="space-y-3">
-                <div className="bg-gray-50 p-3 rounded border">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Valor de cada parcela:</span>
-                    <span className="font-medium text-green-600">
-                      R$ {installmentValue.toFixed(2)}
-                    </span>
+                <div className="border rounded-lg p-4 bg-gray-50">
+                  <h4 className="font-medium text-sm mb-3">Valores das Parcelas</h4>
+                  <div className="grid grid-cols-2 gap-3 max-h-60 overflow-y-auto">
+                    {manualInstallments.map((installment, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <label className="text-xs w-12 flex-shrink-0 text-gray-600">
+                          {installment.installment_number}ª:
+                        </label>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          min="0.01"
+                          value={installment.amount || ''}
+                          onChange={(e) => handleInstallmentChange(index, e.target.value)}
+                          className="text-sm h-8"
+                          placeholder="0.00"
+                        />
+                      </div>
+                    ))}
                   </div>
-                  <div className="flex justify-between text-sm mt-1">
-                    <span className="text-gray-600">Total ({installments}x):</span>
+                </div>
+
+                {/* Resumo dos valores */}
+                <div className="border-t pt-3 space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Valor da compra:</span>
                     <span className="font-medium">R$ {amount.toFixed(2)}</span>
                   </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Total das parcelas:</span>
+                    <span className="font-medium">R$ {currentTotal.toFixed(2)}</span>
+                  </div>
+                  
+                  {hasInterest && (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-amber-600">Juros (valor):</span>
+                        <span className="font-medium text-amber-600">R$ {difference.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-amber-600">Juros (%):</span>
+                        <span className="font-medium text-amber-600">{interestPercentage.toFixed(2)}%</span>
+                      </div>
+                      <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
+                        💰 Você está pagando R$ {difference.toFixed(2)} de juros ({interestPercentage.toFixed(2)}%) sobre o valor da compra.
+                      </div>
+                    </>
+                  )}
+                  
+                  {!hasInterest && Math.abs(difference) < 0.01 && (
+                    <div className="text-xs text-green-600 bg-green-50 p-2 rounded border border-green-200">
+                      ✅ Perfeito! O total das parcelas é igual ao valor da compra.
+                    </div>
+                  )}
                 </div>
               </div>
             )}
