@@ -12,19 +12,32 @@ import { useCreditCardPurchases } from '@/hooks/useCreditCardPurchases';
 import { useUnifiedCategories } from '@/hooks/useUnifiedCategories';
 import { X } from 'lucide-react';
 import { format } from 'date-fns';
-import { purchaseSchema, PurchaseFormData, ManualInstallmentData } from '@/types/creditCard';
+import * as z from 'zod';
 
 interface PurchaseFormProps {
   onClose: () => void;
 }
+
+// Schema simplificado para o formulário
+const simplifiedPurchaseSchema = z.object({
+  credit_card_id: z.string().min(1, 'Selecione um cartão'),
+  description: z.string().min(1, 'Descrição é obrigatória'),
+  amount: z.number().min(0.01, 'Valor deve ser maior que zero'),
+  purchase_date: z.string().min(1, 'Data é obrigatória'),
+  installments: z.number().min(1, 'Parcelas deve ser ao menos 1').max(36, 'Máximo 36 parcelas'),
+  category: z.string().min(1, 'Categoria é obrigatória'),
+  installment_value: z.number().min(0.01, 'Valor da parcela deve ser maior que zero'),
+});
+
+type SimplifiedPurchaseFormData = z.infer<typeof simplifiedPurchaseSchema>;
 
 export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   const { creditCards } = useCreditCards();
   const { createPurchase, isCreating } = useCreditCardPurchases();
   const { categories } = useUnifiedCategories();
 
-  const form = useForm<PurchaseFormData>({
-    resolver: zodResolver(purchaseSchema),
+  const form = useForm<SimplifiedPurchaseFormData>({
+    resolver: zodResolver(simplifiedPurchaseSchema),
     defaultValues: {
       credit_card_id: '',
       description: '',
@@ -32,49 +45,46 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
       purchase_date: format(new Date(), 'yyyy-MM-dd'),
       installments: 1,
       category: '',
-      manual_installments: [],
+      installment_value: 0,
     },
     mode: 'onChange',
   });
 
   const amount = form.watch('amount');
   const installments = form.watch('installments');
-  const manualInstallments = form.watch('manual_installments') || [];
+  const installmentValue = form.watch('installment_value');
 
-  // Gerar parcelas iniciais quando o número de parcelas mudar
-  React.useEffect(() => {
-    if (installments > 0 && amount > 0) {
-      const defaultAmount = amount / installments;
-      const newInstallments = Array.from({ length: installments }, (_, index) => ({
-        installment_number: index + 1,
-        amount: Number(defaultAmount.toFixed(2)),
-      }));
-      form.setValue('manual_installments', newInstallments);
-    }
-  }, [installments, amount, form]);
-
-  const handleInstallmentChange = (index: number, value: string) => {
-    const newAmount = parseFloat(value) || 0;
-    const updated = [...manualInstallments];
-    updated[index] = { ...updated[index], amount: newAmount };
-    form.setValue('manual_installments', updated);
-  };
-
-  const calculateTotal = () => {
-    return manualInstallments.reduce((sum, inst) => sum + inst.amount, 0);
-  };
-
-  const currentTotal = calculateTotal();
-  const difference = currentTotal - amount;
+  // Calcular o total das parcelas
+  const totalInstallments = installmentValue * installments;
+  const difference = totalInstallments - amount;
   const hasInterest = difference > 0.01;
   const interestPercentage = amount > 0 ? (difference / amount) * 100 : 0;
 
-  const onSubmit = (data: PurchaseFormData) => {
-    console.log('Submitting purchase form:', data);
+  // Atualizar valor da parcela quando o valor total ou número de parcelas mudar
+  React.useEffect(() => {
+    if (amount > 0 && installments > 0) {
+      const defaultInstallmentValue = amount / installments;
+      form.setValue('installment_value', Number(defaultInstallmentValue.toFixed(2)));
+    }
+  }, [amount, installments, form]);
+
+  const onSubmit = (data: SimplifiedPurchaseFormData) => {
+    console.log('Submitting simplified purchase form:', data);
+    
+    // Gerar as parcelas manuais com base no valor da parcela
+    const manualInstallments = Array.from({ length: data.installments }, (_, index) => ({
+      installment_number: index + 1,
+      amount: data.installment_value,
+    }));
     
     const submitData = {
-      ...data,
-      manual_installments: manualInstallments.length > 0 ? manualInstallments : undefined,
+      credit_card_id: data.credit_card_id,
+      description: data.description,
+      amount: data.amount,
+      purchase_date: data.purchase_date,
+      installments: data.installments,
+      category: data.category,
+      manual_installments: manualInstallments,
     };
     
     console.log('Final submit data:', submitData);
@@ -212,64 +222,64 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
               )}
             />
 
-            {/* Valores das parcelas */}
-            {installments > 0 && amount > 0 && (
-              <div className="space-y-3">
-                <div className="border rounded-lg p-4 bg-gray-50">
-                  <h4 className="font-medium text-sm mb-3">Valores das Parcelas</h4>
-                  <div className="grid grid-cols-2 gap-3 max-h-60 overflow-y-auto">
-                    {manualInstallments.map((installment, index) => (
-                      <div key={index} className="flex items-center space-x-2">
-                        <label className="text-xs w-12 flex-shrink-0 text-gray-600">
-                          {installment.installment_number}ª:
-                        </label>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          min="0.01"
-                          value={installment.amount || ''}
-                          onChange={(e) => handleInstallmentChange(index, e.target.value)}
-                          className="text-sm h-8"
-                          placeholder="0.00"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            <FormField
+              control={form.control}
+              name="installment_value"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Valor da Parcela</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                {/* Resumo dos valores */}
-                <div className="border-t pt-3 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Valor da compra:</span>
-                    <span className="font-medium">R$ {amount.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Total das parcelas:</span>
-                    <span className="font-medium">R$ {currentTotal.toFixed(2)}</span>
-                  </div>
-                  
-                  {hasInterest && (
-                    <>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-amber-600">Juros (valor):</span>
-                        <span className="font-medium text-amber-600">R$ {difference.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-amber-600">Juros (%):</span>
-                        <span className="font-medium text-amber-600">{interestPercentage.toFixed(2)}%</span>
-                      </div>
-                      <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
-                        💰 Você está pagando R$ {difference.toFixed(2)} de juros ({interestPercentage.toFixed(2)}%) sobre o valor da compra.
-                      </div>
-                    </>
-                  )}
-                  
-                  {!hasInterest && Math.abs(difference) < 0.01 && (
-                    <div className="text-xs text-green-600 bg-green-50 p-2 rounded border border-green-200">
-                      ✅ Perfeito! O total das parcelas é igual ao valor da compra.
-                    </div>
-                  )}
+            {/* Resumo dos valores */}
+            {installments > 0 && installmentValue > 0 && (
+              <div className="border rounded-lg p-4 bg-gray-50 space-y-2">
+                <h4 className="font-medium text-sm mb-2">Resumo da Compra</h4>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Valor da compra:</span>
+                  <span className="font-medium">R$ {amount.toFixed(2)}</span>
                 </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Valor da parcela:</span>
+                  <span className="font-medium">R$ {installmentValue.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Total das parcelas:</span>
+                  <span className="font-medium">R$ {totalInstallments.toFixed(2)}</span>
+                </div>
+                
+                {hasInterest && (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-amber-600">Juros (valor):</span>
+                      <span className="font-medium text-amber-600">R$ {difference.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-amber-600">Juros (%):</span>
+                      <span className="font-medium text-amber-600">{interestPercentage.toFixed(2)}%</span>
+                    </div>
+                    <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded border border-amber-200">
+                      💰 Você está pagando R$ {difference.toFixed(2)} de juros ({interestPercentage.toFixed(2)}%) sobre o valor da compra.
+                    </div>
+                  </>
+                )}
+                
+                {!hasInterest && Math.abs(difference) < 0.01 && (
+                  <div className="text-xs text-green-600 bg-green-50 p-2 rounded border border-green-200">
+                    ✅ Perfeito! O total das parcelas é igual ao valor da compra.
+                  </div>
+                )}
               </div>
             )}
 
