@@ -1,138 +1,129 @@
 
 import React from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useCreditCards } from '@/hooks/useCreditCards';
-import { X } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { creditCardSchema, CreditCardFormData } from '@/types/creditCard';
+import { useCreditCards } from '@/hooks/useCreditCards';
+import { CreditCard } from 'lucide-react';
 
-interface CreditCardFormProps {
-  onClose: () => void;
-}
-
-export const CreditCardForm: React.FC<CreditCardFormProps> = ({ onClose }) => {
+export const CreditCardForm: React.FC = () => {
   const { createCreditCard, isCreating } = useCreditCards();
-
-  const form = useForm<CreditCardFormData>({
+  
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    formState: { errors }
+  } = useForm<CreditCardFormData>({
     resolver: zodResolver(creditCardSchema),
     defaultValues: {
-      name: '',
-      credit_limit: 0,
-      closing_day: 1,
-      due_day: 1,
-    },
-    mode: 'onChange',
+      include_in_patrimony: false
+    }
   });
 
+  const includeInPatrimony = watch('include_in_patrimony');
+
   const onSubmit = (data: CreditCardFormData) => {
-    console.log('Submitting credit card form:', data);
     createCreditCard(data);
-    onClose();
+    reset();
   };
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Novo Cartão de Crédito</CardTitle>
-        <Button variant="ghost" size="sm" onClick={onClose}>
-          <X className="h-4 w-4" />
-        </Button>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <CreditCard className="h-5 w-5" />
+          Novo Cartão de Crédito
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome do Cartão</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex: Nubank, Santander, etc." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div>
+            <Label htmlFor="name">Nome do Cartão</Label>
+            <Input
+              id="name"
+              type="text"
+              placeholder="Ex: Cartão Principal"
+              {...register('name')}
             />
+            {errors.name && (
+              <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+            )}
+          </div>
 
-            <FormField
-              control={form.control}
-              name="credit_limit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Limite de Crédito</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      placeholder="0.00"
-                      {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+          <div>
+            <Label htmlFor="credit_limit">Limite de Crédito</Label>
+            <Input
+              id="credit_limit"
+              type="number"
+              step="0.01"
+              placeholder="0,00"
+              {...register('credit_limit', { valueAsNumber: true })}
             />
+            {errors.credit_limit && (
+              <p className="text-red-500 text-sm mt-1">{errors.credit_limit.message}</p>
+            )}
+          </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="closing_day"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dia de Fechamento</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="1"
-                        max="31"
-                        placeholder="10"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="closing_day">Dia do Fechamento</Label>
+              <Input
+                id="closing_day"
+                type="number"
+                min="1"
+                max="31"
+                placeholder="Ex: 15"
+                {...register('closing_day', { valueAsNumber: true })}
               />
-
-              <FormField
-                control={form.control}
-                name="due_day"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Dia de Vencimento</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="1"
-                        max="31"
-                        placeholder="15"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {errors.closing_day && (
+                <p className="text-red-500 text-sm mt-1">{errors.closing_day.message}</p>
+              )}
             </div>
 
-            <div className="flex gap-2 pt-4">
-              <Button type="submit" disabled={isCreating}>
-                {isCreating ? 'Criando...' : 'Criar Cartão'}
-              </Button>
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancelar
-              </Button>
+            <div>
+              <Label htmlFor="due_day">Dia do Vencimento</Label>
+              <Input
+                id="due_day"
+                type="number"
+                min="1"
+                max="31"
+                placeholder="Ex: 10"
+                {...register('due_day', { valueAsNumber: true })}
+              />
+              {errors.due_day && (
+                <p className="text-red-500 text-sm mt-1">{errors.due_day.message}</p>
+              )}
             </div>
-          </form>
-        </Form>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="include_in_patrimony"
+              checked={includeInPatrimony}
+              onCheckedChange={(checked) => setValue('include_in_patrimony', checked as boolean)}
+            />
+            <Label htmlFor="include_in_patrimony" className="text-sm font-normal">
+              Incluir no cálculo do patrimônio
+            </Label>
+          </div>
+          {includeInPatrimony && (
+            <p className="text-xs text-gray-500 ml-6">
+              O limite disponível será considerado como ativo no seu patrimônio líquido.
+            </p>
+          )}
+
+          <Button type="submit" className="w-full" disabled={isCreating}>
+            {isCreating ? 'Criando...' : 'Criar Cartão'}
+          </Button>
+        </form>
       </CardContent>
     </Card>
   );

@@ -177,6 +177,8 @@ export type Database = {
           due_date: string
           id: string
           is_paid: boolean
+          paid_account_id: string | null
+          paid_date: string | null
           total_amount: number
           updated_at: string
           user_id: string
@@ -189,6 +191,8 @@ export type Database = {
           due_date: string
           id?: string
           is_paid?: boolean
+          paid_account_id?: string | null
+          paid_date?: string | null
           total_amount?: number
           updated_at?: string
           user_id: string
@@ -201,6 +205,8 @@ export type Database = {
           due_date?: string
           id?: string
           is_paid?: boolean
+          paid_account_id?: string | null
+          paid_date?: string | null
           total_amount?: number
           updated_at?: string
           user_id?: string
@@ -211,6 +217,13 @@ export type Database = {
             columns: ["credit_card_id"]
             isOneToOne: false
             referencedRelation: "credit_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_card_bills_paid_account_id_fkey"
+            columns: ["paid_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
             referencedColumns: ["id"]
           },
         ]
@@ -323,6 +336,7 @@ export type Database = {
           credit_limit: number
           due_day: number
           id: string
+          include_in_patrimony: boolean
           is_active: boolean
           name: string
           updated_at: string
@@ -334,6 +348,7 @@ export type Database = {
           credit_limit?: number
           due_day: number
           id?: string
+          include_in_patrimony?: boolean
           is_active?: boolean
           name: string
           updated_at?: string
@@ -345,6 +360,7 @@ export type Database = {
           credit_limit?: number
           due_day?: number
           id?: string
+          include_in_patrimony?: boolean
           is_active?: boolean
           name?: string
           updated_at?: string
@@ -930,6 +946,17 @@ export type Database = {
       calculate_bill_month: {
         Args: { purchase_date: string; closing_day: number }
         Returns: string
+      }
+      calculate_credit_cards_patrimony: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
+      calculate_projected_credit_limit: {
+        Args: { p_credit_card_id: string; p_months_ahead?: number }
+        Returns: {
+          month: string
+          projected_available_limit: number
+        }[]
       }
       update_investment_yields: {
         Args: Record<PropertyKey, never>

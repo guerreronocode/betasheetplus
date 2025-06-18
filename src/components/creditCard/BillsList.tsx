@@ -1,15 +1,25 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Calendar, AlertCircle, CheckCircle } from 'lucide-react';
 import { useCreditCardBills } from '@/hooks/useCreditCardBills';
 import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { BillPaymentDialog } from './BillPaymentDialog';
+import { CreditCardBill } from '@/types/creditCard';
 
 export const BillsList: React.FC = () => {
-  const { bills, upcomingBills, overdueBills, isLoading } = useCreditCardBills();
+  const { bills, upcomingBills, overdueBills, isLoading, payBill, isPaying } = useCreditCardBills();
+  const [selectedBill, setSelectedBill] = useState<CreditCardBill | null>(null);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+
+  const handlePayBill = (bill: CreditCardBill) => {
+    setSelectedBill(bill);
+    setIsPaymentDialogOpen(true);
+  };
 
   if (isLoading) {
     return (
@@ -44,9 +54,8 @@ export const BillsList: React.FC = () => {
     );
   }
 
-  const getStatusBadge = (bill: any) => {
+  const getStatusBadge = (bill: CreditCardBill) => {
     const isOverdue = !bill.is_paid && new Date(bill.due_date) < new Date();
-    const isUpcoming = !bill.is_paid && new Date(bill.due_date) >= new Date();
     
     if (bill.is_paid) {
       return (
@@ -75,79 +84,101 @@ export const BillsList: React.FC = () => {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Resumo rápido */}
-      {(upcomingBills.length > 0 || overdueBills.length > 0) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {upcomingBills.length > 0 && (
-            <Card className="border-blue-200">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-blue-600">Próximas Faturas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-600">
-                  {formatCurrency(upcomingBills.reduce((sum, bill) => sum + bill.total_amount, 0))}
-                </div>
-                <p className="text-xs text-gray-500">{upcomingBills.length} faturas</p>
-              </CardContent>
-            </Card>
-          )}
-          
-          {overdueBills.length > 0 && (
-            <Card className="border-red-200">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm text-red-600">Em Atraso</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">
-                  {formatCurrency(overdueBills.reduce((sum, bill) => sum + bill.total_amount, 0))}
-                </div>
-                <p className="text-xs text-gray-500">{overdueBills.length} faturas</p>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      )}
+    <>
+      <div className="space-y-4">
+        {/* Resumo rápido */}
+        {(upcomingBills.length > 0 || overdueBills.length > 0) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            {upcomingBills.length > 0 && (
+              <Card className="border-blue-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-blue-600">Próximas Faturas</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {formatCurrency(upcomingBills.reduce((sum, bill) => sum + bill.total_amount, 0))}
+                  </div>
+                  <p className="text-xs text-gray-500">{upcomingBills.length} faturas</p>
+                </CardContent>
+              </Card>
+            )}
+            
+            {overdueBills.length > 0 && (
+              <Card className="border-red-200">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm text-red-600">Em Atraso</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">
+                    {formatCurrency(overdueBills.reduce((sum, bill) => sum + bill.total_amount, 0))}
+                  </div>
+                  <p className="text-xs text-gray-500">{overdueBills.length} faturas</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
 
-      {/* Lista de faturas */}
-      <div className="space-y-3">
-        {bills.map((bill) => (
-          <Card key={bill.id} className="hover:shadow-md transition-shadow">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-medium">
-                      {bill.credit_cards?.name || 'Cartão'}
-                    </h3>
-                    {getStatusBadge(bill)}
+        {/* Lista de faturas */}
+        <div className="space-y-3">
+          {bills.map((bill) => (
+            <Card key={bill.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-medium">
+                        {bill.credit_cards?.name || 'Cartão'}
+                      </h3>
+                      {getStatusBadge(bill)}
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                      <div>
+                        <span className="font-medium">Fatura:</span>{' '}
+                        {format(new Date(bill.bill_month), 'MMM/yyyy', { locale: ptBR })}
+                      </div>
+                      <div>
+                        <span className="font-medium">Vencimento:</span>{' '}
+                        {format(new Date(bill.due_date), 'dd/MM/yyyy')}
+                      </div>
+                    </div>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                    <div>
-                      <span className="font-medium">Fatura:</span>{' '}
-                      {format(new Date(bill.bill_month), 'MMM/yyyy', { locale: ptBR })}
+                  <div className="text-right">
+                    <div className="text-lg font-bold">
+                      {formatCurrency(bill.total_amount)}
                     </div>
-                    <div>
-                      <span className="font-medium">Vencimento:</span>{' '}
-                      {format(new Date(bill.due_date), 'dd/MM/yyyy')}
+                    <div className="text-xs text-gray-500 mb-2">
+                      Fechamento: {format(new Date(bill.closing_date), 'dd/MM')}
                     </div>
+                    {!bill.is_paid && (
+                      <Button
+                        size="sm"
+                        onClick={() => handlePayBill(bill)}
+                        disabled={isPaying}
+                      >
+                        Marcar como Paga
+                      </Button>
+                    )}
                   </div>
                 </div>
-                
-                <div className="text-right">
-                  <div className="text-lg font-bold">
-                    {formatCurrency(bill.total_amount)}
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    Fechamento: {format(new Date(bill.closing_date), 'dd/MM')}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          ))}
+        </div>
       </div>
-    </div>
+
+      <BillPaymentDialog
+        bill={selectedBill}
+        isOpen={isPaymentDialogOpen}
+        onClose={() => {
+          setIsPaymentDialogOpen(false);
+          setSelectedBill(null);
+        }}
+        onPayBill={payBill}
+        isPaying={isPaying}
+      />
+    </>
   );
 };

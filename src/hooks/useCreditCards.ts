@@ -48,6 +48,7 @@ export const useCreditCards = () => {
         credit_limit: cardData.credit_limit,
         closing_day: cardData.closing_day,
         due_day: cardData.due_day,
+        include_in_patrimony: cardData.include_in_patrimony || false,
       };
 
       const { data, error } = await supabase
