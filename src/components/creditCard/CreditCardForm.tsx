@@ -36,14 +36,8 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({ onClose }) => {
 
   const onSubmit = (data: CreditCardFormData) => {
     console.log('Submitting credit card form:', data);
-    // Ensure all required fields are present
-    const cardData: CreditCardFormData = {
-      name: data.name,
-      credit_limit: data.credit_limit,
-      closing_day: data.closing_day,
-      due_day: data.due_day,
-    };
-    createCreditCard(cardData);
+    // Since data has passed validation, we can safely use it as CreditCardFormData
+    createCreditCard(data);
     onClose();
   };
 
