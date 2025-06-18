@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useCreditCardPurchases } from '@/hooks/useCreditCardPurchases';
-import { useIntegratedCategories } from '@/hooks/useIntegratedCategories';
+import { useExpenseCategories } from '@/hooks/useExpenseCategories';
 import { ManualInstallmentsEditor } from './ManualInstallmentsEditor';
 import { X } from 'lucide-react';
 import { format } from 'date-fns';
@@ -22,7 +22,7 @@ interface PurchaseFormProps {
 export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   const { creditCards } = useCreditCards();
   const { createPurchase, isCreating } = useCreditCardPurchases();
-  const { categories } = useIntegratedCategories();
+  const { categories } = useExpenseCategories();
   
   const [isManualInstallments, setIsManualInstallments] = useState(false);
   const [manualInstallments, setManualInstallments] = useState<ManualInstallmentData[]>([]);

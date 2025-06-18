@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ShoppingBag, Edit, Calendar, AlertTriangle } from 'lucide-react';
+import { ShoppingBag, Edit, Calendar } from 'lucide-react';
 import { usePurchaseStatus } from '@/hooks/usePurchaseStatus';
 import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
@@ -82,7 +82,6 @@ export const PurchaseStatusPanel: React.FC = () => {
             {purchases.map((purchase) => {
               const progressPercentage = (purchase.paid_installments / purchase.installments) * 100;
               const isCompleted = purchase.paid_installments >= purchase.installments;
-              const isCardDeleted = !purchase.credit_card_active;
               
               return (
                 <div key={purchase.id} className="p-4 border rounded-lg space-y-3">
@@ -95,14 +94,8 @@ export const PurchaseStatusPanel: React.FC = () => {
                             Quitada
                           </Badge>
                         )}
-                        {isCardDeleted && (
-                          <Badge variant="outline" className="text-orange-600 border-orange-600">
-                            <AlertTriangle className="h-3 w-3 mr-1" />
-                            Cartão Excluído
-                          </Badge>
-                        )}
                       </div>
-                      <p className={`text-sm mb-2 ${isCardDeleted ? 'text-orange-600' : 'text-gray-600'}`}>
+                      <p className="text-sm text-gray-600 mb-2">
                         {purchase.credit_card_name}
                       </p>
                       <div className="flex items-center gap-2 text-xs text-gray-500">
@@ -120,15 +113,13 @@ export const PurchaseStatusPanel: React.FC = () => {
                       <div className="text-lg font-bold">
                         {formatCurrency(purchase.total_amount)}
                       </div>
-                      {purchase.credit_card_active && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditPurchase(purchase)}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditPurchase(purchase)}
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
                     </div>
                   </div>
                   

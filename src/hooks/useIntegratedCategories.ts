@@ -20,7 +20,11 @@ export const useIntegratedCategories = () => {
           .order('category'),
         supabase
           .from('credit_card_purchases')
-          .select('category')
+          .select(`
+            category,
+            credit_cards!inner(is_active)
+          `)
+          .eq('credit_cards.is_active', true)
           .order('category')
       ]);
 

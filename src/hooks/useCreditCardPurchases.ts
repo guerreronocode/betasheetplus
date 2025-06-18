@@ -20,8 +20,9 @@ export const useCreditCardPurchases = () => {
         .from('credit_card_purchases')
         .select(`
           *,
-          credit_cards(name, is_active)
+          credit_cards!inner(name, is_active)
         `)
+        .eq('credit_cards.is_active', true)
         .order('purchase_date', { ascending: false });
 
       if (error) {
