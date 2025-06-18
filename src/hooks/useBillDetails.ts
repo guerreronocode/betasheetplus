@@ -47,7 +47,7 @@ export const useBillDetails = (creditCardId: string, billMonth: string) => {
         `)
         .eq('credit_card_purchases.credit_card_id', creditCardId)
         .eq('bill_month', billMonth)
-        .order('credit_card_purchases.purchase_date', { ascending: false });
+        .order('purchase_date', { foreignTable: 'credit_card_purchases', ascending: false });
 
       if (error) {
         console.error('Error fetching bill details:', error);
