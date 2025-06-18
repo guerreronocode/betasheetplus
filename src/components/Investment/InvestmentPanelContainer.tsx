@@ -10,7 +10,21 @@ import InvestmentList from './InvestmentList';
 import InvestmentSummary from './InvestmentSummary';
 
 const InvestmentPanelContainer: React.FC = () => {
-  const { investments, investmentsLoading } = useInvestments();
+  const { investments, investmentsLoading, updateInvestment, deleteInvestment } = useInvestments();
+
+  // Calcular totais para o InvestmentSummary
+  const totalInvested = investments.reduce((sum, inv) => sum + inv.amount, 0);
+  const currentInvestmentValue = investments.reduce((sum, inv) => sum + (inv.current_value || inv.amount), 0);
+  const investmentReturn = currentInvestmentValue - totalInvested;
+
+  const handleEdit = (investment: any) => {
+    // Implementar lógica de edição se necessário
+    console.log('Edit investment:', investment);
+  };
+
+  const handleDelete = (id: string) => {
+    deleteInvestment(id);
+  };
 
   if (investmentsLoading) {
     return (
@@ -44,10 +58,20 @@ const InvestmentPanelContainer: React.FC = () => {
       </Card>
 
       {/* Summary */}
-      {investments.length > 0 && <InvestmentSummary investments={investments} />}
+      {investments.length > 0 && (
+        <InvestmentSummary 
+          totalInvested={totalInvested}
+          currentInvestmentValue={currentInvestmentValue}
+          investmentReturn={investmentReturn}
+        />
+      )}
 
       {/* Investment List */}
-      <InvestmentList investments={investments} />
+      <InvestmentList 
+        investments={investments}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
     </div>
   );
 };
