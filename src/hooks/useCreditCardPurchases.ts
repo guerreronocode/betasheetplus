@@ -20,7 +20,7 @@ export const useCreditCardPurchases = () => {
         .from('credit_card_purchases')
         .select(`
           *,
-          credit_cards(name)
+          credit_cards(name, is_active)
         `)
         .order('purchase_date', { ascending: false });
 
@@ -30,7 +30,7 @@ export const useCreditCardPurchases = () => {
       }
 
       console.log('Purchases fetched:', data);
-      return data;
+      return data as CreditCardPurchase[];
     },
   });
 
@@ -43,34 +43,145 @@ export const useCreditCardPurchases = () => {
         throw new Error('User not authenticated');
       }
 
-      // Converter dados do formulário para dados de inserção
-      const insertData: PurchaseInsertData = {
-        user_id: user.id,
-        credit_card_id: purchaseData.credit_card_id,
-        description: purchaseData.description,
-        amount: purchaseData.amount,
-        purchase_date: purchaseData.purchase_date,
-        installments: purchaseData.installments,
-        category: purchaseData.category,
-      };
+      // Se temos parcelas manuais, usar processo customizado
+      if (purchaseData.manual_installments && purchaseData.manual_installments.length > 0) {
+        // Criar compra
+        const insertData: Omit<PurchaseInsertData, 'manual_installments'> = {
+          user_id: user.id,
+          credit_card_id: purchaseData.credit_card_id,
+          description: purchaseData.description,
+          amount: purchaseData.amount,
+          purchase_date: purchaseData.purchase_date,
+          installments: purchaseData.installments,
+          category: purchaseData.category,
+        };
 
-      const { data, error } = await supabase
-        .from('credit_card_purchases')
-        .insert(insertData)
-        .select()
-        .single();
+        const { data: purchase, error: purchaseError } = await supabase
+          .from('credit_card_purchases')
+          .insert(insertData)
+          .select()
+          .single();
 
-      if (error) {
-        console.error('Error creating purchase:', error);
-        throw error;
+        if (purchaseError) {
+          console.error('Error creating purchase:', purchaseError);
+          throw purchaseError;
+        }
+
+        // Buscar dados do cartão para calcular datas
+        const { data: card, error: cardError } = await supabase
+          .from('credit_cards')
+          .select('closing_day, due_day')
+          .eq('id', purchaseData.credit_card_id)
+          .single();
+
+        if (cardError) {
+          console.error('Error fetching card data:', cardError);
+          throw cardError;
+        }
+
+        // Criar parcelas manuais
+        for (const [index, installment] of purchaseData.manual_installments.entries()) {
+          const installmentDate = new Date(purchaseData.purchase_date);
+          installmentDate.setMonth(installmentDate.getMonth() + index);
+
+          // Calcular bill_month usando a mesma lógica do trigger
+          const { data: billMonth, error: billMonthError } = await supabase
+            .rpc('calculate_bill_month', {
+              purchase_date: installmentDate.toISOString().split('T')[0],
+              closing_day: card.closing_day
+            });
+
+          if (billMonthError) {
+            console.error('Error calculating bill month:', billMonthError);
+            throw billMonthError;
+          }
+
+          const billMonthDate = new Date(billMonth);
+          const billCycleMonth = new Date(billMonthDate.getFullYear(), billMonthDate.getMonth(), 1);
+          
+          // Calcular due_date
+          const dueDateMonth = new Date(billCycleMonth);
+          dueDateMonth.setMonth(dueDateMonth.getMonth() + 1);
+          const safeDueDay = Math.min(card.due_day, new Date(dueDateMonth.getFullYear(), dueDateMonth.getMonth() + 1, 0).getDate());
+          const dueDate = new Date(dueDateMonth.getFullYear(), dueDateMonth.getMonth(), safeDueDay - 1);
+
+          // Inserir parcela manual
+          const { error: installmentError } = await supabase
+            .from('credit_card_installments')
+            .insert({
+              user_id: user.id,
+              purchase_id: purchase.id,
+              credit_card_id: purchaseData.credit_card_id,
+              installment_number: installment.installment_number,
+              amount: installment.amount,
+              due_date: dueDate.toISOString().split('T')[0],
+              bill_month: billCycleMonth.toISOString().split('T')[0],
+            });
+
+          if (installmentError) {
+            console.error('Error creating manual installment:', installmentError);
+            throw installmentError;
+          }
+
+          // Criar ou atualizar fatura
+          const { error: billError } = await supabase
+            .from('credit_card_bills')
+            .insert({
+              user_id: user.id,
+              credit_card_id: purchaseData.credit_card_id,
+              bill_month: billCycleMonth.toISOString().split('T')[0],
+              total_amount: installment.amount,
+              closing_date: billMonth,
+              due_date: dueDate.toISOString().split('T')[0],
+            })
+            .select()
+            .single();
+
+          // Se já existe, atualizar total
+          if (billError && billError.code === '23505') {
+            await supabase
+              .from('credit_card_bills')
+              .update({
+                total_amount: supabase.raw('total_amount + ?', [installment.amount]),
+                updated_at: new Date().toISOString()
+              })
+              .eq('credit_card_id', purchaseData.credit_card_id)
+              .eq('bill_month', billCycleMonth.toISOString().split('T')[0]);
+          }
+        }
+
+        return purchase;
+      } else {
+        // Processo padrão - deixar o trigger processar
+        const insertData: Omit<PurchaseInsertData, 'manual_installments'> = {
+          user_id: user.id,
+          credit_card_id: purchaseData.credit_card_id,
+          description: purchaseData.description,
+          amount: purchaseData.amount,
+          purchase_date: purchaseData.purchase_date,
+          installments: purchaseData.installments,
+          category: purchaseData.category,
+        };
+
+        const { data, error } = await supabase
+          .from('credit_card_purchases')
+          .insert(insertData)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('Error creating purchase:', error);
+          throw error;
+        }
+
+        return data;
       }
-
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credit-card-purchases'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-bills'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-installments'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
       queryClient.invalidateQueries({ queryKey: ['purchase-status'] });
       toast({
         title: "Compra registrada!",
@@ -108,6 +219,7 @@ export const useCreditCardPurchases = () => {
       queryClient.invalidateQueries({ queryKey: ['credit-card-purchases'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-bills'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-installments'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
       queryClient.invalidateQueries({ queryKey: ['purchase-status'] });
       toast({
         title: "Compra atualizada!",

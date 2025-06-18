@@ -13,6 +13,12 @@ export const creditCardSchema = z.object({
   path: ["due_day"],
 });
 
+// Schema para parcelas manuais
+export const manualInstallmentSchema = z.object({
+  installment_number: z.number().min(1),
+  amount: z.number().min(0.01, 'Valor deve ser maior que zero'),
+});
+
 export const purchaseSchema = z.object({
   credit_card_id: z.string().min(1, 'Selecione um cartão'),
   description: z.string().min(1, 'Descrição é obrigatória'),
@@ -20,6 +26,16 @@ export const purchaseSchema = z.object({
   purchase_date: z.string().min(1, 'Data é obrigatória'),
   installments: z.number().min(1, 'Parcelas deve ser ao menos 1').max(36, 'Máximo 36 parcelas'),
   category: z.string().min(1, 'Categoria é obrigatória'),
+  manual_installments: z.array(manualInstallmentSchema).optional(),
+}).refine((data) => {
+  if (data.manual_installments && data.manual_installments.length > 0) {
+    const total = data.manual_installments.reduce((sum, inst) => sum + inst.amount, 0);
+    return Math.abs(total - data.amount) < 0.01; // Tolerância para arredondamentos
+  }
+  return true;
+}, {
+  message: "A soma das parcelas deve ser igual ao valor total",
+  path: ["manual_installments"],
 });
 
 export const billPaymentSchema = z.object({
@@ -31,6 +47,7 @@ export const billPaymentSchema = z.object({
 export type CreditCardFormData = z.infer<typeof creditCardSchema>;
 export type PurchaseFormData = z.infer<typeof purchaseSchema>;
 export type BillPaymentFormData = z.infer<typeof billPaymentSchema>;
+export type ManualInstallmentData = z.infer<typeof manualInstallmentSchema>;
 
 // Tipos para inserção no Supabase
 export interface CreditCardInsertData {
@@ -50,6 +67,7 @@ export interface PurchaseInsertData {
   purchase_date: string;
   installments: number;
   category: string;
+  manual_installments?: ManualInstallmentData[];
 }
 
 // Interface completa do cartão de crédito no banco
@@ -62,7 +80,7 @@ export interface CreditCard {
   due_day: number;
   is_active: boolean;
   include_in_patrimony: boolean;
-  add_to_net_worth: boolean; // Nova flag para patrimônio
+  add_to_net_worth: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -81,6 +99,7 @@ export interface CreditCardPurchase {
   updated_at: string;
   credit_cards?: {
     name: string;
+    is_active: boolean;
   };
 }
 
@@ -96,12 +115,13 @@ export interface CreditCardBill {
   is_paid: boolean;
   paid_date?: string;
   paid_account_id?: string;
-  paid_at?: string; // Nova coluna de auditoria
-  payment_account_id?: string; // Nova coluna de auditoria
+  paid_at?: string;
+  payment_account_id?: string;
   created_at: string;
   updated_at: string;
   credit_cards?: {
     name: string;
+    is_active: boolean;
   };
 }
 
@@ -116,8 +136,8 @@ export interface CreditCardInstallment {
   due_date: string;
   bill_month: string;
   is_paid: boolean;
-  paid_at?: string; // Nova coluna de auditoria
-  payment_account_id?: string; // Nova coluna de auditoria
+  paid_at?: string;
+  payment_account_id?: string;
   created_at: string;
   updated_at: string;
 }
@@ -137,6 +157,17 @@ export interface PurchaseStatus {
   paid_installments: number;
   remaining_amount: number;
   credit_card_name: string;
+  credit_card_active: boolean;
   purchase_date: string;
   category?: string;
+}
+
+// Interface para limite disponível corrigido
+export interface CreditCardBalance {
+  card_id: string;
+  card_name: string;
+  credit_limit: number;
+  total_committed: number;
+  available_limit: number;
+  is_active: boolean;
 }

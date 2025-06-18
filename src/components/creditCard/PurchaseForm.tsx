@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,10 +9,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useCreditCardPurchases } from '@/hooks/useCreditCardPurchases';
-import { useExpenseCategories } from '@/hooks/useExpenseCategories';
+import { useIntegratedCategories } from '@/hooks/useIntegratedCategories';
+import { ManualInstallmentsEditor } from './ManualInstallmentsEditor';
 import { X } from 'lucide-react';
 import { format } from 'date-fns';
-import { purchaseSchema, PurchaseFormData } from '@/types/creditCard';
+import { purchaseSchema, PurchaseFormData, ManualInstallmentData } from '@/types/creditCard';
 
 interface PurchaseFormProps {
   onClose: () => void;
@@ -21,7 +22,10 @@ interface PurchaseFormProps {
 export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   const { creditCards } = useCreditCards();
   const { createPurchase, isCreating } = useCreditCardPurchases();
-  const { categories } = useExpenseCategories();
+  const { categories } = useIntegratedCategories();
+  
+  const [isManualInstallments, setIsManualInstallments] = useState(false);
+  const [manualInstallments, setManualInstallments] = useState<ManualInstallmentData[]>([]);
 
   const form = useForm<PurchaseFormData>({
     resolver: zodResolver(purchaseSchema),
@@ -32,6 +36,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
       purchase_date: format(new Date(), 'yyyy-MM-dd'),
       installments: 1,
       category: '',
+      manual_installments: [],
     },
     mode: 'onChange',
   });
@@ -40,12 +45,29 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   const amount = form.watch('amount');
   const installments = form.watch('installments');
 
-  const installmentValue = amount && installments ? amount / installments : 0;
+  const installmentValue = amount && installments && !isManualInstallments ? amount / installments : 0;
 
   const onSubmit = (data: PurchaseFormData) => {
     console.log('Submitting purchase form:', data);
-    createPurchase(data);
+    const submitData = {
+      ...data,
+      manual_installments: isManualInstallments ? manualInstallments : undefined,
+    };
+    createPurchase(submitData);
     onClose();
+  };
+
+  const handleManualInstallmentsChange = (installments: ManualInstallmentData[]) => {
+    setManualInstallments(installments);
+    form.setValue('manual_installments', installments);
+  };
+
+  const handleToggleManual = (enabled: boolean) => {
+    setIsManualInstallments(enabled);
+    if (!enabled) {
+      setManualInstallments([]);
+      form.setValue('manual_installments', []);
+    }
   };
 
   return (
@@ -157,7 +179,15 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
                         max="36"
                         placeholder="1"
                         {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
+                        onChange={(e) => {
+                          const value = Number(e.target.value);
+                          field.onChange(value);
+                          // Reset manual installments when changing number of installments
+                          if (isManualInstallments) {
+                            setManualInstallments([]);
+                            form.setValue('manual_installments', []);
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -180,7 +210,18 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
               )}
             />
 
-            {installmentValue > 0 && (
+            {amount > 0 && installments > 1 && (
+              <ManualInstallmentsEditor
+                totalAmount={amount}
+                installments={installments}
+                manualInstallments={manualInstallments}
+                onManualInstallmentsChange={handleManualInstallmentsChange}
+                onToggleManual={handleToggleManual}
+                isManualEnabled={isManualInstallments}
+              />
+            )}
+
+            {!isManualInstallments && installmentValue > 0 && (
               <div className="p-3 bg-muted rounded-lg">
                 <p className="text-sm">
                   <span className="font-medium">Valor por parcela:</span>{' '}

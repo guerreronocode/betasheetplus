@@ -7,6 +7,7 @@ import { PurchaseForm } from './PurchaseForm';
 import { BillsList } from './BillsList';
 import { PurchaseStatusPanel } from './PurchaseStatusPanel';
 import { CreditLimitProjectionChart } from './CreditLimitProjectionChart';
+import { CreditLimitPanel } from './CreditLimitPanel';
 
 export const CreditCardManager: React.FC = () => {
   return (
@@ -16,8 +17,9 @@ export const CreditCardManager: React.FC = () => {
       </div>
 
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+          <TabsTrigger value="limits">Limites</TabsTrigger>
           <TabsTrigger value="cards">Cartões</TabsTrigger>
           <TabsTrigger value="purchases">Compras</TabsTrigger>
           <TabsTrigger value="bills">Faturas</TabsTrigger>
@@ -29,6 +31,10 @@ export const CreditCardManager: React.FC = () => {
             <BillsList />
             <PurchaseStatusPanel />
           </div>
+        </TabsContent>
+
+        <TabsContent value="limits" className="space-y-6">
+          <CreditLimitPanel />
         </TabsContent>
 
         <TabsContent value="cards" className="space-y-6">
