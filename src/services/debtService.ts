@@ -16,7 +16,7 @@ export interface DebtFormData {
 
 export interface DebtData {
   id?: string;
-  user_id?: string;
+  user_id: string; // Made required to match Supabase expectations
   creditor: string;
   description: string;
   financed_amount: number;
@@ -119,7 +119,7 @@ export class DebtDataService {
     console.log('Creating debt:', debtData);
     const { data, error } = await supabase
       .from('debts')
-      .insert([debtData])
+      .insert(debtData) // Changed from [debtData] to debtData
       .select()
       .single();
     
