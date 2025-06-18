@@ -16,7 +16,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Receipt } from 'lucide-react';
+import { Calendar, Receipt, AlertCircle } from 'lucide-react';
 import { useBillDetails } from '@/hooks/useBillDetails';
 import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
@@ -34,12 +34,28 @@ export const BillDetailsDialog: React.FC<BillDetailsDialogProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { installments, isLoading } = useBillDetails(
+  const { installments, isLoading, error } = useBillDetails(
     bill?.credit_card_id || '',
     bill?.bill_month || ''
   );
 
   if (!bill) return null;
+
+  const formatBillMonth = (dateStr: string) => {
+    try {
+      return format(new Date(dateStr), 'MMMM/yyyy', { locale: ptBR });
+    } catch {
+      return dateStr;
+    }
+  };
+
+  const formatDate = (dateStr: string) => {
+    try {
+      return format(new Date(dateStr), 'dd/MM/yyyy', { locale: ptBR });
+    } catch {
+      return dateStr;
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -50,8 +66,8 @@ export const BillDetailsDialog: React.FC<BillDetailsDialogProps> = ({
             Detalhes da Fatura - {bill.credit_cards?.name}
           </DialogTitle>
           <DialogDescription>
-            Fatura de {format(new Date(bill.bill_month), 'MMMM/yyyy', { locale: ptBR })} • 
-            Vencimento: {format(new Date(bill.due_date), 'dd/MM/yyyy')}
+            Fatura de {formatBillMonth(bill.bill_month)} • 
+            Vencimento: {formatDate(bill.due_date)}
           </DialogDescription>
         </DialogHeader>
 
@@ -78,6 +94,14 @@ export const BillDetailsDialog: React.FC<BillDetailsDialogProps> = ({
             </div>
           </div>
 
+          {/* Tratamento de erro */}
+          {error && (
+            <div className="flex items-center gap-2 p-4 text-red-600 bg-red-50 rounded-lg">
+              <AlertCircle className="h-4 w-4" />
+              <span>Erro ao carregar detalhes da fatura. Tente novamente.</span>
+            </div>
+          )}
+
           {/* Tabela de compras */}
           <div>
             <h3 className="text-lg font-medium mb-3">Compras desta Fatura</h3>
@@ -85,12 +109,15 @@ export const BillDetailsDialog: React.FC<BillDetailsDialogProps> = ({
             {isLoading ? (
               <div className="flex items-center justify-center p-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="ml-2 text-gray-600">Carregando detalhes...</span>
               </div>
-            ) : installments.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                Nenhuma compra encontrada para esta fatura.
+            ) : !error && installments.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
+                <Receipt className="h-12 w-12 mx-auto mb-2 text-gray-300" />
+                <p className="font-medium">Nenhuma compra encontrada</p>
+                <p className="text-sm">Esta fatura não possui compras detalhadas ou os dados foram removidos.</p>
               </div>
-            ) : (
+            ) : !error ? (
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -110,7 +137,7 @@ export const BillDetailsDialog: React.FC<BillDetailsDialogProps> = ({
                       <TableCell>
                         <div className="flex items-center gap-1 text-sm text-gray-600">
                           <Calendar className="h-3 w-3" />
-                          {format(new Date(installment.purchase_date), 'dd/MM/yyyy', { locale: ptBR })}
+                          {formatDate(installment.purchase_date)}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -132,11 +159,11 @@ export const BillDetailsDialog: React.FC<BillDetailsDialogProps> = ({
                   ))}
                 </TableBody>
               </Table>
-            )}
+            ) : null}
           </div>
 
           {/* Resumo final */}
-          {installments.length > 0 && (
+          {!error && installments.length > 0 && (
             <div className="border-t pt-4">
               <div className="flex justify-between items-center text-lg font-bold">
                 <span>Total das Compras:</span>
