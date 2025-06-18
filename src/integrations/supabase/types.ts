@@ -178,7 +178,9 @@ export type Database = {
           id: string
           is_paid: boolean
           paid_account_id: string | null
+          paid_at: string | null
           paid_date: string | null
+          payment_account_id: string | null
           total_amount: number
           updated_at: string
           user_id: string
@@ -192,7 +194,9 @@ export type Database = {
           id?: string
           is_paid?: boolean
           paid_account_id?: string | null
+          paid_at?: string | null
           paid_date?: string | null
+          payment_account_id?: string | null
           total_amount?: number
           updated_at?: string
           user_id: string
@@ -206,7 +210,9 @@ export type Database = {
           id?: string
           is_paid?: boolean
           paid_account_id?: string | null
+          paid_at?: string | null
           paid_date?: string | null
+          payment_account_id?: string | null
           total_amount?: number
           updated_at?: string
           user_id?: string
@@ -226,6 +232,13 @@ export type Database = {
             referencedRelation: "bank_accounts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "credit_card_bills_payment_account_id_fkey"
+            columns: ["payment_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
         ]
       }
       credit_card_installments: {
@@ -238,6 +251,8 @@ export type Database = {
           id: string
           installment_number: number
           is_paid: boolean
+          paid_at: string | null
+          payment_account_id: string | null
           purchase_id: string
           updated_at: string
           user_id: string
@@ -251,6 +266,8 @@ export type Database = {
           id?: string
           installment_number: number
           is_paid?: boolean
+          paid_at?: string | null
+          payment_account_id?: string | null
           purchase_id: string
           updated_at?: string
           user_id: string
@@ -264,6 +281,8 @@ export type Database = {
           id?: string
           installment_number?: number
           is_paid?: boolean
+          paid_at?: string | null
+          payment_account_id?: string | null
           purchase_id?: string
           updated_at?: string
           user_id?: string
@@ -274,6 +293,13 @@ export type Database = {
             columns: ["credit_card_id"]
             isOneToOne: false
             referencedRelation: "credit_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_card_installments_payment_account_id_fkey"
+            columns: ["payment_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
             referencedColumns: ["id"]
           },
           {
@@ -331,6 +357,7 @@ export type Database = {
       }
       credit_cards: {
         Row: {
+          add_to_net_worth: boolean
           closing_day: number
           created_at: string
           credit_limit: number
@@ -343,6 +370,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          add_to_net_worth?: boolean
           closing_day: number
           created_at?: string
           credit_limit?: number
@@ -355,6 +383,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          add_to_net_worth?: boolean
           closing_day?: number
           created_at?: string
           credit_limit?: number

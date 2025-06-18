@@ -8,6 +8,9 @@ export const creditCardSchema = z.object({
   closing_day: z.number().min(1, 'Dia deve ser entre 1 e 31').max(31, 'Dia deve ser entre 1 e 31'),
   due_day: z.number().min(1, 'Dia deve ser entre 1 e 31').max(31, 'Dia deve ser entre 1 e 31'),
   include_in_patrimony: z.boolean().optional(),
+}).refine((data) => data.closing_day !== data.due_day, {
+  message: "Dia de fechamento deve ser diferente do dia de vencimento",
+  path: ["due_day"],
 });
 
 export const purchaseSchema = z.object({
@@ -59,6 +62,7 @@ export interface CreditCard {
   due_day: number;
   is_active: boolean;
   include_in_patrimony: boolean;
+  add_to_net_worth: boolean; // Nova flag para patrimônio
   created_at: string;
   updated_at: string;
 }
@@ -80,7 +84,7 @@ export interface CreditCardPurchase {
   };
 }
 
-// Interface da fatura
+// Interface da fatura com novos campos de auditoria
 export interface CreditCardBill {
   id: string;
   user_id: string;
@@ -92,11 +96,30 @@ export interface CreditCardBill {
   is_paid: boolean;
   paid_date?: string;
   paid_account_id?: string;
+  paid_at?: string; // Nova coluna de auditoria
+  payment_account_id?: string; // Nova coluna de auditoria
   created_at: string;
   updated_at: string;
   credit_cards?: {
     name: string;
   };
+}
+
+// Interface para parcelas com novos campos de auditoria
+export interface CreditCardInstallment {
+  id: string;
+  user_id: string;
+  purchase_id: string;
+  credit_card_id: string;
+  installment_number: number;
+  amount: number;
+  due_date: string;
+  bill_month: string;
+  is_paid: boolean;
+  paid_at?: string; // Nova coluna de auditoria
+  payment_account_id?: string; // Nova coluna de auditoria
+  created_at: string;
+  updated_at: string;
 }
 
 // Interface para projeção de limite

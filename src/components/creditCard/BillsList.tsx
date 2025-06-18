@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -64,7 +65,7 @@ export const BillsList: React.FC = () => {
       return (
         <Badge variant="outline" className="text-green-600 border-green-600">
           <CheckCircle className="w-3 h-3 mr-1" />
-          Paga
+          Paga {bill.paid_at && `em ${format(new Date(bill.paid_at), 'dd/MM/yyyy')}`}
         </Badge>
       );
     }

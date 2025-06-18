@@ -58,6 +58,7 @@ export const useCreditCardBills = () => {
           is_paid: true,
           paid_date: paymentData.paid_date,
           paid_account_id: paymentData.paid_account_id,
+          payment_account_id: paymentData.paid_account_id, // Nova coluna de auditoria
           updated_at: new Date().toISOString()
         })
         .eq('id', billId)
