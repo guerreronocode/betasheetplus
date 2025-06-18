@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -143,18 +144,11 @@ export const useCreditCards = () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['all-credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-card-debts'] }); // NOVA query
       
-      // CRÍTICO: Sincronizar patrimônio após criar cartão
-      console.log('CRÍTICO: Sincronizando patrimônio após criação de cartão...');
-      const { error: syncError } = await supabase.rpc('sync_credit_card_debts_to_patrimony');
-      if (syncError) {
-        console.error('Erro na sincronização do patrimônio:', syncError);
-      }
-      
-      queryClient.invalidateQueries({ queryKey: ['liabilities'] });
       toast({
         title: "Cartão criado com sucesso!",
-        description: "Seu cartão foi adicionado. As dívidas serão sincronizadas automaticamente no patrimônio.",
+        description: "Seu cartão foi adicionado. As dívidas serão automaticamente refletidas no patrimônio.",
       });
     },
     onError: (error) => {
@@ -195,15 +189,8 @@ export const useCreditCards = () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['all-credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-card-debts'] }); // NOVA query
       
-      // CRÍTICO: Sincronizar patrimônio após atualizar cartão
-      console.log('CRÍTICO: Sincronizando patrimônio após atualização de cartão...');
-      const { error: syncError } = await supabase.rpc('sync_credit_card_debts_to_patrimony');
-      if (syncError) {
-        console.error('Erro na sincronização do patrimônio:', syncError);
-      }
-      
-      queryClient.invalidateQueries({ queryKey: ['liabilities'] });
       toast({
         title: "Cartão atualizado!",
         description: "As informações foram atualizadas e as dívidas sincronizadas no patrimônio.",
@@ -233,22 +220,12 @@ export const useCreditCards = () => {
         console.error('Error deleting credit card:', error);
         throw error;
       }
-
-      // CRÍTICO: Imediatamente após desativar, sincronizar patrimônio para remover dívidas
-      console.log('CRÍTICO: Sincronizando patrimônio após desativação do cartão...');
-      const { error: syncError } = await supabase.rpc('sync_credit_card_debts_to_patrimony');
-      if (syncError) {
-        console.error('Erro na sincronização do patrimônio após desativação:', syncError);
-        // Não falhar a operação, mas logar o erro
-      }
     },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['all-credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
-      
-      // CRÍTICO: Invalidar patrimônio para refletir a remoção das dívidas
-      queryClient.invalidateQueries({ queryKey: ['liabilities'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-card-debts'] }); // NOVA query - CRÍTICO
       
       toast({
         title: "Cartão removido!",

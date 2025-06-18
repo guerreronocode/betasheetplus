@@ -1,5 +1,6 @@
 
 import { useMemo } from 'react';
+import { useCreditCardDebts } from './useCreditCardDebts';
 
 interface UsePatrimonyGroupsFullProps {
   assets: any[];
@@ -16,6 +17,8 @@ export const usePatrimonyGroupsFull = ({
   bankAccounts,
   debts,
 }: UsePatrimonyGroupsFullProps) => {
+  
+  const { creditCardDebts } = useCreditCardDebts();
   
   return useMemo(() => {
     const ativoCirculante = [
@@ -88,31 +91,19 @@ export const usePatrimonyGroupsFull = ({
           source: 'debt'
         })),
       
-      // CRÍTICO: APENAS dívidas de cartão ATIVO (is_active = true)
-      ...liabilities
-        .filter(liability => {
-          // Filtrar APENAS dívidas de cartão de crédito de cartões ATIVOS
-          if (liability.category === 'cartao_credito') {
-            // Verificar se o cartão ainda está ativo através da description/name
-            // A dívida já deveria ter sido removida quando o cartão foi desativado,
-            // mas como medida de segurança, vamos filtrar aqui também
-            return true; // As dívidas já são filtradas pela função sync_credit_card_debts_to_patrimony
-          }
-          // Para outros tipos de passivo circulante
-          return liability.category === 'passivo_circulante';
-        })
-        .map(liability => ({
-          id: liability.id,
-          name: liability.name,
-          remaining_amount: Number(liability.remaining_amount),
-          category: liability.category === 'cartao_credito' ? 'Cartão de Crédito' : 'Passivo',
-          description: liability.description || (liability.category === 'cartao_credito' ? 'Dívida de cartão de crédito' : 'Passivo manual'),
-          isCreditCard: liability.category === 'cartao_credito',
-          isLinked: liability.category === 'cartao_credito',
-          source: liability.category === 'cartao_credito' ? 'credit_card_debt' : 'manual_liability'
-        })),
+      // CRÍTICO: Dívidas de cartão de crédito APENAS de cartões ATIVOS
+      ...creditCardDebts.map(debt => ({
+        id: debt.id,
+        name: `Dívida - ${debt.card_name}`,
+        remaining_amount: debt.total_debt,
+        category: 'Cartão de Crédito',
+        description: `Parcelas não quitadas do cartão ${debt.card_name}`,
+        isCreditCard: true,
+        isLinked: true,
+        source: 'credit_card_debt'
+      })),
       
-      // Passivos manuais circulantes (excluindo cartões)
+      // APENAS passivos manuais - NUNCA de cartão de crédito
       ...liabilities.filter(liability => 
         liability.category === 'passivo_circulante' && 
         liability.category !== 'cartao_credito'
@@ -177,5 +168,5 @@ export const usePatrimonyGroupsFull = ({
       nonLinkedInvestments,
       nonLinkedDebts,
     };
-  }, [assets, liabilities, investments, bankAccounts, debts]);
+  }, [assets, liabilities, investments, bankAccounts, debts, creditCardDebts]);
 };

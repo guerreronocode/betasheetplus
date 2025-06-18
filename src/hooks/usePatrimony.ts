@@ -63,21 +63,11 @@ export const usePatrimony = () => {
     enabled: !!user,
   });
 
-  // Liabilities queries and mutations - SEMPRE sincronizar dívidas de cartão antes de buscar
+  // Liabilities queries - REMOVIDA a sincronização automática (será feita pelo novo hook)
   const { data: liabilities = [], isLoading: liabilitiesLoading } = useQuery({
     queryKey: ['liabilities', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      
-      // CRÍTICO: Sincronizar dívidas de cartão APENAS de cartões ATIVOS antes de buscar os passivos
-      console.log('Sincronizando dívidas de cartão ATIVOS antes de buscar passivos...');
-      const { error: syncError } = await supabase.rpc('sync_credit_card_debts_to_patrimony');
-      if (syncError) {
-        console.error('Erro na sincronização automática de dívidas:', syncError);
-        // Não falhar a query, apenas logar o erro
-      } else {
-        console.log('Dívidas de cartão ATIVOS sincronizadas com sucesso');
-      }
       
       const { data, error } = await supabase
         .from('liabilities')
@@ -93,7 +83,7 @@ export const usePatrimony = () => {
         isCreditCard: liability.category === 'cartao_credito'
       }));
       
-      console.log('Passivos carregados após sincronização (APENAS cartões ativos):', liabilitiesWithFlags);
+      console.log('Passivos carregados (manuais apenas):', liabilitiesWithFlags);
       return liabilitiesWithFlags as Liability[];
     },
     enabled: !!user,
@@ -117,38 +107,24 @@ export const usePatrimony = () => {
     enabled: !!user,
   });
 
-  // Função para sincronizar dívidas de cartão de crédito OBRIGATORIAMENTE (APENAS ATIVOS)
+  // Função para sincronizar dívidas de cartão - AGORA APENAS INVALIDA QUERIES
   const syncCreditCardDebts = useMutation({
     mutationFn: async () => {
-      console.log('Executando sincronização OBRIGATÓRIA de dívidas de cartão de crédito ATIVOS...');
-      const { error } = await supabase.rpc('sync_credit_card_debts_to_patrimony');
-      
-      if (error) {
-        console.error('Erro CRÍTICO na sincronização de dívidas de cartão:', error);
-        throw error;
-      }
-      
-      console.log('Sincronização obrigatória de dívidas de cartões ATIVOS concluída');
+      console.log('Invalidando queries para atualizar dívidas de cartão...');
+      // Apenas invalida as queries - a lógica real está no novo hook
+      return Promise.resolve();
     },
     onSuccess: () => {
       // Invalidar queries relacionadas para atualizar a UI
-      queryClient.invalidateQueries({ queryKey: ['liabilities'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-card-debts'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-purchases'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-bills'] });
-      console.log('Sincronização de dívidas de cartão ATIVOS concluída com sucesso - UI atualizada');
-    },
-    onError: (error) => {
-      console.error('Erro CRÍTICO na sincronização de dívidas de cartão:', error);
-      toast({
-        title: "Erro crítico na sincronização",
-        description: "Não foi possível sincronizar as dívidas do cartão de crédito. Isso compromete a integridade do patrimônio.",
-        variant: "destructive",
-      });
+      console.log('Queries invalidadas - dívidas de cartão serão recalculadas');
     },
   });
 
-  // ... keep existing code (addAssetMutation, updateAssetMutation, deleteAssetMutation) the same
+  // ... keep existing code (addAssetMutation, updateAssetMutation, deleteAssetMutation, addLiabilityMutation, updateLiabilityMutation, deleteLiabilityMutation) the same
 
   const addAssetMutation = useMutation({
     mutationFn: async (asset: Omit<Asset, 'id'>) => {

@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { usePatrimony } from '@/hooks/usePatrimony';
 import { useFinancialData } from '@/hooks/useFinancialData';
@@ -56,19 +57,9 @@ const ImprovedPatrimonyManager = () => {
     debts,
   });
 
-  // CRÍTICO: Sincronizar dívidas de cartão na inicialização E sempre que necessário
-  useEffect(() => {
-    console.log('CRÍTICO: Executando sincronização OBRIGATÓRIA de dívidas de cartão na inicialização...');
-    syncCreditCardDebts();
-  }, []); // Executar apenas na inicialização
-
   const totalAtivos = totals.ativo_circulante + totals.ativo_nao_circulante;
   const totalPassivos = totals.passivo_circulante + totals.passivo_nao_circulante;
   const patrimonioLiquido = totalAtivos - totalPassivos;
-
-  // Contar dívidas de cartão de crédito sincronizadas (APENAS de cartões ativos)
-  const creditCardDebts = liabilities.filter(liability => liability.isCreditCard);
-  const totalCreditCardDebt = creditCardDebts.reduce((sum, debt) => sum + debt.remaining_amount, 0);
 
   const handleGroupSelect = useCallback((group: string) => {
     setSelectedGroup(prev =>
@@ -109,27 +100,21 @@ const ImprovedPatrimonyManager = () => {
   return (
     <div>
       <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
-        <h3 className="font-medium text-green-800 mb-2">✅ Integração CORRETA com Cartão de Crédito</h3>
+        <h3 className="font-medium text-green-800 mb-2">✅ Integração DEFINITIVAMENTE Corrigida</h3>
         <div className="space-y-1 text-sm text-green-700">
           <p>
-            <strong>🎯 Lógica Correta Aplicada:</strong> O limite de crédito NÃO faz parte do patrimônio. 
+            <strong>🎯 Lógica Implementada:</strong> O limite de crédito NÃO faz parte do patrimônio. 
             Apenas as dívidas das compras são registradas como passivos.
           </p>
           <p>
-            <strong>💳 Dívidas Sincronizadas (APENAS cartões ativos):</strong> {creditCardDebts.length} dívida(s) de cartão totalizando R$ {totalCreditCardDebt.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            <strong>💳 Dívidas Calculadas Dinamicamente:</strong> APENAS de cartões ATIVOS são contabilizadas no patrimônio.
           </p>
           <p>
-            <strong>🔄 Automático:</strong> As dívidas são atualizadas automaticamente quando você faz compras ou paga faturas.
-            {nonLinkedDebts.length > 0 && ` ${nonLinkedDebts.length} dívida(s) foram automaticamente adicionadas.`}
+            <strong>🔄 Atualização Automática:</strong> Quando cartões são desativados, suas dívidas são IMEDIATAMENTE removidas do patrimônio.
           </p>
           <p>
-            <strong>⚠️ Cartões Desativados:</strong> Dívidas de cartões excluídos/desativados NÃO são contabilizadas no patrimônio.
+            <strong>✅ Garantia:</strong> Cartões inativos NÃO afetam o patrimônio de forma alguma.
           </p>
-          {isSyncingCreditCardDebts && (
-            <p className="text-green-600 font-medium">
-              ⏳ Sincronizando dívidas de cartão de crédito ativos...
-            </p>
-          )}
         </div>
       </div>
 
