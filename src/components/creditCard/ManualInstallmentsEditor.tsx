@@ -33,7 +33,7 @@ export const ManualInstallmentsEditor: React.FC<ManualInstallmentsEditorProps> =
   };
 
   React.useEffect(() => {
-    if (isManualEnabled && (manualInstallments.length !== installments || manualInstallments.length === 0)) {
+    if (isManualEnabled && manualInstallments.length !== installments) {
       console.log('Generating manual installments for', installments, 'installments');
       onManualInstallmentsChange(generateDefaultInstallments());
     }
@@ -69,11 +69,6 @@ export const ManualInstallmentsEditor: React.FC<ManualInstallmentsEditorProps> =
     console.log('Resetting manual installments to equal amounts');
     onManualInstallmentsChange(generateDefaultInstallments());
   };
-
-  // Só renderizar se temos mais de 1 parcela
-  if (installments <= 1) {
-    return null;
-  }
 
   return (
     <Card className="mt-4">

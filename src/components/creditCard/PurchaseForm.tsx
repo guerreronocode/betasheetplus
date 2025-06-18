@@ -41,11 +41,25 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
     mode: 'onChange',
   });
 
-  const selectedCardId = form.watch('credit_card_id');
   const amount = form.watch('amount');
   const installments = form.watch('installments');
 
   const installmentValue = amount && installments && !isManualInstallments ? amount / installments : 0;
+
+  // Validação para submissão
+  const isFormValid = () => {
+    if (installments <= 1) return true; // Não precisa validar parcelas para compras à vista
+    
+    if (isManualInstallments) {
+      if (manualInstallments.length !== installments) return false;
+      
+      const total = manualInstallments.reduce((sum, inst) => sum + inst.amount, 0);
+      const difference = Math.abs(total - amount);
+      return difference < 0.01; // Tolerância para arredondamentos
+    }
+    
+    return true;
+  };
 
   const onSubmit = (data: PurchaseFormData) => {
     console.log('Submitting purchase form:', data);
@@ -72,6 +86,15 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
     console.log('Toggling manual installments:', enabled);
     setIsManualInstallments(enabled);
     if (!enabled) {
+      setManualInstallments([]);
+      form.setValue('manual_installments', []);
+    }
+  };
+
+  const handleInstallmentsChange = (value: number) => {
+    form.setValue('installments', value);
+    // Reset manual installments when changing number of installments
+    if (isManualInstallments) {
       setManualInstallments([]);
       form.setValue('manual_installments', []);
     }
@@ -186,15 +209,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
                         max="36"
                         placeholder="1"
                         {...field}
-                        onChange={(e) => {
-                          const value = Number(e.target.value);
-                          field.onChange(value);
-                          // Reset manual installments when changing number of installments
-                          if (isManualInstallments) {
-                            setManualInstallments([]);
-                            form.setValue('manual_installments', []);
-                          }
-                        }}
+                        onChange={(e) => handleInstallmentsChange(Number(e.target.value))}
                       />
                     </FormControl>
                     <FormMessage />
@@ -217,7 +232,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
               )}
             />
 
-            {amount > 0 && installments > 1 && (
+            {/* Manual Installments Editor - renderizar sempre que tiver mais de 1 parcela */}
+            {installments > 1 && (
               <ManualInstallmentsEditor
                 totalAmount={amount}
                 installments={installments}
@@ -228,6 +244,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
               />
             )}
 
+            {/* Mostrar valor por parcela quando não estiver no modo manual */}
             {!isManualInstallments && installmentValue > 0 && installments > 1 && (
               <div className="p-3 bg-muted rounded-lg">
                 <p className="text-sm">
@@ -240,7 +257,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
             <div className="flex gap-2 pt-4">
               <Button 
                 type="submit" 
-                disabled={isCreating || (isManualInstallments && manualInstallments.length === 0)}
+                disabled={isCreating || !isFormValid()}
               >
                 {isCreating ? 'Registrando...' : 'Registrar Compra'}
               </Button>
