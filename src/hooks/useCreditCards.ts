@@ -15,12 +15,13 @@ interface CreditCard {
   updated_at: string;
 }
 
-interface CreditCardFormData {
+// Import the form data type from the component
+type CreditCardFormData = {
   name: string;
   credit_limit: number;
   closing_day: number;
   due_day: number;
-}
+};
 
 export const useCreditCards = () => {
   const { toast } = useToast();
@@ -59,12 +60,15 @@ export const useCreditCards = () => {
         throw new Error('User not authenticated');
       }
 
+      // Build complete payload inside the hook
+      const payload = {
+        ...cardData,
+        user_id: user.id,
+      };
+
       const { data, error } = await supabase
         .from('credit_cards')
-        .insert({
-          ...cardData,
-          user_id: user.id,
-        })
+        .insert(payload)
         .select()
         .single();
 

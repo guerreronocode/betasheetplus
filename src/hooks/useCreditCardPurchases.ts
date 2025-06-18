@@ -15,13 +15,14 @@ interface CreditCardPurchase {
   updated_at: string;
 }
 
-interface PurchaseFormData {
+// Form data type that matches Zod schema
+type PurchaseFormData = {
   credit_card_id: string;
   description: string;
   amount: number;
   purchase_date: string;
   installments: number;
-}
+};
 
 export const useCreditCardPurchases = () => {
   const { toast } = useToast();
@@ -62,12 +63,15 @@ export const useCreditCardPurchases = () => {
         throw new Error('User not authenticated');
       }
 
+      // Build complete payload inside the hook
+      const payload = {
+        ...purchaseData,
+        user_id: user.id,
+      };
+
       const { data, error } = await supabase
         .from('credit_card_purchases')
-        .insert({
-          ...purchaseData,
-          user_id: user.id,
-        })
+        .insert(payload)
         .select()
         .single();
 
