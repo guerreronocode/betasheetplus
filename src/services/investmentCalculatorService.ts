@@ -1,130 +1,114 @@
 
-export interface InvestmentCalculatorInput {
-  investmentType: string;
-  yieldType: 'fixed' | 'selic' | 'cdi' | 'ipca';
+interface CalculationParams {
   initialAmount: number;
   monthlyAmount: number;
   annualRate: number;
-  timeInMonths: number;
+  periodMonths: number;
 }
 
-export interface InvestmentProjection {
-  initialAmount: number;
-  monthlyAmount: number;
-  timeInMonths: number;
-  annualRate: number;
+interface MonthlyData {
+  month: number;
+  invested: number;
+  accumulated: number;
+  yield: number;
+}
+
+interface CalculationResult {
   totalInvested: number;
-  totalYield: number;
   finalAmount: number;
-  yieldPercentage: number;
-  monthlyData: Array<{
-    month: number;
-    invested: number;
-    accumulated: number;
-    yield: number;
-  }>;
+  totalReturn: number;
+  returnPercentage: number;
+  monthlyData: MonthlyData[];
 }
 
 export class InvestmentCalculatorService {
-  static calculateProjection(input: InvestmentCalculatorInput): InvestmentProjection {
-    const { initialAmount, monthlyAmount, annualRate, timeInMonths } = input;
+  static calculateInvestment(params: CalculationParams): CalculationResult {
+    const { initialAmount, monthlyAmount, annualRate, periodMonths } = params;
     
     // Taxa mensal
     const monthlyRate = annualRate / 100 / 12;
     
-    const monthlyData: Array<{
-      month: number;
-      invested: number;
-      accumulated: number;
-      yield: number;
-    }> = [];
-    
-    let currentValue = initialAmount;
+    const monthlyData: MonthlyData[] = [];
+    let accumulated = initialAmount;
     let totalInvested = initialAmount;
-    
-    // Primeiro mês
+
+    // Mês 0 (investimento inicial)
     monthlyData.push({
       month: 0,
-      invested: initialAmount,
-      accumulated: initialAmount,
-      yield: 0,
+      invested: totalInvested,
+      accumulated: accumulated,
+      yield: 0
     });
-    
-    // Calcular evolução mês a mês
-    for (let month = 1; month <= timeInMonths; month++) {
-      // Aplicar rendimento sobre o valor atual
-      currentValue = currentValue * (1 + monthlyRate);
+
+    // Calcular mês a mês
+    for (let month = 1; month <= periodMonths; month++) {
+      // Adicionar rendimento do mês
+      accumulated = accumulated * (1 + monthlyRate);
       
       // Adicionar aporte mensal
-      currentValue += monthlyAmount;
+      accumulated += monthlyAmount;
       totalInvested += monthlyAmount;
       
-      const totalYield = currentValue - totalInvested;
-      
+      const currentYield = accumulated - totalInvested;
+
       monthlyData.push({
         month,
         invested: totalInvested,
-        accumulated: currentValue,
-        yield: totalYield,
+        accumulated: accumulated,
+        yield: currentYield
       });
     }
-    
-    const finalAmount = currentValue;
-    const totalYield = finalAmount - totalInvested;
-    const yieldPercentage = totalInvested > 0 ? (totalYield / totalInvested) * 100 : 0;
-    
+
+    const finalAmount = accumulated;
+    const totalReturn = finalAmount - totalInvested;
+    const returnPercentage = totalInvested > 0 ? (totalReturn / totalInvested) * 100 : 0;
+
     return {
-      initialAmount,
-      monthlyAmount,
-      timeInMonths,
-      annualRate,
       totalInvested,
-      totalYield,
       finalAmount,
-      yieldPercentage,
-      monthlyData,
+      totalReturn,
+      returnPercentage,
+      monthlyData
     };
   }
 
-  // Método preparado para futuras integrações com taxas dinâmicas
-  static async calculateAdvancedProjection(
-    input: InvestmentCalculatorInput,
-    marketRates?: { selic: number; cdi: number; ipca: number }
-  ): Promise<InvestmentProjection & { marketAdjustedRate?: number }> {
-    // Base calculation
-    const baseProjection = this.calculateProjection(input);
+  static calculateCompoundInterest(
+    principal: number,
+    monthlyAddition: number,
+    annualRate: number,
+    months: number
+  ): number {
+    const monthlyRate = annualRate / 100 / 12;
     
-    // TODO: Integrar com taxas de mercado em tempo real
-    let marketAdjustedRate: number | undefined;
+    // Valor futuro do principal
+    const futurePrincipal = principal * Math.pow(1 + monthlyRate, months);
     
-    if (marketRates && input.yieldType !== 'fixed') {
-      switch (input.yieldType) {
-        case 'selic':
-          marketAdjustedRate = marketRates.selic;
-          break;
-        case 'cdi':
-          marketAdjustedRate = marketRates.cdi * 0.9; // Aproximação típica
-          break;
-        case 'ipca':
-          marketAdjustedRate = marketRates.ipca + (input.annualRate / 100);
-          break;
-      }
-      
-      if (marketAdjustedRate) {
-        const adjustedInput = { ...input, annualRate: marketAdjustedRate * 100 };
-        const adjustedProjection = this.calculateProjection(adjustedInput);
-        return { ...adjustedProjection, marketAdjustedRate };
-      }
-    }
+    // Valor futuro dos aportes mensais (série de pagamentos)
+    const futureAdditions = monthlyAddition * 
+      ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
     
-    return { ...baseProjection, marketAdjustedRate };
+    return futurePrincipal + futureAdditions;
   }
 
-  // Método para comparar diferentes cenários
-  static compareScenarios(scenarios: InvestmentCalculatorInput[]): Array<InvestmentProjection & { scenarioName: string }> {
-    return scenarios.map((scenario, index) => ({
-      ...this.calculateProjection(scenario),
-      scenarioName: `Cenário ${index + 1}`,
-    }));
+  static getYieldTypeDescription(type: string): string {
+    const descriptions: Record<string, string> = {
+      pre: 'Taxa pré-fixada - Você sabe exatamente quanto receberá',
+      pos: 'Pós-fixado - Rentabilidade varia conforme o CDI',
+      ipca: 'IPCA+ - Proteção contra inflação + taxa fixa'
+    };
+    
+    return descriptions[type] || 'Tipo de rentabilidade';
+  }
+
+  static getInvestmentTypeDescription(type: string): string {
+    const descriptions: Record<string, string> = {
+      cdb: 'Certificado de Depósito Bancário',
+      tesouro: 'Títulos do Tesouro Nacional',
+      debentures: 'Títulos de dívida corporativa',
+      lci_lca: 'Isentos de IR - Crédito Imobiliário/Agronegócio',
+      tesouro_direto: 'Tesouro Direto - Governo Federal'
+    };
+    
+    return descriptions[type] || 'Tipo de investimento';
   }
 }

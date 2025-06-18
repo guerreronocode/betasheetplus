@@ -170,6 +170,7 @@ export type Database = {
       }
       debts: {
         Row: {
+          category: string | null
           created_at: string
           creditor: string
           description: string
@@ -190,6 +191,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category?: string | null
           created_at?: string
           creditor: string
           description: string
@@ -210,6 +212,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category?: string | null
           created_at?: string
           creditor?: string
           description?: string
