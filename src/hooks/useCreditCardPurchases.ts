@@ -124,29 +124,34 @@ export const useCreditCardPurchases = () => {
           }
 
           // Criar ou atualizar fatura
-          const { error: billError } = await supabase
+          const { data: existingBill } = await supabase
             .from('credit_card_bills')
-            .insert({
-              user_id: user.id,
-              credit_card_id: purchaseData.credit_card_id,
-              bill_month: billCycleMonth.toISOString().split('T')[0],
-              total_amount: installment.amount,
-              closing_date: billMonth,
-              due_date: dueDate.toISOString().split('T')[0],
-            })
-            .select()
+            .select('id, total_amount')
+            .eq('credit_card_id', purchaseData.credit_card_id)
+            .eq('bill_month', billCycleMonth.toISOString().split('T')[0])
             .single();
 
-          // Se já existe, atualizar total
-          if (billError && billError.code === '23505') {
+          if (existingBill) {
+            // Atualizar fatura existente
             await supabase
               .from('credit_card_bills')
               .update({
-                total_amount: supabase.raw('total_amount + ?', [installment.amount]),
+                total_amount: existingBill.total_amount + installment.amount,
                 updated_at: new Date().toISOString()
               })
-              .eq('credit_card_id', purchaseData.credit_card_id)
-              .eq('bill_month', billCycleMonth.toISOString().split('T')[0]);
+              .eq('id', existingBill.id);
+          } else {
+            // Criar nova fatura
+            await supabase
+              .from('credit_card_bills')
+              .insert({
+                user_id: user.id,
+                credit_card_id: purchaseData.credit_card_id,
+                bill_month: billCycleMonth.toISOString().split('T')[0],
+                total_amount: installment.amount,
+                closing_date: billMonth,
+                due_date: dueDate.toISOString().split('T')[0],
+              });
           }
         }
 
@@ -183,6 +188,7 @@ export const useCreditCardPurchases = () => {
       queryClient.invalidateQueries({ queryKey: ['credit-card-installments'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
       queryClient.invalidateQueries({ queryKey: ['purchase-status'] });
+      queryClient.invalidateQueries({ queryKey: ['integrated-categories'] });
       toast({
         title: "Compra registrada!",
         description: "A compra foi adicionada ao cartão de crédito.",
@@ -221,6 +227,7 @@ export const useCreditCardPurchases = () => {
       queryClient.invalidateQueries({ queryKey: ['credit-card-installments'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
       queryClient.invalidateQueries({ queryKey: ['purchase-status'] });
+      queryClient.invalidateQueries({ queryKey: ['integrated-categories'] });
       toast({
         title: "Compra atualizada!",
         description: "As informações da compra foram atualizadas.",

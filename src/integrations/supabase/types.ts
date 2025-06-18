@@ -314,6 +314,7 @@ export type Database = {
       credit_card_purchases: {
         Row: {
           amount: number
+          category: string
           created_at: string
           credit_card_id: string
           description: string
@@ -325,6 +326,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          category: string
           created_at?: string
           credit_card_id: string
           description: string
@@ -336,6 +338,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          category?: string
           created_at?: string
           credit_card_id?: string
           description?: string
