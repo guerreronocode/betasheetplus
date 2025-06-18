@@ -109,20 +109,25 @@ const ImprovedPatrimonyManager = () => {
   return (
     <div>
       <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <h3 className="font-medium text-blue-800 mb-2">Integração Automática</h3>
+        <h3 className="font-medium text-blue-800 mb-2">Integração Automática com Cartão de Crédito</h3>
         <div className="space-y-1 text-sm text-blue-700">
           <p>
-            As dívidas ativas registradas no sistema são automaticamente incluídas como passivos. 
+            <strong>✅ Lógica Correta:</strong> O limite do cartão de crédito NÃO faz parte do patrimônio. 
+            Apenas as obrigações (parcelas não pagas) são registradas como passivos.
+          </p>
+          <p>
+            As dívidas ativas e as obrigações de cartão de crédito são automaticamente incluídas como passivos. 
             {nonLinkedDebts.length > 0 && ` ${nonLinkedDebts.length} dívida(s) foram automaticamente adicionadas.`}
           </p>
           {creditCardDebts.length > 0 && (
             <p>
-              🏧 {creditCardDebts.length} dívida(s) de cartão de crédito sincronizada(s) automaticamente.
+              💳 {creditCardDebts.length} obrigação(ões) de cartão de crédito sincronizada(s) automaticamente 
+              (valor das parcelas não pagas).
             </p>
           )}
           {isSyncingCreditCardDebts && (
             <p className="text-blue-600 font-medium">
-              ⏳ Sincronizando dívidas de cartão de crédito...
+              ⏳ Sincronizando obrigações de cartão de crédito...
             </p>
           )}
         </div>

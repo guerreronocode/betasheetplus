@@ -68,10 +68,14 @@ export const CreditLimitPanel: React.FC = () => {
             <Info className="h-5 w-5 text-blue-600 mt-0.5" />
             <div className="text-sm text-blue-800">
               <p className="font-medium mb-1">💳 Lógica Correta do Limite de Crédito</p>
-              <p className="text-xs">
+              <p className="text-xs mb-2">
                 O limite é comprometido pelo <strong>valor total da compra</strong> no momento da compra, 
                 independente do parcelamento. A cada pagamento de fatura, o limite é liberado 
                 proporcionalmente ao valor das parcelas quitadas.
+              </p>
+              <p className="text-xs font-medium text-blue-700">
+                ⚠️ Importante: O limite de crédito NÃO faz parte do patrimônio. Apenas as obrigações 
+                (parcelas não pagas) são registradas como passivos no patrimônio.
               </p>
             </div>
           </div>
@@ -98,7 +102,7 @@ export const CreditLimitPanel: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Comprometido</p>
-                <p className="text-2xl font-bold text-red-600">
+                <p className="text-2xl font-bold text-orange-600">
                   {formatCurrency(totalCommitted)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -146,7 +150,7 @@ export const CreditLimitPanel: React.FC = () => {
                     </div>
                     <div>
                       <span>Comprometido:</span>
-                      <p className="font-medium text-foreground">
+                      <p className="font-medium text-orange-600">
                         {formatCurrency(card.total_committed)}
                       </p>
                       <p className="text-xs">Compras - Parcelas pagas</p>

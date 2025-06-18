@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -34,7 +35,7 @@ export const useCreditCards = () => {
   // Query para buscar cartões incluindo inativos (para mostrar compras históricas)
   const {
     data: allCreditCards = [],
-    isLoading: isLoadingAll,
+    isLoadingAll,
   } = useQuery({
     queryKey: ['all-credit-cards'],
     queryFn: async () => {
@@ -176,7 +177,7 @@ export const useCreditCards = () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       toast({
         title: "Cartão criado com sucesso!",
-        description: "Seu cartão de crédito foi adicionado e o patrimônio será atualizado automaticamente.",
+        description: "Seu cartão de crédito foi adicionado. As dívidas relacionadas serão sincronizadas automaticamente no patrimônio.",
       });
     },
     onError: (error) => {
@@ -215,7 +216,7 @@ export const useCreditCards = () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       toast({
         title: "Cartão atualizado!",
-        description: "As informações do cartão foram atualizadas e o patrimônio foi sincronizado.",
+        description: "As informações do cartão foram atualizadas e as dívidas foram sincronizadas no patrimônio.",
       });
     },
     onError: (error) => {
@@ -250,7 +251,7 @@ export const useCreditCards = () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       toast({
         title: "Cartão removido!",
-        description: "O cartão foi removido e o patrimônio foi atualizado automaticamente.",
+        description: "O cartão foi removido e as dívidas associadas foram removidas do patrimônio.",
       });
     },
     onError: (error) => {
