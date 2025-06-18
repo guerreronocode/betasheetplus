@@ -44,8 +44,10 @@ export const useBillDetails = (creditCardId: string, billMonth: string) => {
         throw error;
       }
 
+      console.log('Raw installments data from database:', data);
+
       // Transformar os dados para o formato desejado
-      const details: BillInstallmentDetail[] = data.map((item: any) => ({
+      const details: BillInstallmentDetail[] = data?.map((item: any) => ({
         id: item.id,
         description: item.credit_card_purchases.description,
         purchase_date: item.credit_card_purchases.purchase_date,
@@ -53,7 +55,7 @@ export const useBillDetails = (creditCardId: string, billMonth: string) => {
         total_installments: item.credit_card_purchases.installments,
         amount: item.amount,
         category: item.credit_card_purchases.category,
-      }));
+      })) || [];
 
       console.log('Bill details processed:', details);
       return details;
