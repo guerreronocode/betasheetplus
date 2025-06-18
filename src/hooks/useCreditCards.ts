@@ -53,14 +53,14 @@ export const useCreditCards = () => {
     },
   });
 
-  // Query para calcular limite disponível correto
+  // Query para calcular limite disponível correto com nova lógica
   const {
     data: creditCardBalances = [],
     isLoading: isLoadingBalances,
   } = useQuery({
     queryKey: ['credit-card-balances'],
     queryFn: async () => {
-      console.log('Calculating credit card balances...');
+      console.log('Calculating credit card balances with correct logic...');
       
       const { data: cards, error: cardsError } = await supabase
         .from('credit_cards')
@@ -75,32 +75,63 @@ export const useCreditCards = () => {
       const balances: CreditCardBalance[] = [];
 
       for (const card of cards) {
-        // Buscar total comprometido: soma de todas as parcelas não pagas
-        const { data: unpaidInstallments, error: installmentsError } = await supabase
-          .from('credit_card_installments')
-          .select('amount')
-          .eq('credit_card_id', card.id)
-          .eq('is_paid', false);
+        // Nova lógica: Buscar todas as compras do cartão
+        const { data: purchases, error: purchasesError } = await supabase
+          .from('credit_card_purchases')
+          .select('id, amount')
+          .eq('credit_card_id', card.id);
 
-        if (installmentsError) {
-          console.error('Error fetching unpaid installments:', installmentsError);
-          throw installmentsError;
+        if (purchasesError) {
+          console.error('Error fetching purchases:', purchasesError);
+          throw purchasesError;
         }
 
-        const totalCommitted = unpaidInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0);
-        const availableLimit = Number(card.credit_limit) - totalCommitted;
+        let totalCommitted = 0;
+
+        // Para cada compra, calcular quanto ainda está comprometido no limite
+        for (const purchase of purchases) {
+          // Valor total da compra
+          const totalPurchaseValue = Number(purchase.amount);
+          
+          // Buscar parcelas já pagas desta compra específica
+          const { data: paidInstallments, error: paidError } = await supabase
+            .from('credit_card_installments')
+            .select('amount')
+            .eq('purchase_id', purchase.id)
+            .eq('is_paid', true);
+
+          if (paidError) {
+            console.error('Error fetching paid installments:', paidError);
+            throw paidError;
+          }
+
+          // Somar o valor das parcelas já pagas desta compra
+          const totalPaidForThisPurchase = paidInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0);
+          
+          // Valor ainda comprometido no limite = Valor total da compra - Parcelas já pagas
+          const stillCommittedForThisPurchase = totalPurchaseValue - totalPaidForThisPurchase;
+          
+          // Adicionar ao total comprometido (não pode ser negativo)
+          totalCommitted += Math.max(0, stillCommittedForThisPurchase);
+          
+          console.log(`Compra ${purchase.id}: Total R$ ${totalPurchaseValue}, Pago R$ ${totalPaidForThisPurchase}, Comprometido R$ ${stillCommittedForThisPurchase}`);
+        }
+
+        const availableLimit = Math.max(0, Number(card.credit_limit) - totalCommitted);
+
+        console.log(`Cartão ${card.name}: Limite R$ ${card.credit_limit}, Comprometido R$ ${totalCommitted}, Disponível R$ ${availableLimit}`);
 
         balances.push({
           card_id: card.id,
           card_name: card.name,
           credit_limit: Number(card.credit_limit),
           total_committed: totalCommitted,
-          available_limit: Math.max(0, availableLimit),
+          available_limit: availableLimit,
           is_active: card.is_active,
         });
       }
 
-      console.log('Credit card balances calculated:', balances);
+      console.log('Credit card balances calculated with correct logic:', balances);
       return balances;
     },
   });

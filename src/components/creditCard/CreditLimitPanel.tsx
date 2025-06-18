@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CreditCard, TrendingDown, TrendingUp } from 'lucide-react';
+import { CreditCard, TrendingDown, TrendingUp, Info } from 'lucide-react';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useCreditCardProjections } from '@/hooks/useCreditCardProjections';
 import { formatCurrency } from '@/utils/formatters';
@@ -61,6 +61,23 @@ export const CreditLimitPanel: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Explicação da Nova Lógica */}
+      <Card className="border-blue-200 bg-blue-50">
+        <CardContent className="p-4">
+          <div className="flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+            <div className="text-sm text-blue-800">
+              <p className="font-medium mb-1">💳 Lógica Correta do Limite de Crédito</p>
+              <p className="text-xs">
+                O limite é comprometido pelo <strong>valor total da compra</strong> no momento da compra, 
+                independente do parcelamento. A cada pagamento de fatura, o limite é liberado 
+                proporcionalmente ao valor das parcelas quitadas.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Resumo Atual dos Limites */}
       <Card>
         <CardHeader>
@@ -83,6 +100,9 @@ export const CreditLimitPanel: React.FC = () => {
                 <p className="text-sm text-muted-foreground">Total Comprometido</p>
                 <p className="text-2xl font-bold text-red-600">
                   {formatCurrency(totalCommitted)}
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Valor das compras menos parcelas pagas
                 </p>
               </div>
             </div>
@@ -119,7 +139,7 @@ export const CreditLimitPanel: React.FC = () => {
                   
                   <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground mb-2">
                     <div>
-                      <span>Limite:</span>
+                      <span>Limite Total:</span>
                       <p className="font-medium text-foreground">
                         {formatCurrency(card.credit_limit)}
                       </p>
@@ -129,6 +149,7 @@ export const CreditLimitPanel: React.FC = () => {
                       <p className="font-medium text-foreground">
                         {formatCurrency(card.total_committed)}
                       </p>
+                      <p className="text-xs">Compras - Parcelas pagas</p>
                     </div>
                     <div>
                       <span>Uso:</span>
