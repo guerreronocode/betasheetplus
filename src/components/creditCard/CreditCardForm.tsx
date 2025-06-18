@@ -32,11 +32,16 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({ onClose }) => {
     formState: { errors },
   } = useForm<CreditCardFormData>({
     resolver: zodResolver(creditCardSchema),
+    defaultValues: {
+      name: '',
+      credit_limit: 0,
+      closing_day: 1,
+      due_day: 1,
+    },
   });
 
   const onSubmit = (data: CreditCardFormData) => {
     console.log('Submitting credit card form:', data);
-    // Since data has passed validation, we can safely use it as CreditCardFormData
     createCreditCard(data);
     onClose();
   };

@@ -40,6 +40,9 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   } = useForm<PurchaseFormData>({
     resolver: zodResolver(purchaseSchema),
     defaultValues: {
+      credit_card_id: '',
+      description: '',
+      amount: 0,
       purchase_date: format(new Date(), 'yyyy-MM-dd'),
       installments: 1,
     },
@@ -53,7 +56,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
 
   const onSubmit = (data: PurchaseFormData) => {
     console.log('Submitting purchase form:', data);
-    // Since data has passed validation, we can safely use it as PurchaseFormData
     createPurchase(data);
     onClose();
   };
