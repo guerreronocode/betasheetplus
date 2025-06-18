@@ -58,7 +58,7 @@ export const useCreditCardPurchases = () => {
       console.log('Creating purchase:', purchaseData);
       const { data, error } = await supabase
         .from('credit_card_purchases')
-        .insert([purchaseData])
+        .insert(purchaseData)
         .select()
         .single();
 

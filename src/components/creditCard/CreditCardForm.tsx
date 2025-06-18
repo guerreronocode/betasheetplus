@@ -30,7 +30,6 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({ onClose }) => {
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
   } = useForm<CreditCardFormData>({
     resolver: zodResolver(creditCardSchema),
   });
