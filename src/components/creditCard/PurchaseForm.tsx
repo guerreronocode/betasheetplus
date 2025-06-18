@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -45,6 +46,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
       purchase_date: format(new Date(), 'yyyy-MM-dd'),
       installments: 1,
     },
+    mode: 'onChange',
   });
 
   const selectedCardId = watch('credit_card_id');
@@ -55,8 +57,15 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
 
   const onSubmit = (data: PurchaseFormData) => {
     console.log('Submitting purchase form:', data);
-    // Force data to match the exact form type
-    createPurchase(data as PurchaseFormData);
+    // Ensure all required fields are present before calling the hook
+    const validatedData: PurchaseFormData = {
+      credit_card_id: data.credit_card_id || '',
+      description: data.description || '',
+      amount: data.amount || 0,
+      purchase_date: data.purchase_date || format(new Date(), 'yyyy-MM-dd'),
+      installments: data.installments || 1,
+    };
+    createPurchase(validatedData);
     onClose();
   };
 
