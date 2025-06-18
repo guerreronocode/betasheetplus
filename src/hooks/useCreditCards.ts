@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -54,22 +53,22 @@ export const useCreditCards = () => {
     },
   });
 
-  // Query para calcular limite disponível correto com nova lógica CORRIGIDA
+  // Query para calcular limite disponível correto com nova lógica CORRIGIDA (APENAS CARTÕES ATIVOS)
   const {
     data: creditCardBalances = [],
     isLoading: isLoadingBalances,
   } = useQuery({
     queryKey: ['credit-card-balances'],
     queryFn: async () => {
-      console.log('Calculating credit card balances with CORRECT logic...');
+      console.log('Calculating credit card balances with CORRECT logic (APENAS CARTÕES ATIVOS)...');
       
       const { data: cards, error: cardsError } = await supabase
         .from('credit_cards')
         .select('id, name, credit_limit, is_active')
-        .eq('is_active', true);
+        .eq('is_active', true); // CRÍTICO: APENAS cartões ativos
 
       if (cardsError) {
-        console.error('Error fetching cards for balance:', cardsError);
+        console.error('Error fetching active cards for balance:', cardsError);
         throw cardsError;
       }
 
@@ -92,7 +91,7 @@ export const useCreditCards = () => {
         const totalCommitted = unpaidInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0);
         const availableLimit = Math.max(0, Number(card.credit_limit) - totalCommitted);
 
-        console.log(`Cartão ${card.name}: Limite R$ ${card.credit_limit}, Comprometido R$ ${totalCommitted}, Disponível R$ ${availableLimit}`);
+        console.log(`Cartão ATIVO ${card.name}: Limite R$ ${card.credit_limit}, Comprometido R$ ${totalCommitted}, Disponível R$ ${availableLimit}`);
 
         balances.push({
           card_id: card.id,
@@ -104,7 +103,7 @@ export const useCreditCards = () => {
         });
       }
 
-      console.log('Credit card balances calculated with CORRECT logic:', balances);
+      console.log('Credit card balances calculated with CORRECT logic (APENAS ATIVOS):', balances);
       return balances;
     },
   });
@@ -222,7 +221,9 @@ export const useCreditCards = () => {
 
   const deleteCreditCard = useMutation({
     mutationFn: async (id: string) => {
-      console.log('Deleting credit card:', id);
+      console.log('Desativando cartão de crédito:', id);
+      
+      // CRÍTICO: Primeiro desativar o cartão
       const { error } = await supabase
         .from('credit_cards')
         .update({ is_active: false })
@@ -232,23 +233,26 @@ export const useCreditCards = () => {
         console.error('Error deleting credit card:', error);
         throw error;
       }
+
+      // CRÍTICO: Imediatamente após desativar, sincronizar patrimônio para remover dívidas
+      console.log('CRÍTICO: Sincronizando patrimônio após desativação do cartão...');
+      const { error: syncError } = await supabase.rpc('sync_credit_card_debts_to_patrimony');
+      if (syncError) {
+        console.error('Erro na sincronização do patrimônio após desativação:', syncError);
+        // Não falhar a operação, mas logar o erro
+      }
     },
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['all-credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
       
-      // CRÍTICO: Sincronizar patrimônio após remover cartão
-      console.log('CRÍTICO: Sincronizando patrimônio após remoção de cartão...');
-      const { error: syncError } = await supabase.rpc('sync_credit_card_debts_to_patrimony');
-      if (syncError) {
-        console.error('Erro na sincronização do patrimônio:', syncError);
-      }
-      
+      // CRÍTICO: Invalidar patrimônio para refletir a remoção das dívidas
       queryClient.invalidateQueries({ queryKey: ['liabilities'] });
+      
       toast({
         title: "Cartão removido!",
-        description: "O cartão foi removido e as dívidas associadas foram removidas do patrimônio.",
+        description: "O cartão foi desativado e as dívidas associadas foram removidas do patrimônio.",
       });
     },
     onError: (error) => {

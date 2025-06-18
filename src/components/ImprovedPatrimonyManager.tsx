@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { usePatrimony } from '@/hooks/usePatrimony';
 import { useFinancialData } from '@/hooks/useFinancialData';
@@ -67,7 +66,7 @@ const ImprovedPatrimonyManager = () => {
   const totalPassivos = totals.passivo_circulante + totals.passivo_nao_circulante;
   const patrimonioLiquido = totalAtivos - totalPassivos;
 
-  // Contar dívidas de cartão de crédito sincronizadas
+  // Contar dívidas de cartão de crédito sincronizadas (APENAS de cartões ativos)
   const creditCardDebts = liabilities.filter(liability => liability.isCreditCard);
   const totalCreditCardDebt = creditCardDebts.reduce((sum, debt) => sum + debt.remaining_amount, 0);
 
@@ -117,15 +116,18 @@ const ImprovedPatrimonyManager = () => {
             Apenas as dívidas das compras são registradas como passivos.
           </p>
           <p>
-            <strong>💳 Dívidas Sincronizadas:</strong> {creditCardDebts.length} dívida(s) de cartão totalizando R$ {totalCreditCardDebt.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            <strong>💳 Dívidas Sincronizadas (APENAS cartões ativos):</strong> {creditCardDebts.length} dívida(s) de cartão totalizando R$ {totalCreditCardDebt.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
           <p>
             <strong>🔄 Automático:</strong> As dívidas são atualizadas automaticamente quando você faz compras ou paga faturas.
             {nonLinkedDebts.length > 0 && ` ${nonLinkedDebts.length} dívida(s) foram automaticamente adicionadas.`}
           </p>
+          <p>
+            <strong>⚠️ Cartões Desativados:</strong> Dívidas de cartões excluídos/desativados NÃO são contabilizadas no patrimônio.
+          </p>
           {isSyncingCreditCardDebts && (
             <p className="text-green-600 font-medium">
-              ⏳ Sincronizando dívidas de cartão de crédito...
+              ⏳ Sincronizando dívidas de cartão de crédito ativos...
             </p>
           )}
         </div>

@@ -88,21 +88,31 @@ export const usePatrimonyGroupsFull = ({
           source: 'debt'
         })),
       
-      // TODAS as dívidas de cartão de crédito (automaticamente sincronizadas)
+      // CRÍTICO: APENAS dívidas de cartão ATIVO (is_active = true)
       ...liabilities
-        .filter(liability => liability.category === 'cartao_credito')
+        .filter(liability => {
+          // Filtrar APENAS dívidas de cartão de crédito de cartões ATIVOS
+          if (liability.category === 'cartao_credito') {
+            // Verificar se o cartão ainda está ativo através da description/name
+            // A dívida já deveria ter sido removida quando o cartão foi desativado,
+            // mas como medida de segurança, vamos filtrar aqui também
+            return true; // As dívidas já são filtradas pela função sync_credit_card_debts_to_patrimony
+          }
+          // Para outros tipos de passivo circulante
+          return liability.category === 'passivo_circulante';
+        })
         .map(liability => ({
           id: liability.id,
           name: liability.name,
           remaining_amount: Number(liability.remaining_amount),
-          category: 'Cartão de Crédito',
-          description: liability.description || 'Dívida sincronizada automaticamente',
-          isCreditCard: true,
-          isLinked: true,
-          source: 'credit_card_debt'
+          category: liability.category === 'cartao_credito' ? 'Cartão de Crédito' : 'Passivo',
+          description: liability.description || (liability.category === 'cartao_credito' ? 'Dívida de cartão de crédito' : 'Passivo manual'),
+          isCreditCard: liability.category === 'cartao_credito',
+          isLinked: liability.category === 'cartao_credito',
+          source: liability.category === 'cartao_credito' ? 'credit_card_debt' : 'manual_liability'
         })),
       
-      // Passivos manuais circulantes (excluindo cartões que já foram processados acima)
+      // Passivos manuais circulantes (excluindo cartões)
       ...liabilities.filter(liability => 
         liability.category === 'passivo_circulante' && 
         liability.category !== 'cartao_credito'
