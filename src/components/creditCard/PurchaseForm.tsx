@@ -7,8 +7,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useCreditCardPurchases } from '@/hooks/useCreditCardPurchases';
 import { useUnifiedCategories } from '@/hooks/useUnifiedCategories';
@@ -24,9 +22,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   const { creditCards } = useCreditCards();
   const { createPurchase, isCreating } = useCreditCardPurchases();
   const { categories } = useUnifiedCategories();
-  
-  const [autoFillInstallments, setAutoFillInstallments] = useState(true);
-  const [installmentValues, setInstallmentValues] = useState<number[]>([]);
 
   const form = useForm<PurchaseFormData>({
     resolver: zodResolver(purchaseSchema),
@@ -45,59 +40,17 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   const amount = form.watch('amount');
   const installments = form.watch('installments');
 
-  // Atualizar valores das parcelas quando mudar número de parcelas ou valor total
-  React.useEffect(() => {
-    if (installments > 0 && amount > 0) {
-      if (autoFillInstallments) {
-        const equalValue = amount / installments;
-        setInstallmentValues(Array(installments).fill(Number(equalValue.toFixed(2))));
-      } else {
-        // Manter valores existentes ou preencher com zeros
-        const newValues = Array(installments).fill(0).map((_, index) => 
-          installmentValues[index] || 0
-        );
-        setInstallmentValues(newValues);
-      }
-    }
-  }, [installments, amount, autoFillInstallments]);
-
-  const handleInstallmentValueChange = (index: number, value: string) => {
-    const numValue = parseFloat(value) || 0;
-    const newValues = [...installmentValues];
-    newValues[index] = numValue;
-    setInstallmentValues(newValues);
-  };
-
-  const handleAutoFillToggle = (enabled: boolean) => {
-    setAutoFillInstallments(enabled);
-    if (enabled && amount > 0 && installments > 0) {
-      const equalValue = amount / installments;
-      setInstallmentValues(Array(installments).fill(Number(equalValue.toFixed(2))));
-    }
-  };
-
-  const calculateTotal = () => {
-    return installmentValues.reduce((sum, value) => sum + value, 0);
-  };
-
-  const isFormValid = () => {
-    if (installments <= 1) return true;
-    
-    const total = calculateTotal();
-    const difference = Math.abs(total - amount);
-    return difference < 0.01; // Tolerância para arredondamentos
-  };
-
   const onSubmit = (data: PurchaseFormData) => {
     console.log('Submitting purchase form:', data);
     
-    // Se temos parcelas com valores manuais, criar manual_installments
+    // Se temos mais de 1 parcela, criar manual_installments com valores iguais
     let manualInstallments: ManualInstallmentData[] = [];
     
-    if (installments > 1 && installmentValues.length === installments) {
-      manualInstallments = installmentValues.map((amount, index) => ({
+    if (installments > 1 && amount > 0) {
+      const installmentValue = amount / installments;
+      manualInstallments = Array.from({ length: installments }, (_, index) => ({
         installment_number: index + 1,
-        amount: amount
+        amount: Number(installmentValue.toFixed(2))
       }));
     }
     
@@ -111,9 +64,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
     onClose();
   };
 
-  const currentTotal = calculateTotal();
-  const difference = Math.abs(currentTotal - amount);
-  const totalMatches = difference < 0.01;
+  // Calcular valor da parcela
+  const installmentValue = installments > 0 && amount > 0 ? amount / installments : 0;
 
   return (
     <Card>
@@ -245,77 +197,26 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
               )}
             />
 
-            {/* Seção de Valores das Parcelas */}
-            {installments > 1 && (
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="auto-fill"
-                    checked={autoFillInstallments}
-                    onCheckedChange={handleAutoFillToggle}
-                  />
-                  <Label htmlFor="auto-fill" className="text-sm font-medium">
-                    Adicionar valores das parcelas automaticamente
-                  </Label>
-                </div>
-
-                <div className="space-y-3">
-                  <Label className="text-sm font-medium">Valor das Parcelas</Label>
-                  
-                  {installmentValues.map((value, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <Label className="text-sm w-16 flex-shrink-0">
-                        {index + 1}ª parcela:
-                      </Label>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        min="0.01"
-                        value={value || ''}
-                        onChange={(e) => handleInstallmentValueChange(index, e.target.value)}
-                        disabled={autoFillInstallments}
-                        className="flex-1"
-                        placeholder="0.00"
-                      />
-                    </div>
-                  ))}
-
-                  {/* Resumo dos valores */}
-                  <div className="border-t pt-3 space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Total das parcelas:</span>
-                      <span className={!totalMatches ? 'text-red-600 font-medium' : 'text-green-600 font-medium'}>
-                        R$ {currentTotal.toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Valor da compra:</span>
-                      <span className="font-medium">R$ {amount.toFixed(2)}</span>
-                    </div>
-                    
-                    {!totalMatches && (
-                      <div className="text-xs text-red-600 bg-red-50 p-2 rounded border border-red-200">
-                        ⚠️ A soma das parcelas deve ser igual ao valor total da compra.
-                        <br />
-                        Diferença: R$ {difference.toFixed(2)}
-                      </div>
-                    )}
-                    
-                    {totalMatches && installmentValues.length > 0 && (
-                      <div className="text-xs text-green-600 bg-green-50 p-2 rounded border border-green-200">
-                        ✅ Valores conferem! As parcelas somam o valor total da compra.
-                      </div>
-                    )}
+            {/* Exibir valor da parcela quando há mais de 1 parcela */}
+            {installments > 1 && amount > 0 && (
+              <div className="space-y-3">
+                <div className="bg-gray-50 p-3 rounded border">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Valor de cada parcela:</span>
+                    <span className="font-medium text-green-600">
+                      R$ {installmentValue.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm mt-1">
+                    <span className="text-gray-600">Total ({installments}x):</span>
+                    <span className="font-medium">R$ {amount.toFixed(2)}</span>
                   </div>
                 </div>
               </div>
             )}
 
             <div className="flex gap-2 pt-4">
-              <Button 
-                type="submit" 
-                disabled={isCreating || !isFormValid()}
-              >
+              <Button type="submit" disabled={isCreating}>
                 {isCreating ? 'Registrando...' : 'Registrar Compra'}
               </Button>
               <Button type="button" variant="outline" onClick={onClose}>
