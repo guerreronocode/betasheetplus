@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface DebtFormData {
@@ -38,15 +37,6 @@ export interface DebtData {
   updated_at?: string;
 }
 
-export interface EarlyPayoffSimulation {
-  currentPayoffAmount: number;
-  remainingInterest: number;
-  totalSavings: number;
-  recommendationScore: number;
-  monthsRemaining: number;
-  isRecommended: boolean;
-}
-
 export class DebtCalculationService {
   static calculateDebtMetrics(formData: DebtFormData): {
     totalDebtAmount: number;
@@ -71,70 +61,6 @@ export class DebtCalculationService {
       totalInterestAmount,
       totalInterestPercentage,
     };
-  }
-
-  static simulateEarlyPayoff(debt: DebtData): EarlyPayoffSimulation {
-    const remainingInstallments = debt.total_installments - debt.paid_installments;
-    const monthsRemaining = remainingInstallments;
-    
-    // Calcular taxa de juros mensal implícita
-    const monthlyRate = this.calculateImpliedMonthlyRate(debt);
-    
-    // Valor presente das parcelas restantes (valor para quitar hoje)
-    const currentPayoffAmount = this.calculatePresentValue(
-      debt.installment_value,
-      monthlyRate,
-      remainingInstallments
-    );
-    
-    // Juros futuros que deixará de pagar
-    const remainingInterest = (debt.installment_value * remainingInstallments) - currentPayoffAmount;
-    
-    // Economia total
-    const totalSavings = remainingInterest;
-    
-    // Score de recomendação (0-100) - base simples para futuras melhorias com IA
-    const recommendationScore = this.calculateRecommendationScore(debt, totalSavings, monthsRemaining);
-    
-    return {
-      currentPayoffAmount,
-      remainingInterest,
-      totalSavings,
-      recommendationScore,
-      monthsRemaining,
-      isRecommended: recommendationScore >= 70,
-    };
-  }
-
-  private static calculateImpliedMonthlyRate(debt: DebtData): number {
-    // Calcular taxa mensal implícita usando aproximação
-    const totalPaid = debt.installment_value * debt.total_installments;
-    const totalInterest = totalPaid - debt.financed_amount;
-    const monthlyInterestRate = (totalInterest / debt.financed_amount) / debt.total_installments;
-    return Math.max(0.005, monthlyInterestRate); // Mínimo de 0.5% ao mês
-  }
-
-  private static calculatePresentValue(payment: number, rate: number, periods: number): number {
-    if (rate === 0) return payment * periods;
-    return payment * ((1 - Math.pow(1 + rate, -periods)) / rate);
-  }
-
-  private static calculateRecommendationScore(debt: DebtData, savings: number, monthsRemaining: number): number {
-    // Algoritmo base para score de recomendação (futuras melhorias com IA)
-    let score = 50; // Base score
-    
-    // Maior economia = maior score
-    const savingsPercentage = (savings / debt.remaining_balance) * 100;
-    score += Math.min(30, savingsPercentage * 2);
-    
-    // Menos tempo restante = maior score
-    score += Math.max(0, 20 - monthsRemaining);
-    
-    // Taxa de juros alta = maior score para quitação
-    if (debt.total_interest_percentage > 20) score += 15;
-    else if (debt.total_interest_percentage > 10) score += 10;
-    
-    return Math.min(100, Math.max(0, score));
   }
 
   static validateForm(formData: DebtFormData): string | null {

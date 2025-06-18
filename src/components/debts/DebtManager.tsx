@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { FolderOpen, Wallet, Plus, Edit, Trash2, Calculator } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -44,17 +43,6 @@ const DebtManager: React.FC = () => {
     setShowForm(true);
   };
 
-  const handleSimulate = (debt: any) => {
-    setSimulatingDebt(debt);
-  };
-
-  const handleMarkAsPaid = () => {
-    if (simulatingDebt) {
-      markAsPaid(simulatingDebt.id);
-      setSimulatingDebt(null);
-    }
-  };
-
   const handleCancel = () => {
     setShowForm(false);
     setEditingDebt(null);
@@ -77,6 +65,17 @@ const DebtManager: React.FC = () => {
       case 'overdue': return 'Em atraso';
       case 'renegotiated': return 'Renegociada';
       default: return status;
+    }
+  };
+
+  const handleSimulate = (debt: any) => {
+    setSimulatingDebt(debt);
+  };
+
+  const handleMarkAsPaid = () => {
+    if (simulatingDebt) {
+      markAsPaid(simulatingDebt.id);
+      setSimulatingDebt(null);
     }
   };
 
