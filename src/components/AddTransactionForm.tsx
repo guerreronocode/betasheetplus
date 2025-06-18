@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus, DollarSign, Tag, Calendar, Building, Utensils, Car, ShoppingBag, Dog, Film, Book, Smartphone, Shirt, HeartPulse } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -10,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCustomCategories } from "@/hooks/useCustomCategories";
 import { useTransactionForm } from "@/hooks/useTransactionForm";
+import { useUnifiedCategories } from "@/hooks/useUnifiedCategories";
 import TransactionFormFields from "./TransactionFormFields";
 
 const expenseCategoriesBase = [
@@ -85,10 +85,16 @@ function sanitizeCategory(str: string): string {
 
 const AddTransactionForm = () => {
   const { addIncome, addExpense, isAddingIncome, isAddingExpense, bankAccounts } = useFinancialData();
+  const { categories: unifiedCategories } = useUnifiedCategories();
 
-  const incomeCategoriesCfg = useCustomCategories("custom-categories-receita", baseIncomeCategories);
-  // Corrigido: passar as categorias base de despesas
-  const expenseCategoriesCfg = useCustomCategories("custom-categories-despesa", expenseCategoriesBase);
+  // Usar as categorias unificadas como base para as categorias customizadas
+  const incomeCategoriesCfg = useCustomCategories("custom-categories-receita", unifiedCategories.filter(cat => 
+    ['Salário', 'Freelance', 'Investimentos', 'Aluguel', 'Vendas', 'Outros'].includes(cat)
+  ));
+
+  const expenseCategoriesCfg = useCustomCategories("custom-categories-despesa", unifiedCategories.filter(cat => 
+    !['Salário', 'Freelance', 'Investimentos', 'Aluguel', 'Vendas'].includes(cat)
+  ));
 
   const initialIncomeForm = {
     description: '',
@@ -196,4 +202,3 @@ const AddTransactionForm = () => {
 }
 
 export default AddTransactionForm;
-

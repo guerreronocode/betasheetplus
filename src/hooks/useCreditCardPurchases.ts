@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -190,6 +189,7 @@ export const useCreditCardPurchases = () => {
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
       queryClient.invalidateQueries({ queryKey: ['purchase-status'] });
       queryClient.invalidateQueries({ queryKey: ['integrated-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['unified-categories'] });
       toast({
         title: "Compra registrada!",
         description: "A compra foi adicionada ao cartão de crédito.",
@@ -229,6 +229,7 @@ export const useCreditCardPurchases = () => {
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
       queryClient.invalidateQueries({ queryKey: ['purchase-status'] });
       queryClient.invalidateQueries({ queryKey: ['integrated-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['unified-categories'] });
       toast({
         title: "Compra atualizada!",
         description: "As informações da compra foram atualizadas.",

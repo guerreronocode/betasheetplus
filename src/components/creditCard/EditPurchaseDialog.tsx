@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { purchaseSchema, PurchaseFormData, CreditCardPurchase } from '@/types/creditCard';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useCreditCardPurchases } from '@/hooks/useCreditCardPurchases';
-import { useExpenseCategories } from '@/hooks/useExpenseCategories';
+import { useUnifiedCategories } from '@/hooks/useUnifiedCategories';
 
 interface EditPurchaseDialogProps {
   purchase: CreditCardPurchase | null;
@@ -25,7 +24,7 @@ export const EditPurchaseDialog: React.FC<EditPurchaseDialogProps> = ({
 }) => {
   const { creditCards } = useCreditCards();
   const { updatePurchase, isUpdating } = useCreditCardPurchases();
-  const { categories } = useExpenseCategories();
+  const { categories } = useUnifiedCategories();
 
   const form = useForm<PurchaseFormData>({
     resolver: zodResolver(purchaseSchema),

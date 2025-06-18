@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -9,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useCreditCardPurchases } from '@/hooks/useCreditCardPurchases';
-import { useExpenseCategories } from '@/hooks/useExpenseCategories';
+import { useUnifiedCategories } from '@/hooks/useUnifiedCategories';
 import { ManualInstallmentsEditor } from './ManualInstallmentsEditor';
 import { X } from 'lucide-react';
 import { format } from 'date-fns';
@@ -22,7 +21,7 @@ interface PurchaseFormProps {
 export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   const { creditCards } = useCreditCards();
   const { createPurchase, isCreating } = useCreditCardPurchases();
-  const { categories } = useExpenseCategories();
+  const { categories } = useUnifiedCategories();
   
   const [isManualInstallments, setIsManualInstallments] = useState(false);
   const [manualInstallments, setManualInstallments] = useState<ManualInstallmentData[]>([]);
