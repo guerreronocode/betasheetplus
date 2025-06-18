@@ -56,9 +56,18 @@ export const useCreditCardPurchases = () => {
   const createPurchase = useMutation({
     mutationFn: async (purchaseData: PurchaseFormData) => {
       console.log('Creating purchase:', purchaseData);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       const { data, error } = await supabase
         .from('credit_card_purchases')
-        .insert(purchaseData)
+        .insert({
+          ...purchaseData,
+          user_id: user.id,
+        })
         .select()
         .single();
 

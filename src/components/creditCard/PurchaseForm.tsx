@@ -53,7 +53,15 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
 
   const onSubmit = (data: PurchaseFormData) => {
     console.log('Submitting purchase form:', data);
-    createPurchase(data);
+    // Ensure all required fields are present
+    const purchaseData: PurchaseFormData = {
+      credit_card_id: data.credit_card_id,
+      description: data.description,
+      amount: data.amount,
+      purchase_date: data.purchase_date,
+      installments: data.installments,
+    };
+    createPurchase(purchaseData);
     onClose();
   };
 
