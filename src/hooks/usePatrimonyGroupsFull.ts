@@ -1,6 +1,5 @@
+
 import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 
 interface UsePatrimonyGroupsFullProps {
   assets: any[];
@@ -18,30 +17,6 @@ export const usePatrimonyGroupsFull = ({
   debts,
 }: UsePatrimonyGroupsFullProps) => {
   
-  // Query para buscar cartões de crédito com patrimônio
-  const { data: creditCardsPatrimony = 0 } = useQuery({
-    queryKey: ['credit-cards-patrimony'],
-    queryFn: async () => {
-      console.log('Calculating credit cards patrimony...');
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) return 0;
-
-      const { data, error } = await supabase
-        .rpc('calculate_credit_cards_patrimony', {
-          p_user_id: user.id
-        });
-
-      if (error) {
-        console.error('Error calculating credit cards patrimony:', error);
-        return 0;
-      }
-
-      console.log('Credit cards patrimony calculated:', data);
-      return Number(data) || 0;
-    },
-  });
-
   return useMemo(() => {
     const ativoCirculante = [
       // Contas bancárias
@@ -92,19 +67,6 @@ export const usePatrimonyGroupsFull = ({
       ...assets.filter(asset => asset.category === 'ativo_nao_circulante')
     ];
 
-    // Adicionar cartões de crédito ao patrimônio se tiver valor
-    if (creditCardsPatrimony > 0) {
-      ativoCirculante.push({
-        id: 'credit-cards-patrimony',
-        name: 'Limite de Crédito Disponível',
-        current_value: creditCardsPatrimony,
-        category: 'Cartão de Crédito',
-        description: 'Limite disponível em cartões incluídos no patrimônio',
-        isLinked: true,
-        source: 'credit_card'
-      });
-    }
-
     const passivoCirculante = [
       // Dívidas com vencimento <= 12 meses
       ...debts
@@ -126,7 +88,7 @@ export const usePatrimonyGroupsFull = ({
           source: 'debt'
         })),
       
-      // Passivos manuais circulantes
+      // Passivos manuais circulantes (incluindo dívidas de cartão de crédito sincronizadas)
       ...liabilities.filter(liability => liability.category === 'passivo_circulante')
     ];
 
@@ -151,7 +113,7 @@ export const usePatrimonyGroupsFull = ({
           source: 'debt'
         })),
       
-      // Passivos manuais não circulantes
+      // Passivos manuais não circulantes (incluindo dívidas de cartão de crédito sincronizadas)
       ...liabilities.filter(liability => liability.category === 'passivo_nao_circulante')
     ];
 
@@ -185,5 +147,5 @@ export const usePatrimonyGroupsFull = ({
       nonLinkedInvestments,
       nonLinkedDebts,
     };
-  }, [assets, liabilities, investments, bankAccounts, debts, creditCardsPatrimony]);
+  }, [assets, liabilities, investments, bankAccounts, debts]);
 };

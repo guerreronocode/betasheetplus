@@ -61,21 +61,19 @@ export const CreditLimitPanel: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Explicação da Nova Lógica */}
-      <Card className="border-blue-200 bg-blue-50">
+      {/* Explicação da Lógica Correta */}
+      <Card className="border-green-200 bg-green-50">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <Info className="h-5 w-5 text-blue-600 mt-0.5" />
-            <div className="text-sm text-blue-800">
-              <p className="font-medium mb-1">💳 Lógica Correta do Limite de Crédito</p>
+            <Info className="h-5 w-5 text-green-600 mt-0.5" />
+            <div className="text-sm text-green-800">
+              <p className="font-medium mb-1">✅ Integração Correta com Patrimônio</p>
               <p className="text-xs mb-2">
-                O limite é comprometido pelo <strong>valor total da compra</strong> no momento da compra, 
-                independente do parcelamento. A cada pagamento de fatura, o limite é liberado 
-                proporcionalmente ao valor das parcelas quitadas.
+                <strong>Limite de crédito NÃO é patrimônio.</strong> Apenas as dívidas das compras
+                (parcelas não pagas) são automaticamente registradas como passivos no patrimônio.
               </p>
-              <p className="text-xs font-medium text-blue-700">
-                ⚠️ Importante: O limite de crédito NÃO faz parte do patrimônio. Apenas as obrigações 
-                (parcelas não pagas) são registradas como passivos no patrimônio.
+              <p className="text-xs font-medium text-green-700">
+                ⚡ Automático: Cada compra gera uma dívida no patrimônio que diminui conforme você paga as faturas.
               </p>
             </div>
           </div>
@@ -87,7 +85,7 @@ export const CreditLimitPanel: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5" />
-            Limite de Crédito Atual
+            Controle de Limite de Crédito
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -95,24 +93,27 @@ export const CreditLimitPanel: React.FC = () => {
           <div className="p-4 bg-muted rounded-lg">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-muted-foreground">Total Disponível</p>
+                <p className="text-sm text-muted-foreground">Limite Disponível</p>
                 <p className="text-2xl font-bold text-green-600">
                   {formatCurrency(totalAvailable)}
                 </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Para novas compras
+                </p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Total Comprometido</p>
+                <p className="text-sm text-muted-foreground">Valor Comprometido</p>
                 <p className="text-2xl font-bold text-orange-600">
                   {formatCurrency(totalCommitted)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Valor das compras menos parcelas pagas
+                  Compras não quitadas
                 </p>
               </div>
             </div>
             <div className="mt-3">
               <div className="flex justify-between text-sm mb-1">
-                <span>Uso do limite</span>
+                <span>Uso do limite total</span>
                 <span>{usagePercentage.toFixed(1)}%</span>
               </div>
               <Progress value={usagePercentage} className="h-2" />
@@ -153,7 +154,7 @@ export const CreditLimitPanel: React.FC = () => {
                       <p className="font-medium text-orange-600">
                         {formatCurrency(card.total_committed)}
                       </p>
-                      <p className="text-xs">Compras - Parcelas pagas</p>
+                      <p className="text-xs">Dívida no patrimônio</p>
                     </div>
                     <div>
                       <span>Uso:</span>

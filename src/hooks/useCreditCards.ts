@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -151,7 +152,7 @@ export const useCreditCards = () => {
         credit_limit: cardData.credit_limit,
         closing_day: cardData.closing_day,
         due_day: cardData.due_day,
-        include_in_patrimony: cardData.include_in_patrimony || false,
+        include_in_patrimony: false, // Sempre false - limite não é patrimônio
       };
 
       const { data, error } = await supabase
@@ -171,9 +172,8 @@ export const useCreditCards = () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['all-credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
-      // Invalidar patrimônio para sincronizar automaticamente
+      // Invalidar patrimônio para sincronizar dívidas automaticamente
       queryClient.invalidateQueries({ queryKey: ['liabilities'] });
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
       toast({
         title: "Cartão criado com sucesso!",
         description: "Seu cartão de crédito foi adicionado. As dívidas relacionadas serão sincronizadas automaticamente no patrimônio.",
@@ -192,9 +192,16 @@ export const useCreditCards = () => {
   const updateCreditCard = useMutation({
     mutationFn: async ({ id, ...updateData }: Partial<CreditCard> & { id: string }) => {
       console.log('Updating credit card:', id, updateData);
+      
+      // Garantir que include_in_patrimony sempre seja false
+      const sanitizedData = {
+        ...updateData,
+        include_in_patrimony: false
+      };
+      
       const { data, error } = await supabase
         .from('credit_cards')
-        .update(updateData)
+        .update(sanitizedData)
         .eq('id', id)
         .select()
         .single();
@@ -210,9 +217,8 @@ export const useCreditCards = () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['all-credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
-      // Invalidar patrimônio para sincronizar automaticamente
+      // Invalidar patrimônio para sincronizar dívidas automaticamente
       queryClient.invalidateQueries({ queryKey: ['liabilities'] });
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
       toast({
         title: "Cartão atualizado!",
         description: "As informações do cartão foram atualizadas e as dívidas foram sincronizadas no patrimônio.",
@@ -245,9 +251,8 @@ export const useCreditCards = () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['all-credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
-      // Invalidar patrimônio para sincronizar automaticamente
+      // Invalidar patrimônio para sincronizar dívidas automaticamente
       queryClient.invalidateQueries({ queryKey: ['liabilities'] });
-      queryClient.invalidateQueries({ queryKey: ['assets'] });
       toast({
         title: "Cartão removido!",
         description: "O cartão foi removido e as dívidas associadas foram removidas do patrimônio.",

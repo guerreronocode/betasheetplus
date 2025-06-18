@@ -108,26 +108,27 @@ const ImprovedPatrimonyManager = () => {
 
   return (
     <div>
-      <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <h3 className="font-medium text-blue-800 mb-2">Integração Automática com Cartão de Crédito</h3>
-        <div className="space-y-1 text-sm text-blue-700">
+      <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
+        <h3 className="font-medium text-green-800 mb-2">✅ Integração Correta com Cartão de Crédito</h3>
+        <div className="space-y-1 text-sm text-green-700">
           <p>
-            <strong>✅ Lógica Correta:</strong> O limite do cartão de crédito NÃO faz parte do patrimônio. 
-            Apenas as obrigações (parcelas não pagas) são registradas como passivos.
+            <strong>🎯 Lógica Aplicada:</strong> Apenas as dívidas das compras no cartão são registradas 
+            como passivos. O limite de crédito NÃO faz parte do patrimônio.
           </p>
           <p>
-            As dívidas ativas e as obrigações de cartão de crédito são automaticamente incluídas como passivos. 
+            As dívidas ativas e as obrigações de cartão de crédito são automaticamente sincronizadas 
+            como passivos sempre que você faz uma compra ou paga uma fatura.
             {nonLinkedDebts.length > 0 && ` ${nonLinkedDebts.length} dívida(s) foram automaticamente adicionadas.`}
           </p>
           {creditCardDebts.length > 0 && (
             <p>
-              💳 {creditCardDebts.length} obrigação(ões) de cartão de crédito sincronizada(s) automaticamente 
+              💳 {creditCardDebts.length} dívida(s) de cartão de crédito sincronizada(s) automaticamente 
               (valor das parcelas não pagas).
             </p>
           )}
           {isSyncingCreditCardDebts && (
-            <p className="text-blue-600 font-medium">
-              ⏳ Sincronizando obrigações de cartão de crédito...
+            <p className="text-green-600 font-medium">
+              ⏳ Sincronizando dívidas de cartão de crédito...
             </p>
           )}
         </div>
