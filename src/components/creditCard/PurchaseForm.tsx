@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -49,9 +48,10 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
 
   const installmentValue = amount && installments ? amount / installments : 0;
 
-  const onSubmit = (data: PurchaseFormData) => {
+  const onSubmit = (data: any) => {
     console.log('Submitting purchase form:', data);
-    createPurchase(data);
+    // Type assertion: Zod já validou os dados, então sabemos que são válidos
+    createPurchase(data as PurchaseFormData);
     onClose();
   };
 

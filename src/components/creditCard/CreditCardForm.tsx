@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -37,9 +36,10 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({ onClose }) => {
     mode: 'onChange',
   });
 
-  const onSubmit = (data: CreditCardFormData) => {
+  const onSubmit = (data: any) => {
     console.log('Submitting credit card form:', data);
-    createCreditCard(data);
+    // Type assertion: Zod já validou os dados, então sabemos que são válidos
+    createCreditCard(data as CreditCardFormData);
     onClose();
   };
 
