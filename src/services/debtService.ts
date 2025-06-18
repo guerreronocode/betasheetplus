@@ -116,17 +116,22 @@ export class DebtDataService {
   }
 
   static async createDebt(debtData: DebtData) {
+    console.log('Creating debt:', debtData);
     const { data, error } = await supabase
       .from('debts')
       .insert([debtData])
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error creating debt:', error);
+      throw error;
+    }
     return data;
   }
 
   static async updateDebt(id: string, debtData: Partial<DebtData>) {
+    console.log('Updating debt:', id, debtData);
     const { data, error } = await supabase
       .from('debts')
       .update(debtData)
@@ -134,28 +139,39 @@ export class DebtDataService {
       .select()
       .single();
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating debt:', error);
+      throw error;
+    }
     return data;
   }
 
   static async deleteDebt(id: string, userId: string) {
+    console.log('Deleting debt:', id, 'for user:', userId);
     const { error } = await supabase
       .from('debts')
       .delete()
       .eq('id', id)
       .eq('user_id', userId);
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error deleting debt:', error);
+      throw error;
+    }
   }
 
   static async getUserDebts(userId: string) {
+    console.log('Fetching debts for user:', userId);
     const { data, error } = await supabase
       .from('debts')
       .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
     
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching debts:', error);
+      throw error;
+    }
     return data as DebtData[];
   }
 }

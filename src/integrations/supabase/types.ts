@@ -168,6 +168,69 @@ export type Database = {
         }
         Relationships: []
       }
+      debts: {
+        Row: {
+          created_at: string
+          creditor: string
+          description: string
+          due_date: string
+          financed_amount: number
+          id: string
+          installment_value: number
+          notes: string | null
+          paid_installments: number
+          remaining_balance: number
+          start_date: string
+          status: string
+          total_debt_amount: number
+          total_installments: number
+          total_interest_amount: number
+          total_interest_percentage: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          creditor: string
+          description: string
+          due_date: string
+          financed_amount: number
+          id?: string
+          installment_value: number
+          notes?: string | null
+          paid_installments?: number
+          remaining_balance: number
+          start_date: string
+          status: string
+          total_debt_amount: number
+          total_installments: number
+          total_interest_amount: number
+          total_interest_percentage: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          creditor?: string
+          description?: string
+          due_date?: string
+          financed_amount?: number
+          id?: string
+          installment_value?: number
+          notes?: string | null
+          paid_installments?: number
+          remaining_balance?: number
+          start_date?: string
+          status?: string
+          total_debt_amount?: number
+          total_installments?: number
+          total_interest_amount?: number
+          total_interest_percentage?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       expenses: {
         Row: {
           amount: number
