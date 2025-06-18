@@ -46,8 +46,7 @@ export const useBillDetails = (creditCardId: string, billMonth: string) => {
           )
         `)
         .eq('credit_card_purchases.credit_card_id', creditCardId)
-        .eq('bill_month', billMonth)
-        .order('purchase_date', { foreignTable: 'credit_card_purchases', ascending: false });
+        .eq('bill_month', billMonth);
 
       if (error) {
         console.error('Error fetching bill details:', error);
@@ -72,8 +71,13 @@ export const useBillDetails = (creditCardId: string, billMonth: string) => {
         category: item.credit_card_purchases.category,
       }));
 
-      console.log('Bill details processed:', details);
-      return details;
+      // Ordenar por data de compra (mais recente primeiro) no JavaScript
+      const sortedDetails = details.sort((a, b) => {
+        return new Date(b.purchase_date).getTime() - new Date(a.purchase_date).getTime();
+      });
+
+      console.log('Bill details processed and sorted:', sortedDetails);
+      return sortedDetails;
     },
     enabled: !!creditCardId && !!billMonth,
   });
