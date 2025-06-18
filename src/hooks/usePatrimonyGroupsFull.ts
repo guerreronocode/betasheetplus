@@ -88,8 +88,25 @@ export const usePatrimonyGroupsFull = ({
           source: 'debt'
         })),
       
-      // Passivos manuais circulantes (incluindo dívidas de cartão de crédito sincronizadas)
-      ...liabilities.filter(liability => liability.category === 'passivo_circulante')
+      // TODAS as dívidas de cartão de crédito (automaticamente sincronizadas)
+      ...liabilities
+        .filter(liability => liability.category === 'cartao_credito')
+        .map(liability => ({
+          id: liability.id,
+          name: liability.name,
+          remaining_amount: Number(liability.remaining_amount),
+          category: 'Cartão de Crédito',
+          description: liability.description || 'Dívida sincronizada automaticamente',
+          isCreditCard: true,
+          isLinked: true,
+          source: 'credit_card_debt'
+        })),
+      
+      // Passivos manuais circulantes (excluindo cartões que já foram processados acima)
+      ...liabilities.filter(liability => 
+        liability.category === 'passivo_circulante' && 
+        liability.category !== 'cartao_credito'
+      )
     ];
 
     const passivoNaoCirculante = [
@@ -113,8 +130,11 @@ export const usePatrimonyGroupsFull = ({
           source: 'debt'
         })),
       
-      // Passivos manuais não circulantes (incluindo dívidas de cartão de crédito sincronizadas)
-      ...liabilities.filter(liability => liability.category === 'passivo_nao_circulante')
+      // Passivos manuais não circulantes (excluindo cartões)
+      ...liabilities.filter(liability => 
+        liability.category === 'passivo_nao_circulante' && 
+        liability.category !== 'cartao_credito'
+      )
     ];
 
     const groups = {

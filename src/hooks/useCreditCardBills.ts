@@ -21,8 +21,8 @@ export const useCreditCardBills = () => {
       
       if (!user) return [];
 
-      // Buscar faturas que realmente têm parcelas associadas
-      const { data, error } = await supabase
+      // Buscar faturas com cartões ativos
+      const { data: rawBills, error } = await supabase
         .from('credit_card_bills')
         .select(`
           *,
@@ -40,27 +40,49 @@ export const useCreditCardBills = () => {
         throw error;
       }
 
-      console.log('Raw bills data:', data);
+      console.log('Raw bills data:', rawBills);
 
-      // Filtrar faturas que realmente têm parcelas
-      const billsWithInstallments = [];
+      // CORREÇÃO CRÍTICA: Recalcular o valor correto de cada fatura
+      const billsWithCorrectValues = [];
       
-      for (const bill of data || []) {
-        // Verificar se a fatura tem parcelas associadas
+      for (const bill of rawBills || []) {
+        // Buscar EXATAMENTE as parcelas desta fatura específica
         const { data: installments, error: installmentsError } = await supabase
           .from('credit_card_installments')
-          .select('id')
+          .select('amount')
           .eq('credit_card_id', bill.credit_card_id)
           .eq('bill_month', bill.bill_month);
 
         if (installmentsError) {
-          console.error('Error checking installments for bill:', bill.id, installmentsError);
+          console.error('Error fetching installments for bill:', bill.id, installmentsError);
           continue;
         }
 
-        // Se a fatura tem parcelas OU está marcada como paga, incluir na lista
+        // Calcular o valor CORRETO da fatura = soma exata das parcelas
+        const correctBillAmount = installments?.reduce((sum, inst) => sum + Number(inst.amount), 0) || 0;
+        
+        console.log(`Fatura ${bill.id}: Valor original R$ ${bill.total_amount}, Valor correto R$ ${correctBillAmount}`);
+
+        // Se o valor estiver incorreto, atualizar no banco
+        if (Math.abs(Number(bill.total_amount) - correctBillAmount) > 0.01) {
+          console.log(`Corrigindo valor da fatura ${bill.id} de R$ ${bill.total_amount} para R$ ${correctBillAmount}`);
+          
+          const { error: updateError } = await supabase
+            .from('credit_card_bills')
+            .update({ total_amount: correctBillAmount })
+            .eq('id', bill.id);
+
+          if (updateError) {
+            console.error('Erro ao corrigir valor da fatura:', updateError);
+          }
+        }
+
+        // Se há parcelas OU está marcada como paga, incluir na lista
         if ((installments && installments.length > 0) || bill.is_paid) {
-          billsWithInstallments.push(bill);
+          billsWithCorrectValues.push({
+            ...bill,
+            total_amount: correctBillAmount // Usar o valor correto
+          });
         } else {
           // Se não tem parcelas e não está paga, remover a fatura órfã
           console.log('Removing orphan bill:', bill.id);
@@ -71,8 +93,8 @@ export const useCreditCardBills = () => {
         }
       }
 
-      console.log('Bills with installments:', billsWithInstallments);
-      return billsWithInstallments as CreditCardBill[];
+      console.log('Bills with correct values:', billsWithCorrectValues);
+      return billsWithCorrectValues as CreditCardBill[];
     },
     enabled: !!user,
   });
@@ -116,6 +138,22 @@ export const useCreditCardBills = () => {
         throw error;
       }
 
+      // Marcar todas as parcelas desta fatura como pagas
+      const { error: installmentsError } = await supabase
+        .from('credit_card_installments')
+        .update({
+          is_paid: true,
+          paid_at: new Date().toISOString(),
+          payment_account_id: paymentData.paid_account_id,
+        })
+        .eq('credit_card_id', data.credit_card_id)
+        .eq('bill_month', data.bill_month);
+
+      if (installmentsError) {
+        console.error('Error updating installments:', installmentsError);
+        throw installmentsError;
+      }
+
       // Se uma conta bancária foi especificada, debitar o valor
       if (paymentData.paid_account_id) {
         const { data: account, error: accountError } = await supabase
@@ -145,15 +183,25 @@ export const useCreditCardBills = () => {
         }
       }
 
+      console.log('CRÍTICO: Fatura paga, executando sincronização obrigatória do patrimônio...');
+      
+      // CRÍTICO: Sincronizar patrimônio após pagamento
+      const { error: syncError } = await supabase.rpc('sync_credit_card_debts_to_patrimony');
+      if (syncError) {
+        console.error('Erro na sincronização do patrimônio após pagamento:', syncError);
+        // Não falhar o pagamento por causa disso, mas logar
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credit-card-bills'] });
       queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
+      queryClient.invalidateQueries({ queryKey: ['liabilities'] }); // CRÍTICO: invalidar patrimônio
       toast({
         title: "Fatura paga!",
-        description: "A fatura foi marcada como paga e o saldo da conta foi atualizado.",
+        description: "A fatura foi marcada como paga, o saldo da conta foi atualizado e o patrimônio foi sincronizado.",
       });
     },
     onError: (error) => {

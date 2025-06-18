@@ -54,14 +54,14 @@ export const useCreditCards = () => {
     },
   });
 
-  // Query para calcular limite disponível correto com nova lógica
+  // Query para calcular limite disponível correto com nova lógica CORRIGIDA
   const {
     data: creditCardBalances = [],
     isLoading: isLoadingBalances,
   } = useQuery({
     queryKey: ['credit-card-balances'],
     queryFn: async () => {
-      console.log('Calculating credit card balances with correct logic...');
+      console.log('Calculating credit card balances with CORRECT logic...');
       
       const { data: cards, error: cardsError } = await supabase
         .from('credit_cards')
@@ -76,48 +76,20 @@ export const useCreditCards = () => {
       const balances: CreditCardBalance[] = [];
 
       for (const card of cards) {
-        // Nova lógica: Buscar todas as compras do cartão
-        const { data: purchases, error: purchasesError } = await supabase
-          .from('credit_card_purchases')
-          .select('id, amount')
-          .eq('credit_card_id', card.id);
+        // CORREÇÃO CRÍTICA: Buscar APENAS parcelas NÃO PAGAS para cálculo correto
+        const { data: unpaidInstallments, error: installmentsError } = await supabase
+          .from('credit_card_installments')
+          .select('amount')
+          .eq('credit_card_id', card.id)
+          .eq('is_paid', false); // CRÍTICO: apenas não pagas
 
-        if (purchasesError) {
-          console.error('Error fetching purchases:', purchasesError);
-          throw purchasesError;
+        if (installmentsError) {
+          console.error('Error fetching unpaid installments:', installmentsError);
+          throw installmentsError;
         }
 
-        let totalCommitted = 0;
-
-        // Para cada compra, calcular quanto ainda está comprometido no limite
-        for (const purchase of purchases) {
-          // Valor total da compra
-          const totalPurchaseValue = Number(purchase.amount);
-          
-          // Buscar parcelas já pagas desta compra específica
-          const { data: paidInstallments, error: paidError } = await supabase
-            .from('credit_card_installments')
-            .select('amount')
-            .eq('purchase_id', purchase.id)
-            .eq('is_paid', true);
-
-          if (paidError) {
-            console.error('Error fetching paid installments:', paidError);
-            throw paidError;
-          }
-
-          // Somar o valor das parcelas já pagas desta compra
-          const totalPaidForThisPurchase = paidInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0);
-          
-          // Valor ainda comprometido no limite = Valor total da compra - Parcelas já pagas
-          const stillCommittedForThisPurchase = totalPurchaseValue - totalPaidForThisPurchase;
-          
-          // Adicionar ao total comprometido (não pode ser negativo)
-          totalCommitted += Math.max(0, stillCommittedForThisPurchase);
-          
-          console.log(`Compra ${purchase.id}: Total R$ ${totalPurchaseValue}, Pago R$ ${totalPaidForThisPurchase}, Comprometido R$ ${stillCommittedForThisPurchase}`);
-        }
-
+        // Somar APENAS as parcelas não pagas
+        const totalCommitted = unpaidInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0);
         const availableLimit = Math.max(0, Number(card.credit_limit) - totalCommitted);
 
         console.log(`Cartão ${card.name}: Limite R$ ${card.credit_limit}, Comprometido R$ ${totalCommitted}, Disponível R$ ${availableLimit}`);
@@ -132,7 +104,7 @@ export const useCreditCards = () => {
         });
       }
 
-      console.log('Credit card balances calculated with correct logic:', balances);
+      console.log('Credit card balances calculated with CORRECT logic:', balances);
       return balances;
     },
   });
@@ -152,7 +124,7 @@ export const useCreditCards = () => {
         credit_limit: cardData.credit_limit,
         closing_day: cardData.closing_day,
         due_day: cardData.due_day,
-        include_in_patrimony: false, // Sempre false - limite não é patrimônio
+        include_in_patrimony: true, // CRÍTICO: habilitar para sincronizar dívidas
       };
 
       const { data, error } = await supabase
@@ -168,15 +140,22 @@ export const useCreditCards = () => {
 
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['all-credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
-      // Invalidar patrimônio para sincronizar dívidas automaticamente
+      
+      // CRÍTICO: Sincronizar patrimônio após criar cartão
+      console.log('CRÍTICO: Sincronizando patrimônio após criação de cartão...');
+      const { error: syncError } = await supabase.rpc('sync_credit_card_debts_to_patrimony');
+      if (syncError) {
+        console.error('Erro na sincronização do patrimônio:', syncError);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['liabilities'] });
       toast({
         title: "Cartão criado com sucesso!",
-        description: "Seu cartão de crédito foi adicionado. As dívidas relacionadas serão sincronizadas automaticamente no patrimônio.",
+        description: "Seu cartão foi adicionado. As dívidas serão sincronizadas automaticamente no patrimônio.",
       });
     },
     onError: (error) => {
@@ -193,10 +172,10 @@ export const useCreditCards = () => {
     mutationFn: async ({ id, ...updateData }: Partial<CreditCard> & { id: string }) => {
       console.log('Updating credit card:', id, updateData);
       
-      // Garantir que include_in_patrimony sempre seja false
+      // Garantir que include_in_patrimony sempre seja true para sincronização
       const sanitizedData = {
         ...updateData,
-        include_in_patrimony: false
+        include_in_patrimony: true
       };
       
       const { data, error } = await supabase
@@ -213,15 +192,22 @@ export const useCreditCards = () => {
 
       return data;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['all-credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
-      // Invalidar patrimônio para sincronizar dívidas automaticamente
+      
+      // CRÍTICO: Sincronizar patrimônio após atualizar cartão
+      console.log('CRÍTICO: Sincronizando patrimônio após atualização de cartão...');
+      const { error: syncError } = await supabase.rpc('sync_credit_card_debts_to_patrimony');
+      if (syncError) {
+        console.error('Erro na sincronização do patrimônio:', syncError);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['liabilities'] });
       toast({
         title: "Cartão atualizado!",
-        description: "As informações do cartão foram atualizadas e as dívidas foram sincronizadas no patrimônio.",
+        description: "As informações foram atualizadas e as dívidas sincronizadas no patrimônio.",
       });
     },
     onError: (error) => {
@@ -247,11 +233,18 @@ export const useCreditCards = () => {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['all-credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
-      // Invalidar patrimônio para sincronizar dívidas automaticamente
+      
+      // CRÍTICO: Sincronizar patrimônio após remover cartão
+      console.log('CRÍTICO: Sincronizando patrimônio após remoção de cartão...');
+      const { error: syncError } = await supabase.rpc('sync_credit_card_debts_to_patrimony');
+      if (syncError) {
+        console.error('Erro na sincronização do patrimônio:', syncError);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['liabilities'] });
       toast({
         title: "Cartão removido!",

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -64,11 +63,22 @@ export const usePatrimony = () => {
     enabled: !!user,
   });
 
-  // Liabilities queries and mutations
+  // Liabilities queries and mutations - SEMPRE sincronizar dívidas de cartão antes de buscar
   const { data: liabilities = [], isLoading: liabilitiesLoading } = useQuery({
     queryKey: ['liabilities', user?.id],
     queryFn: async () => {
       if (!user) return [];
+      
+      // CRÍTICO: Sincronizar dívidas de cartão ANTES de buscar os passivos
+      console.log('Sincronizando dívidas de cartão antes de buscar passivos...');
+      const { error: syncError } = await supabase.rpc('sync_credit_card_debts_to_patrimony');
+      if (syncError) {
+        console.error('Erro na sincronização automática de dívidas:', syncError);
+        // Não falhar a query, apenas logar o erro
+      } else {
+        console.log('Dívidas de cartão sincronizadas com sucesso');
+      }
+      
       const { data, error } = await supabase
         .from('liabilities')
         .select('*')
@@ -83,6 +93,7 @@ export const usePatrimony = () => {
         isCreditCard: liability.category === 'cartao_credito'
       }));
       
+      console.log('Passivos carregados após sincronização:', liabilitiesWithFlags);
       return liabilitiesWithFlags as Liability[];
     },
     enabled: !!user,
@@ -106,33 +117,38 @@ export const usePatrimony = () => {
     enabled: !!user,
   });
 
-  // Nova função para sincronizar dívidas de cartão de crédito
+  // Função para sincronizar dívidas de cartão de crédito OBRIGATORIAMENTE
   const syncCreditCardDebts = useMutation({
     mutationFn: async () => {
-      console.log('Sincronizando dívidas de cartão de crédito...');
+      console.log('Executando sincronização OBRIGATÓRIA de dívidas de cartão de crédito...');
       const { error } = await supabase.rpc('sync_credit_card_debts_to_patrimony');
       
       if (error) {
-        console.error('Erro ao sincronizar dívidas de cartão:', error);
+        console.error('Erro CRÍTICO na sincronização de dívidas de cartão:', error);
         throw error;
       }
+      
+      console.log('Sincronização obrigatória de dívidas concluída');
     },
     onSuccess: () => {
       // Invalidar queries relacionadas para atualizar a UI
       queryClient.invalidateQueries({ queryKey: ['liabilities'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-purchases'] });
-      console.log('Sincronização de dívidas de cartão concluída com sucesso');
+      queryClient.invalidateQueries({ queryKey: ['credit-card-bills'] });
+      console.log('Sincronização de dívidas de cartão concluída com sucesso - UI atualizada');
     },
     onError: (error) => {
-      console.error('Erro na sincronização de dívidas de cartão:', error);
+      console.error('Erro CRÍTICO na sincronização de dívidas de cartão:', error);
       toast({
-        title: "Erro na sincronização",
-        description: "Não foi possível sincronizar as dívidas do cartão de crédito.",
+        title: "Erro crítico na sincronização",
+        description: "Não foi possível sincronizar as dívidas do cartão de crédito. Isso compromete a integridade do patrimônio.",
         variant: "destructive",
       });
     },
   });
+
+  // ... keep existing code (addAssetMutation, updateAssetMutation, deleteAssetMutation) the same
 
   const addAssetMutation = useMutation({
     mutationFn: async (asset: Omit<Asset, 'id'>) => {
@@ -192,6 +208,12 @@ export const usePatrimony = () => {
   const addLiabilityMutation = useMutation({
     mutationFn: async (liability: Omit<Liability, 'id'>) => {
       if (!user) throw new Error('User not authenticated');
+      
+      // Não permitir criação manual de dívidas de cartão
+      if (liability.category === 'cartao_credito') {
+        throw new Error('Dívidas de cartão de crédito são criadas automaticamente pelo sistema');
+      }
+      
       const { data, error } = await supabase
         .from('liabilities')
         .insert([{ ...liability, user_id: user.id }])
@@ -204,6 +226,13 @@ export const usePatrimony = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['liabilities'] });
       toast({ title: 'Passivo adicionado com sucesso!' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao adicionar passivo",
+        description: error.message || "Não foi possível adicionar o passivo.",
+        variant: "destructive",
+      });
     },
   });
 

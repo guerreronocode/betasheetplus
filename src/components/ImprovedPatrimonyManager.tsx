@@ -57,18 +57,19 @@ const ImprovedPatrimonyManager = () => {
     debts,
   });
 
-  // Sincronizar dívidas de cartão de crédito na inicialização
+  // CRÍTICO: Sincronizar dívidas de cartão na inicialização E sempre que necessário
   useEffect(() => {
-    console.log('Sincronizando dívidas de cartão de crédito na inicialização do patrimônio...');
+    console.log('CRÍTICO: Executando sincronização OBRIGATÓRIA de dívidas de cartão na inicialização...');
     syncCreditCardDebts();
-  }, []);
+  }, []); // Executar apenas na inicialização
 
   const totalAtivos = totals.ativo_circulante + totals.ativo_nao_circulante;
   const totalPassivos = totals.passivo_circulante + totals.passivo_nao_circulante;
   const patrimonioLiquido = totalAtivos - totalPassivos;
 
-  // Contar quantas dívidas de cartão de crédito temos
+  // Contar dívidas de cartão de crédito sincronizadas
   const creditCardDebts = liabilities.filter(liability => liability.isCreditCard);
+  const totalCreditCardDebt = creditCardDebts.reduce((sum, debt) => sum + debt.remaining_amount, 0);
 
   const handleGroupSelect = useCallback((group: string) => {
     setSelectedGroup(prev =>
@@ -79,7 +80,7 @@ const ImprovedPatrimonyManager = () => {
 
   const handleEditItem = useCallback((item: any) => {
     // Não permitir edição de itens que vêm de dívidas automaticamente ou cartões de crédito
-    if (item.isDebt || item.isCreditCard) {
+    if (item.isDebt || item.isCreditCard || item.source === 'credit_card_debt') {
       return;
     }
     
@@ -93,7 +94,7 @@ const ImprovedPatrimonyManager = () => {
     const item = Object.values(groups).flat().find((x: any) => x.id === id);
     
     // Não permitir exclusão de itens que vêm de dívidas automaticamente ou cartões de crédito
-    if (item && (item.isDebt || item.isCreditCard)) {
+    if (item && (item.isDebt || item.isCreditCard || item.source === 'credit_card_debt')) {
       return;
     }
     
@@ -109,23 +110,19 @@ const ImprovedPatrimonyManager = () => {
   return (
     <div>
       <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
-        <h3 className="font-medium text-green-800 mb-2">✅ Integração Correta com Cartão de Crédito</h3>
+        <h3 className="font-medium text-green-800 mb-2">✅ Integração CORRETA com Cartão de Crédito</h3>
         <div className="space-y-1 text-sm text-green-700">
           <p>
-            <strong>🎯 Lógica Aplicada:</strong> Apenas as dívidas das compras no cartão são registradas 
-            como passivos. O limite de crédito NÃO faz parte do patrimônio.
+            <strong>🎯 Lógica Correta Aplicada:</strong> O limite de crédito NÃO faz parte do patrimônio. 
+            Apenas as dívidas das compras são registradas como passivos.
           </p>
           <p>
-            As dívidas ativas e as obrigações de cartão de crédito são automaticamente sincronizadas 
-            como passivos sempre que você faz uma compra ou paga uma fatura.
+            <strong>💳 Dívidas Sincronizadas:</strong> {creditCardDebts.length} dívida(s) de cartão totalizando R$ {totalCreditCardDebt.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+          </p>
+          <p>
+            <strong>🔄 Automático:</strong> As dívidas são atualizadas automaticamente quando você faz compras ou paga faturas.
             {nonLinkedDebts.length > 0 && ` ${nonLinkedDebts.length} dívida(s) foram automaticamente adicionadas.`}
           </p>
-          {creditCardDebts.length > 0 && (
-            <p>
-              💳 {creditCardDebts.length} dívida(s) de cartão de crédito sincronizada(s) automaticamente 
-              (valor das parcelas não pagas).
-            </p>
-          )}
           {isSyncingCreditCardDebts && (
             <p className="text-green-600 font-medium">
               ⏳ Sincronizando dívidas de cartão de crédito...
