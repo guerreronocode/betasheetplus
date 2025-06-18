@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Header from '@/components/Header';
@@ -15,6 +16,7 @@ import LinkedGoalsManager from '@/components/LinkedGoalsManager';
 import TransferBetweenAccounts from '@/components/TransferBetweenAccounts';
 import RecurringTransactions from '@/components/RecurringTransactions';
 import DebtManager from "@/components/debts/DebtManager";
+import { CreditCardManager } from '@/components/creditCard/CreditCardManager';
 import { useFinancialData } from '@/hooks/useFinancialData';
 
 const Dashboard = () => {
@@ -30,7 +32,7 @@ const Dashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="accounts">Contas</TabsTrigger>
             <TabsTrigger value="transactions">Transações</TabsTrigger>
@@ -38,6 +40,7 @@ const Dashboard = () => {
             <TabsTrigger value="goals">Metas</TabsTrigger>
             <TabsTrigger value="patrimony">Patrimônio</TabsTrigger>
             <TabsTrigger value="debts">Dívidas</TabsTrigger>
+            <TabsTrigger value="credit-cards">Cartões</TabsTrigger>
             <TabsTrigger value="achievements">Conquistas</TabsTrigger>
           </TabsList>
 
@@ -45,7 +48,7 @@ const Dashboard = () => {
             <div className="text-center py-12">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Bem-vindo ao seu Dashboard Financeiro!</h2>
               <p className="text-gray-600 mb-8">Gerencie suas finanças de forma inteligente e organizada.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <h3 className="font-semibold text-blue-900">💰 Contas</h3>
                   <p className="text-sm text-blue-700">Gerencie suas contas bancárias</p>
@@ -61,6 +64,10 @@ const Dashboard = () => {
                 <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
                   <h3 className="font-semibold text-orange-900">🎯 Metas</h3>
                   <p className="text-sm text-orange-700">Defina e alcance objetivos</p>
+                </div>
+                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
+                  <h3 className="font-semibold text-red-900">💳 Cartões</h3>
+                  <p className="text-sm text-red-700">Gerencie cartões de crédito</p>
                 </div>
               </div>
             </div>
@@ -98,6 +105,10 @@ const Dashboard = () => {
 
           <TabsContent value="debts">
             <DebtManager />
+          </TabsContent>
+
+          <TabsContent value="credit-cards">
+            <CreditCardManager />
           </TabsContent>
 
           <TabsContent value="achievements">
