@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { usePatrimony } from '@/hooks/usePatrimony';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { patrimonyGroupLabels } from "./patrimonyCategories";
@@ -21,8 +21,10 @@ const ImprovedPatrimonyManager = () => {
     updateLiability,
     deleteAsset,
     deleteLiability,
+    syncCreditCardDebts,
     isAddingAsset,
     isAddingLiability,
+    isSyncingCreditCardDebts,
     isLoading,
   } = usePatrimony();
 
@@ -55,9 +57,18 @@ const ImprovedPatrimonyManager = () => {
     debts,
   });
 
+  // Sincronizar dívidas de cartão de crédito na inicialização
+  useEffect(() => {
+    console.log('Sincronizando dívidas de cartão de crédito na inicialização do patrimônio...');
+    syncCreditCardDebts();
+  }, []);
+
   const totalAtivos = totals.ativo_circulante + totals.ativo_nao_circulante;
   const totalPassivos = totals.passivo_circulante + totals.passivo_nao_circulante;
   const patrimonioLiquido = totalAtivos - totalPassivos;
+
+  // Contar quantas dívidas de cartão de crédito temos
+  const creditCardDebts = liabilities.filter(liability => liability.isCreditCard);
 
   const handleGroupSelect = useCallback((group: string) => {
     setSelectedGroup(prev =>
@@ -67,8 +78,8 @@ const ImprovedPatrimonyManager = () => {
   }, []);
 
   const handleEditItem = useCallback((item: any) => {
-    // Não permitir edição de itens que vêm de dívidas automaticamente
-    if (item.isDebt) {
+    // Não permitir edição de itens que vêm de dívidas automaticamente ou cartões de crédito
+    if (item.isDebt || item.isCreditCard) {
       return;
     }
     
@@ -81,8 +92,8 @@ const ImprovedPatrimonyManager = () => {
   const handleDeleteItem = useCallback((id: string) => {
     const item = Object.values(groups).flat().find((x: any) => x.id === id);
     
-    // Não permitir exclusão de itens que vêm de dívidas automaticamente
-    if (item && item.isDebt) {
+    // Não permitir exclusão de itens que vêm de dívidas automaticamente ou cartões de crédito
+    if (item && (item.isDebt || item.isCreditCard)) {
       return;
     }
     
@@ -98,11 +109,23 @@ const ImprovedPatrimonyManager = () => {
   return (
     <div>
       <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-        <h3 className="font-medium text-blue-800 mb-2">Integração Automática com Dívidas</h3>
-        <p className="text-sm text-blue-700">
-          As dívidas ativas registradas no sistema são automaticamente incluídas como passivos. 
-          {nonLinkedDebts.length > 0 && ` ${nonLinkedDebts.length} dívida(s) foram automaticamente adicionadas.`}
-        </p>
+        <h3 className="font-medium text-blue-800 mb-2">Integração Automática</h3>
+        <div className="space-y-1 text-sm text-blue-700">
+          <p>
+            As dívidas ativas registradas no sistema são automaticamente incluídas como passivos. 
+            {nonLinkedDebts.length > 0 && ` ${nonLinkedDebts.length} dívida(s) foram automaticamente adicionadas.`}
+          </p>
+          {creditCardDebts.length > 0 && (
+            <p>
+              🏧 {creditCardDebts.length} dívida(s) de cartão de crédito sincronizada(s) automaticamente.
+            </p>
+          )}
+          {isSyncingCreditCardDebts && (
+            <p className="text-blue-600 font-medium">
+              ⏳ Sincronizando dívidas de cartão de crédito...
+            </p>
+          )}
+        </div>
       </div>
 
       <PatrimonyHeaderSection

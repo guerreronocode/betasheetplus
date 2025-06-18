@@ -24,6 +24,7 @@ export interface Liability {
   monthly_payment?: number;
   due_date?: string;
   description?: string;
+  isCreditCard?: boolean; // Flag para identificar dívidas de cartão
 }
 
 export interface Debt {
@@ -75,7 +76,14 @@ export const usePatrimony = () => {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as Liability[];
+      
+      // Marcar as dívidas de cartão de crédito
+      const liabilitiesWithFlags = data.map(liability => ({
+        ...liability,
+        isCreditCard: liability.category === 'cartao_credito'
+      }));
+      
+      return liabilitiesWithFlags as Liability[];
     },
     enabled: !!user,
   });
@@ -96,6 +104,34 @@ export const usePatrimony = () => {
       return data as Debt[];
     },
     enabled: !!user,
+  });
+
+  // Nova função para sincronizar dívidas de cartão de crédito
+  const syncCreditCardDebts = useMutation({
+    mutationFn: async () => {
+      console.log('Sincronizando dívidas de cartão de crédito...');
+      const { error } = await supabase.rpc('sync_credit_card_debts_to_patrimony');
+      
+      if (error) {
+        console.error('Erro ao sincronizar dívidas de cartão:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      // Invalidar queries relacionadas para atualizar a UI
+      queryClient.invalidateQueries({ queryKey: ['liabilities'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-card-purchases'] });
+      console.log('Sincronização de dívidas de cartão concluída com sucesso');
+    },
+    onError: (error) => {
+      console.error('Erro na sincronização de dívidas de cartão:', error);
+      toast({
+        title: "Erro na sincronização",
+        description: "Não foi possível sincronizar as dívidas do cartão de crédito.",
+        variant: "destructive",
+      });
+    },
   });
 
   const addAssetMutation = useMutation({
@@ -174,6 +210,13 @@ export const usePatrimony = () => {
   const updateLiabilityMutation = useMutation({
     mutationFn: async ({ id, ...liabilityData }: { id: string } & Partial<Liability>) => {
       if (!user) throw new Error('User not authenticated');
+      
+      // Impedir edição de dívidas de cartão de crédito
+      const liability = liabilities.find(l => l.id === id);
+      if (liability?.isCreditCard) {
+        throw new Error('Dívidas de cartão de crédito são atualizadas automaticamente');
+      }
+      
       const { data, error } = await supabase
         .from('liabilities')
         .update(liabilityData)
@@ -189,11 +232,25 @@ export const usePatrimony = () => {
       queryClient.invalidateQueries({ queryKey: ['liabilities'] });
       toast({ title: 'Passivo atualizado com sucesso!' });
     },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao atualizar passivo",
+        description: error.message || "Não foi possível atualizar o passivo.",
+        variant: "destructive",
+      });
+    },
   });
 
   const deleteLiabilityMutation = useMutation({
     mutationFn: async (liabilityId: string) => {
       if (!user) throw new Error('User not authenticated');
+      
+      // Impedir exclusão de dívidas de cartão de crédito
+      const liability = liabilities.find(l => l.id === liabilityId);
+      if (liability?.isCreditCard) {
+        throw new Error('Dívidas de cartão de crédito não podem ser removidas manualmente');
+      }
+      
       const { error } = await supabase
         .from('liabilities')
         .delete()
@@ -205,6 +262,13 @@ export const usePatrimony = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['liabilities'] });
       toast({ title: 'Passivo removido com sucesso!' });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Erro ao remover passivo",
+        description: error.message || "Não foi possível remover o passivo.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -224,8 +288,10 @@ export const usePatrimony = () => {
     addLiability: addLiabilityMutation.mutate,
     updateLiability: updateLiabilityMutation.mutate,
     deleteLiability: deleteLiabilityMutation.mutate,
+    syncCreditCardDebts: syncCreditCardDebts.mutate,
     isAddingAsset: addAssetMutation.isPending,
     isAddingLiability: addLiabilityMutation.isPending,
+    isSyncingCreditCardDebts: syncCreditCardDebts.isPending,
     totalAssets,
     totalLiabilities,
     totalDebts,

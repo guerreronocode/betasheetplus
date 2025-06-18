@@ -990,6 +990,10 @@ export type Database = {
           projected_available_limit: number
         }[]
       }
+      sync_credit_card_debts_to_patrimony: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       update_investment_yields: {
         Args: Record<PropertyKey, never>
         Returns: undefined

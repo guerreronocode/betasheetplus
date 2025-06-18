@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -141,9 +140,12 @@ export const useCreditCards = () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['all-credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
+      // Invalidar patrimônio para sincronizar automaticamente
+      queryClient.invalidateQueries({ queryKey: ['liabilities'] });
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
       toast({
         title: "Cartão criado com sucesso!",
-        description: "Seu cartão de crédito foi adicionado.",
+        description: "Seu cartão de crédito foi adicionado e o patrimônio será atualizado automaticamente.",
       });
     },
     onError: (error) => {
@@ -177,9 +179,12 @@ export const useCreditCards = () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['all-credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
+      // Invalidar patrimônio para sincronizar automaticamente
+      queryClient.invalidateQueries({ queryKey: ['liabilities'] });
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
       toast({
         title: "Cartão atualizado!",
-        description: "As informações do cartão foram atualizadas.",
+        description: "As informações do cartão foram atualizadas e o patrimônio foi sincronizado.",
       });
     },
     onError: (error) => {
@@ -209,9 +214,12 @@ export const useCreditCards = () => {
       queryClient.invalidateQueries({ queryKey: ['credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['all-credit-cards'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
+      // Invalidar patrimônio para sincronizar automaticamente
+      queryClient.invalidateQueries({ queryKey: ['liabilities'] });
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
       toast({
         title: "Cartão removido!",
-        description: "O cartão foi removido com sucesso.",
+        description: "O cartão foi removido e o patrimônio foi atualizado automaticamente.",
       });
     },
     onError: (error) => {

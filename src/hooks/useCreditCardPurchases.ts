@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -190,9 +191,13 @@ export const useCreditCardPurchases = () => {
       queryClient.invalidateQueries({ queryKey: ['purchase-status'] });
       queryClient.invalidateQueries({ queryKey: ['integrated-categories'] });
       queryClient.invalidateQueries({ queryKey: ['unified-categories'] });
+      // Invalidar também queries do patrimônio para atualizar automaticamente
+      queryClient.invalidateQueries({ queryKey: ['liabilities'] });
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      console.log('Compra criada e queries invalidadas para sincronização automática');
       toast({
         title: "Compra registrada!",
-        description: "A compra foi adicionada ao cartão de crédito.",
+        description: "A compra foi adicionada ao cartão de crédito e o patrimônio será atualizado automaticamente.",
       });
     },
     onError: (error) => {
@@ -230,9 +235,13 @@ export const useCreditCardPurchases = () => {
       queryClient.invalidateQueries({ queryKey: ['purchase-status'] });
       queryClient.invalidateQueries({ queryKey: ['integrated-categories'] });
       queryClient.invalidateQueries({ queryKey: ['unified-categories'] });
+      // Invalidar também queries do patrimônio para atualizar automaticamente
+      queryClient.invalidateQueries({ queryKey: ['liabilities'] });
+      queryClient.invalidateQueries({ queryKey: ['assets'] });
+      console.log('Compra atualizada e queries invalidadas para sincronização automática');
       toast({
         title: "Compra atualizada!",
-        description: "As informações da compra foram atualizadas.",
+        description: "As informações da compra foram atualizadas e o patrimônio foi sincronizado.",
       });
     },
     onError: (error) => {
