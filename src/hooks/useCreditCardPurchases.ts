@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { CreditCardPurchase, PurchaseFormData } from '@/types/creditCard';
+import { CreditCardPurchase, PurchaseFormData, PurchaseInsertData } from '@/types/creditCard';
 
 export const useCreditCardPurchases = () => {
   const { toast } = useToast();
@@ -43,14 +43,19 @@ export const useCreditCardPurchases = () => {
         throw new Error('User not authenticated');
       }
 
-      const payload = {
-        ...purchaseData,
+      // Converter dados do formulário para dados de inserção
+      const insertData: PurchaseInsertData = {
         user_id: user.id,
+        credit_card_id: purchaseData.credit_card_id,
+        description: purchaseData.description,
+        amount: purchaseData.amount,
+        purchase_date: purchaseData.purchase_date,
+        installments: purchaseData.installments,
       };
 
       const { data, error } = await supabase
         .from('credit_card_purchases')
-        .insert(payload)
+        .insert(insertData)
         .select()
         .single();
 

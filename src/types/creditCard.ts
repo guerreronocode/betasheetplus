@@ -17,9 +17,27 @@ export const purchaseSchema = z.object({
   installments: z.number().min(1, 'Parcelas deve ser ao menos 1').max(36, 'Máximo 36 parcelas'),
 });
 
-// Tipos TypeScript derivados do Zod
+// Tipos TypeScript derivados do Zod - ESTES SÃO OS VALIDADOS
 export type CreditCardFormData = z.infer<typeof creditCardSchema>;
 export type PurchaseFormData = z.infer<typeof purchaseSchema>;
+
+// Tipos para inserção no Supabase - ESTES SÃO OBRIGATÓRIOS
+export interface CreditCardInsertData {
+  user_id: string;
+  name: string;
+  credit_limit: number;
+  closing_day: number;
+  due_day: number;
+}
+
+export interface PurchaseInsertData {
+  user_id: string;
+  credit_card_id: string;
+  description: string;
+  amount: number;
+  purchase_date: string;
+  installments: number;
+}
 
 // Interface completa do cartão de crédito no banco
 export interface CreditCard {
