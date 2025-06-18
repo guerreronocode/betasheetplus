@@ -104,8 +104,8 @@ export const useCreditCardBills = () => {
         .update({
           is_paid: true,
           paid_at: new Date().toISOString(),
-          paid_date: paymentData.payment_date,
-          paid_account_id: paymentData.bank_account_id,
+          paid_date: paymentData.paid_date,
+          paid_account_id: paymentData.paid_account_id,
         })
         .eq('id', billId)
         .select()
@@ -117,11 +117,11 @@ export const useCreditCardBills = () => {
       }
 
       // Se uma conta bancária foi especificada, debitar o valor
-      if (paymentData.bank_account_id) {
+      if (paymentData.paid_account_id) {
         const { data: account, error: accountError } = await supabase
           .from('bank_accounts')
           .select('balance')
-          .eq('id', paymentData.bank_account_id)
+          .eq('id', paymentData.paid_account_id)
           .single();
 
         if (accountError) {
@@ -137,7 +137,7 @@ export const useCreditCardBills = () => {
             balance: newBalance,
             updated_at: new Date().toISOString()
           })
-          .eq('id', paymentData.bank_account_id);
+          .eq('id', paymentData.paid_account_id);
 
         if (updateError) {
           console.error('Error updating account balance:', updateError);
