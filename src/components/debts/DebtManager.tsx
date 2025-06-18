@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { FolderOpen, Wallet, Plus, Edit, Trash2 } from "lucide-react";
+import { FolderOpen, Wallet, Plus, Edit, Trash2, Calculator } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { useDebts } from "@/modules/debts/hooks/useDebts";
 import { DebtFormData, DebtFormFactory } from "@/services/debtService";
 import { formatCurrency } from "@/utils/formatters";
 import DebtForm from "@/modules/debts/components/DebtForm";
+import EarlyPayoffSimulator from "./EarlyPayoffSimulator";
 
 const DebtManager: React.FC = () => {
   const { 
@@ -18,12 +19,15 @@ const DebtManager: React.FC = () => {
     addDebt, 
     updateDebt, 
     deleteDebt,
+    markAsPaid,
     isAddingDebt,
-    isUpdatingDebt 
+    isUpdatingDebt,
+    isMarkingAsPaid
   } = useDebts();
 
   const [showForm, setShowForm] = useState(false);
   const [editingDebt, setEditingDebt] = useState<any>(null);
+  const [simulatingDebt, setSimulatingDebt] = useState<any>(null);
 
   const handleSubmit = (formData: DebtFormData) => {
     if (editingDebt) {
@@ -38,6 +42,17 @@ const DebtManager: React.FC = () => {
   const handleEdit = (debt: any) => {
     setEditingDebt(debt);
     setShowForm(true);
+  };
+
+  const handleSimulate = (debt: any) => {
+    setSimulatingDebt(debt);
+  };
+
+  const handleMarkAsPaid = () => {
+    if (simulatingDebt) {
+      markAsPaid(simulatingDebt.id);
+      setSimulatingDebt(null);
+    }
   };
 
   const handleCancel = () => {
@@ -70,6 +85,17 @@ const DebtManager: React.FC = () => {
       <Card className="p-6">
         <div className="text-center">Carregando dívidas...</div>
       </Card>
+    );
+  }
+
+  if (simulatingDebt) {
+    return (
+      <EarlyPayoffSimulator
+        debt={simulatingDebt}
+        onBack={() => setSimulatingDebt(null)}
+        onMarkAsPaid={handleMarkAsPaid}
+        isMarkingAsPaid={isMarkingAsPaid}
+      />
     );
   }
 
@@ -167,6 +193,11 @@ const DebtManager: React.FC = () => {
                     <Badge className={getStatusColor(debt.status)}>
                       {getStatusLabel(debt.status)}
                     </Badge>
+                    {debt.category && (
+                      <Badge variant="outline">
+                        {debt.category}
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-sm text-gray-600 mb-3">{debt.description}</p>
                   
@@ -206,6 +237,16 @@ const DebtManager: React.FC = () => {
                 </div>
 
                 <div className="flex gap-2 ml-4">
+                  {debt.status === 'active' && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleSimulate(debt)}
+                      className="text-blue-600 hover:text-blue-700"
+                    >
+                      <Calculator className="w-4 h-4" />
+                    </Button>
+                  )}
                   <Button
                     variant="outline"
                     size="sm"

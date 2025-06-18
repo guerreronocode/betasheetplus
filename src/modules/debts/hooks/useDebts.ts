@@ -74,6 +74,24 @@ export const useDebts = () => {
     },
   });
 
+  const markAsPaidMutation = useMutation({
+    mutationFn: async (id: string) => {
+      if (!user) throw new Error('Usuário não autenticado');
+      return await DebtDataService.markAsPaid(id, user.id);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['debts'] });
+      toast({ title: 'Dívida quitada com sucesso!' });
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Erro ao quitar dívida', 
+        description: error.message,
+        variant: 'destructive' 
+      });
+    },
+  });
+
   const totalDebts = debts.reduce((sum, debt) => sum + debt.remaining_balance, 0);
   const totalInterest = debts.reduce((sum, debt) => sum + debt.total_interest_amount, 0);
 
@@ -85,8 +103,10 @@ export const useDebts = () => {
     addDebt: addDebtMutation.mutate,
     updateDebt: updateDebtMutation.mutate,
     deleteDebt: deleteDebtMutation.mutate,
+    markAsPaid: markAsPaidMutation.mutate,
     isAddingDebt: addDebtMutation.isPending,
     isUpdatingDebt: updateDebtMutation.isPending,
     isDeletingDebt: deleteDebtMutation.isPending,
+    isMarkingAsPaid: markAsPaidMutation.isPending,
   };
 };

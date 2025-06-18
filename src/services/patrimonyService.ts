@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { PatrimonyGroup, patrimonyCategoryRules, getPatrimonyGroupByCategory } from '@/utils/patrimonyHelpers';
 
@@ -185,9 +184,11 @@ export class PatrimonyTransformService {
   static formToLiabilityData(form: PatrimonyFormData, debts: any[]): LiabilityData {
     if (form.linkType === "debt" && form.linkedDebtId) {
       const selectedDebt = debts.find((debt) => debt.id === form.linkedDebtId);
+      const category = this.mapDebtToCategory(selectedDebt);
+      
       return {
         name: `${selectedDebt.description} (${selectedDebt.creditor})`,
-        category: PatrimonyTransformService.mapDebtToCategory(selectedDebt),
+        category,
         total_amount: selectedDebt.total_debt_amount,
         remaining_amount: selectedDebt.remaining_balance,
         interest_rate: selectedDebt.total_interest_percentage,
@@ -208,32 +209,48 @@ export class PatrimonyTransformService {
     };
   }
 
-  private static mapDebtToCategory(debt: any): string {
-    // Mapear status e tipo de dívida para categorias de passivo
+  static mapDebtToCategory(debt: any): string {
+    // Lógica melhorada para mapear dívida para categoria de passivo
+    if (!debt) return 'emprestimo_bancario_curto';
+
+    // Se a dívida já tem uma categoria definida, usar ela diretamente
+    if (debt.category && patrimonyCategoryRules[debt.category]) {
+      return debt.category;
+    }
+
+    // Caso contrário, inferir pela descrição e vencimento
     const today = new Date();
     const dueDate = new Date(debt.due_date);
     const monthsUntilDue = (dueDate.getFullYear() - today.getFullYear()) * 12 + 
                           (dueDate.getMonth() - today.getMonth());
 
-    // Se vence em menos de 12 meses, é circulante
+    const creditorLower = debt.creditor.toLowerCase();
+    const descriptionLower = debt.description.toLowerCase();
+
+    // Identificar por tipo primeiro
+    if (creditorLower.includes('cartão') || creditorLower.includes('cartao') ||
+        descriptionLower.includes('cartão') || descriptionLower.includes('cartao')) {
+      return 'cartao_credito';
+    }
+
+    if (descriptionLower.includes('imóvel') || descriptionLower.includes('imovel') ||
+        descriptionLower.includes('casa') || descriptionLower.includes('apartamento')) {
+      return 'financiamento_imovel';
+    }
+
+    if (descriptionLower.includes('carro') || descriptionLower.includes('veículo') ||
+        descriptionLower.includes('veiculo') || descriptionLower.includes('auto')) {
+      return monthsUntilDue <= 12 ? 'parcelamento' : 'financiamento_carro';
+    }
+
+    if (descriptionLower.includes('parcelamento') || descriptionLower.includes('parcela')) {
+      return 'parcelamento';
+    }
+
+    // Classificar por vencimento
     if (monthsUntilDue <= 12) {
-      if (debt.creditor.toLowerCase().includes('cartão') || 
-          debt.creditor.toLowerCase().includes('cartao')) {
-        return 'cartao_credito';
-      }
       return 'emprestimo_bancario_curto';
     } else {
-      // Mais de 12 meses, é não circulante
-      if (debt.description.toLowerCase().includes('imóvel') || 
-          debt.description.toLowerCase().includes('imovel') ||
-          debt.description.toLowerCase().includes('casa')) {
-        return 'financiamento_imovel';
-      }
-      if (debt.description.toLowerCase().includes('carro') ||
-          debt.description.toLowerCase().includes('veículo') ||
-          debt.description.toLowerCase().includes('veiculo')) {
-        return 'financiamento_carro';
-      }
       return 'emprestimo_pessoal_longo';
     }
   }
