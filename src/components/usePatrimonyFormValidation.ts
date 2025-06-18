@@ -6,6 +6,7 @@ interface ValidationParams {
   entryType: "asset" | "liability";
   investments: any[];
   bankAccounts: any[];
+  debts?: any[];
   isSaving?: boolean;
 }
 
@@ -14,6 +15,7 @@ export const validatePatrimonyForm = ({
   entryType,
   investments,
   bankAccounts,
+  debts = [],
   isSaving,
 }: ValidationParams): string | null => {
   if (isSaving) {
@@ -21,7 +23,7 @@ export const validatePatrimonyForm = ({
   }
 
   if (entryType === "liability") {
-    return PatrimonyValidationService.validateLiabilityForm(form);
+    return PatrimonyValidationService.validateLiabilityForm(form, debts);
   } else {
     return PatrimonyValidationService.validateAssetForm(form, investments, bankAccounts);
   }

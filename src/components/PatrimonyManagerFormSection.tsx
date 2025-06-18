@@ -12,6 +12,7 @@ interface Props {
   setForm: (f: any) => void;
   investments: any[];
   bankAccounts: any[];
+  debts: any[];
   isAddingAsset: boolean;
   isAddingLiability: boolean;
   addAsset: any;
