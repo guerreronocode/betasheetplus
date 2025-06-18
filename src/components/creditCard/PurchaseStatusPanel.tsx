@@ -4,16 +4,29 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { ShoppingBag, Edit, Calendar } from 'lucide-react';
+import { ShoppingBag, Edit, Calendar, Trash2 } from 'lucide-react';
 import { usePurchaseStatus } from '@/hooks/usePurchaseStatus';
+import { useCreditCardPurchases } from '@/hooks/useCreditCardPurchases';
 import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { EditPurchaseDialog } from './EditPurchaseDialog';
 import { CreditCardPurchase } from '@/types/creditCard';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 export const PurchaseStatusPanel: React.FC = () => {
   const { purchases, isLoading } = usePurchaseStatus();
+  const { deletePurchase, isDeleting } = useCreditCardPurchases();
   const [selectedPurchase, setSelectedPurchase] = useState<CreditCardPurchase | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -33,6 +46,10 @@ export const PurchaseStatusPanel: React.FC = () => {
     };
     setSelectedPurchase(purchaseForEdit);
     setIsEditDialogOpen(true);
+  };
+
+  const handleDeletePurchase = (purchaseId: string) => {
+    deletePurchase(purchaseId);
   };
 
   if (isLoading) {
@@ -113,13 +130,45 @@ export const PurchaseStatusPanel: React.FC = () => {
                       <div className="text-lg font-bold">
                         {formatCurrency(purchase.total_amount)}
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditPurchase(purchase)}
-                      >
-                        <Edit className="h-3 w-3" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditPurchase(purchase)}
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-600 hover:text-red-700"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remover Compra</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Tem certeza que deseja remover a compra "{purchase.description}"? 
+                                Esta ação não pode ser desfeita e também removerá todas as parcelas associadas.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDeletePurchase(purchase.id)}
+                                className="bg-red-600 hover:bg-red-700"
+                                disabled={isDeleting}
+                              >
+                                {isDeleting ? 'Removendo...' : 'Remover'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </div>
                     </div>
                   </div>
                   

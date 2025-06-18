@@ -71,20 +71,14 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   const onSubmit = (data: SimplifiedPurchaseFormData) => {
     console.log('Submitting simplified purchase form:', data);
     
-    // Gerar as parcelas manuais com base no valor da parcela
-    const manualInstallments = Array.from({ length: data.installments }, (_, index) => ({
-      installment_number: index + 1,
-      amount: data.installment_value,
-    }));
-    
+    // Usar processo padrão do banco - o trigger criará as parcelas automaticamente
     const submitData = {
       credit_card_id: data.credit_card_id,
       description: data.description,
-      amount: data.amount,
+      amount: totalInstallments, // Usar o total das parcelas (com juros se houver)
       purchase_date: data.purchase_date,
       installments: data.installments,
       category: data.category,
-      manual_installments: manualInstallments,
     };
     
     console.log('Final submit data:', submitData);
