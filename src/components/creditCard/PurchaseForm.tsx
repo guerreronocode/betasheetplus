@@ -1,9 +1,8 @@
 
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
+import * z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,7 +51,15 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
 
   const onSubmit = (data: PurchaseFormData) => {
     console.log('Submitting purchase form:', data);
-    createPurchase(data);
+    // O Zod já garante que os dados estão no formato correto aqui
+    const validatedData: PurchaseFormData = {
+      credit_card_id: data.credit_card_id,
+      description: data.description,
+      amount: data.amount,
+      purchase_date: data.purchase_date,
+      installments: data.installments,
+    };
+    createPurchase(validatedData);
     onClose();
   };
 
@@ -186,4 +193,3 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
     </Card>
   );
 };
-
