@@ -1,22 +1,14 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { X } from 'lucide-react';
-
-const creditCardSchema = z.object({
-  name: z.string().min(1, 'Nome é obrigatório'),
-  credit_limit: z.number().min(0, 'Limite deve ser positivo'),
-  closing_day: z.number().min(1, 'Dia deve ser entre 1 e 31').max(31, 'Dia deve ser entre 1 e 31'),
-  due_day: z.number().min(1, 'Dia deve ser entre 1 e 31').max(31, 'Dia deve ser entre 1 e 31'),
-});
-
-type CreditCardFormData = z.infer<typeof creditCardSchema>;
+import { creditCardSchema, CreditCardFormData } from '@/types/creditCard';
 
 interface CreditCardFormProps {
   onClose: () => void;
@@ -36,10 +28,9 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({ onClose }) => {
     mode: 'onChange',
   });
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: CreditCardFormData) => {
     console.log('Submitting credit card form:', data);
-    // Type assertion: Zod já validou os dados, então sabemos que são válidos
-    createCreditCard(data as CreditCardFormData);
+    createCreditCard(data);
     onClose();
   };
 

@@ -2,27 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-interface CreditCardPurchase {
-  id: string;
-  user_id: string;
-  credit_card_id: string;
-  description: string;
-  amount: number;
-  purchase_date: string;
-  installments: number;
-  created_at: string;
-  updated_at: string;
-}
-
-// Form data type that matches Zod schema
-type PurchaseFormData = {
-  credit_card_id: string;
-  description: string;
-  amount: number;
-  purchase_date: string;
-  installments: number;
-};
+import { CreditCardPurchase, PurchaseFormData } from '@/types/creditCard';
 
 export const useCreditCardPurchases = () => {
   const { toast } = useToast();
@@ -63,7 +43,6 @@ export const useCreditCardPurchases = () => {
         throw new Error('User not authenticated');
       }
 
-      // Build complete payload inside the hook
       const payload = {
         ...purchaseData,
         user_id: user.id,

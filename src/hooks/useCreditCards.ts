@@ -2,26 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-
-interface CreditCard {
-  id: string;
-  user_id: string;
-  name: string;
-  credit_limit: number;
-  closing_day: number;
-  due_day: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
-// Import the form data type from the component
-type CreditCardFormData = {
-  name: string;
-  credit_limit: number;
-  closing_day: number;
-  due_day: number;
-};
+import { CreditCard, CreditCardFormData } from '@/types/creditCard';
 
 export const useCreditCards = () => {
   const { toast } = useToast();
@@ -60,7 +41,6 @@ export const useCreditCards = () => {
         throw new Error('User not authenticated');
       }
 
-      // Build complete payload inside the hook
       const payload = {
         ...cardData,
         user_id: user.id,

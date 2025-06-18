@@ -1,7 +1,7 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,16 +11,7 @@ import { useCreditCards } from '@/hooks/useCreditCards';
 import { useCreditCardPurchases } from '@/hooks/useCreditCardPurchases';
 import { X } from 'lucide-react';
 import { format } from 'date-fns';
-
-const purchaseSchema = z.object({
-  credit_card_id: z.string().min(1, 'Selecione um cartão'),
-  description: z.string().min(1, 'Descrição é obrigatória'),
-  amount: z.number().min(0.01, 'Valor deve ser maior que zero'),
-  purchase_date: z.string().min(1, 'Data é obrigatória'),
-  installments: z.number().min(1, 'Parcelas deve ser ao menos 1').max(36, 'Máximo 36 parcelas'),
-});
-
-type PurchaseFormData = z.infer<typeof purchaseSchema>;
+import { purchaseSchema, PurchaseFormData } from '@/types/creditCard';
 
 interface PurchaseFormProps {
   onClose: () => void;
@@ -48,10 +39,9 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
 
   const installmentValue = amount && installments ? amount / installments : 0;
 
-  const onSubmit = (data: any) => {
+  const onSubmit = (data: PurchaseFormData) => {
     console.log('Submitting purchase form:', data);
-    // Type assertion: Zod já validou os dados, então sabemos que são válidos
-    createPurchase(data as PurchaseFormData);
+    createPurchase(data);
     onClose();
   };
 
