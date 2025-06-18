@@ -168,6 +168,190 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_card_bills: {
+        Row: {
+          bill_month: string
+          closing_date: string
+          created_at: string
+          credit_card_id: string
+          due_date: string
+          id: string
+          is_paid: boolean
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bill_month: string
+          closing_date: string
+          created_at?: string
+          credit_card_id: string
+          due_date: string
+          id?: string
+          is_paid?: boolean
+          total_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bill_month?: string
+          closing_date?: string
+          created_at?: string
+          credit_card_id?: string
+          due_date?: string
+          id?: string
+          is_paid?: boolean
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_card_bills_credit_card_id_fkey"
+            columns: ["credit_card_id"]
+            isOneToOne: false
+            referencedRelation: "credit_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_card_installments: {
+        Row: {
+          amount: number
+          bill_month: string
+          created_at: string
+          credit_card_id: string
+          due_date: string
+          id: string
+          installment_number: number
+          is_paid: boolean
+          purchase_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          bill_month: string
+          created_at?: string
+          credit_card_id: string
+          due_date: string
+          id?: string
+          installment_number: number
+          is_paid?: boolean
+          purchase_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          bill_month?: string
+          created_at?: string
+          credit_card_id?: string
+          due_date?: string
+          id?: string
+          installment_number?: number
+          is_paid?: boolean
+          purchase_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_card_installments_credit_card_id_fkey"
+            columns: ["credit_card_id"]
+            isOneToOne: false
+            referencedRelation: "credit_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "credit_card_installments_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "credit_card_purchases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_card_purchases: {
+        Row: {
+          amount: number
+          created_at: string
+          credit_card_id: string
+          description: string
+          id: string
+          installments: number
+          purchase_date: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          credit_card_id: string
+          description: string
+          id?: string
+          installments?: number
+          purchase_date?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          credit_card_id?: string
+          description?: string
+          id?: string
+          installments?: number
+          purchase_date?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "credit_card_purchases_credit_card_id_fkey"
+            columns: ["credit_card_id"]
+            isOneToOne: false
+            referencedRelation: "credit_cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      credit_cards: {
+        Row: {
+          closing_day: number
+          created_at: string
+          credit_limit: number
+          due_day: number
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          closing_day: number
+          created_at?: string
+          credit_limit?: number
+          due_day: number
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          closing_day?: number
+          created_at?: string
+          credit_limit?: number
+          due_day?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       debts: {
         Row: {
           category: string | null
@@ -742,6 +926,10 @@ export type Database = {
       award_achievement: {
         Args: { p_user_id: string; p_achievement_id: string; p_points: number }
         Returns: boolean
+      }
+      calculate_bill_month: {
+        Args: { purchase_date: string; closing_day: number }
+        Returns: string
       }
       update_investment_yields: {
         Args: Record<PropertyKey, never>
