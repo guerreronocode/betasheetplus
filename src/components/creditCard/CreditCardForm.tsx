@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -43,14 +44,8 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({ onClose }) => {
 
   const onSubmit = (data: CreditCardFormData) => {
     console.log('Submitting credit card form:', data);
-    // Ensure all required fields are present before calling the hook
-    const validatedData: CreditCardFormData = {
-      name: data.name || '',
-      credit_limit: data.credit_limit || 0,
-      closing_day: data.closing_day || 1,
-      due_day: data.due_day || 1,
-    };
-    createCreditCard(validatedData);
+    // Since we have proper validation and default values, data should be complete
+    createCreditCard(data);
     onClose();
   };
 
@@ -135,3 +130,4 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({ onClose }) => {
     </Card>
   );
 };
+
