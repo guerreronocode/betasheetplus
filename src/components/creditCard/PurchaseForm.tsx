@@ -51,15 +51,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
 
   const onSubmit = (data: PurchaseFormData) => {
     console.log('Submitting purchase form:', data);
-    // O Zod já garante que os dados estão no formato correto aqui
-    const validatedData: PurchaseFormData = {
-      credit_card_id: data.credit_card_id,
-      description: data.description,
-      amount: data.amount,
-      purchase_date: data.purchase_date,
-      installments: data.installments,
-    };
-    createPurchase(validatedData);
+    createPurchase(data);
     onClose();
   };
 
