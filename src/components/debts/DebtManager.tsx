@@ -1,64 +1,107 @@
 
 import React, { useState } from "react";
-import { FolderOpen, Wallet } from "lucide-react";
+import { FolderOpen, Wallet, Plus, Edit, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-
-// Modelo básico de dívida
-type Debt = {
-  id: string;
-  name: string;
-  total: number;
-  remaining: number;
-  dueDate: string;
-  interest: number;
-};
+import { Badge } from "@/components/ui/badge";
+import { useDebts } from "@/modules/debts/hooks/useDebts";
+import { DebtFormData, DebtFormFactory } from "@/services/debtService";
+import { formatCurrency } from "@/utils/formatters";
+import DebtForm from "@/modules/debts/components/DebtForm";
 
 const DebtManager: React.FC = () => {
-  const [debts, setDebts] = useState<Debt[]>([
-    {
-      id: "1",
-      name: "Cartão de Crédito",
-      total: 3200,
-      remaining: 2050,
-      dueDate: "2025-07-10",
-      interest: 9.99,
-    },
-    {
-      id: "2",
-      name: "Financiamento Carro",
-      total: 30000,
-      remaining: 14200,
-      dueDate: "2027-02-01",
-      interest: 2.39,
-    }
-  ]);
-  const [form, setForm] = useState({
-    name: "",
-    total: "",
-    remaining: "",
-    dueDate: "",
-    interest: "",
-  });
+  const { 
+    debts, 
+    isLoading, 
+    totalDebts, 
+    totalInterest,
+    addDebt, 
+    updateDebt, 
+    deleteDebt,
+    isAddingDebt,
+    isUpdatingDebt 
+  } = useDebts();
 
-  const handleAddDebt = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.name || !form.total || !form.remaining) return;
-    setDebts(prev => [
-      ...prev,
-      {
-        id: String(Date.now()),
-        name: form.name,
-        total: Number(form.total),
-        remaining: Number(form.remaining),
-        dueDate: form.dueDate,
-        interest: Number(form.interest || 0),
-      }
-    ]);
-    setForm({ name: "", total: "", remaining: "", dueDate: "", interest: "" });
+  const [showForm, setShowForm] = useState(false);
+  const [editingDebt, setEditingDebt] = useState<any>(null);
+
+  const handleSubmit = (formData: DebtFormData) => {
+    if (editingDebt) {
+      updateDebt({ id: editingDebt.id, formData });
+    } else {
+      addDebt(formData);
+    }
+    setShowForm(false);
+    setEditingDebt(null);
   };
+
+  const handleEdit = (debt: any) => {
+    setEditingDebt(debt);
+    setShowForm(true);
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingDebt(null);
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active': return 'bg-blue-100 text-blue-800';
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'overdue': return 'bg-red-100 text-red-800';
+      case 'renegotiated': return 'bg-yellow-100 text-yellow-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'active': return 'Ativa';
+      case 'paid': return 'Quitada';
+      case 'overdue': return 'Em atraso';
+      case 'renegotiated': return 'Renegociada';
+      default: return status;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="p-6">
+        <div className="text-center">Carregando dívidas...</div>
+      </Card>
+    );
+  }
+
+  if (showForm) {
+    return (
+      <Card className="p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-red-100 rounded-lg">
+              <Wallet className="w-6 h-6 text-red-600" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                {editingDebt ? 'Editar Dívida' : 'Nova Dívida'}
+              </h3>
+              <p className="text-sm text-gray-600">
+                {editingDebt ? 'Atualize os dados da dívida' : 'Cadastre uma nova dívida'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <DebtForm
+          initialData={editingDebt ? DebtFormFactory.createEditForm(editingDebt) : undefined}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          isLoading={isAddingDebt || isUpdatingDebt}
+          isEdit={!!editingDebt}
+        />
+      </Card>
+    );
+  }
 
   return (
     <Card className="p-6">
@@ -74,82 +117,113 @@ const DebtManager: React.FC = () => {
             <p className="text-sm text-gray-600">Controle e analise suas dívidas</p>
           </div>
         </div>
+        <Button onClick={() => setShowForm(true)} className="bg-red-600 hover:bg-red-700">
+          <Plus className="w-4 h-4 mr-2" />
+          Nova Dívida
+        </Button>
       </div>
 
-      <form onSubmit={handleAddDebt} className="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4">
-        <div>
-          <Label>Nome</Label>
-          <Input
-            value={form.name}
-            onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-            placeholder="Ex: Cartão Nubank"
-            required
-          />
+      {/* Resumo */}
+      {debts.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card className="p-4">
+            <div className="text-sm text-gray-600">Total de Dívidas</div>
+            <div className="text-2xl font-bold text-red-600">
+              {formatCurrency(totalDebts)}
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-sm text-gray-600">Total de Juros</div>
+            <div className="text-2xl font-bold text-orange-600">
+              {formatCurrency(totalInterest)}
+            </div>
+          </Card>
+          <Card className="p-4">
+            <div className="text-sm text-gray-600">Número de Dívidas</div>
+            <div className="text-2xl font-bold text-blue-600">
+              {debts.length}
+            </div>
+          </Card>
         </div>
-        <div>
-          <Label>Valor total (R$)</Label>
-          <Input
-            type="number"
-            step="0.01"
-            value={form.total}
-            onChange={e => setForm(f => ({ ...f, total: e.target.value }))}
-            required
-          />
-        </div>
-        <div>
-          <Label>Restante (R$)</Label>
-          <Input
-            type="number"
-            step="0.01"
-            value={form.remaining}
-            onChange={e => setForm(f => ({ ...f, remaining: e.target.value }))}
-            required
-          />
-        </div>
-        <div>
-          <Label>Vencimento</Label>
-          <Input
-            type="date"
-            value={form.dueDate}
-            onChange={e => setForm(f => ({ ...f, dueDate: e.target.value }))}
-          />
-        </div>
-        <div>
-          <Label>Juros (%)</Label>
-          <Input
-            type="number"
-            step="0.01"
-            value={form.interest}
-            onChange={e => setForm(f => ({ ...f, interest: e.target.value }))}
-          />
-        </div>
-        <div className="md:col-span-5 flex justify-end mt-2">
-          <Button type="submit" className="bg-red-600 hover:bg-red-700">
-            Adicionar Dívida
-          </Button>
-        </div>
-      </form>
+      )}
 
-      <div className="divide-y divide-gray-100">
+      {/* Lista de Dívidas */}
+      <div className="space-y-4">
         {debts.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <FolderOpen className="w-10 h-10 mx-auto mb-2 text-gray-300" />
-            <p>Nenhuma dívida cadastrada.</p>
+          <div className="text-center py-12 text-gray-500">
+            <FolderOpen className="w-12 h-12 mx-auto mb-4 text-gray-300" />
+            <p className="text-lg font-medium">Nenhuma dívida cadastrada</p>
+            <p className="text-sm">Clique em "Nova Dívida" para começar</p>
           </div>
         ) : (
           debts.map(debt => (
-            <div key={debt.id} className="flex justify-between items-center py-3">
-              <div>
-                <div className="text-base font-medium text-gray-900">{debt.name}</div>
-                <div className="text-xs text-gray-600">
-                  Total: R${debt.total.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} &nbsp;|&nbsp;
-                  Restante: R${debt.remaining.toLocaleString("pt-BR", { minimumFractionDigits: 2 })} &nbsp;|&nbsp;
-                  Venc.: {debt.dueDate || "-"} &nbsp;|&nbsp;
-                  Juros: {debt.interest ? debt.interest + "%" : "-"}
+            <Card key={debt.id} className="p-4">
+              <div className="flex justify-between items-start">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h4 className="text-lg font-semibold text-gray-900">
+                      {debt.creditor}
+                    </h4>
+                    <Badge className={getStatusColor(debt.status)}>
+                      {getStatusLabel(debt.status)}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">{debt.description}</p>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Saldo Devedor:</span>
+                      <div className="font-semibold text-red-600">
+                        {formatCurrency(debt.remaining_balance)}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Parcelas:</span>
+                      <div className="font-semibold">
+                        {debt.paid_installments}/{debt.total_installments}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Valor Parcela:</span>
+                      <div className="font-semibold">
+                        {formatCurrency(debt.installment_value)}
+                      </div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Total Juros:</span>
+                      <div className="font-semibold text-orange-600">
+                        {formatCurrency(debt.total_interest_amount)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {debt.notes && (
+                    <div className="mt-3 p-2 bg-gray-50 rounded text-sm">
+                      <span className="text-gray-500">Observações: </span>
+                      {debt.notes}
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2 ml-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleEdit(debt)}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => deleteDebt(debt.id)}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 </div>
               </div>
-              {/* Futuramente: adicionar botões de editar/remover */}
-            </div>
+            </Card>
           ))
         )}
       </div>
