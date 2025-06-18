@@ -7,7 +7,7 @@ import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { X } from 'lucide-react';
 
@@ -27,11 +27,7 @@ interface CreditCardFormProps {
 export const CreditCardForm: React.FC<CreditCardFormProps> = ({ onClose }) => {
   const { createCreditCard, isCreating } = useCreditCards();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-  } = useForm<CreditCardFormData>({
+  const form = useForm<CreditCardFormData>({
     resolver: zodResolver(creditCardSchema),
     defaultValues: {
       name: '',
@@ -44,7 +40,6 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({ onClose }) => {
 
   const onSubmit = (data: CreditCardFormData) => {
     console.log('Submitting credit card form:', data);
-    // Since we have proper validation and default values, data should be complete
     createCreditCard(data);
     onClose();
   };
@@ -58,74 +53,96 @@ export const CreditCardForm: React.FC<CreditCardFormProps> = ({ onClose }) => {
         </Button>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Nome do Cartão</Label>
-            <Input
-              id="name"
-              {...register('name')}
-              placeholder="Ex: Nubank, Santander, etc."
-            />
-            {errors.name && (
-              <p className="text-sm text-destructive mt-1">{errors.name.message}</p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="credit_limit">Limite de Crédito</Label>
-            <Input
-              id="credit_limit"
-              type="number"
-              step="0.01"
-              {...register('credit_limit', { valueAsNumber: true })}
-              placeholder="0.00"
-            />
-            {errors.credit_limit && (
-              <p className="text-sm text-destructive mt-1">{errors.credit_limit.message}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="closing_day">Dia de Fechamento</Label>
-              <Input
-                id="closing_day"
-                type="number"
-                min="1"
-                max="31"
-                {...register('closing_day', { valueAsNumber: true })}
-                placeholder="10"
-              />
-              {errors.closing_day && (
-                <p className="text-sm text-destructive mt-1">{errors.closing_day.message}</p>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome do Cartão</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Nubank, Santander, etc." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
+            />
+
+            <FormField
+              control={form.control}
+              name="credit_limit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Limite de Crédito</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="closing_day"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Dia de Fechamento</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="31"
+                        placeholder="10"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="due_day"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Dia de Vencimento</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="31"
+                        placeholder="15"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
-            <div>
-              <Label htmlFor="due_day">Dia de Vencimento</Label>
-              <Input
-                id="due_day"
-                type="number"
-                min="1"
-                max="31"
-                {...register('due_day', { valueAsNumber: true })}
-                placeholder="15"
-              />
-              {errors.due_day && (
-                <p className="text-sm text-destructive mt-1">{errors.due_day.message}</p>
-              )}
+            <div className="flex gap-2 pt-4">
+              <Button type="submit" disabled={isCreating}>
+                {isCreating ? 'Criando...' : 'Criar Cartão'}
+              </Button>
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancelar
+              </Button>
             </div>
-          </div>
-
-          <div className="flex gap-2 pt-4">
-            <Button type="submit" disabled={isCreating}>
-              {isCreating ? 'Criando...' : 'Criar Cartão'}
-            </Button>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-          </div>
-        </form>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );

@@ -7,7 +7,7 @@ import * as z from 'zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useCreditCardPurchases } from '@/hooks/useCreditCardPurchases';
@@ -32,13 +32,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   const { creditCards } = useCreditCards();
   const { createPurchase, isCreating } = useCreditCardPurchases();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-    watch,
-  } = useForm<PurchaseFormData>({
+  const form = useForm<PurchaseFormData>({
     resolver: zodResolver(purchaseSchema),
     defaultValues: {
       credit_card_id: '',
@@ -50,15 +44,14 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
     mode: 'onChange',
   });
 
-  const selectedCardId = watch('credit_card_id');
-  const amount = watch('amount');
-  const installments = watch('installments');
+  const selectedCardId = form.watch('credit_card_id');
+  const amount = form.watch('amount');
+  const installments = form.watch('installments');
 
   const installmentValue = amount && installments ? amount / installments : 0;
 
   const onSubmit = (data: PurchaseFormData) => {
     console.log('Submitting purchase form:', data);
-    // Since we have proper validation and default values, data should be complete
     createPurchase(data);
     onClose();
   };
@@ -72,99 +65,123 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
         </Button>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div>
-            <Label htmlFor="credit_card_id">Cartão de Crédito</Label>
-            <Select onValueChange={(value) => setValue('credit_card_id', value)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o cartão" />
-              </SelectTrigger>
-              <SelectContent>
-                {creditCards.map((card) => (
-                  <SelectItem key={card.id} value={card.id}>
-                    {card.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.credit_card_id && (
-              <p className="text-sm text-destructive mt-1">{errors.credit_card_id.message}</p>
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="description">Descrição</Label>
-            <Input
-              id="description"
-              {...register('description')}
-              placeholder="Ex: Compra no supermercado"
-            />
-            {errors.description && (
-              <p className="text-sm text-destructive mt-1">{errors.description.message}</p>
-            )}
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="amount">Valor Total</Label>
-              <Input
-                id="amount"
-                type="number"
-                step="0.01"
-                {...register('amount', { valueAsNumber: true })}
-                placeholder="0.00"
-              />
-              {errors.amount && (
-                <p className="text-sm text-destructive mt-1">{errors.amount.message}</p>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="credit_card_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cartão de Crédito</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o cartão" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {creditCards.map((card) => (
+                        <SelectItem key={card.id} value={card.id}>
+                          {card.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
-
-            <div>
-              <Label htmlFor="installments">Parcelas</Label>
-              <Input
-                id="installments"
-                type="number"
-                min="1"
-                max="36"
-                {...register('installments', { valueAsNumber: true })}
-                placeholder="1"
-              />
-              {errors.installments && (
-                <p className="text-sm text-destructive mt-1">{errors.installments.message}</p>
-              )}
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="purchase_date">Data da Compra</Label>
-            <Input
-              id="purchase_date"
-              type="date"
-              {...register('purchase_date')}
             />
-            {errors.purchase_date && (
-              <p className="text-sm text-destructive mt-1">{errors.purchase_date.message}</p>
-            )}
-          </div>
 
-          {installmentValue > 0 && (
-            <div className="p-3 bg-muted rounded-lg">
-              <p className="text-sm">
-                <span className="font-medium">Valor por parcela:</span>{' '}
-                R$ {installmentValue.toFixed(2)}
-              </p>
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Descrição</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Compra no supermercado" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Valor Total</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        placeholder="0.00"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="installments"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Parcelas</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="36"
+                        placeholder="1"
+                        {...field}
+                        onChange={(e) => field.onChange(Number(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-          )}
 
-          <div className="flex gap-2 pt-4">
-            <Button type="submit" disabled={isCreating}>
-              {isCreating ? 'Registrando...' : 'Registrar Compra'}
-            </Button>
-            <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-          </div>
-        </form>
+            <FormField
+              control={form.control}
+              name="purchase_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data da Compra</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {installmentValue > 0 && (
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="text-sm">
+                  <span className="font-medium">Valor por parcela:</span>{' '}
+                  R$ {installmentValue.toFixed(2)}
+                </p>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-4">
+              <Button type="submit" disabled={isCreating}>
+                {isCreating ? 'Registrando...' : 'Registrar Compra'}
+              </Button>
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancelar
+              </Button>
+            </div>
+          </form>
+        </Form>
       </CardContent>
     </Card>
   );
