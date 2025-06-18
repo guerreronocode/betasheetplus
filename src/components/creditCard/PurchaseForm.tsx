@@ -7,10 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useCreditCardPurchases } from '@/hooks/useCreditCardPurchases';
 import { useUnifiedCategories } from '@/hooks/useUnifiedCategories';
-import { ManualInstallmentsEditor } from './ManualInstallmentsEditor';
 import { X } from 'lucide-react';
 import { format } from 'date-fns';
 import { purchaseSchema, PurchaseFormData, ManualInstallmentData } from '@/types/creditCard';
@@ -24,8 +25,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   const { createPurchase, isCreating } = useCreditCardPurchases();
   const { categories } = useUnifiedCategories();
   
-  const [isManualInstallments, setIsManualInstallments] = useState(false);
-  const [manualInstallments, setManualInstallments] = useState<ManualInstallmentData[]>([]);
+  const [autoFillInstallments, setAutoFillInstallments] = useState(true);
+  const [installmentValues, setInstallmentValues] = useState<number[]>([]);
 
   const form = useForm<PurchaseFormData>({
     resolver: zodResolver(purchaseSchema),
@@ -44,31 +45,65 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   const amount = form.watch('amount');
   const installments = form.watch('installments');
 
-  const installmentValue = amount && installments && !isManualInstallments ? amount / installments : 0;
-
-  // Validação para submissão
-  const isFormValid = () => {
-    if (installments <= 1) return true; // Não precisa validar parcelas para compras à vista
-    
-    if (isManualInstallments) {
-      if (manualInstallments.length !== installments) return false;
-      
-      const total = manualInstallments.reduce((sum, inst) => sum + inst.amount, 0);
-      const difference = Math.abs(total - amount);
-      return difference < 0.01; // Tolerância para arredondamentos
+  // Atualizar valores das parcelas quando mudar número de parcelas ou valor total
+  React.useEffect(() => {
+    if (installments > 0 && amount > 0) {
+      if (autoFillInstallments) {
+        const equalValue = amount / installments;
+        setInstallmentValues(Array(installments).fill(Number(equalValue.toFixed(2))));
+      } else {
+        // Manter valores existentes ou preencher com zeros
+        const newValues = Array(installments).fill(0).map((_, index) => 
+          installmentValues[index] || 0
+        );
+        setInstallmentValues(newValues);
+      }
     }
+  }, [installments, amount, autoFillInstallments]);
+
+  const handleInstallmentValueChange = (index: number, value: string) => {
+    const numValue = parseFloat(value) || 0;
+    const newValues = [...installmentValues];
+    newValues[index] = numValue;
+    setInstallmentValues(newValues);
+  };
+
+  const handleAutoFillToggle = (enabled: boolean) => {
+    setAutoFillInstallments(enabled);
+    if (enabled && amount > 0 && installments > 0) {
+      const equalValue = amount / installments;
+      setInstallmentValues(Array(installments).fill(Number(equalValue.toFixed(2))));
+    }
+  };
+
+  const calculateTotal = () => {
+    return installmentValues.reduce((sum, value) => sum + value, 0);
+  };
+
+  const isFormValid = () => {
+    if (installments <= 1) return true;
     
-    return true;
+    const total = calculateTotal();
+    const difference = Math.abs(total - amount);
+    return difference < 0.01; // Tolerância para arredondamentos
   };
 
   const onSubmit = (data: PurchaseFormData) => {
     console.log('Submitting purchase form:', data);
-    console.log('Manual installments enabled:', isManualInstallments);
-    console.log('Manual installments data:', manualInstallments);
+    
+    // Se temos parcelas com valores manuais, criar manual_installments
+    let manualInstallments: ManualInstallmentData[] = [];
+    
+    if (installments > 1 && installmentValues.length === installments) {
+      manualInstallments = installmentValues.map((amount, index) => ({
+        installment_number: index + 1,
+        amount: amount
+      }));
+    }
     
     const submitData = {
       ...data,
-      manual_installments: isManualInstallments && manualInstallments.length > 0 ? manualInstallments : undefined,
+      manual_installments: manualInstallments.length > 0 ? manualInstallments : undefined,
     };
     
     console.log('Final submit data:', submitData);
@@ -76,29 +111,9 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
     onClose();
   };
 
-  const handleManualInstallmentsChange = (installments: ManualInstallmentData[]) => {
-    console.log('Manual installments changed:', installments);
-    setManualInstallments(installments);
-    form.setValue('manual_installments', installments);
-  };
-
-  const handleToggleManual = (enabled: boolean) => {
-    console.log('Toggling manual installments:', enabled);
-    setIsManualInstallments(enabled);
-    if (!enabled) {
-      setManualInstallments([]);
-      form.setValue('manual_installments', []);
-    }
-  };
-
-  const handleInstallmentsChange = (value: number) => {
-    form.setValue('installments', value);
-    // Reset manual installments when changing number of installments
-    if (isManualInstallments) {
-      setManualInstallments([]);
-      form.setValue('manual_installments', []);
-    }
-  };
+  const currentTotal = calculateTotal();
+  const difference = Math.abs(currentTotal - amount);
+  const totalMatches = difference < 0.01;
 
   return (
     <Card>
@@ -111,6 +126,20 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="purchase_date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Data da Compra</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="credit_card_id"
@@ -141,7 +170,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descrição</FormLabel>
+                  <FormLabel>Descrição da Compra</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex: Compra no supermercado" {...field} />
                   </FormControl>
@@ -175,82 +204,110 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
               )}
             />
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Valor Total</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.01"
-                        placeholder="0.00"
-                        {...field}
-                        onChange={(e) => field.onChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="installments"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Parcelas</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        min="1"
-                        max="36"
-                        placeholder="1"
-                        {...field}
-                        onChange={(e) => handleInstallmentsChange(Number(e.target.value))}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
             <FormField
               control={form.control}
-              name="purchase_date"
+              name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Data da Compra</FormLabel>
+                  <FormLabel>Valor Total da Compra</FormLabel>
                   <FormControl>
-                    <Input type="date" {...field} />
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
 
-            {/* Manual Installments Editor - renderizar sempre que tiver mais de 1 parcela */}
-            {installments > 1 && (
-              <ManualInstallmentsEditor
-                totalAmount={amount}
-                installments={installments}
-                manualInstallments={manualInstallments}
-                onManualInstallmentsChange={handleManualInstallmentsChange}
-                onToggleManual={handleToggleManual}
-                isManualEnabled={isManualInstallments}
-              />
-            )}
+            <FormField
+              control={form.control}
+              name="installments"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Número de Parcelas</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="36"
+                      placeholder="1"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            {/* Mostrar valor por parcela quando não estiver no modo manual */}
-            {!isManualInstallments && installmentValue > 0 && installments > 1 && (
-              <div className="p-3 bg-muted rounded-lg">
-                <p className="text-sm">
-                  <span className="font-medium">Valor por parcela:</span>{' '}
-                  R$ {installmentValue.toFixed(2)}
-                </p>
+            {/* Seção de Valores das Parcelas */}
+            {installments > 1 && (
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="auto-fill"
+                    checked={autoFillInstallments}
+                    onCheckedChange={handleAutoFillToggle}
+                  />
+                  <Label htmlFor="auto-fill" className="text-sm font-medium">
+                    Adicionar valores das parcelas automaticamente
+                  </Label>
+                </div>
+
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium">Valor das Parcelas</Label>
+                  
+                  {installmentValues.map((value, index) => (
+                    <div key={index} className="flex items-center space-x-2">
+                      <Label className="text-sm w-16 flex-shrink-0">
+                        {index + 1}ª parcela:
+                      </Label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0.01"
+                        value={value || ''}
+                        onChange={(e) => handleInstallmentValueChange(index, e.target.value)}
+                        disabled={autoFillInstallments}
+                        className="flex-1"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  ))}
+
+                  {/* Resumo dos valores */}
+                  <div className="border-t pt-3 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Total das parcelas:</span>
+                      <span className={!totalMatches ? 'text-red-600 font-medium' : 'text-green-600 font-medium'}>
+                        R$ {currentTotal.toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Valor da compra:</span>
+                      <span className="font-medium">R$ {amount.toFixed(2)}</span>
+                    </div>
+                    
+                    {!totalMatches && (
+                      <div className="text-xs text-red-600 bg-red-50 p-2 rounded border border-red-200">
+                        ⚠️ A soma das parcelas deve ser igual ao valor total da compra.
+                        <br />
+                        Diferença: R$ {difference.toFixed(2)}
+                      </div>
+                    )}
+                    
+                    {totalMatches && installmentValues.length > 0 && (
+                      <div className="text-xs text-green-600 bg-green-50 p-2 rounded border border-green-200">
+                        ✅ Valores conferem! As parcelas somam o valor total da compra.
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
 
