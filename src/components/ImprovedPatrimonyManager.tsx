@@ -14,6 +14,7 @@ const ImprovedPatrimonyManager = () => {
   const {
     assets,
     liabilities,
+    debts,
     addAsset,
     addLiability,
     updateAsset,
@@ -44,12 +45,14 @@ const ImprovedPatrimonyManager = () => {
     groups,
     totals,
     nonLinkedBankAccounts,
-    nonLinkedInvestments
+    nonLinkedInvestments,
+    nonLinkedDebts
   } = usePatrimonyGroupsFull({
     assets,
     liabilities,
     investments,
     bankAccounts,
+    debts,
   });
 
   const totalAtivos = totals.ativo_circulante + totals.ativo_nao_circulante;
@@ -64,6 +67,11 @@ const ImprovedPatrimonyManager = () => {
   }, []);
 
   const handleEditItem = useCallback((item: any) => {
+    // Não permitir edição de itens que vêm de dívidas automaticamente
+    if (item.isDebt) {
+      return;
+    }
+    
     const isAsset = item.current_value !== undefined;
     const entryType = isAsset ? 'asset' : 'liability';
     setEntryType(entryType);
@@ -72,6 +80,12 @@ const ImprovedPatrimonyManager = () => {
 
   const handleDeleteItem = useCallback((id: string) => {
     const item = Object.values(groups).flat().find((x: any) => x.id === id);
+    
+    // Não permitir exclusão de itens que vêm de dívidas automaticamente
+    if (item && item.isDebt) {
+      return;
+    }
+    
     if (item && item.current_value !== undefined) {
       deleteAsset(id);
     } else if (item && item.remaining_amount !== undefined) {
@@ -83,6 +97,14 @@ const ImprovedPatrimonyManager = () => {
 
   return (
     <div>
+      <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+        <h3 className="font-medium text-blue-800 mb-2">Integração Automática com Dívidas</h3>
+        <p className="text-sm text-blue-700">
+          As dívidas ativas registradas no sistema são automaticamente incluídas como passivos. 
+          {nonLinkedDebts.length > 0 && ` ${nonLinkedDebts.length} dívida(s) foram automaticamente adicionadas.`}
+        </p>
+      </div>
+
       <PatrimonyHeaderSection
         groups={groups}
         totals={totals}
@@ -90,6 +112,7 @@ const ImprovedPatrimonyManager = () => {
         onGroupSelect={handleGroupSelect}
         netWorth={patrimonioLiquido}
       />
+
       {selectedGroup && (
         <PatrimonyListSection
           selectedGroup={selectedGroup}
@@ -109,6 +132,7 @@ const ImprovedPatrimonyManager = () => {
         setForm={setForm}
         investments={investments}
         bankAccounts={bankAccounts}
+        debts={debts}
         isAddingAsset={isAddingAsset}
         isAddingLiability={isAddingLiability}
         addAsset={addAsset}

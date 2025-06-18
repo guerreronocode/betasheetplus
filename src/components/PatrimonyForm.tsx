@@ -13,6 +13,7 @@ interface PatrimonyFormProps {
   isSaving?: boolean;
   investments: any[];
   bankAccounts: any[];
+  debts?: any[];
   onEntryTypeChange?: (type: "asset" | "liability") => void;
 }
 
@@ -25,6 +26,7 @@ const PatrimonyForm: React.FC<PatrimonyFormProps> = ({
   isSaving,
   investments,
   bankAccounts,
+  debts = [],
   onEntryTypeChange,
 }) => {
   const [localError, setLocalError] = React.useState<string | null>(null);
@@ -37,6 +39,7 @@ const PatrimonyForm: React.FC<PatrimonyFormProps> = ({
       entryType,
       investments,
       bankAccounts,
+      debts,
       isSaving,
     });
     if (error) {
@@ -93,6 +96,7 @@ const PatrimonyForm: React.FC<PatrimonyFormProps> = ({
         onChange={onChange}
         investments={investments}
         bankAccounts={bankAccounts}
+        debts={debts}
       />
       <Button type="submit" className="w-full" disabled={isSaving}>
         {isSaving ? "Salvando..." : (form.isEdit ? "Salvar alterações" : "Adicionar")}

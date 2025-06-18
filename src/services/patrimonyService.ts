@@ -32,6 +32,7 @@ export interface PatrimonyFormData {
   linkType: string;
   linkedInvestmentId: string;
   linkedBankAccountId: string;
+  linkedDebtId: string;
   entryType: 'asset' | 'liability';
 }
 
@@ -69,19 +70,28 @@ export class PatrimonyValidationService {
     return null;
   }
 
-  static validateLiabilityForm(form: PatrimonyFormData): string | null {
-    const { name, value, category } = form;
-    const valueNum = Number(String(value).replace(",", "."));
+  static validateLiabilityForm(form: PatrimonyFormData, debts: any[]): string | null {
+    if (form.linkType === "manual" || !form.linkType) {
+      const { name, value, category } = form;
+      const valueNum = Number(String(value).replace(",", "."));
 
-    if (!name || !value || !category) {
-      return "Preencha todos os campos obrigatórios.";
+      if (!name || !value || !category) {
+        return "Preencha todos os campos obrigatórios.";
+      }
+      if (isNaN(valueNum) || valueNum < 0) {
+        return "Informe um valor positivo.";
+      }
+      const categoryRule = patrimonyCategoryRules[category];
+      if (!categoryRule) {
+        return "Categoria inválida.";
+      }
     }
-    if (isNaN(valueNum) || valueNum < 0) {
-      return "Informe um valor positivo.";
-    }
-    const categoryRule = patrimonyCategoryRules[category];
-    if (!categoryRule) {
-      return "Categoria inválida.";
+
+    if (form.linkType === "debt" && form.linkedDebtId) {
+      const selectedDebt = debts.find((debt) => debt.id === form.linkedDebtId);
+      if (!selectedDebt) {
+        return "Selecione uma dívida válida.";
+      }
     }
     
     return null;
@@ -172,7 +182,22 @@ export class PatrimonyTransformService {
     };
   }
 
-  static formToLiabilityData(form: PatrimonyFormData): LiabilityData {
+  static formToLiabilityData(form: PatrimonyFormData, debts: any[]): LiabilityData {
+    if (form.linkType === "debt" && form.linkedDebtId) {
+      const selectedDebt = debts.find((debt) => debt.id === form.linkedDebtId);
+      return {
+        name: `${selectedDebt.description} (${selectedDebt.creditor})`,
+        category: PatrimonyTransformService.mapDebtToCategory(selectedDebt),
+        total_amount: selectedDebt.total_debt_amount,
+        remaining_amount: selectedDebt.remaining_balance,
+        interest_rate: selectedDebt.total_interest_percentage,
+        monthly_payment: selectedDebt.installment_value,
+        due_date: selectedDebt.due_date,
+        description: selectedDebt.notes,
+      };
+    }
+
+    // Manual entry
     const valueNum = Number(String(form.value).replace(",", "."));
     return {
       name: form.name,
@@ -181,6 +206,36 @@ export class PatrimonyTransformService {
       remaining_amount: valueNum,
       interest_rate: 0,
     };
+  }
+
+  private static mapDebtToCategory(debt: any): string {
+    // Mapear status e tipo de dívida para categorias de passivo
+    const today = new Date();
+    const dueDate = new Date(debt.due_date);
+    const monthsUntilDue = (dueDate.getFullYear() - today.getFullYear()) * 12 + 
+                          (dueDate.getMonth() - today.getMonth());
+
+    // Se vence em menos de 12 meses, é circulante
+    if (monthsUntilDue <= 12) {
+      if (debt.creditor.toLowerCase().includes('cartão') || 
+          debt.creditor.toLowerCase().includes('cartao')) {
+        return 'cartao_credito';
+      }
+      return 'emprestimo_bancario_curto';
+    } else {
+      // Mais de 12 meses, é não circulante
+      if (debt.description.toLowerCase().includes('imóvel') || 
+          debt.description.toLowerCase().includes('imovel') ||
+          debt.description.toLowerCase().includes('casa')) {
+        return 'financiamento_imovel';
+      }
+      if (debt.description.toLowerCase().includes('carro') ||
+          debt.description.toLowerCase().includes('veículo') ||
+          debt.description.toLowerCase().includes('veiculo')) {
+        return 'financiamento_carro';
+      }
+      return 'emprestimo_pessoal_longo';
+    }
   }
 }
 
@@ -192,6 +247,7 @@ export class PatrimonyFormFactory {
       linkType: "manual",
       linkedInvestmentId: "",
       linkedBankAccountId: "",
+      linkedDebtId: "",
       value: "",
       name: "",
       category: "",
@@ -203,9 +259,10 @@ export class PatrimonyFormFactory {
   static createEmptyLiabilityForm(): PatrimonyFormData {
     return {
       entryType: "liability",
-      linkType: "",
+      linkType: "manual",
       linkedInvestmentId: "",
       linkedBankAccountId: "",
+      linkedDebtId: "",
       value: "",
       name: "",
       category: "",
@@ -224,6 +281,7 @@ export class PatrimonyFormFactory {
       linkType: "manual",
       linkedInvestmentId: "",
       linkedBankAccountId: "",
+      linkedDebtId: "",
       entryType,
     };
   }

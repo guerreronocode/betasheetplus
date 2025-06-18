@@ -11,6 +11,7 @@ interface PatrimonyFormFieldsProps {
   onChange: (val: any) => void;
   investments: any[];
   bankAccounts: any[];
+  debts?: any[];
 }
 
 export const PatrimonyFormFields: React.FC<PatrimonyFormFieldsProps> = ({
@@ -19,10 +20,11 @@ export const PatrimonyFormFields: React.FC<PatrimonyFormFieldsProps> = ({
   onChange,
   investments,
   bankAccounts,
+  debts = [],
 }) => {
   return (
     <>
-      {/* SELEÇÃO MANUAL/LINKADA */}
+      {/* SELEÇÃO MANUAL/LINKADA PARA ATIVOS */}
       {entryType === "asset" && (
         <div>
           <Label>Tipo de vínculo</Label>
@@ -34,6 +36,7 @@ export const PatrimonyFormFields: React.FC<PatrimonyFormFieldsProps> = ({
                 linkType,
                 linkedInvestmentId: "",
                 linkedBankAccountId: "",
+                linkedDebtId: "",
                 name: "",
                 value: "",
                 category: ""
@@ -47,6 +50,36 @@ export const PatrimonyFormFields: React.FC<PatrimonyFormFieldsProps> = ({
               <SelectItem value="manual">Informar valor manualmente</SelectItem>
               <SelectItem value="investment">Adicionar investimento já registrado</SelectItem>
               <SelectItem value="bank">Adicionar conta bancária já cadastrada</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* SELEÇÃO MANUAL/LINKADA PARA PASSIVOS */}
+      {entryType === "liability" && (
+        <div>
+          <Label>Tipo de vínculo</Label>
+          <Select
+            value={form.linkType}
+            onValueChange={linkType =>
+              onChange({
+                ...form,
+                linkType,
+                linkedInvestmentId: "",
+                linkedBankAccountId: "",
+                linkedDebtId: "",
+                name: "",
+                value: "",
+                category: ""
+              })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Selecione o tipo de passivo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="manual">Informar valor manualmente</SelectItem>
+              <SelectItem value="debt">Adicionar dívida já registrada</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -140,8 +173,8 @@ export const PatrimonyFormFields: React.FC<PatrimonyFormFieldsProps> = ({
         </div>
       )}
 
-      {/* FORM PASSIVO*/}
-      {entryType === "liability" && (
+      {/* FORM PASSIVO - MANUAL*/}
+      {entryType === "liability" && (form.linkType === "manual" || !form.linkType) && (
         <>
           <div>
             <Label>Nome</Label>
@@ -175,6 +208,32 @@ export const PatrimonyFormFields: React.FC<PatrimonyFormFieldsProps> = ({
             </Select>
           </div>
         </>
+      )}
+
+      {/* VÍNCULO COM DÍVIDA */}
+      {entryType === "liability" && form.linkType === "debt" && (
+        <div>
+          <Label>Selecionar dívida</Label>
+          <Select
+            value={form.linkedDebtId}
+            onValueChange={id => onChange({ ...form, linkedDebtId: id })}
+            required
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Escolha uma dívida" />
+            </SelectTrigger>
+            <SelectContent>
+              {debts
+                .filter(debt => typeof debt.id === "string" && debt.id.trim().length > 0 && debt.status === 'active')
+                .map(debt => (
+                  <SelectItem key={debt.id} value={debt.id}>
+                    {debt.description} - {debt.creditor} (
+                    {debt.remaining_balance.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
+        </div>
       )}
     </>
   );

@@ -26,6 +26,21 @@ export interface Liability {
   description?: string;
 }
 
+export interface Debt {
+  id: string;
+  creditor: string;
+  description: string;
+  financed_amount: number;
+  total_debt_amount: number;
+  remaining_balance: number;
+  total_interest_amount: number;
+  total_interest_percentage: number;
+  installment_value: number;
+  due_date: string;
+  status: 'active' | 'paid' | 'overdue' | 'renegotiated';
+  notes?: string;
+}
+
 export const usePatrimony = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -44,6 +59,41 @@ export const usePatrimony = () => {
       
       if (error) throw error;
       return data as Asset[];
+    },
+    enabled: !!user,
+  });
+
+  // Liabilities queries and mutations
+  const { data: liabilities = [], isLoading: liabilitiesLoading } = useQuery({
+    queryKey: ['liabilities', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('liabilities')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as Liability[];
+    },
+    enabled: !!user,
+  });
+
+  // Debts query
+  const { data: debts = [], isLoading: debtsLoading } = useQuery({
+    queryKey: ['debts', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('debts')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data as Debt[];
     },
     enabled: !!user,
   });
@@ -101,23 +151,6 @@ export const usePatrimony = () => {
       queryClient.invalidateQueries({ queryKey: ['assets'] });
       toast({ title: 'Ativo removido com sucesso!' });
     },
-  });
-
-  // Liabilities queries and mutations
-  const { data: liabilities = [], isLoading: liabilitiesLoading } = useQuery({
-    queryKey: ['liabilities', user?.id],
-    queryFn: async () => {
-      if (!user) return [];
-      const { data, error } = await supabase
-        .from('liabilities')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data as Liability[];
-    },
-    enabled: !!user,
   });
 
   const addLiabilityMutation = useMutation({
@@ -178,11 +211,13 @@ export const usePatrimony = () => {
   // Calculate totals
   const totalAssets = assets.reduce((sum, asset) => sum + asset.current_value, 0);
   const totalLiabilities = liabilities.reduce((sum, liability) => sum + liability.remaining_amount, 0);
+  const totalDebts = debts.reduce((sum, debt) => sum + debt.remaining_balance, 0);
 
   return {
     assets,
     liabilities,
-    isLoading: assetsLoading || liabilitiesLoading,
+    debts,
+    isLoading: assetsLoading || liabilitiesLoading || debtsLoading,
     addAsset: addAssetMutation.mutate,
     updateAsset: updateAssetMutation.mutate,
     deleteAsset: deleteAssetMutation.mutate,
@@ -193,5 +228,6 @@ export const usePatrimony = () => {
     isAddingLiability: addLiabilityMutation.isPending,
     totalAssets,
     totalLiabilities,
+    totalDebts,
   };
 };

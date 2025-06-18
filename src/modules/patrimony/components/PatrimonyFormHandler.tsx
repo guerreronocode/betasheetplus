@@ -14,6 +14,7 @@ interface PatrimonyFormHandlerProps {
   entryType: "asset" | "liability";
   investments: any[];
   bankAccounts: any[];
+  debts: any[];
   onSuccess: () => void;
   addAsset: (data: any) => void;
   updateAsset: (data: any) => void;
@@ -26,6 +27,7 @@ export const usePatrimonyFormHandler = ({
   entryType,
   investments,
   bankAccounts,
+  debts,
   onSuccess,
   addAsset,
   updateAsset,
@@ -47,13 +49,13 @@ export const usePatrimonyFormHandler = ({
 
     try {
       if (entryType === "liability") {
-        const validationError = PatrimonyValidationService.validateLiabilityForm(form);
+        const validationError = PatrimonyValidationService.validateLiabilityForm(form, debts);
         if (validationError) {
           setFormError(validationError);
           return;
         }
 
-        const liabilityData = PatrimonyTransformService.formToLiabilityData(form);
+        const liabilityData = PatrimonyTransformService.formToLiabilityData(form, debts);
         
         if (form.isEdit && form.id) {
           updateLiability({ id: form.id, ...liabilityData });

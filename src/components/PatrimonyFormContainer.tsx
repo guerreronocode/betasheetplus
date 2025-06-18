@@ -14,6 +14,7 @@ interface PatrimonyFormContainerProps {
   setForm: (f: PatrimonyFormData) => void;
   investments: any[];
   bankAccounts: any[];
+  debts: any[];
   isAddingAsset: boolean;
   isAddingLiability: boolean;
   addAsset: any;
@@ -34,6 +35,7 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
   setForm,
   investments,
   bankAccounts,
+  debts,
   isAddingAsset,
   isAddingLiability,
   addAsset,
@@ -58,6 +60,7 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
     entryType,
     investments,
     bankAccounts,
+    debts,
     onSuccess: onResetForm,
     addAsset,
     updateAsset,
@@ -80,6 +83,7 @@ const PatrimonyFormContainer: React.FC<PatrimonyFormContainerProps> = ({
         isSaving={isAddingAsset || isAddingLiability}
         investments={investments}
         bankAccounts={bankAccounts}
+        debts={debts}
         onEntryTypeChange={handleTypeChange}
       />
     </div>
