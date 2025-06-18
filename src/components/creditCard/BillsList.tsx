@@ -1,24 +1,31 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Calendar, AlertCircle, CheckCircle } from 'lucide-react';
+import { Calendar, AlertCircle, CheckCircle, Eye } from 'lucide-react';
 import { useCreditCardBills } from '@/hooks/useCreditCardBills';
 import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { BillPaymentDialog } from './BillPaymentDialog';
+import { BillDetailsDialog } from './BillDetailsDialog';
 import { CreditCardBill, BillPaymentFormData } from '@/types/creditCard';
 
 export const BillsList: React.FC = () => {
   const { bills, upcomingBills, overdueBills, isLoading, payBill, isPaying } = useCreditCardBills();
   const [selectedBill, setSelectedBill] = useState<CreditCardBill | null>(null);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [selectedBillForDetails, setSelectedBillForDetails] = useState<CreditCardBill | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
 
   const handlePayBill = (bill: CreditCardBill) => {
     setSelectedBill(bill);
     setIsPaymentDialogOpen(true);
+  };
+
+  const handleViewDetails = (bill: CreditCardBill) => {
+    setSelectedBillForDetails(bill);
+    setIsDetailsDialogOpen(true);
   };
 
   const handlePayBillSubmit = (billId: string, paymentData: BillPaymentFormData) => {
@@ -156,15 +163,26 @@ export const BillsList: React.FC = () => {
                     <div className="text-xs text-gray-500 mb-2">
                       Fechamento: {format(new Date(bill.closing_date), 'dd/MM')}
                     </div>
-                    {!bill.is_paid && (
+                    <div className="flex gap-1">
                       <Button
+                        variant="ghost"
                         size="sm"
-                        onClick={() => handlePayBill(bill)}
-                        disabled={isPaying}
+                        onClick={() => handleViewDetails(bill)}
+                        className="text-blue-600 hover:text-blue-700"
                       >
-                        Marcar como Paga
+                        <Eye className="h-3 w-3 mr-1" />
+                        Ver Detalhes
                       </Button>
-                    )}
+                      {!bill.is_paid && (
+                        <Button
+                          size="sm"
+                          onClick={() => handlePayBill(bill)}
+                          disabled={isPaying}
+                        >
+                          Marcar como Paga
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </CardContent>
@@ -182,6 +200,15 @@ export const BillsList: React.FC = () => {
         }}
         onPayBill={handlePayBillSubmit}
         isPaying={isPaying}
+      />
+
+      <BillDetailsDialog
+        bill={selectedBillForDetails}
+        isOpen={isDetailsDialogOpen}
+        onClose={() => {
+          setIsDetailsDialogOpen(false);
+          setSelectedBillForDetails(null);
+        }}
       />
     </>
   );
