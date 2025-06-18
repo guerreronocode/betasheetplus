@@ -12,7 +12,7 @@ export interface DebtFormData {
   paidInstallments: string;
   status: 'active' | 'paid' | 'overdue' | 'renegotiated';
   notes?: string;
-  category?: string; // Nova propriedade para categorização
+  category?: string;
 }
 
 export interface DebtData {
@@ -28,7 +28,7 @@ export interface DebtData {
   paid_installments: number;
   status: 'active' | 'paid' | 'overdue' | 'renegotiated';
   notes?: string;
-  category?: string; // Nova propriedade para categorização
+  category?: string;
   // Campos calculados
   total_debt_amount: number;
   remaining_balance: number;
@@ -253,11 +253,26 @@ export class DebtDataService {
 
   static async markAsPaid(id: string, userId: string) {
     console.log('Marking debt as paid:', id);
+    
+    // Primeiro buscar a dívida para obter o total de parcelas
+    const { data: debtData, error: fetchError } = await supabase
+      .from('debts')
+      .select('total_installments')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single();
+    
+    if (fetchError) {
+      console.error('Error fetching debt:', fetchError);
+      throw fetchError;
+    }
+    
+    // Agora atualizar com os valores corretos
     const { data, error } = await supabase
       .from('debts')
       .update({ 
         status: 'paid',
-        paid_installments: supabase.rpc('get_total_installments', { debt_id: id }),
+        paid_installments: debtData.total_installments,
         remaining_balance: 0
       })
       .eq('id', id)
