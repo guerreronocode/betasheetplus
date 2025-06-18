@@ -16,6 +16,7 @@ export const purchaseSchema = z.object({
   amount: z.number().min(0.01, 'Valor deve ser maior que zero'),
   purchase_date: z.string().min(1, 'Data é obrigatória'),
   installments: z.number().min(1, 'Parcelas deve ser ao menos 1').max(36, 'Máximo 36 parcelas'),
+  category: z.string().min(1, 'Categoria é obrigatória'),
 });
 
 export const billPaymentSchema = z.object({
@@ -45,6 +46,7 @@ export interface PurchaseInsertData {
   amount: number;
   purchase_date: string;
   installments: number;
+  category: string;
 }
 
 // Interface completa do cartão de crédito no banco
@@ -70,6 +72,7 @@ export interface CreditCardPurchase {
   amount: number;
   purchase_date: string;
   installments: number;
+  category: string;
   created_at: string;
   updated_at: string;
   credit_cards?: {
@@ -112,4 +115,5 @@ export interface PurchaseStatus {
   remaining_amount: number;
   credit_card_name: string;
   purchase_date: string;
+  category?: string;
 }

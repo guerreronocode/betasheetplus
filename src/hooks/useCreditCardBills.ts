@@ -20,8 +20,9 @@ export const useCreditCardBills = () => {
         .from('credit_card_bills')
         .select(`
           *,
-          credit_cards(name)
+          credit_cards!inner(name, is_active)
         `)
+        .eq('credit_cards.is_active', true)
         .order('due_date', { ascending: true });
 
       if (error) {

@@ -51,6 +51,7 @@ export const useCreditCardPurchases = () => {
         amount: purchaseData.amount,
         purchase_date: purchaseData.purchase_date,
         installments: purchaseData.installments,
+        category: purchaseData.category,
       };
 
       const { data, error } = await supabase
@@ -70,6 +71,7 @@ export const useCreditCardPurchases = () => {
       queryClient.invalidateQueries({ queryKey: ['credit-card-purchases'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-bills'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-installments'] });
+      queryClient.invalidateQueries({ queryKey: ['purchase-status'] });
       toast({
         title: "Compra registrada!",
         description: "A compra foi adicionada ao cartão de crédito.",
@@ -85,11 +87,50 @@ export const useCreditCardPurchases = () => {
     },
   });
 
+  const updatePurchase = useMutation({
+    mutationFn: async ({ id, ...updateData }: Partial<CreditCardPurchase> & { id: string }) => {
+      console.log('Updating purchase:', id, updateData);
+      const { data, error } = await supabase
+        .from('credit_card_purchases')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating purchase:', error);
+        throw error;
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credit-card-purchases'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-card-bills'] });
+      queryClient.invalidateQueries({ queryKey: ['credit-card-installments'] });
+      queryClient.invalidateQueries({ queryKey: ['purchase-status'] });
+      toast({
+        title: "Compra atualizada!",
+        description: "As informações da compra foram atualizadas.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error updating purchase:', error);
+      toast({
+        title: "Erro ao atualizar compra",
+        description: "Não foi possível atualizar a compra.",
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     purchases,
     isLoading,
     error,
     createPurchase: createPurchase.mutate,
+    updatePurchase: updatePurchase.mutate,
     isCreating: createPurchase.isPending,
+    isUpdating: updatePurchase.isPending,
   };
 };

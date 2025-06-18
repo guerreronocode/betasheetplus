@@ -2,61 +2,63 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { purchaseSchema, PurchaseFormData, CreditCardPurchase } from '@/types/creditCard';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useCreditCardPurchases } from '@/hooks/useCreditCardPurchases';
 import { useExpenseCategories } from '@/hooks/useExpenseCategories';
-import { X } from 'lucide-react';
-import { format } from 'date-fns';
-import { purchaseSchema, PurchaseFormData } from '@/types/creditCard';
 
-interface PurchaseFormProps {
+interface EditPurchaseDialogProps {
+  purchase: CreditCardPurchase | null;
+  isOpen: boolean;
   onClose: () => void;
 }
 
-export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
+export const EditPurchaseDialog: React.FC<EditPurchaseDialogProps> = ({
+  purchase,
+  isOpen,
+  onClose,
+}) => {
   const { creditCards } = useCreditCards();
-  const { createPurchase, isCreating } = useCreditCardPurchases();
+  const { updatePurchase, isUpdating } = useCreditCardPurchases();
   const { categories } = useExpenseCategories();
 
   const form = useForm<PurchaseFormData>({
     resolver: zodResolver(purchaseSchema),
-    defaultValues: {
-      credit_card_id: '',
-      description: '',
-      amount: 0,
-      purchase_date: format(new Date(), 'yyyy-MM-dd'),
-      installments: 1,
-      category: '',
-    },
-    mode: 'onChange',
+    values: purchase ? {
+      credit_card_id: purchase.credit_card_id,
+      description: purchase.description,
+      amount: purchase.amount,
+      purchase_date: purchase.purchase_date,
+      installments: purchase.installments,
+      category: purchase.category || '',
+    } : undefined,
   });
 
-  const selectedCardId = form.watch('credit_card_id');
-  const amount = form.watch('amount');
-  const installments = form.watch('installments');
-
-  const installmentValue = amount && installments ? amount / installments : 0;
-
   const onSubmit = (data: PurchaseFormData) => {
-    console.log('Submitting purchase form:', data);
-    createPurchase(data);
+    if (!purchase) return;
+    
+    updatePurchase({ 
+      id: purchase.id, 
+      ...data,
+      updated_at: new Date().toISOString()
+    });
     onClose();
   };
 
+  if (!purchase) return null;
+
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Nova Compra</CardTitle>
-        <Button variant="ghost" size="sm" onClick={onClose}>
-          <X className="h-4 w-4" />
-        </Button>
-      </CardHeader>
-      <CardContent>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Editar Compra</DialogTitle>
+        </DialogHeader>
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -91,7 +93,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
                 <FormItem>
                   <FormLabel>Descrição</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex: Compra no supermercado" {...field} />
+                    <Input {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -134,7 +136,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
                       <Input
                         type="number"
                         step="0.01"
-                        placeholder="0.00"
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
                       />
@@ -155,7 +156,6 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
                         type="number"
                         min="1"
                         max="36"
-                        placeholder="1"
                         {...field}
                         onChange={(e) => field.onChange(Number(e.target.value))}
                       />
@@ -180,18 +180,9 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
               )}
             />
 
-            {installmentValue > 0 && (
-              <div className="p-3 bg-muted rounded-lg">
-                <p className="text-sm">
-                  <span className="font-medium">Valor por parcela:</span>{' '}
-                  R$ {installmentValue.toFixed(2)}
-                </p>
-              </div>
-            )}
-
             <div className="flex gap-2 pt-4">
-              <Button type="submit" disabled={isCreating}>
-                {isCreating ? 'Registrando...' : 'Registrar Compra'}
+              <Button type="submit" disabled={isUpdating}>
+                {isUpdating ? 'Salvando...' : 'Salvar Alterações'}
               </Button>
               <Button type="button" variant="outline" onClick={onClose}>
                 Cancelar
@@ -199,7 +190,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
             </div>
           </form>
         </Form>
-      </CardContent>
-    </Card>
+      </DialogContent>
+    </Dialog>
   );
 };
