@@ -17,6 +17,8 @@ import TransferBetweenAccounts from '@/components/TransferBetweenAccounts';
 import RecurringTransactions from '@/components/RecurringTransactions';
 import DebtManager from "@/components/debts/DebtManager";
 import { CreditCardManager } from '@/components/creditCard/CreditCardManager';
+import CategoryRanking from '@/components/CategoryRanking';
+import CategoryRankingCompact from '@/components/CategoryRankingCompact';
 import { useFinancialData } from '@/hooks/useFinancialData';
 
 const Dashboard = () => {
@@ -48,7 +50,7 @@ const Dashboard = () => {
             <div className="text-center py-12">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Bem-vindo ao seu Dashboard Financeiro!</h2>
               <p className="text-gray-600 mb-8">Gerencie suas finanças de forma inteligente e organizada.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 max-w-5xl mx-auto mb-8">
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <h3 className="font-semibold text-blue-900">💰 Contas</h3>
                   <p className="text-sm text-blue-700">Gerencie suas contas bancárias</p>
@@ -70,6 +72,11 @@ const Dashboard = () => {
                   <p className="text-sm text-red-700">Gerencie cartões de crédito</p>
                 </div>
               </div>
+              
+              {/* Widget compacto do ranking na visão geral */}
+              <div className="max-w-md mx-auto">
+                <CategoryRankingCompact />
+              </div>
             </div>
           </TabsContent>
 
@@ -83,6 +90,10 @@ const Dashboard = () => {
                 <AddTransactionForm />
                 <TransferBetweenAccounts />
               </div>
+              
+              {/* Ranking completo de categorias */}
+              <CategoryRanking />
+              
               <RecurringTransactions />
               <TransactionsList />
             </div>
