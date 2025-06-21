@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Header from '@/components/Header';
@@ -19,6 +20,7 @@ import CategoryRanking from '@/components/CategoryRanking';
 import CategoryRankingCompact from '@/components/CategoryRankingCompact';
 import MonthlyObjectivesPanel from '@/components/MonthlyObjectivesPanel';
 import BudgetPanel from '@/components/BudgetPanel';
+import FinancialEvolutionPanel from '@/components/FinancialEvolutionPanel';
 import { useFinancialData } from '@/hooks/useFinancialData';
 
 const Dashboard = () => {
@@ -34,8 +36,9 @@ const Dashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-11">
+          <TabsList className="grid w-full grid-cols-12">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="evolution">Evolução</TabsTrigger>
             <TabsTrigger value="objectives">Objetivos</TabsTrigger>
             <TabsTrigger value="planning">Planejamento</TabsTrigger>
             <TabsTrigger value="accounts">Contas</TabsTrigger>
@@ -80,6 +83,10 @@ const Dashboard = () => {
                 <CategoryRankingCompact />
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="evolution">
+            <FinancialEvolutionPanel />
           </TabsContent>
 
           <TabsContent value="objectives">
