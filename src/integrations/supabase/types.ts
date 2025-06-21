@@ -168,6 +168,74 @@ export type Database = {
         }
         Relationships: []
       }
+      budget_categories: {
+        Row: {
+          budget_id: string
+          category: string
+          created_at: string
+          id: string
+          planned_amount: number
+          updated_at: string
+        }
+        Insert: {
+          budget_id: string
+          category: string
+          created_at?: string
+          id?: string
+          planned_amount: number
+          updated_at?: string
+        }
+        Update: {
+          budget_id?: string
+          category?: string
+          created_at?: string
+          id?: string
+          planned_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_categories_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budgets: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          period_date: string
+          period_type: string
+          total_amount: number | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          period_date: string
+          period_type: string
+          total_amount?: number | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          period_date?: string
+          period_type?: string
+          total_amount?: number | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       credit_card_bills: {
         Row: {
           bill_month: string
@@ -1037,6 +1105,15 @@ export type Database = {
       award_achievement: {
         Args: { p_user_id: string; p_achievement_id: string; p_points: number }
         Returns: boolean
+      }
+      calculate_actual_spending: {
+        Args: {
+          p_user_id: string
+          p_period_start: string
+          p_period_end: string
+          p_category?: string
+        }
+        Returns: number
       }
       calculate_bill_month: {
         Args: { purchase_date: string; closing_day: number }
