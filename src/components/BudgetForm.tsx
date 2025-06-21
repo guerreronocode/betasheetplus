@@ -29,11 +29,11 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
   existingBudget
 }) => {
   const { createBudget, updateBudget, isCreating, isUpdating } = useBudgets();
-  const { expenseCategories } = useIntegratedCategories();
+  const { categories } = useIntegratedCategories();
 
   const [totalAmount, setTotalAmount] = useState<number | undefined>();
   const [useCategories, setUseCategories] = useState(false);
-  const [categories, setCategories] = useState<CategoryBudget[]>([]);
+  const [categoryBudgets, setCategoryBudgets] = useState<CategoryBudget[]>([]);
 
   const getCurrentPeriodDate = () => {
     const now = new Date();
@@ -49,7 +49,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
       setTotalAmount(existingBudget.total_amount || undefined);
       if (existingBudget.budget_categories && existingBudget.budget_categories.length > 0) {
         setUseCategories(true);
-        setCategories(
+        setCategoryBudgets(
           existingBudget.budget_categories.map(cat => ({
             category: cat.category,
             planned_amount: cat.planned_amount
@@ -57,27 +57,27 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
         );
       } else {
         setUseCategories(false);
-        setCategories([]);
+        setCategoryBudgets([]);
       }
     } else {
       setTotalAmount(undefined);
       setUseCategories(false);
-      setCategories([]);
+      setCategoryBudgets([]);
     }
   }, [existingBudget, open]);
 
   const handleAddCategory = () => {
-    setCategories([...categories, { category: '', planned_amount: 0 }]);
+    setCategoryBudgets([...categoryBudgets, { category: '', planned_amount: 0 }]);
   };
 
   const handleRemoveCategory = (index: number) => {
-    setCategories(categories.filter((_, i) => i !== index));
+    setCategoryBudgets(categoryBudgets.filter((_, i) => i !== index));
   };
 
   const handleCategoryChange = (index: number, field: keyof CategoryBudget, value: string | number) => {
-    const updated = [...categories];
+    const updated = [...categoryBudgets];
     updated[index] = { ...updated[index], [field]: value };
-    setCategories(updated);
+    setCategoryBudgets(updated);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -87,7 +87,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
       period_type: period,
       period_date: getCurrentPeriodDate(),
       total_amount: useCategories ? undefined : totalAmount,
-      categories: useCategories ? categories.filter(cat => cat.category && cat.planned_amount > 0) : undefined
+      categories: useCategories ? categoryBudgets.filter(cat => cat.category && cat.planned_amount > 0) : undefined
     };
 
     if (existingBudget) {
@@ -105,9 +105,9 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
     onOpenChange(false);
   };
 
-  const categoryOptions = expenseCategories.map(cat => ({
-    value: cat.value,
-    label: cat.label
+  const categoryOptions = categories.map(cat => ({
+    value: cat,
+    label: cat
   }));
 
   return (
@@ -162,13 +162,13 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
                   </Button>
                 </div>
 
-                {categories.map((category, index) => (
+                {categoryBudgets.map((categoryBudget, index) => (
                   <Card key={index} className="p-4">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                       <div>
                         <Label>Categoria</Label>
                         <CategorySelector
-                          value={category.category}
+                          value={categoryBudget.category}
                           options={categoryOptions}
                           onChange={(value) => handleCategoryChange(index, 'category', value)}
                           required
@@ -179,7 +179,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
                         <Input
                           type="number"
                           step="0.01"
-                          value={category.planned_amount || ''}
+                          value={categoryBudget.planned_amount || ''}
                           onChange={(e) => handleCategoryChange(index, 'planned_amount', Number(e.target.value))}
                           placeholder="Ex: 1500.00"
                           required
@@ -197,7 +197,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
                   </Card>
                 ))}
 
-                {categories.length === 0 && (
+                {categoryBudgets.length === 0 && (
                   <div className="text-center py-4 text-gray-500">
                     Clique em "Adicionar Categoria" para começar
                   </div>
