@@ -103,8 +103,8 @@ const ImprovedPatrimonyManager = () => {
         <h3 className="font-medium text-green-800 mb-2">✅ Integração DEFINITIVAMENTE Corrigida</h3>
         <div className="space-y-1 text-sm text-green-700">
           <p>
-            <strong>🎯 Lógica Implementada:</strong> O limite de crédito NÃO faz parte do patrimônio. 
-            Apenas as dívidas das compras são registradas como passivos.
+            <strong>🎯 Lógica Implementada:</strong> Ativos são classificados automaticamente pela categoria. 
+            Carros, imóveis e bens duráveis são SEMPRE não circulantes.
           </p>
           <p>
             <strong>💳 Dívidas Calculadas Dinamicamente:</strong> APENAS de cartões ATIVOS são contabilizadas no patrimônio.
@@ -113,7 +113,7 @@ const ImprovedPatrimonyManager = () => {
             <strong>🔄 Atualização Automática:</strong> Quando cartões são desativados, suas dívidas são IMEDIATAMENTE removidas do patrimônio.
           </p>
           <p>
-            <strong>✅ Garantia:</strong> Cartões inativos NÃO afetam o patrimônio de forma alguma.
+            <strong>✅ Garantia:</strong> Classificação contábil correta para todos os tipos de ativo e passivo.
           </p>
         </div>
       </div>

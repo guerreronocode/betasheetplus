@@ -48,8 +48,40 @@ export const usePatrimonyGroupsFull = ({
           source: 'investment'
         })),
       
-      // Ativos manuais circulantes
-      ...assets.filter(asset => asset.category === 'ativo_circulante')
+      // Ativos manuais circulantes - CORREÇÃO CRÍTICA: usar classificação automática
+      ...assets.filter(asset => {
+        // Regras de classificação automática baseadas na categoria
+        const categoryMap = {
+          'conta_corrente': 'circulante',
+          'dinheiro': 'circulante',
+          'aplicacao_curto_prazo': 'circulante',
+          'carteira_digital': 'circulante',
+          'poupanca': 'circulante',
+          'emprestimo_a_receber_curto': 'circulante',
+          'reserva_emergencia': 'circulante',
+          'imovel': 'nao_circulante',
+          'carro': 'nao_circulante',
+          'moto': 'nao_circulante',
+          'computador': 'nao_circulante',
+          'investimento_longo_prazo': 'nao_circulante',
+          'outro_duravel': 'nao_circulante'
+        };
+        
+        const classification = categoryMap[asset.category];
+        
+        // Se a categoria indica circulante, incluir aqui
+        if (classification === 'circulante') return true;
+        
+        // Fallback: se a categoria original for ativo_circulante, incluir
+        if (asset.category === 'ativo_circulante') return true;
+        
+        return false;
+      }).map(asset => ({
+        ...asset,
+        current_value: Number(asset.current_value),
+        isLinked: false,
+        source: 'manual'
+      }))
     ];
 
     const ativoNaoCirculante = [
@@ -66,8 +98,40 @@ export const usePatrimonyGroupsFull = ({
           source: 'investment'
         })),
       
-      // Ativos manuais não circulantes
-      ...assets.filter(asset => asset.category === 'ativo_nao_circulante')
+      // Ativos manuais não circulantes - CORREÇÃO CRÍTICA: usar classificação automática
+      ...assets.filter(asset => {
+        // Regras de classificação automática baseadas na categoria
+        const categoryMap = {
+          'conta_corrente': 'circulante',
+          'dinheiro': 'circulante',
+          'aplicacao_curto_prazo': 'circulante',
+          'carteira_digital': 'circulante',
+          'poupanca': 'circulante',
+          'emprestimo_a_receber_curto': 'circulante',
+          'reserva_emergencia': 'circulante',
+          'imovel': 'nao_circulante',
+          'carro': 'nao_circulante',
+          'moto': 'nao_circulante',
+          'computador': 'nao_circulante',
+          'investimento_longo_prazo': 'nao_circulante',
+          'outro_duravel': 'nao_circulante'
+        };
+        
+        const classification = categoryMap[asset.category];
+        
+        // Se a categoria indica não circulante, incluir aqui
+        if (classification === 'nao_circulante') return true;
+        
+        // Fallback: se a categoria original for ativo_nao_circulante, incluir
+        if (asset.category === 'ativo_nao_circulante') return true;
+        
+        return false;
+      }).map(asset => ({
+        ...asset,
+        current_value: Number(asset.current_value),
+        isLinked: false,
+        source: 'manual'
+      }))
     ];
 
     const passivoCirculante = [
@@ -107,7 +171,12 @@ export const usePatrimonyGroupsFull = ({
       ...liabilities.filter(liability => 
         liability.category === 'passivo_circulante' && 
         liability.category !== 'cartao_credito'
-      )
+      ).map(liability => ({
+        ...liability,
+        remaining_amount: Number(liability.remaining_amount),
+        isLinked: false,
+        source: 'manual'
+      }))
     ];
 
     const passivoNaoCirculante = [
@@ -135,7 +204,12 @@ export const usePatrimonyGroupsFull = ({
       ...liabilities.filter(liability => 
         liability.category === 'passivo_nao_circulante' && 
         liability.category !== 'cartao_credito'
-      )
+      ).map(liability => ({
+        ...liability,
+        remaining_amount: Number(liability.remaining_amount),
+        isLinked: false,
+        source: 'manual'
+      }))
     ];
 
     const groups = {

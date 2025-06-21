@@ -1,3 +1,4 @@
+
 /**
  * Helpers para regras de classificação e agrupamento patrimonial
  */
@@ -7,27 +8,35 @@ export type PatrimonyGroup =
   | "passivo_circulante"
   | "passivo_nao_circulante";
 
+// CORREÇÃO CRÍTICA: Mapeamento correto de categorias para grupos patrimoniais
 export const patrimonyCategoryRules: Record<string, PatrimonyGroup> = {
+  // Ativos Circulantes
   conta_corrente: "ativo_circulante",
   dinheiro: "ativo_circulante",
   aplicacao_curto_prazo: "ativo_circulante",
   carteira_digital: "ativo_circulante",
   poupanca: "ativo_circulante",
   emprestimo_a_receber_curto: "ativo_circulante",
+  reserva_emergencia: "ativo_circulante",
+  
+  // Ativos Não Circulantes
   imovel: "ativo_nao_circulante",
-  carro: "ativo_nao_circulante",
+  carro: "ativo_nao_circulante", // CRÍTICO: Garantir que carros são não circulantes
   moto: "ativo_nao_circulante",
   computador: "ativo_nao_circulante",
   investimento_longo_prazo: "ativo_nao_circulante",
   outro_duravel: "ativo_nao_circulante",
+  
+  // Passivos Circulantes
   cartao_credito: "passivo_circulante",
   parcelamento: "passivo_circulante",
   emprestimo_bancario_curto: "passivo_circulante",
   conta_pagar: "passivo_circulante",
+  
+  // Passivos Não Circulantes
   financiamento_imovel: "passivo_nao_circulante",
   financiamento_carro: "passivo_nao_circulante",
   emprestimo_pessoal_longo: "passivo_nao_circulante",
-  reserva_emergencia: "ativo_circulante",
 };
 
 /**
@@ -37,13 +46,12 @@ export function classifyInvestmentGroup(
   investment: { liquidity?: string; maturity_date?: string; purchase_date?: string }
 ): PatrimonyGroup {
   const today = new Date();
-  // Adiciona log para debug
-  // Remapeia tipo para string padrão (pode chegar como undefined ou string vazia)
   const liquidity = investment.liquidity ?? '';
   const maturity_date = investment.maturity_date ?? '';
-  if (liquidity === "diaria") return "ativo_circulante";
+  
+  if (liquidity === "daily" || liquidity === "diaria") return "ativo_circulante";
+  
   if (liquidity === "vencimento" && maturity_date) {
-    // Calcula diferença em meses
     const maturity = new Date(maturity_date);
     const diffMonths =
       (maturity.getFullYear() - today.getFullYear()) * 12 +
@@ -53,14 +61,12 @@ export function classifyInvestmentGroup(
     }
     return "ativo_nao_circulante";
   }
-  // Default para não informado: longo prazo
+  
   return "ativo_nao_circulante";
 }
 
 /**
  * Retorna o grupo patrimonial correto de acordo com a categoria e lógica especial.
- * - category: string ou undefined, obrigatório tratar
- * - item: asset/liability/investment
  */
 export function getPatrimonyGroupByCategory(
   category: string | undefined,
@@ -68,7 +74,6 @@ export function getPatrimonyGroupByCategory(
   investments?: any[]
 ): PatrimonyGroup | undefined {
   if ((!category || category === '') && item && (item.liquidity !== undefined)) {
-    // Classificação automática para investimentos completamente sem categoria
     return classifyInvestmentGroup(item);
   }
 
@@ -83,4 +88,28 @@ export function getPatrimonyGroupByCategory(
   }
 
   return patrimonyCategoryRules[category ?? ""];
+}
+
+/**
+ * Função para classificar automaticamente um ativo baseado na sua categoria
+ */
+export function classifyAssetGroup(category: string): PatrimonyGroup {
+  // Mapeamento direto das categorias para grupos
+  const categoryToGroup = {
+    'conta_corrente': 'ativo_circulante',
+    'dinheiro': 'ativo_circulante',
+    'aplicacao_curto_prazo': 'ativo_circulante',
+    'carteira_digital': 'ativo_circulante',
+    'poupanca': 'ativo_circulante',
+    'emprestimo_a_receber_curto': 'ativo_circulante',
+    'reserva_emergencia': 'ativo_circulante',
+    'imovel': 'ativo_nao_circulante',
+    'carro': 'ativo_nao_circulante', // CRÍTICO: Carros são sempre não circulantes
+    'moto': 'ativo_nao_circulante',
+    'computador': 'ativo_nao_circulante',
+    'investimento_longo_prazo': 'ativo_nao_circulante',
+    'outro_duravel': 'ativo_nao_circulante'
+  } as const;
+
+  return categoryToGroup[category as keyof typeof categoryToGroup] || 'ativo_nao_circulante';
 }
