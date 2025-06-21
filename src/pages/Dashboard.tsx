@@ -6,7 +6,6 @@ import UpdatedQuickStats from '@/components/UpdatedQuickStats';
 import TransactionsList from '@/components/TransactionsList';
 import AdvancedInvestmentManager from '@/components/AdvancedInvestmentManager';
 import AdvancedGoalsPanel from '@/components/AdvancedGoalsPanel';
-import AchievementsPanel from '@/components/AchievementsPanel';
 import AdvancedAchievements from '@/components/AdvancedAchievements';
 import BankAccountManager from '@/components/BankAccountManager';
 import AddTransactionForm from '@/components/AddTransactionForm';
@@ -19,6 +18,7 @@ import DebtManager from "@/components/debts/DebtManager";
 import { CreditCardManager } from '@/components/creditCard/CreditCardManager';
 import CategoryRanking from '@/components/CategoryRanking';
 import CategoryRankingCompact from '@/components/CategoryRankingCompact';
+import MonthlyObjectivesPanel from '@/components/MonthlyObjectivesPanel';
 import { useFinancialData } from '@/hooks/useFinancialData';
 
 const Dashboard = () => {
@@ -34,8 +34,9 @@ const Dashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-9">
+          <TabsList className="grid w-full grid-cols-10">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="objectives">Objetivos</TabsTrigger>
             <TabsTrigger value="accounts">Contas</TabsTrigger>
             <TabsTrigger value="transactions">Transações</TabsTrigger>
             <TabsTrigger value="investments">Investimentos</TabsTrigger>
@@ -80,6 +81,10 @@ const Dashboard = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="objectives">
+            <MonthlyObjectivesPanel />
+          </TabsContent>
+
           <TabsContent value="accounts">
             <BankAccountManager />
           </TabsContent>
@@ -88,7 +93,7 @@ const Dashboard = () => {
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <AddTransactionForm />
-                <TransferBetweenAccounts />
+                <TransferBetweenAcc
               </div>
               
               {/* Ranking completo de categorias */}

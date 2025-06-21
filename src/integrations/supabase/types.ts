@@ -771,6 +771,69 @@ export type Database = {
         }
         Relationships: []
       }
+      monthly_objectives: {
+        Row: {
+          calculation_type: string
+          category: string | null
+          completed_at: string | null
+          created_at: string
+          current_percentage: number | null
+          current_value: number | null
+          description: string | null
+          id: string
+          is_active: boolean
+          month: string
+          objective_type: string
+          related_data: Json | null
+          status: string
+          target_percentage: number | null
+          target_value: number | null
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          calculation_type: string
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_percentage?: number | null
+          current_value?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          month: string
+          objective_type: string
+          related_data?: Json | null
+          status?: string
+          target_percentage?: number | null
+          target_value?: number | null
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          calculation_type?: string
+          category?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_percentage?: number | null
+          current_value?: number | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          month?: string
+          objective_type?: string
+          related_data?: Json | null
+          status?: string
+          target_percentage?: number | null
+          target_value?: number | null
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -982,6 +1045,10 @@ export type Database = {
       calculate_credit_cards_patrimony: {
         Args: { p_user_id: string }
         Returns: number
+      }
+      calculate_objective_progress: {
+        Args: { p_user_id: string; p_month: string; p_objective_id: string }
+        Returns: undefined
       }
       calculate_projected_credit_limit: {
         Args: { p_credit_card_id: string; p_months_ahead?: number }
