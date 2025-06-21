@@ -29,7 +29,6 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
         const monthDate = subMonths(currentDate, i);
         const monthStart = startOfMonth(monthDate);
         const monthEnd = endOfMonth(monthDate);
-        const monthKey = format(monthDate, 'yyyy-MM');
 
         // Buscar ativos do mês
         const { data: assets } = await supabase
@@ -45,10 +44,10 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
           .eq('user_id', user.id)
           .lte('created_at', monthEnd.toISOString());
 
-        // Buscar investimentos do mês
+        // Buscar investimentos do mês (removendo category que não existe)
         const { data: investments } = await supabase
           .from('investments')
-          .select('current_value, amount, liquidity, category')
+          .select('current_value, amount, liquidity')
           .eq('user_id', user.id)
           .lte('created_at', monthEnd.toISOString());
 
