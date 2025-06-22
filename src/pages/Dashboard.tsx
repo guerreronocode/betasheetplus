@@ -19,8 +19,10 @@ import { CreditCardManager } from '@/components/creditCard/CreditCardManager';
 import CategoryRanking from '@/components/CategoryRanking';
 import CategoryRankingCompact from '@/components/CategoryRankingCompact';
 import MonthlyObjectivesPanel from '@/components/MonthlyObjectivesPanel';
-import BudgetPanel from '@/components/BudgetPanel';
+import Budget
+
 import FinancialEvolutionPanel from '@/components/FinancialEvolutionPanel';
+import InvestmentPlanner from '@/components/InvestmentPlanner';
 import { useFinancialData } from '@/hooks/useFinancialData';
 
 const Dashboard = () => {
@@ -41,13 +43,13 @@ const Dashboard = () => {
             <TabsTrigger value="evolution">Evolução</TabsTrigger>
             <TabsTrigger value="objectives">Objetivos</TabsTrigger>
             <TabsTrigger value="planning">Planejamento</TabsTrigger>
+            <TabsTrigger value="planner">Planejador</TabsTrigger>
             <TabsTrigger value="accounts">Contas</TabsTrigger>
             <TabsTrigger value="transactions">Transações</TabsTrigger>
             <TabsTrigger value="investments">Investimentos</TabsTrigger>
             <TabsTrigger value="goals">Metas</TabsTrigger>
             <TabsTrigger value="patrimony">Patrimônio</TabsTrigger>
             <TabsTrigger value="debts">Dívidas</TabsTrigger>
-            <TabsTrigger value="credit-cards">Cartões</TabsTrigger>
             <TabsTrigger value="achievements">Conquistas</TabsTrigger>
           </TabsList>
 
@@ -73,8 +75,8 @@ const Dashboard = () => {
                   <p className="text-sm text-orange-700">Defina e alcance objetivos</p>
                 </div>
                 <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                  <h3 className="font-semibold text-red-900">💳 Cartões</h3>
-                  <p className="text-sm text-red-700">Gerencie cartões de crédito</p>
+                  <h3 className="font-semibold text-red-900">🚀 Planejador</h3>
+                  <p className="text-sm text-red-700">Plano de investimento personalizado</p>
                 </div>
               </div>
               
@@ -95,6 +97,10 @@ const Dashboard = () => {
 
           <TabsContent value="planning">
             <BudgetPanel />
+          </TabsContent>
+
+          <TabsContent value="planner">
+            <InvestmentPlanner />
           </TabsContent>
 
           <TabsContent value="accounts">
@@ -133,10 +139,6 @@ const Dashboard = () => {
 
           <TabsContent value="debts">
             <DebtManager />
-          </TabsContent>
-
-          <TabsContent value="credit-cards">
-            <CreditCardManager />
           </TabsContent>
 
           <TabsContent value="achievements">

@@ -1,67 +1,96 @@
 
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { User, Target, Shield, TrendingUp, AlertCircle } from 'lucide-react';
-import { useInvestmentPlanner, InvestmentProfile } from '@/hooks/useInvestmentPlanner';
-import RiskProfileQuiz from './RiskProfileQuiz';
+import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { User, Target, TrendingUp, Shield } from 'lucide-react';
+import { InvestmentProfile, useInvestmentPlanner } from '@/hooks/useInvestmentPlanner';
+import { formatCurrency } from '@/utils/formatters';
+
+interface ProfileFormData {
+  age: number;
+  main_objective: string;
+  risk_profile: 'conservative' | 'moderate' | 'aggressive';
+  organization_level: 'no_reserve' | 'building_reserve' | 'reserve_completed';
+  monthly_income: number;
+  monthly_expenses: number;
+  short_term_goals: string;
+  medium_term_goals: string;
+  long_term_goals: string;
+}
 
 const InvestmentProfileForm: React.FC = () => {
   const { profile, saveProfile, isSavingProfile } = useInvestmentPlanner();
   
-  const [formData, setFormData] = useState<Omit<InvestmentProfile, 'id' | 'user_id' | 'created_at' | 'updated_at'>>({
-    age: profile?.age || 25,
-    main_objective: profile?.main_objective || '',
-    risk_profile: profile?.risk_profile || 'moderate',
-    organization_level: profile?.organization_level || 'no_reserve',
-    monthly_income: profile?.monthly_income || 0,
-    monthly_expenses: profile?.monthly_expenses || 0,
-    short_term_goals: profile?.short_term_goals || [],
-    medium_term_goals: profile?.medium_term_goals || [],
-    long_term_goals: profile?.long_term_goals || [],
+  const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProfileFormData>({
+    defaultValues: {
+      age: profile?.age || 25,
+      main_objective: profile?.main_objective || '',
+      risk_profile: profile?.risk_profile || 'moderate',
+      organization_level: profile?.organization_level || 'no_reserve',
+      monthly_income: profile?.monthly_income || 0,
+      monthly_expenses: profile?.monthly_expenses || 0,
+      short_term_goals: profile?.short_term_goals?.join(', ') || '',
+      medium_term_goals: profile?.medium_term_goals?.join(', ') || '',
+      long_term_goals: profile?.long_term_goals?.join(', ') || ''
+    }
   });
 
-  const [showRiskQuiz, setShowRiskQuiz] = useState(false);
-  const [goalInput, setGoalInput] = useState('');
-  const [currentGoalType, setCurrentGoalType] = useState<'short' | 'medium' | 'long'>('short');
+  const watchedValues = watch();
+  const monthlyBalance = watchedValues.monthly_income - watchedValues.monthly_expenses;
 
-  const handleInputChange = (field: keyof typeof formData, value: any) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  const onSubmit = (data: ProfileFormData) => {
+    const profileData = {
+      ...data,
+      short_term_goals: data.short_term_goals.split(',').map(s => s.trim()).filter(Boolean),
+      medium_term_goals: data.medium_term_goals.split(',').map(s => s.trim()).filter(Boolean),
+      long_term_goals: data.long_term_goals.split(',').map(s => s.trim()).filter(Boolean)
+    };
+
+    saveProfile(profileData);
   };
 
-  const addGoal = () => {
-    if (!goalInput.trim()) return;
-
-    const goalField = `${currentGoalType}_term_goals` as keyof typeof formData;
-    const currentGoals = formData[goalField] as string[];
-    
-    if (!currentGoals.includes(goalInput.trim())) {
-      handleInputChange(goalField, [...currentGoals, goalInput.trim()]);
-    }
-    
-    setGoalInput('');
+  const getRiskProfileInfo = (type: string) => {
+    const profiles = {
+      conservative: {
+        label: 'Conservador',
+        icon: '🛡️',
+        description: 'Priorizo segurança e estabilidade',
+        color: 'blue'
+      },
+      moderate: {
+        label: 'Moderado',
+        icon: '⚖️',
+        description: 'Equilibro entre segurança e crescimento',
+        color: 'orange'
+      },
+      aggressive: {
+        label: 'Agressivo',
+        icon: '🚀',
+        description: 'Busco maior crescimento, aceito mais riscos',
+        color: 'red'
+      }
+    };
+    return profiles[type as keyof typeof profiles];
   };
-
-  const removeGoal = (goalType: 'short' | 'medium' | 'long', goal: string) => {
-    const goalField = `${goalType}_term_goals` as keyof typeof formData;
-    const currentGoals = formData[goalField] as string[];
-    handleInputChange(goalField, currentGoals.filter(g => g !== goal));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    saveProfile(formData);
-  };
-
-  const investmentCapacity = formData.monthly_income - formData.monthly_expenses;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Header */}
+      <div className="text-center">
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          👤 Perfil Financeiro
+        </h3>
+        <p className="text-gray-600">
+          Vamos conhecer sua situação atual para criar um plano personalizado
+        </p>
+      </div>
+
       {/* Informações Básicas */}
       <Card className="p-6">
         <div className="flex items-center gap-3 mb-6">
@@ -69,292 +98,217 @@ const InvestmentProfileForm: React.FC = () => {
             <User className="w-6 h-6 text-blue-600" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Informações Básicas
-            </h3>
-            <p className="text-sm text-gray-600">
-              Conte-nos um pouco sobre você
-            </p>
+            <h4 className="font-semibold text-gray-900">Informações Básicas</h4>
+            <p className="text-sm text-gray-600">Conte-nos sobre você</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <Label htmlFor="age">Idade</Label>
+            <Label htmlFor="age">Idade *</Label>
             <Input
               id="age"
               type="number"
-              min="18"
-              max="100"
-              value={formData.age}
-              onChange={(e) => handleInputChange('age', parseInt(e.target.value) || 0)}
-              required
+              {...register('age', { required: 'Idade é obrigatória', min: 18, max: 100 })}
+              className="mt-1"
             />
+            {errors.age && <p className="text-red-500 text-sm mt-1">{errors.age.message}</p>}
           </div>
 
-          <div>
-            <Label htmlFor="main_objective">Objetivo Principal</Label>
-            <Input
+          <div className="md:col-span-2">
+            <Label htmlFor="main_objective">Objetivo Principal *</Label>
+            <Textarea
               id="main_objective"
-              placeholder="Ex: liberdade financeira, aposentadoria, comprar imóvel..."
-              value={formData.main_objective}
-              onChange={(e) => handleInputChange('main_objective', e.target.value)}
-              required
+              {...register('main_objective', { required: 'Objetivo é obrigatório' })}
+              placeholder="Ex: Construir reserva de emergência e investir para aposentadoria"
+              className="mt-1"
+              rows={3}
             />
+            {errors.main_objective && <p className="text-red-500 text-sm mt-1">{errors.main_objective.message}</p>}
           </div>
         </div>
       </Card>
 
-      {/* Perfil de Segurança */}
-      <Card className="p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <Shield className="w-6 h-6 text-purple-600" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Perfil de Investimento
-            </h3>
-            <p className="text-sm text-gray-600">
-              Não sabe seu perfil? Faça nosso quiz rápido!
-            </p>
-          </div>
-        </div>
-
-        <div className="space-y-4">
-          <div className="flex items-center gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setShowRiskQuiz(true)}
-              className="text-purple-600 border-purple-300 hover:bg-purple-50"
-            >
-              🧭 Descobrir Meu Perfil
-            </Button>
-            <span className="text-sm text-gray-500">
-              ou selecione diretamente:
-            </span>
-          </div>
-
-          <RadioGroup
-            value={formData.risk_profile}
-            onValueChange={(value: 'conservative' | 'moderate' | 'aggressive') => 
-              handleInputChange('risk_profile', value)
-            }
-          >
-            <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
-              <RadioGroupItem value="conservative" id="conservative" />
-              <Label htmlFor="conservative" className="cursor-pointer flex-1">
-                <div className="font-medium">🛡️ Conservador</div>
-                <div className="text-sm text-gray-600">
-                  Prioriza segurança, aceita retornos menores
-                </div>
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
-              <RadioGroupItem value="moderate" id="moderate" />
-              <Label htmlFor="moderate" className="cursor-pointer flex-1">
-                <div className="font-medium">⚖️ Moderado</div>
-                <div className="text-sm text-gray-600">
-                  Equilibra segurança e rentabilidade
-                </div>
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
-              <RadioGroupItem value="aggressive" id="aggressive" />
-              <Label htmlFor="aggressive" className="cursor-pointer flex-1">
-                <div className="font-medium">🚀 Agressivo</div>
-                <div className="text-sm text-gray-600">
-                  Busca maiores retornos, aceita mais riscos
-                </div>
-              </Label>
-            </div>
-          </RadioGroup>
-        </div>
-      </Card>
-
-      {/* Situação Financeira Atual */}
+      {/* Situação Financeira */}
       <Card className="p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-green-100 rounded-lg">
             <TrendingUp className="w-6 h-6 text-green-600" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Situação Financeira
-            </h3>
-            <p className="text-sm text-gray-600">
-              Valores aproximados são suficientes
-            </p>
+            <h4 className="font-semibold text-gray-900">Situação Financeira</h4>
+            <p className="text-sm text-gray-600">Suas receitas e despesas mensais</p>
           </div>
         </div>
 
-        <div className="space-y-6">
-          {/* Organização Financeira */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <Label className="text-base font-medium">Nível de Organização Atual</Label>
-            <RadioGroup
-              value={formData.organization_level}
-              onValueChange={(value: 'no_reserve' | 'building_reserve' | 'reserve_completed') => 
-                handleInputChange('organization_level', value)
-              }
-              className="mt-3"
-            >
-              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
-                <RadioGroupItem value="no_reserve" id="no_reserve" />
-                <Label htmlFor="no_reserve" className="cursor-pointer flex-1">
-                  <div className="font-medium">🆘 Nenhuma reserva</div>
-                  <div className="text-sm text-gray-600">
-                    Ainda não tenho reserva de emergência
-                  </div>
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
-                <RadioGroupItem value="building_reserve" id="building_reserve" />
-                <Label htmlFor="building_reserve" className="cursor-pointer flex-1">
-                  <div className="font-medium">🏗️ Reserva em construção</div>
-                  <div className="text-sm text-gray-600">
-                    Já estou formando minha reserva de emergência
-                  </div>
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2 p-3 border rounded-lg hover:bg-gray-50">
-                <RadioGroupItem value="reserve_completed" id="reserve_completed" />
-                <Label htmlFor="reserve_completed" className="cursor-pointer flex-1">
-                  <div className="font-medium">✅ Reserva concluída</div>
-                  <div className="text-sm text-gray-600">
-                    Minha reserva de emergência está completa
-                  </div>
-                </Label>
-              </div>
-            </RadioGroup>
+            <Label htmlFor="monthly_income">Renda Mensal Líquida *</Label>
+            <Input
+              id="monthly_income"
+              type="number"
+              step="0.01"
+              {...register('monthly_income', { required: 'Renda é obrigatória', min: 0 })}
+              className="mt-1"
+              placeholder="0,00"
+            />
+            {errors.monthly_income && <p className="text-red-500 text-sm mt-1">{errors.monthly_income.message}</p>}
           </div>
 
-          {/* Renda e Gastos */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label htmlFor="monthly_income">Renda Mensal (R$)</Label>
-              <Input
-                id="monthly_income"
-                type="number"
-                min="0"
-                step="100"
-                placeholder="5.000"
-                value={formData.monthly_income || ''}
-                onChange={(e) => handleInputChange('monthly_income', parseFloat(e.target.value) || 0)}
-                required
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="monthly_expenses">Gastos Mensais (R$)</Label>
-              <Input
-                id="monthly_expenses"
-                type="number"
-                min="0"
-                step="100"
-                placeholder="3.500"
-                value={formData.monthly_expenses || ''}
-                onChange={(e) => handleInputChange('monthly_expenses', parseFloat(e.target.value) || 0)}
-                required
-              />
-            </div>
+          <div>
+            <Label htmlFor="monthly_expenses">Gastos Mensais *</Label>
+            <Input
+              id="monthly_expenses"
+              type="number"
+              step="0.01"
+              {...register('monthly_expenses', { required: 'Gastos são obrigatórios', min: 0 })}
+              className="mt-1"
+              placeholder="0,00"
+            />
+            {errors.monthly_expenses && <p className="text-red-500 text-sm mt-1">{errors.monthly_expenses.message}</p>}
           </div>
+        </div>
 
-          {/* Capacidade de Investimento */}
-          {formData.monthly_income > 0 && formData.monthly_expenses > 0 && (
-            <div className={`p-4 rounded-lg border ${
-              investmentCapacity > 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-            }`}>
-              <div className="flex items-center gap-2">
-                {investmentCapacity > 0 ? (
-                  <>
-                    <TrendingUp className="w-5 h-5 text-green-600" />
-                    <span className="font-medium text-green-800">
-                      Capacidade de investimento: R$ {investmentCapacity.toLocaleString('pt-BR')}
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <AlertCircle className="w-5 h-5 text-red-600" />
-                    <span className="font-medium text-red-800">
-                      Gastos excedem a renda em R$ {Math.abs(investmentCapacity).toLocaleString('pt-BR')}
-                    </span>
-                  </>
-                )}
-              </div>
-            </div>
+        {/* Saldo Mensal */}
+        <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-green-50 rounded-lg">
+          <div className="flex items-center justify-between">
+            <span className="font-semibold text-gray-800">Sobra Mensal:</span>
+            <span className={`text-xl font-bold ${monthlyBalance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {formatCurrency(monthlyBalance)}
+            </span>
+          </div>
+          {monthlyBalance < 0 && (
+            <p className="text-red-600 text-sm mt-2">
+              ⚠️ Suas despesas estão maiores que a renda. Revise seu orçamento antes de investir.
+            </p>
           )}
         </div>
+      </Card>
+
+      {/* Perfil de Risco */}
+      <Card className="p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-purple-100 rounded-lg">
+            <Target className="w-6 h-6 text-purple-600" />
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-900">Perfil de Risco</h4>
+            <p className="text-sm text-gray-600">Como você se relaciona com investimentos?</p>
+          </div>
+        </div>
+
+        <RadioGroup
+          value={watchedValues.risk_profile}
+          onValueChange={(value) => setValue('risk_profile', value as any)}
+          className="space-y-4"
+        >
+          {['conservative', 'moderate', 'aggressive'].map((type) => {
+            const info = getRiskProfileInfo(type);
+            return (
+              <div key={type} className="flex items-start space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                <RadioGroupItem value={type} id={type} className="mt-1" />
+                <div className="flex-1">
+                  <Label htmlFor={type} className="cursor-pointer">
+                    <div className="flex items-center gap-2 font-semibold text-gray-900">
+                      <span>{info.icon}</span>
+                      {info.label}
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{info.description}</p>
+                  </Label>
+                </div>
+              </div>
+            );
+          })}
+        </RadioGroup>
+      </Card>
+
+      {/* Organização Financeira */}
+      <Card className="p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-orange-100 rounded-lg">
+            <Shield className="w-6 h-6 text-orange-600" />
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-900">Reserva de Emergência</h4>
+            <p className="text-sm text-gray-600">Qual é sua situação atual?</p>
+          </div>
+        </div>
+
+        <RadioGroup
+          value={watchedValues.organization_level}
+          onValueChange={(value) => setValue('organization_level', value as any)}
+          className="space-y-4"
+        >
+          <div className="flex items-start space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-orange-300 transition-colors">
+            <RadioGroupItem value="no_reserve" id="no_reserve" className="mt-1" />
+            <Label htmlFor="no_reserve" className="cursor-pointer flex-1">
+              <div className="font-semibold text-gray-900">🚨 Não tenho reserva</div>
+              <p className="text-sm text-gray-600 mt-1">Preciso começar do zero</p>
+            </Label>
+          </div>
+
+          <div className="flex items-start space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-orange-300 transition-colors">
+            <RadioGroupItem value="building_reserve" id="building_reserve" className="mt-1" />
+            <Label htmlFor="building_reserve" className="cursor-pointer flex-1">
+              <div className="font-semibold text-gray-900">🏗️ Construindo reserva</div>
+              <p className="text-sm text-gray-600 mt-1">Já comecei mas ainda não completei</p>
+            </Label>
+          </div>
+
+          <div className="flex items-start space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-orange-300 transition-colors">
+            <RadioGroupItem value="reserve_completed" id="reserve_completed" className="mt-1" />
+            <Label htmlFor="reserve_completed" className="cursor-pointer flex-1">
+              <div className="font-semibold text-gray-900">✅ Reserva completa</div>
+              <p className="text-sm text-gray-600 mt-1">Tenho 6+ meses de gastos guardados</p>
+            </Label>
+          </div>
+        </RadioGroup>
       </Card>
 
       {/* Objetivos por Prazo */}
       <Card className="p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-orange-100 rounded-lg">
-            <Target className="w-6 h-6 text-orange-600" />
+          <div className="p-2 bg-green-100 rounded-lg">
+            <Target className="w-6 h-6 text-green-600" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Objetivos por Prazo
-            </h3>
-            <p className="text-sm text-gray-600">
-              Organize seus sonhos por período (opcional)
-            </p>
+            <h4 className="font-semibold text-gray-900">Objetivos por Prazo</h4>
+            <p className="text-sm text-gray-600">Quais são seus sonhos e metas?</p>
           </div>
         </div>
 
         <div className="space-y-6">
-          {/* Input para adicionar objetivos */}
-          <div className="flex gap-2">
-            <select
-              value={currentGoalType}
-              onChange={(e) => setCurrentGoalType(e.target.value as 'short' | 'medium' | 'long')}
-              className="px-3 py-2 border rounded-md"
-            >
-              <option value="short">Curto (&lt; 2 anos)</option>
-              <option value="medium">Médio (2-5 anos)</option>
-              <option value="long">Longo (&gt; 5 anos)</option>
-            </select>
+          <div>
+            <Label htmlFor="short_term_goals">Curto Prazo (&lt; 2 anos)</Label>
             <Input
-              placeholder="Ex: viagem, carro, aposentadoria..."
-              value={goalInput}
-              onChange={(e) => setGoalInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addGoal())}
-              className="flex-1"
+              id="short_term_goals"
+              {...register('short_term_goals')}
+              placeholder="Ex: Viagem, curso, emergência médica"
+              className="mt-1"
             />
-            <Button type="button" onClick={addGoal} variant="outline">
-              Adicionar
-            </Button>
+            <p className="text-xs text-gray-500 mt-1">Separe múltiplos objetivos por vírgula</p>
           </div>
 
-          {/* Lista de objetivos */}
-          <div className="space-y-4">
-            {(['short', 'medium', 'long'] as const).map(type => {
-              const goals = formData[`${type}_term_goals` as keyof typeof formData] as string[];
-              const typeLabel = type === 'short' ? 'Curto Prazo' : type === 'medium' ? 'Médio Prazo' : 'Longo Prazo';
-              const typeColor = type === 'short' ? 'blue' : type === 'medium' ? 'orange' : 'green';
-              
-              return goals.length > 0 && (
-                <div key={type}>
-                  <Label className="text-sm font-medium text-gray-700">
-                    {typeLabel} ({goals.length})
-                  </Label>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {goals.map((goal, idx) => (
-                      <Badge
-                        key={idx}
-                        variant="outline"
-                        className={`cursor-pointer hover:bg-${typeColor}-100 border-${typeColor}-300`}
-                        onClick={() => removeGoal(type as 'short' | 'medium' | 'long', goal)}
-                      >
-                        {goal} ×
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
+          <div>
+            <Label htmlFor="medium_term_goals">Médio Prazo (2-5 anos)</Label>
+            <Input
+              id="medium_term_goals"
+              {...register('medium_term_goals')}
+              placeholder="Ex: Carro, casa, casamento, pós-graduação"
+              className="mt-1"
+            />
+            <p className="text-xs text-gray-500 mt-1">Separe múltiplos objetivos por vírgula</p>
+          </div>
+
+          <div>
+            <Label htmlFor="long_term_goals">Longo Prazo (&gt; 5 anos)</Label>
+            <Input
+              id="long_term_goals"
+              {...register('long_term_goals')}
+              placeholder="Ex: Aposentadoria, casa própria, faculdade dos filhos"
+              className="mt-1"
+            />
+            <p className="text-xs text-gray-500 mt-1">Separe múltiplos objetivos por vírgula</p>
           </div>
         </div>
       </Card>
@@ -364,22 +318,17 @@ const InvestmentProfileForm: React.FC = () => {
         <Button
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700"
-          disabled={isSavingProfile || investmentCapacity <= 0}
+          disabled={isSavingProfile || monthlyBalance < 0}
         >
-          {isSavingProfile ? 'Salvando...' : 'Continuar para Reserva de Emergência →'}
+          {isSavingProfile ? 'Salvando...' : 'Continuar para Próxima Etapa →'}
         </Button>
+        
+        {monthlyBalance < 0 && (
+          <p className="text-red-600 text-sm text-center mt-2">
+            Ajuste suas finanças antes de prosseguir com o planejamento
+          </p>
+        )}
       </Card>
-
-      {/* Risk Profile Quiz Modal */}
-      {showRiskQuiz && (
-        <RiskProfileQuiz
-          onClose={() => setShowRiskQuiz(false)}
-          onResult={(profile) => {
-            handleInputChange('risk_profile', profile);
-            setShowRiskQuiz(false);
-          }}
-        />
-      )}
     </form>
   );
 };
