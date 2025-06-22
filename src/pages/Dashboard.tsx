@@ -39,20 +39,20 @@ const Dashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-13">
-            <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="score">Score</TabsTrigger>
-            <TabsTrigger value="evolution">Evolução</TabsTrigger>
-            <TabsTrigger value="objectives">Objetivos</TabsTrigger>
-            <TabsTrigger value="planning">Planejamento</TabsTrigger>
-            <TabsTrigger value="planner">Planejador</TabsTrigger>
-            <TabsTrigger value="accounts">Contas</TabsTrigger>
-            <TabsTrigger value="transactions">Transações</TabsTrigger>
-            <TabsTrigger value="investments">Investimentos</TabsTrigger>
-            <TabsTrigger value="goals">Metas</TabsTrigger>
-            <TabsTrigger value="patrimony">Patrimônio</TabsTrigger>
-            <TabsTrigger value="debts">Dívidas</TabsTrigger>
-            <TabsTrigger value="achievements">Conquistas</TabsTrigger>
+          <TabsList className="flex flex-wrap gap-1 h-auto p-1 bg-muted">
+            <TabsTrigger value="overview" className="flex-shrink-0">Visão Geral</TabsTrigger>
+            <TabsTrigger value="score" className="flex-shrink-0">Score</TabsTrigger>
+            <TabsTrigger value="evolution" className="flex-shrink-0">Evolução</TabsTrigger>
+            <TabsTrigger value="objectives" className="flex-shrink-0">Objetivos</TabsTrigger>
+            <TabsTrigger value="planning" className="flex-shrink-0">Planejamento</TabsTrigger>
+            <TabsTrigger value="planner" className="flex-shrink-0">Planejador</TabsTrigger>
+            <TabsTrigger value="accounts" className="flex-shrink-0">Contas</TabsTrigger>
+            <TabsTrigger value="transactions" className="flex-shrink-0">Transações</TabsTrigger>
+            <TabsTrigger value="investments" className="flex-shrink-0">Investimentos</TabsTrigger>
+            <TabsTrigger value="goals" className="flex-shrink-0">Metas</TabsTrigger>
+            <TabsTrigger value="patrimony" className="flex-shrink-0">Patrimônio</TabsTrigger>
+            <TabsTrigger value="debts" className="flex-shrink-0">Dívidas</TabsTrigger>
+            <TabsTrigger value="achievements" className="flex-shrink-0">Conquistas</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
