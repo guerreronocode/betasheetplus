@@ -19,8 +19,7 @@ import { CreditCardManager } from '@/components/creditCard/CreditCardManager';
 import CategoryRanking from '@/components/CategoryRanking';
 import CategoryRankingCompact from '@/components/CategoryRankingCompact';
 import MonthlyObjectivesPanel from '@/components/MonthlyObjectivesPanel';
-import Budget
-
+import BudgetPanel from '@/components/BudgetPanel';
 import FinancialEvolutionPanel from '@/components/FinancialEvolutionPanel';
 import InvestmentPlanner from '@/components/InvestmentPlanner';
 import { useFinancialData } from '@/hooks/useFinancialData';
