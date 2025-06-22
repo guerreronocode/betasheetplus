@@ -22,6 +22,8 @@ import MonthlyObjectivesPanel from '@/components/MonthlyObjectivesPanel';
 import BudgetPanel from '@/components/BudgetPanel';
 import FinancialEvolutionPanel from '@/components/FinancialEvolutionPanel';
 import InvestmentPlanner from '@/components/InvestmentPlanner';
+import FinancialScoreCard from '@/components/FinancialScoreCard';
+import DetailedFinancialScore from '@/components/DetailedFinancialScore';
 import { useFinancialData } from '@/hooks/useFinancialData';
 
 const Dashboard = () => {
@@ -37,8 +39,9 @@ const Dashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-12">
+          <TabsList className="grid w-full grid-cols-13">
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+            <TabsTrigger value="score">Score</TabsTrigger>
             <TabsTrigger value="evolution">Evolução</TabsTrigger>
             <TabsTrigger value="objectives">Objetivos</TabsTrigger>
             <TabsTrigger value="planning">Planejamento</TabsTrigger>
@@ -53,10 +56,22 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <div className="text-center py-12">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Score de Saúde Financeira - destaque principal */}
+              <div className="lg:col-span-2">
+                <FinancialScoreCard />
+              </div>
+              
+              {/* Widget compacto do ranking */}
+              <div>
+                <CategoryRankingCompact />
+              </div>
+            </div>
+            
+            <div className="text-center py-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Bem-vindo ao seu Dashboard Financeiro!</h2>
               <p className="text-gray-600 mb-8">Gerencie suas finanças de forma inteligente e organizada.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 max-w-5xl mx-auto mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
                 <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                   <h3 className="font-semibold text-blue-900">💰 Contas</h3>
                   <p className="text-sm text-blue-700">Gerencie suas contas bancárias</p>
@@ -78,12 +93,11 @@ const Dashboard = () => {
                   <p className="text-sm text-red-700">Plano de investimento personalizado</p>
                 </div>
               </div>
-              
-              {/* Widget compacto do ranking na visão geral */}
-              <div className="max-w-md mx-auto">
-                <CategoryRankingCompact />
-              </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="score">
+            <DetailedFinancialScore />
           </TabsContent>
 
           <TabsContent value="evolution">
