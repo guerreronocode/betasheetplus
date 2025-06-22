@@ -90,6 +90,11 @@ const DebtManager: React.FC = () => {
     }
   };
 
+  const handleStartPayoffTracker = (strategy: 'snowball' | 'avalanche') => {
+    setSelectedStrategy(strategy);
+    setViewMode('payoff-tracker');
+  };
+
   const activeDebts = debts.filter(debt => debt.status === 'active');
 
   if (isLoading) {
@@ -146,6 +151,7 @@ const DebtManager: React.FC = () => {
         <DebtPayoffSimulator
           debts={debts}
           onBackToManager={() => setViewMode('list')}
+          onStartTracker={handleStartPayoffTracker}
         />
       );
 
@@ -179,7 +185,7 @@ const DebtManager: React.FC = () => {
                 <Button 
                   onClick={() => setViewMode('payoff-simulator')}
                   variant="outline"
-                  className="text-green-600 hover:text-green-700"
+                  className="text-green-600 hover:text-green-700 border-green-200 hover:bg-green-50"
                 >
                   <Target className="w-4 h-4 mr-2" />
                   Simulador de Quitação
@@ -218,25 +224,45 @@ const DebtManager: React.FC = () => {
 
           {/* Simulador de Estratégias - Destaque */}
           {activeDebts.length >= 2 && (
-            <Card className="p-4 mb-6 bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+            <Card className="p-6 mb-6 bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Target className="w-6 h-6 text-green-600" />
+                  <Target className="w-8 h-8 text-green-600" />
                   <div>
-                    <h4 className="font-semibold text-green-800">
+                    <h4 className="font-semibold text-green-800 text-lg">
                       🚀 Simulador de Quitação Inteligente
                     </h4>
-                    <p className="text-sm text-green-700">
-                      Compare as estratégias "Bola de Neve" e "Avalanche" para eliminar suas dívidas de forma otimizada
+                    <p className="text-sm text-green-700 mt-1">
+                      Compare as estratégias "Bola de Neve" e "Avalanche" para eliminar suas dívidas de forma otimizada.<br />
+                      <strong>{activeDebts.length} dívidas ativas</strong> podem ser organizadas com uma estratégia inteligente.
                     </p>
                   </div>
                 </div>
                 <Button 
                   onClick={() => setViewMode('payoff-simulator')}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-green-600 hover:bg-green-700 px-6 py-3"
+                  size="lg"
                 >
+                  <Calculator className="w-5 h-5 mr-2" />
                   Começar Simulação
                 </Button>
+              </div>
+            </Card>
+          )}
+
+          {/* Chamada para ação quando há apenas 1 dívida */}
+          {activeDebts.length === 1 && (
+            <Card className="p-4 mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+              <div className="flex items-center gap-3">
+                <Calculator className="w-6 h-6 text-blue-600" />
+                <div>
+                  <h4 className="font-semibold text-blue-800">
+                    Simulador Individual Disponível
+                  </h4>
+                  <p className="text-sm text-blue-700">
+                    Você tem 1 dívida ativa. Use o simulador individual para calcular estratégias de quitação antecipada.
+                  </p>
+                </div>
               </div>
             </Card>
           )}
