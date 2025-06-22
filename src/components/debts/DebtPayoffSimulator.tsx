@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,11 +14,13 @@ import { formatCurrency } from '@/utils/formatters';
 interface DebtPayoffSimulatorProps {
   debts: DebtData[];
   onBackToManager: () => void;
+  onStartTracker: (strategy: 'snowball' | 'avalanche') => void;
 }
 
 const DebtPayoffSimulator: React.FC<DebtPayoffSimulatorProps> = ({
   debts,
-  onBackToManager
+  onBackToManager,
+  onStartTracker
 }) => {
   const [extraPayment, setExtraPayment] = useState<number>(0);
   const [selectedStrategy, setSelectedStrategy] = useState<'snowball' | 'avalanche'>('snowball');
@@ -176,6 +177,8 @@ const DebtPayoffSimulator: React.FC<DebtPayoffSimulatorProps> = ({
             title="Estratégia Bola de Neve"
             description="Ataca primeiro as menores dívidas para gerar momentum psicológico"
             color="blue"
+            onStartTracker={onStartTracker}
+            strategyType="snowball"
           />
         </TabsContent>
 
@@ -185,6 +188,8 @@ const DebtPayoffSimulator: React.FC<DebtPayoffSimulatorProps> = ({
             title="Estratégia Avalanche"
             description="Prioriza as dívidas com maiores taxas de juros para máxima economia"
             color="purple"
+            onStartTracker={onStartTracker}
+            strategyType="avalanche"
           />
         </TabsContent>
       </Tabs>
@@ -294,12 +299,25 @@ const StrategyDetails: React.FC<{
   title: string;
   description: string;
   color: 'blue' | 'purple';
-}> = ({ strategy, title, description, color }) => {
+  onStartTracker: (strategy: 'snowball' | 'avalanche') => void;
+  strategyType: 'snowball' | 'avalanche';
+}> = ({ strategy, title, description, color, onStartTracker, strategyType }) => {
   return (
     <div className="space-y-4">
       <Card className="p-4">
-        <h4 className="font-semibold mb-2">{title}</h4>
-        <p className="text-sm text-gray-600 mb-4">{description}</p>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h4 className="font-semibold mb-2">{title}</h4>
+            <p className="text-sm text-gray-600">{description}</p>
+          </div>
+          <Button 
+            onClick={() => onStartTracker(strategyType)}
+            className={`${color === 'blue' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-purple-600 hover:bg-purple-700'}`}
+          >
+            <Target className="w-4 h-4 mr-2" />
+            Iniciar Acompanhamento
+          </Button>
+        </div>
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
           <div>
