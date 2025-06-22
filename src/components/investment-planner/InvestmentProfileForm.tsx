@@ -312,15 +312,15 @@ const InvestmentProfileForm: React.FC = () => {
               onChange={(e) => setCurrentGoalType(e.target.value as 'short' | 'medium' | 'long')}
               className="px-3 py-2 border rounded-md"
             >
-              <option value="short">Curto (< 2 anos)</option>
+              <option value="short">Curto (&lt; 2 anos)</option>
               <option value="medium">Médio (2-5 anos)</option>
-              <option value="long">Longo (> 5 anos)</option>
+              <option value="long">Longo (&gt; 5 anos)</option>
             </select>
             <Input
               placeholder="Ex: viagem, carro, aposentadoria..."
               value={goalInput}
               onChange={(e) => setGoalInput(e.target.value)}
-              onKeyPress={(e) => e.key ===  'Enter' && (e.preventDefault(), addGoal())}
+              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addGoal())}
               className="flex-1"
             />
             <Button type="button" onClick={addGoal} variant="outline">
@@ -330,7 +330,7 @@ const InvestmentProfileForm: React.FC = () => {
 
           {/* Lista de objetivos */}
           <div className="space-y-4">
-            {['short', 'medium', 'long'].map(type => {
+            {(['short', 'medium', 'long'] as const).map(type => {
               const goals = formData[`${type}_term_goals` as keyof typeof formData] as string[];
               const typeLabel = type === 'short' ? 'Curto Prazo' : type === 'medium' ? 'Médio Prazo' : 'Longo Prazo';
               const typeColor = type === 'short' ? 'blue' : type === 'medium' ? 'orange' : 'green';
