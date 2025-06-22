@@ -1,22 +1,19 @@
-export const formatCurrency = (
-  value: number, 
-  options: { compact?: boolean } = {}
-) => {
-  if (options.compact && value >= 1000000) {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-      notation: 'compact',
-      compactDisplay: 'short',
-    }).format(value);
-  }
-  
+
+export const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
     currency: 'BRL'
   }).format(value);
 };
 
-export const formatPercentage = (value: number) => {
-  return `${(isNaN(value) ? 0 : value).toFixed(2)}%`;
+export const formatPercentage = (value: number): string => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'percent',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 2
+  }).format(value / 100);
+};
+
+export const formatNumber = (value: number): string => {
+  return new Intl.NumberFormat('pt-BR').format(value);
 };
