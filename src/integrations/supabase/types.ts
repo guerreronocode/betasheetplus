@@ -696,6 +696,104 @@ export type Database = {
         }
         Relationships: []
       }
+      investment_plans: {
+        Row: {
+          created_at: string
+          emergency_reserve_current: number
+          emergency_reserve_target: number
+          id: string
+          is_emergency_reserve_complete: boolean
+          long_term_allocation: number
+          medium_term_allocation: number
+          monthly_investment_capacity: number
+          profile_id: string
+          short_term_allocation: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          emergency_reserve_current?: number
+          emergency_reserve_target?: number
+          id?: string
+          is_emergency_reserve_complete?: boolean
+          long_term_allocation?: number
+          medium_term_allocation?: number
+          monthly_investment_capacity?: number
+          profile_id: string
+          short_term_allocation?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          emergency_reserve_current?: number
+          emergency_reserve_target?: number
+          id?: string
+          is_emergency_reserve_complete?: boolean
+          long_term_allocation?: number
+          medium_term_allocation?: number
+          monthly_investment_capacity?: number
+          profile_id?: string
+          short_term_allocation?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_plans_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "investment_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      investment_profiles: {
+        Row: {
+          age: number
+          created_at: string
+          id: string
+          long_term_goals: string[] | null
+          main_objective: string
+          medium_term_goals: string[] | null
+          monthly_expenses: number
+          monthly_income: number
+          organization_level: string
+          risk_profile: string
+          short_term_goals: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          age: number
+          created_at?: string
+          id?: string
+          long_term_goals?: string[] | null
+          main_objective: string
+          medium_term_goals?: string[] | null
+          monthly_expenses?: number
+          monthly_income?: number
+          organization_level: string
+          risk_profile: string
+          short_term_goals?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          age?: number
+          created_at?: string
+          id?: string
+          long_term_goals?: string[] | null
+          main_objective?: string
+          medium_term_goals?: string[] | null
+          monthly_expenses?: number
+          monthly_income?: number
+          organization_level?: string
+          risk_profile?: string
+          short_term_goals?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       investments: {
         Row: {
           amount: number
