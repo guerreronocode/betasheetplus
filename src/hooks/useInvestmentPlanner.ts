@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -145,6 +144,8 @@ export const useInvestmentPlanner = () => {
       console.log('Profile saved successfully:', data);
       toast.success('Perfil salvo com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['investment-profile'] });
+      // Navegar para a próxima etapa
+      console.log('Navigating to reserve step');
       setCurrentStep('reserve');
     },
     onError: (error) => {
@@ -199,9 +200,12 @@ export const useInvestmentPlanner = () => {
       toast.success('Plano salvo com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['investment-plan'] });
       
+      // Navegar para a próxima etapa baseado no contexto atual
       if (currentStep === 'reserve') {
+        console.log('Navigating from reserve to plan step');
         setCurrentStep('plan');
       } else if (currentStep === 'plan') {
+        console.log('Navigating from plan to summary step');
         setCurrentStep('summary');
       }
     },
@@ -255,9 +259,9 @@ export const useInvestmentPlanner = () => {
     };
   }, [profile]);
 
-  // Função para navegar entre as etapas
+  // Função para navegar entre as etapas - CORRIGIDA
   const navigateToStep = (step: 'profile' | 'reserve' | 'plan' | 'summary') => {
-    console.log('Navigating to step:', step);
+    console.log('Manual navigation to step:', step);
     setCurrentStep(step);
   };
 
