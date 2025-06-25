@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,7 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
   profile,
   plan
 }) => {
-  const { setCurrentStep } = useInvestmentPlanner();
+  const { goToStep } = useInvestmentPlanner();
 
   const reserveProgress = plan.emergency_reserve_current > 0 
     ? (plan.emergency_reserve_current / plan.emergency_reserve_target) * 100 
@@ -38,12 +37,12 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
 
   const handleAdjustProfile = () => {
     console.log('Adjust profile button clicked');
-    setCurrentStep('profile');
+    goToStep('profile');
   };
 
   const handleReviewAllocation = () => {
     console.log('Review allocation button clicked');
-    setCurrentStep('plan');
+    goToStep('plan');
   };
 
   return (
