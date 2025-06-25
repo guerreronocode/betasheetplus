@@ -26,7 +26,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
   profile,
   calculations
 }) => {
-  const { plan, savePlan, isSavingPlan, setCurrentStep } = useInvestmentPlanner();
+  const { plan, savePlanAndNavigate, isSavingPlan, setCurrentStep } = useInvestmentPlanner();
   
   const [currentReserve, setCurrentReserve] = useState(
     plan?.emergency_reserve_current || 0
@@ -61,7 +61,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
     : Math.ceil((customReserveTarget - currentReserve) / Math.max(calculations.monthlyInvestmentCapacity, 1));
 
   const handleContinue = () => {
-    console.log('Continue button clicked - saving plan data');
+    console.log('Continue button clicked - saving plan data and navigating');
     
     if (!profile.id) {
       console.error('Profile ID is missing');
@@ -79,8 +79,8 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
       is_emergency_reserve_complete: isReserveComplete,
     };
 
-    console.log('Submitting plan data:', planData);
-    savePlan(planData);
+    console.log('Calling savePlanAndNavigate with target: plan');
+    savePlanAndNavigate(planData, 'plan');
   };
 
   const handleBackToProfile = () => {

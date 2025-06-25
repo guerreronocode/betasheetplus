@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -144,9 +145,6 @@ export const useInvestmentPlanner = () => {
       console.log('Profile saved successfully:', data);
       toast.success('Perfil salvo com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['investment-profile'] });
-      // Navegar para a próxima etapa
-      console.log('Navigating to reserve step');
-      setCurrentStep('reserve');
     },
     onError: (error) => {
       console.error('Error saving profile:', error);
@@ -199,15 +197,6 @@ export const useInvestmentPlanner = () => {
       console.log('Plan saved successfully:', data);
       toast.success('Plano salvo com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['investment-plan'] });
-      
-      // Navegar para a próxima etapa baseado no contexto atual
-      if (currentStep === 'reserve') {
-        console.log('Navigating from reserve to plan step');
-        setCurrentStep('plan');
-      } else if (currentStep === 'plan') {
-        console.log('Navigating from plan to summary step');
-        setCurrentStep('summary');
-      }
     },
     onError: (error) => {
       console.error('Error saving plan:', error);
@@ -259,16 +248,34 @@ export const useInvestmentPlanner = () => {
     };
   }, [profile]);
 
-  // Função para navegar entre as etapas - CORRIGIDA
-  const navigateToStep = (step: 'profile' | 'reserve' | 'plan' | 'summary') => {
-    console.log('Manual navigation to step:', step);
-    setCurrentStep(step);
+  // Função para salvar perfil E navegar
+  const saveProfileAndNavigate = async (profileData: Omit<InvestmentProfile, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+    console.log('saveProfileAndNavigate called');
+    try {
+      await saveProfileMutation.mutateAsync(profileData);
+      console.log('Profile saved, navigating to reserve');
+      setCurrentStep('reserve');
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+    }
+  };
+
+  // Função para salvar plano E navegar
+  const savePlanAndNavigate = async (planData: Omit<InvestmentPlan, 'id' | 'created_at' | 'updated_at'>, targetStep: 'plan' | 'summary') => {
+    console.log('savePlanAndNavigate called with target:', targetStep);
+    try {
+      await savePlanMutation.mutateAsync(planData);
+      console.log('Plan saved, navigating to:', targetStep);
+      setCurrentStep(targetStep);
+    } catch (error) {
+      console.error('Failed to save plan:', error);
+    }
   };
 
   return {
     // Estado
     currentStep,
-    setCurrentStep: navigateToStep,
+    setCurrentStep,
     profile,
     plan,
     calculations,
@@ -286,6 +293,8 @@ export const useInvestmentPlanner = () => {
     // Mutations
     saveProfile: saveProfileMutation.mutate,
     savePlan: savePlanMutation.mutate,
+    saveProfileAndNavigate,
+    savePlanAndNavigate,
     isSavingProfile: saveProfileMutation.isPending,
     isSavingPlan: savePlanMutation.isPending,
     isSaving: saveProfileMutation.isPending || savePlanMutation.isPending,

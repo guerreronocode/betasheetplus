@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,7 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
   profile,
   calculations
 }) => {
-  const { plan, savePlan, isSavingPlan, setCurrentStep } = useInvestmentPlanner();
+  const { plan, savePlanAndNavigate, isSavingPlan, setCurrentStep } = useInvestmentPlanner();
 
   const [shortTermAllocation, setShortTermAllocation] = useState(
     plan?.short_term_allocation || calculations.shortTermAllocation
@@ -89,8 +88,8 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
       is_emergency_reserve_complete: plan?.is_emergency_reserve_complete || false,
     };
 
-    console.log('Submitting updated plan data:', planData);
-    savePlan(planData);
+    console.log('Calling savePlanAndNavigate with target: summary');
+    savePlanAndNavigate(planData, 'summary');
   };
 
   const handleBackToReserve = () => {

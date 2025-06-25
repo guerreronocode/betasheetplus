@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card } from '@/components/ui/card';
@@ -26,7 +25,7 @@ interface ProfileFormData {
 }
 
 const InvestmentProfileForm: React.FC = () => {
-  const { profile, saveProfile, isSavingProfile } = useInvestmentPlanner();
+  const { profile, saveProfileAndNavigate, isSavingProfile } = useInvestmentPlanner();
   
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProfileFormData>({
     defaultValues: {
@@ -54,7 +53,8 @@ const InvestmentProfileForm: React.FC = () => {
       long_term_goals: data.long_term_goals.split(',').map(s => s.trim()).filter(Boolean)
     };
 
-    saveProfile(profileData);
+    console.log('Submitting profile and navigating');
+    saveProfileAndNavigate(profileData);
   };
 
   const getRiskProfileInfo = (type: string) => {
