@@ -56,7 +56,7 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
       moderate: { label: 'Moderado', icon: '⚖️', color: 'orange' },
       aggressive: { label: 'Agressivo', icon: '🚀', color: 'red' }
     };
-    return profiles[profile.risk_profile];
+    return profiles[profile.risk_profile] || profiles.moderate;
   };
 
   const getEmploymentBadge = () => {
@@ -66,7 +66,7 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
       freelancer: { label: 'Freelancer', icon: '💻' },
       entrepreneur: { label: 'Empreendedor', icon: '🚀' }
     };
-    return types[profile.employment_type];
+    return types[profile.employment_type] || types.clt;
   };
 
   const profileInfo = getProfileBadge();
@@ -188,7 +188,7 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
               <div className="flex items-center gap-2">
                 <Shield className="w-5 h-5 text-orange-600" />
                 <span className="font-semibold text-orange-800">
-                  Faltam {formatCurrency(plan.emergency_reserve_target - plan.emergency_reserve_current)}
+                  Faltam {formatCurrency(Math.max(0, plan.emergency_reserve_target - plan.emergency_reserve_current))}
                 </span>
               </div>
               <p className="text-sm text-orange-700 mt-1">
@@ -215,20 +215,20 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
 
         <div className="space-y-6">
           {allocationData.map((allocation, index) => (
-            <div key={index} className={`p-4 border-2 border-${allocation.color}-200 bg-${allocation.color}-50 rounded-lg`}>
+            <div key={index} className="p-4 border-2 border-gray-200 bg-gray-50 rounded-lg">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <span className="text-lg">{allocation.icon}</span>
                   <div>
-                    <h5 className={`font-semibold text-${allocation.color}-800`}>
+                    <h5 className="font-semibold text-gray-800">
                       {allocation.label}
                     </h5>
-                    <p className={`text-sm text-${allocation.color}-600`}>
+                    <p className="text-sm text-gray-600">
                       {allocation.percentage.toFixed(1)}% • {formatCurrency(allocation.value)}/mês
                     </p>
                   </div>
                 </div>
-                <Badge variant="outline" className={`bg-${allocation.color}-100 text-${allocation.color}-700 border-${allocation.color}-300`}>
+                <Badge variant="outline" className="bg-white text-gray-700 border-gray-300">
                   {allocation.percentage.toFixed(1)}%
                 </Badge>
               </div>
@@ -299,7 +299,10 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Button
           variant="outline"
-          onClick={() => setCurrentStep('profile')}
+          onClick={() => {
+            console.log('Navigating to profile');
+            setCurrentStep('profile');
+          }}
           className="flex items-center gap-2"
         >
           <Edit className="w-4 h-4" />
@@ -308,7 +311,10 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
         
         <Button
           variant="outline"
-          onClick={() => setCurrentStep('plan')}
+          onClick={() => {
+            console.log('Navigating to plan');
+            setCurrentStep('plan');
+          }}
           className="flex items-center gap-2"
         >
           <TrendingUp className="w-4 h-4" />

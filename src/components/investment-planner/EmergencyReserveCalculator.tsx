@@ -39,11 +39,16 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
   const isReserveComplete = currentReserve >= calculations.emergencyReserveTarget;
   const monthsToComplete = isReserveComplete 
     ? 0 
-    : Math.ceil((calculations.emergencyReserveTarget - currentReserve) / calculations.monthlyInvestmentCapacity);
+    : Math.ceil((calculations.emergencyReserveTarget - currentReserve) / Math.max(calculations.monthlyInvestmentCapacity, 1));
 
   const handleSubmit = () => {
+    if (!profile.id) {
+      console.error('Profile ID is missing');
+      return;
+    }
+
     const planData = {
-      profile_id: profile.id!,
+      profile_id: profile.id,
       emergency_reserve_target: calculations.emergencyReserveTarget,
       emergency_reserve_current: currentReserve,
       short_term_allocation: calculations.shortTermAllocation,
@@ -53,6 +58,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
       is_emergency_reserve_complete: isReserveComplete,
     };
 
+    console.log('Submitting plan data:', planData);
     savePlan(planData);
   };
 
@@ -79,7 +85,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
         recommendation: 'Reserva robusta é essencial para sustentar o negócio'
       }
     };
-    return types[profile.employment_type];
+    return types[profile.employment_type] || types.clt;
   };
 
   const employmentInfo = getEmploymentTypeInfo();
@@ -231,7 +237,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
           <div className="mt-4 p-4 bg-white bg-opacity-50 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-gray-800">
-                Faltam: {formatCurrency(calculations.emergencyReserveTarget - currentReserve)}
+                Faltam: {formatCurrency(Math.max(0, calculations.emergencyReserveTarget - currentReserve))}
               </span>
               <Badge variant="outline" className="bg-white">
                 {monthsToComplete} meses
@@ -248,7 +254,10 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Button
           variant="outline"
-          onClick={() => setCurrentStep('profile')}
+          onClick={() => {
+            console.log('Navigating back to profile');
+            setCurrentStep('profile');
+          }}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />

@@ -55,9 +55,10 @@ export const useInvestmentPlanner = () => {
         .from('investment_profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
+        console.error('Error fetching investment profile:', error);
         throw error;
       }
 
@@ -80,9 +81,10 @@ export const useInvestmentPlanner = () => {
         .from('investment_plans')
         .select('*')
         .eq('profile_id', profile.id)
-        .single();
+        .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
+        console.error('Error fetching investment plan:', error);
         throw error;
       }
 
@@ -109,7 +111,10 @@ export const useInvestmentPlanner = () => {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error updating investment profile:', error);
+          throw error;
+        }
         return data;
       } else {
         const { data, error } = await supabase
@@ -118,14 +123,21 @@ export const useInvestmentPlanner = () => {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error creating investment profile:', error);
+          throw error;
+        }
         return data;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Profile saved successfully:', data);
       queryClient.invalidateQueries({ queryKey: ['investment-profile'] });
       setCurrentStep('reserve');
     },
+    onError: (error) => {
+      console.error('Error saving profile:', error);
+    }
   });
 
   // Salvar plano
@@ -146,7 +158,10 @@ export const useInvestmentPlanner = () => {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error updating investment plan:', error);
+          throw error;
+        }
         return data;
       } else {
         const { data, error } = await supabase
@@ -155,21 +170,28 @@ export const useInvestmentPlanner = () => {
           .select()
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error creating investment plan:', error);
+          throw error;
+        }
         return data;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Plan saved successfully:', data);
       queryClient.invalidateQueries({ queryKey: ['investment-plan'] });
       setCurrentStep('summary');
     },
+    onError: (error) => {
+      console.error('Error saving plan:', error);
+    }
   });
 
   // Cálculos do planejador
   const calculations = useMemo(() => {
     if (!profile) return null;
 
-    const monthlyInvestmentCapacity = profile.monthly_income - profile.monthly_expenses;
+    const monthlyInvestmentCapacity = Math.max(0, profile.monthly_income - profile.monthly_expenses);
 
     // Cálculo da reserva de emergência baseado no tipo de emprego
     let emergencyReserveMultiplier = 6; // Padrão CLT
@@ -179,8 +201,7 @@ export const useInvestmentPlanner = () => {
     } else if (profile.employment_type === 'civil_servant') {
       emergencyReserveMultiplier = 6; // Concursado
     } else if (profile.employment_type === 'clt') {
-      // CLT pode escolher entre 6-12 meses (vamos usar 6 como padrão)
-      emergencyReserveMultiplier = 6;
+      emergencyReserveMultiplier = 6; // CLT padrão (usuário pode ajustar)
     }
 
     const emergencyReserveTarget = profile.monthly_expenses * emergencyReserveMultiplier;
@@ -210,10 +231,33 @@ export const useInvestmentPlanner = () => {
     };
   }, [profile]);
 
+  // Função para navegar entre as etapas com validação
+  const navigateToStep = (step: 'profile' | 'reserve' | 'plan' | 'summary') => {
+    console.log('Navigating to step:', step);
+    
+    // Verificar se pode navegar para a etapa desejada
+    if (step === 'reserve' && !profile) {
+      console.warn('Cannot navigate to reserve without profile');
+      return;
+    }
+    
+    if (step === 'plan' && !profile) {
+      console.warn('Cannot navigate to plan without profile');
+      return;
+    }
+    
+    if (step === 'summary' && (!profile || !plan)) {
+      console.warn('Cannot navigate to summary without profile and plan');
+      return;
+    }
+    
+    setCurrentStep(step);
+  };
+
   return {
     // Estado
     currentStep,
-    setCurrentStep,
+    setCurrentStep: navigateToStep,
     profile,
     plan,
     calculations,

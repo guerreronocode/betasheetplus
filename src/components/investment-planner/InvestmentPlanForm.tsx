@@ -70,8 +70,13 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
   };
 
   const handleSubmit = () => {
+    if (!profile.id) {
+      console.error('Profile ID is missing');
+      return;
+    }
+
     const planData = {
-      profile_id: profile.id!,
+      profile_id: profile.id,
       emergency_reserve_target: calculations.emergencyReserveTarget,
       emergency_reserve_current: plan?.emergency_reserve_current || 0,
       short_term_allocation: allocations.short_term,
@@ -81,6 +86,7 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
       is_emergency_reserve_complete: plan?.is_emergency_reserve_complete || false,
     };
 
+    console.log('Submitting plan data:', planData);
     savePlan(planData);
   };
 
@@ -330,7 +336,10 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Button
           variant="outline"
-          onClick={() => setCurrentStep('reserve')}
+          onClick={() => {
+            console.log('Navigating back to reserve');
+            setCurrentStep('reserve');
+          }}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />

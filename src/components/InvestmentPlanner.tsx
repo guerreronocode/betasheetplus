@@ -24,6 +24,15 @@ const InvestmentPlanner: React.FC = () => {
     isEmergencyReserveComplete
   } = useInvestmentPlanner();
 
+  console.log('InvestmentPlanner state:', { 
+    currentStep, 
+    hasProfile, 
+    hasPlan, 
+    profile: !!profile, 
+    plan: !!plan,
+    calculations: !!calculations 
+  });
+
   if (isLoading) {
     return (
       <Card className="p-8 text-center">
@@ -45,7 +54,7 @@ const InvestmentPlanner: React.FC = () => {
   const getStepStatus = (step: string) => {
     if (step === 'profile') return hasProfile ? 'completed' : 'current';
     if (step === 'reserve') return hasPlan && isEmergencyReserveComplete ? 'completed' : hasProfile ? 'current' : 'pending';
-    if (step === 'plan') return hasPlan ? 'completed' : isEmergencyReserveComplete ? 'current' : 'pending';
+    if (step === 'plan') return hasPlan ? 'completed' : hasProfile ? 'current' : 'pending';
     if (step === 'summary') return hasPlan ? 'current' : 'pending';
     return 'pending';
   };
@@ -64,6 +73,28 @@ const InvestmentPlanner: React.FC = () => {
       case 'summary': return <Calculator className={iconClass} />;
       default: return null;
     }
+  };
+
+  const handleQuickAccess = (step: 'reserve' | 'plan' | 'summary') => {
+    console.log('Quick access clicked:', step);
+    
+    // Validar se pode navegar
+    if (step === 'reserve' && !hasProfile) {
+      console.warn('Cannot access reserve without profile');
+      return;
+    }
+    
+    if (step === 'plan' && !hasProfile) {
+      console.warn('Cannot access plan without profile');
+      return;
+    }
+    
+    if (step === 'summary' && (!hasProfile || !hasPlan)) {
+      console.warn('Cannot access summary without profile and plan');
+      return;
+    }
+    
+    setCurrentStep(step);
   };
 
   return (
@@ -109,12 +140,6 @@ const InvestmentPlanner: React.FC = () => {
                     {step.description}
                   </div>
                 </div>
-                {index < 3 && (
-                  <div className={`hidden md:block w-full h-0.5 absolute top-8 left-1/2 ${
-                    getStepStatus(['profile', 'reserve', 'plan', 'summary'][index + 1]) !== 'pending' 
-                      ? 'bg-green-300' : 'bg-gray-300'
-                  }`} style={{ transform: 'translateX(50%)', width: '100%', zIndex: -1 }} />
-                )}
               </div>
             );
           })}
@@ -175,24 +200,28 @@ const InvestmentPlanner: React.FC = () => {
               <Badge 
                 variant="outline" 
                 className="cursor-pointer hover:bg-blue-100"
-                onClick={() => setCurrentStep('reserve')}
+                onClick={() => handleQuickAccess('reserve')}
               >
                 Reserva
               </Badge>
-              <Badge 
-                variant="outline" 
-                className="cursor-pointer hover:bg-blue-100"
-                onClick={() => setCurrentStep('plan')}
-              >
-                Plano
-              </Badge>
-              <Badge 
-                variant="outline" 
-                className="cursor-pointer hover:bg-purple-100"
-                onClick={() => setCurrentStep('summary')}
-              >
-                Acompanhamento
-              </Badge>
+              {hasProfile && (
+                <Badge 
+                  variant="outline" 
+                  className="cursor-pointer hover:bg-blue-100"
+                  onClick={() => handleQuickAccess('plan')}
+                >
+                  Plano
+                </Badge>
+              )}
+              {hasPlan && (
+                <Badge 
+                  variant="outline" 
+                  className="cursor-pointer hover:bg-purple-100"
+                  onClick={() => handleQuickAccess('summary')}
+                >
+                  Acompanhamento
+                </Badge>
+              )}
             </div>
           </div>
         </Card>
