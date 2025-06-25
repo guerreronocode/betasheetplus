@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,7 +40,7 @@ export const useInvestmentPlanner = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Sempre iniciar no profile para permitir edição e navegação manual
+  // Estado simples - sempre inicia no profile
   const [currentStep, setCurrentStep] = useState<'profile' | 'reserve' | 'plan' | 'summary'>('profile');
 
   // Buscar perfil existente
@@ -52,8 +53,6 @@ export const useInvestmentPlanner = () => {
     queryFn: async () => {
       if (!user) return null;
 
-      console.log('Fetching investment profile for user:', user.id);
-
       const { data, error } = await supabase
         .from('investment_profiles')
         .select('*')
@@ -65,7 +64,6 @@ export const useInvestmentPlanner = () => {
         throw error;
       }
 
-      console.log('Investment profile fetched:', data);
       return data as InvestmentProfile | null;
     },
     enabled: !!user,
@@ -81,8 +79,6 @@ export const useInvestmentPlanner = () => {
     queryFn: async () => {
       if (!profile?.id) return null;
 
-      console.log('Fetching investment plan for profile:', profile.id);
-
       const { data, error } = await supabase
         .from('investment_plans')
         .select('*')
@@ -94,7 +90,6 @@ export const useInvestmentPlanner = () => {
         throw error;
       }
 
-      console.log('Investment plan fetched:', data);
       return data as InvestmentPlan | null;
     },
     enabled: !!profile?.id,
@@ -105,15 +100,12 @@ export const useInvestmentPlanner = () => {
     mutationFn: async (profileData: Omit<InvestmentProfile, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
       if (!user) throw new Error('User not authenticated');
 
-      console.log('Saving profile data:', profileData);
-
       const payload = {
         ...profileData,
         user_id: user.id,
       };
 
       if (profile?.id) {
-        console.log('Updating existing profile:', profile.id);
         const { data, error } = await supabase
           .from('investment_profiles')
           .update(payload)
@@ -127,7 +119,6 @@ export const useInvestmentPlanner = () => {
         }
         return data;
       } else {
-        console.log('Creating new profile');
         const { data, error } = await supabase
           .from('investment_profiles')
           .insert([payload])
@@ -142,7 +133,6 @@ export const useInvestmentPlanner = () => {
       }
     },
     onSuccess: (data) => {
-      console.log('Profile saved successfully:', data);
       toast.success('Perfil salvo com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['investment-profile'] });
     },
@@ -157,15 +147,12 @@ export const useInvestmentPlanner = () => {
     mutationFn: async (planData: Omit<InvestmentPlan, 'id' | 'created_at' | 'updated_at'>) => {
       if (!profile?.id) throw new Error('Profile not found');
 
-      console.log('Saving plan data:', planData);
-
       const payload = {
         ...planData,
         profile_id: profile.id,
       };
 
       if (plan?.id) {
-        console.log('Updating existing plan:', plan.id);
         const { data, error } = await supabase
           .from('investment_plans')
           .update(payload)
@@ -179,7 +166,6 @@ export const useInvestmentPlanner = () => {
         }
         return data;
       } else {
-        console.log('Creating new plan');
         const { data, error } = await supabase
           .from('investment_plans')
           .insert([payload])
@@ -194,7 +180,6 @@ export const useInvestmentPlanner = () => {
       }
     },
     onSuccess: (data) => {
-      console.log('Plan saved successfully:', data);
       toast.success('Plano salvo com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['investment-plan'] });
     },
@@ -211,14 +196,14 @@ export const useInvestmentPlanner = () => {
     const monthlyInvestmentCapacity = Math.max(0, profile.monthly_income - profile.monthly_expenses);
 
     // Cálculo da reserva de emergência baseado no tipo de emprego
-    let emergencyReserveMultiplier = 6; // Padrão CLT
+    let emergencyReserveMultiplier = 6;
     
     if (profile.employment_type === 'freelancer' || profile.employment_type === 'entrepreneur') {
-      emergencyReserveMultiplier = 18; // Autônomo/Empreendedor
+      emergencyReserveMultiplier = 18;
     } else if (profile.employment_type === 'civil_servant') {
-      emergencyReserveMultiplier = 6; // Concursado
+      emergencyReserveMultiplier = 6;
     } else if (profile.employment_type === 'clt') {
-      emergencyReserveMultiplier = 6; // CLT padrão
+      emergencyReserveMultiplier = 6;
     }
 
     const emergencyReserveTarget = profile.monthly_expenses * emergencyReserveMultiplier;
@@ -248,50 +233,36 @@ export const useInvestmentPlanner = () => {
     };
   }, [profile]);
 
-  // Função para salvar perfil e navegar - SIMPLIFICADA E DIRETA
-  const saveProfileAndNavigate = async (profileData: Omit<InvestmentProfile, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    console.log('🔄 SALVANDO PROFILE E NAVEGANDO...');
-    try {
-      await saveProfileMutation.mutateAsync(profileData);
-      console.log('✅ PROFILE SALVO, forçando navegação para reserve');
-      
-      // NAVEGAÇÃO DIRETA E IMEDIATA
-      setTimeout(() => {
-        console.log('🚀 EXECUTANDO setCurrentStep("reserve")');
-        setCurrentStep('reserve');
-        console.log('✅ currentStep atualizado para reserve');
-      }, 100);
-      
-    } catch (error) {
-      console.error('❌ Erro ao salvar profile:', error);
-      throw error;
-    }
+  // FUNÇÕES SIMPLES DE NAVEGAÇÃO - SEM COMPLEXIDADE
+  const goToStep = (step: 'profile' | 'reserve' | 'plan' | 'summary') => {
+    console.log(`🎯 Navegando diretamente para: ${step}`);
+    setCurrentStep(step);
   };
 
-  // Função para salvar plano e navegar - SIMPLIFICADA E DIRETA
-  const savePlanAndNavigate = async (planData: Omit<InvestmentPlan, 'id' | 'created_at' | 'updated_at'>, targetStep: 'plan' | 'summary') => {
-    console.log('🔄 SALVANDO PLAN E NAVEGANDO...');
-    try {
-      await savePlanMutation.mutateAsync(planData);
-      console.log(`✅ PLAN SALVO, forçando navegação para ${targetStep}`);
-      
-      // NAVEGAÇÃO DIRETA E IMEDIATA
-      setTimeout(() => {
-        console.log(`🚀 EXECUTANDO setCurrentStep("${targetStep}")`);
-        setCurrentStep(targetStep);
-        console.log(`✅ currentStep atualizado para ${targetStep}`);
-      }, 100);
-      
-    } catch (error) {
-      console.error('❌ Erro ao salvar plan:', error);
-      throw error;
-    }
+  const saveAndGoToReserve = async (profileData: Omit<InvestmentProfile, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
+    console.log('💾 Salvando perfil...');
+    await saveProfileMutation.mutateAsync(profileData);
+    console.log('✅ Perfil salvo, navegando para reserva');
+    setCurrentStep('reserve');
+  };
+
+  const saveAndGoToPlan = async (planData: Omit<InvestmentPlan, 'id' | 'created_at' | 'updated_at'>) => {
+    console.log('💾 Salvando plano...');
+    await savePlanMutation.mutateAsync(planData);
+    console.log('✅ Plano salvo, navegando para alocação');
+    setCurrentStep('plan');
+  };
+
+  const saveAndGoToSummary = async (planData: Omit<InvestmentPlan, 'id' | 'created_at' | 'updated_at'>) => {
+    console.log('💾 Salvando plano...');
+    await savePlanMutation.mutateAsync(planData);
+    console.log('✅ Plano salvo, navegando para resumo');
+    setCurrentStep('summary');
   };
 
   return {
-    // Estado
+    // Estado básico
     currentStep,
-    setCurrentStep,
     profile,
     plan,
     calculations,
@@ -306,11 +277,15 @@ export const useInvestmentPlanner = () => {
     planError,
     error: profileError || planError,
 
-    // Mutations
+    // Funções simples de navegação
+    goToStep,
+    saveAndGoToReserve,
+    saveAndGoToPlan,
+    saveAndGoToSummary,
+
+    // Mutations para salvar sem navegar
     saveProfile: saveProfileMutation.mutate,
     savePlan: savePlanMutation.mutate,
-    saveProfileAndNavigate,
-    savePlanAndNavigate,
     isSavingProfile: saveProfileMutation.isPending,
     isSavingPlan: savePlanMutation.isPending,
     isSaving: saveProfileMutation.isPending || savePlanMutation.isPending,

@@ -26,7 +26,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
   profile,
   calculations
 }) => {
-  const { plan, savePlanAndNavigate, isSavingPlan, setCurrentStep } = useInvestmentPlanner();
+  const { plan, saveAndGoToPlan, isSavingPlan, goToStep } = useInvestmentPlanner();
   
   const [currentReserve, setCurrentReserve] = useState(
     plan?.emergency_reserve_current || 0
@@ -60,8 +60,8 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
     ? 0 
     : Math.ceil((customReserveTarget - currentReserve) / Math.max(calculations.monthlyInvestmentCapacity, 1));
 
-  const handleContinue = () => {
-    console.log('Continue button clicked - calling savePlanAndNavigate');
+  const handleContinue = async () => {
+    console.log('📝 Continuando para plano de alocação');
     
     if (!profile.id) {
       console.error('Profile ID is missing');
@@ -79,13 +79,16 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
       is_emergency_reserve_complete: isReserveComplete,
     };
 
-    console.log('Calling savePlanAndNavigate with target: plan');
-    savePlanAndNavigate(planData, 'plan');
+    try {
+      await saveAndGoToPlan(planData);
+    } catch (error) {
+      console.error('❌ Erro ao salvar reserva:', error);
+    }
   };
 
   const handleBackToProfile = () => {
-    console.log('Back to profile button clicked');
-    setCurrentStep('profile');
+    console.log('🔙 Voltando ao perfil');
+    goToStep('profile');
   };
 
   const getEmploymentTypeInfo = () => {
@@ -290,7 +293,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
         )}
       </Card>
 
-      {/* Ações */}
+      {/* Botões Simplificados */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Button
           variant="outline"
@@ -307,7 +310,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
           className="bg-orange-600 hover:bg-orange-700"
           disabled={isSavingPlan}
         >
-          {isSavingPlan ? 'Salvando e Navegando...' : 'Continuar para Alocação →'}
+          {isSavingPlan ? 'Salvando e Indo para Alocação...' : 'Continuar para Alocação →'}
         </Button>
       </div>
     </div>

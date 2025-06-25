@@ -1,4 +1,5 @@
-import React, { useEffect } from 'react';
+
+import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -12,7 +13,7 @@ import InvestmentPlanSummary from './investment-planner/InvestmentPlanSummary';
 const InvestmentPlanner: React.FC = () => {
   const {
     currentStep,
-    setCurrentStep,
+    goToStep,
     profile,
     plan,
     calculations,
@@ -22,22 +23,6 @@ const InvestmentPlanner: React.FC = () => {
     hasPlan,
     isEmergencyReserveComplete
   } = useInvestmentPlanner();
-
-  // Debug logs INTENSIVOS
-  useEffect(() => {
-    console.log('🚀 InvestmentPlanner RENDERIZOU');
-    console.log('📍 currentStep atual:', currentStep);
-    console.log('👤 hasProfile:', hasProfile);
-    console.log('📋 hasPlan:', hasPlan);
-    console.log('💾 profile exists:', !!profile);
-    console.log('📊 plan exists:', !!plan);
-    console.log('🔢 calculations exists:', !!calculations);
-  }, [currentStep, hasProfile, hasPlan, profile, plan, calculations]);
-
-  // Log específico para mudanças do currentStep
-  useEffect(() => {
-    console.log('🔄 CURRENT STEP MUDOU PARA:', currentStep);
-  }, [currentStep]);
 
   if (isLoading) {
     return (
@@ -81,22 +66,13 @@ const InvestmentPlanner: React.FC = () => {
     }
   };
 
-  const handleQuickAccess = (step: 'reserve' | 'plan' | 'summary') => {
-    console.log('Quick access clicked:', step);
-    setCurrentStep(step);
-  };
-
-  // Renderização condicional SIMPLIFICADA com logs
+  // Renderização simplificada por step
   const renderCurrentStep = () => {
-    console.log('🎨 RENDERIZANDO STEP:', currentStep);
-    
     switch (currentStep) {
       case 'profile':
-        console.log('✏️ Renderizando InvestmentProfileForm');
         return <InvestmentProfileForm />;
       
       case 'reserve':
-        console.log('🛡️ Renderizando EmergencyReserveCalculator');
         if (profile && calculations) {
           return (
             <EmergencyReserveCalculator 
@@ -105,11 +81,9 @@ const InvestmentPlanner: React.FC = () => {
             />
           );
         }
-        console.log('⚠️ Profile ou calculations não disponíveis para reserve');
         return <div>Carregando dados do perfil...</div>;
       
       case 'plan':
-        console.log('📊 Renderizando InvestmentPlanForm');
         if (profile && calculations) {
           return (
             <InvestmentPlanForm 
@@ -118,11 +92,9 @@ const InvestmentPlanner: React.FC = () => {
             />
           );
         }
-        console.log('⚠️ Profile ou calculations não disponíveis para plan');
         return <div>Carregando dados do perfil...</div>;
       
       case 'summary':
-        console.log('📈 Renderizando InvestmentPlanSummary');
         if (profile && plan) {
           return (
             <InvestmentPlanSummary 
@@ -131,11 +103,9 @@ const InvestmentPlanner: React.FC = () => {
             />
           );
         }
-        console.log('⚠️ Profile ou plan não disponíveis para summary');
         return <div>Carregando dados do plano...</div>;
       
       default:
-        console.warn('❓ Step desconhecido:', currentStep);
         return <InvestmentProfileForm />;
     }
   };
@@ -150,10 +120,6 @@ const InvestmentPlanner: React.FC = () => {
         <p className="text-gray-600">
           Construa seu patrimônio de forma estruturada e inteligente
         </p>
-        {/* DEBUG INFO */}
-        <div className="mt-2 text-xs text-gray-500 bg-gray-100 p-2 rounded">
-          DEBUG: Step atual = {currentStep} | Profile = {hasProfile ? 'OK' : 'NO'} | Plan = {hasPlan ? 'OK' : 'NO'}
-        </div>
       </div>
 
       {/* Progress Steps */}
@@ -169,12 +135,22 @@ const InvestmentPlanner: React.FC = () => {
             const isCurrentStep = currentStep === step.key;
             return (
               <div key={step.key} className="flex flex-col items-center flex-1">
-                <div className={`p-3 rounded-full border-2 mb-2 ${
+                <div className={`p-3 rounded-full border-2 mb-2 cursor-pointer transition-all ${
                   isCurrentStep ? 'bg-blue-200 border-blue-500 ring-2 ring-blue-300' :
-                  status === 'completed' ? 'bg-green-100 border-green-300' :
-                  status === 'current' ? 'bg-blue-100 border-blue-300' :
+                  status === 'completed' ? 'bg-green-100 border-green-300 hover:bg-green-200' :
+                  status === 'current' ? 'bg-blue-100 border-blue-300 hover:bg-blue-200' :
                   'bg-gray-100 border-gray-300'
-                }`}>
+                }`}
+                onClick={() => {
+                  // Permitir navegação para steps já acessíveis
+                  if (step.key === 'profile' || 
+                      (step.key === 'reserve' && hasProfile) ||
+                      (step.key === 'plan' && hasProfile) ||
+                      (step.key === 'summary' && hasPlan)) {
+                    goToStep(step.key as any);
+                  }
+                }}
+                >
                   {getStepIcon(step.key, status)}
                 </div>
                 <div className="text-center">
@@ -184,7 +160,7 @@ const InvestmentPlanner: React.FC = () => {
                     status === 'current' ? 'text-blue-800' :
                     'text-gray-500'
                   }`}>
-                    {step.label} {isCurrentStep && '← ATUAL'}
+                    {step.label}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
                     {step.description}
@@ -208,8 +184,8 @@ const InvestmentPlanner: React.FC = () => {
         </div>
       </Card>
 
-      {/* Step Content com KEY para forçar re-render */}
-      <div key={`step-${currentStep}`}>
+      {/* Step Content */}
+      <div>
         {renderCurrentStep()}
       </div>
 
@@ -219,24 +195,24 @@ const InvestmentPlanner: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <h4 className="font-semibold text-blue-800">
-                ⚡ Acesso Rápido
+                ⚡ Navegação Rápida
               </h4>
               <p className="text-sm text-blue-700">
-                Pule direto para qualquer etapa do seu planejamento
+                Clique em qualquer etapa acima ou use os atalhos abaixo
               </p>
             </div>
             <div className="flex gap-2">
               <Badge 
                 variant="outline" 
                 className="cursor-pointer hover:bg-blue-100"
-                onClick={() => handleQuickAccess('reserve')}
+                onClick={() => goToStep('reserve')}
               >
                 Reserva
               </Badge>
               <Badge 
                 variant="outline" 
                 className="cursor-pointer hover:bg-blue-100"
-                onClick={() => handleQuickAccess('plan')}
+                onClick={() => goToStep('plan')}
               >
                 Plano
               </Badge>
@@ -244,9 +220,9 @@ const InvestmentPlanner: React.FC = () => {
                 <Badge 
                   variant="outline" 
                   className="cursor-pointer hover:bg-purple-100"
-                  onClick={() => handleQuickAccess('summary')}
+                  onClick={() => goToStep('summary')}
                 >
-                  Acompanhamento
+                  Resumo
                 </Badge>
               )}
             </div>

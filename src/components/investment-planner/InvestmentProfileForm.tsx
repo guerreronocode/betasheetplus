@@ -25,7 +25,7 @@ interface ProfileFormData {
 }
 
 const InvestmentProfileForm: React.FC = () => {
-  const { profile, saveProfileAndNavigate, isSavingProfile } = useInvestmentPlanner();
+  const { profile, saveAndGoToReserve, isSavingProfile } = useInvestmentPlanner();
   
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<ProfileFormData>({
     defaultValues: {
@@ -46,7 +46,7 @@ const InvestmentProfileForm: React.FC = () => {
   const monthlyBalance = watchedValues.monthly_income - watchedValues.monthly_expenses;
 
   const onSubmit = async (data: ProfileFormData) => {
-    console.log('🔥 FORM SUBMIT INICIADO');
+    console.log('📝 Formulário do perfil enviado');
     
     const profileData = {
       ...data,
@@ -55,14 +55,10 @@ const InvestmentProfileForm: React.FC = () => {
       long_term_goals: data.long_term_goals.split(',').map(s => s.trim()).filter(Boolean)
     };
 
-    console.log('📤 Dados do profile preparados:', profileData);
-    
     try {
-      console.log('🚀 Chamando saveProfileAndNavigate...');
-      await saveProfileAndNavigate(profileData);
-      console.log('✅ saveProfileAndNavigate CONCLUÍDO');
+      await saveAndGoToReserve(profileData);
     } catch (error) {
-      console.error('❌ Erro no submit:', error);
+      console.error('❌ Erro no formulário:', error);
     }
   };
 
@@ -394,15 +390,14 @@ const InvestmentProfileForm: React.FC = () => {
         </div>
       </Card>
 
-      {/* Submit com logs extras */}
+      {/* Botão Submit Simplificado */}
       <Card className="p-6">
         <Button
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700"
           disabled={isSavingProfile || monthlyBalance < 0}
-          onClick={() => console.log('🖱️ BOTÃO SUBMIT CLICADO')}
         >
-          {isSavingProfile ? 'Salvando e Navegando...' : 'Continuar para Próxima Etapa →'}
+          {isSavingProfile ? 'Salvando e Indo para Reserva...' : 'Continuar para Reserva de Emergência →'}
         </Button>
         
         {monthlyBalance < 0 && (

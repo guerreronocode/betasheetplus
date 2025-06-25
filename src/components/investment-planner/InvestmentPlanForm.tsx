@@ -24,7 +24,7 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
   profile,
   calculations
 }) => {
-  const { plan, savePlanAndNavigate, isSavingPlan, setCurrentStep } = useInvestmentPlanner();
+  const { plan, saveAndGoToSummary, isSavingPlan, goToStep } = useInvestmentPlanner();
 
   const [shortTermAllocation, setShortTermAllocation] = useState(
     plan?.short_term_allocation || calculations.shortTermAllocation
@@ -69,8 +69,8 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
     setMediumTermAllocation(Math.round(remaining * (1 - shortRatio)));
   };
 
-  const handleFinalizePlanning = () => {
-    console.log('Finalize planning button clicked - calling savePlanAndNavigate');
+  const handleFinalizePlanning = async () => {
+    console.log('📝 Finalizando planejamento');
     
     if (!profile.id) {
       console.error('Profile ID is missing');
@@ -88,13 +88,16 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
       is_emergency_reserve_complete: plan?.is_emergency_reserve_complete || false,
     };
 
-    console.log('Calling savePlanAndNavigate with target: summary');
-    savePlanAndNavigate(planData, 'summary');
+    try {
+      await saveAndGoToSummary(planData);
+    } catch (error) {
+      console.error('❌ Erro ao finalizar planejamento:', error);
+    }
   };
 
   const handleBackToReserve = () => {
-    console.log('Back to reserve button clicked');
-    setCurrentStep('reserve');
+    console.log('🔙 Voltando à reserva');
+    goToStep('reserve');
   };
 
   const monthlyAmount = calculations.monthlyInvestmentCapacity;
@@ -273,7 +276,7 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
         </div>
       </Card>
 
-      {/* Ações */}
+      {/* Botões Simplificados */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Button
           variant="outline"
@@ -290,7 +293,7 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
           className="bg-purple-600 hover:bg-purple-700"
           disabled={isSavingPlan || totalAllocation !== 100}
         >
-          {isSavingPlan ? 'Salvando e Navegando...' : 'Finalizar Planejamento →'}
+          {isSavingPlan ? 'Salvando e Indo para Resumo...' : 'Finalizar Planejamento →'}
         </Button>
       </div>
     </div>
