@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { User, Target, TrendingUp, Save } from 'lucide-react';
+import { User, Target, Save } from 'lucide-react';
 import { useInvestmentPlanner } from '@/hooks/useInvestmentPlanner';
 import { formatCurrency } from '@/utils/formatters';
 import RiskProfileQuiz from './RiskProfileQuiz';
@@ -24,6 +24,7 @@ const InvestmentProfileForm: React.FC = () => {
   const [shortTermGoals, setShortTermGoals] = useState(profile?.short_term_goals || []);
   const [mediumTermGoals, setMediumTermGoals] = useState(profile?.medium_term_goals || []);
   const [longTermGoals, setLongTermGoals] = useState(profile?.long_term_goals || []);
+  const [showRiskQuiz, setShowRiskQuiz] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +47,11 @@ const InvestmentProfileForm: React.FC = () => {
     console.log('📤 Dados do profile preparados:', profileData);
     console.log('💾 Salvando perfil...');
     saveProfile(profileData);
+  };
+
+  const handleRiskQuizResult = (result: 'conservative' | 'moderate' | 'aggressive') => {
+    setRiskProfile(result);
+    setShowRiskQuiz(false);
   };
 
   const investmentCapacity = Math.max(0, Number(monthlyIncome) - Number(monthlyExpenses));
@@ -110,7 +116,7 @@ const InvestmentProfileForm: React.FC = () => {
         <Card className="p-6">
           <div className="space-y-4">
             <Label>Como você está hoje com sua reserva?</Label>
-            <Select value={organizationLevel}>
+            <Select value={organizationLevel} onValueChange={setOrganizationLevel}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecione o nível" />
               </SelectTrigger>
@@ -127,7 +133,7 @@ const InvestmentProfileForm: React.FC = () => {
         <Card className="p-6">
           <div className="space-y-4">
             <Label>Qual seu perfil de risco?</Label>
-            <Select value={riskProfile}>
+            <Select value={riskProfile} onValueChange={setRiskProfile}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecione o perfil" />
               </SelectTrigger>
@@ -139,11 +145,16 @@ const InvestmentProfileForm: React.FC = () => {
             </Select>
           </div>
           <div className="mt-4">
-            <Badge variant="secondary">
-              <User className="h-3 w-3 mr-2" />
-              Não sabe seu perfil?
-            </Badge>
-            <RiskProfileQuiz />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowRiskQuiz(true)}
+              className="flex items-center gap-2"
+            >
+              <User className="h-3 w-3" />
+              Não sabe seu perfil? Faça o quiz
+            </Button>
           </div>
         </Card>
 
@@ -151,7 +162,7 @@ const InvestmentProfileForm: React.FC = () => {
         <Card className="p-6">
           <div className="space-y-4">
             <Label>Qual seu tipo de emprego?</Label>
-            <Select value={employmentType}>
+            <Select value={employmentType} onValueChange={setEmploymentType}>
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Selecione o tipo" />
               </SelectTrigger>
@@ -207,7 +218,7 @@ const InvestmentProfileForm: React.FC = () => {
         <Card className="p-6">
           <div className="space-y-4">
             <Label>Quais seus objetivos de curto prazo (até 2 anos)?</Label>
-            <div>
+            <div className="space-y-2">
               <label className="flex items-center space-x-2">
                 <Checkbox
                   checked={shortTermGoals.includes('viagem')}
@@ -255,7 +266,7 @@ const InvestmentProfileForm: React.FC = () => {
         <Card className="p-6">
           <div className="space-y-4">
             <Label>Quais seus objetivos de médio prazo (2 a 5 anos)?</Label>
-            <div>
+            <div className="space-y-2">
               <label className="flex items-center space-x-2">
                 <Checkbox
                   checked={mediumTermGoals.includes('carro')}
@@ -303,7 +314,7 @@ const InvestmentProfileForm: React.FC = () => {
         <Card className="p-6">
           <div className="space-y-4">
             <Label>Quais seus objetivos de longo prazo (acima de 5 anos)?</Label>
-            <div>
+            <div className="space-y-2">
               <label className="flex items-center space-x-2">
                 <Checkbox
                   checked={longTermGoals.includes('aposentadoria')}
@@ -359,6 +370,14 @@ const InvestmentProfileForm: React.FC = () => {
           </Button>
         </div>
       </form>
+
+      {/* Risk Profile Quiz Modal */}
+      {showRiskQuiz && (
+        <RiskProfileQuiz
+          onClose={() => setShowRiskQuiz(false)}
+          onResult={handleRiskQuizResult}
+        />
+      )}
     </div>
   );
 };
