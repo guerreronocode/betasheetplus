@@ -133,7 +133,6 @@ export const useInvestmentPlanner = () => {
     onSuccess: (data) => {
       console.log('Profile saved successfully:', data);
       queryClient.invalidateQueries({ queryKey: ['investment-profile'] });
-      // Navegar diretamente para a próxima etapa
       setCurrentStep('reserve');
     },
     onError: (error) => {
@@ -181,8 +180,11 @@ export const useInvestmentPlanner = () => {
     onSuccess: (data) => {
       console.log('Plan saved successfully:', data);
       queryClient.invalidateQueries({ queryKey: ['investment-plan'] });
-      // Navegar diretamente para a próxima etapa
-      setCurrentStep('summary');
+      if (currentStep === 'reserve') {
+        setCurrentStep('plan');
+      } else if (currentStep === 'plan') {
+        setCurrentStep('summary');
+      }
     },
     onError: (error) => {
       console.error('Error saving plan:', error);
@@ -203,7 +205,7 @@ export const useInvestmentPlanner = () => {
     } else if (profile.employment_type === 'civil_servant') {
       emergencyReserveMultiplier = 6; // Concursado
     } else if (profile.employment_type === 'clt') {
-      emergencyReserveMultiplier = 6; // CLT padrão (usuário pode ajustar)
+      emergencyReserveMultiplier = 6; // CLT padrão
     }
 
     const emergencyReserveTarget = profile.monthly_expenses * emergencyReserveMultiplier;
@@ -233,7 +235,7 @@ export const useInvestmentPlanner = () => {
     };
   }, [profile]);
 
-  // Função para navegar entre as etapas
+  // Função simplificada para navegar entre as etapas
   const navigateToStep = (step: 'profile' | 'reserve' | 'plan' | 'summary') => {
     console.log('Navigating to step:', step);
     setCurrentStep(step);

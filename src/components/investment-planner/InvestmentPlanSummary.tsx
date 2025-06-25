@@ -36,6 +36,16 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
   const mediumTermAmount = (monthlyAmount * plan.medium_term_allocation) / 100;
   const longTermAmount = (monthlyAmount * plan.long_term_allocation) / 100;
 
+  const handleAdjustProfile = () => {
+    console.log('Adjust profile clicked');
+    setCurrentStep('profile');
+  };
+
+  const handleReviewAllocation = () => {
+    console.log('Review allocation clicked');
+    setCurrentStep('plan');
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -202,7 +212,7 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Button
           variant="outline"
-          onClick={() => setCurrentStep('profile')}
+          onClick={handleAdjustProfile}
           className="flex items-center gap-2"
         >
           <Edit className="w-4 h-4" />
@@ -211,7 +221,7 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
         
         <Button
           variant="outline"
-          onClick={() => setCurrentStep('plan')}
+          onClick={handleReviewAllocation}
           className="flex items-center gap-2"
         >
           <RefreshCw className="w-4 h-4" />

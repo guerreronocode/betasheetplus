@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -61,7 +60,9 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
     ? 0 
     : Math.ceil((customReserveTarget - currentReserve) / Math.max(calculations.monthlyInvestmentCapacity, 1));
 
-  const handleSubmit = () => {
+  const handleContinue = () => {
+    console.log('Handle continue clicked');
+    
     if (!profile.id) {
       console.error('Profile ID is missing');
       return;
@@ -156,18 +157,6 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
             <div className="text-xl font-bold text-green-800">
               {formatCurrency(customReserveTarget)}
             </div>
-          </div>
-        </div>
-
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <h5 className="font-semibold text-gray-800 mb-2">
-            {employmentInfo.title}
-          </h5>
-          <p className="text-sm text-gray-700 mb-2">
-            {employmentInfo.description}
-          </p>
-          <div className="text-sm text-gray-600">
-            <strong>Recomendação:</strong> {employmentInfo.recommendation}
           </div>
         </div>
       </Card>
@@ -326,7 +315,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
         </Button>
         
         <Button
-          onClick={handleSubmit}
+          onClick={handleContinue}
           className="bg-orange-600 hover:bg-orange-700"
           disabled={isSavingPlan}
         >

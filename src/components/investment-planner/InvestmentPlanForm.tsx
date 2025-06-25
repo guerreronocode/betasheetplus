@@ -70,21 +70,23 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
     setMediumTermAllocation(Math.round(remaining * (1 - shortRatio)));
   };
 
-  const handleSubmit = () => {
-    if (!profile.id || !plan) {
-      console.error('Profile ID or plan is missing');
+  const handleFinalizePlanning = () => {
+    console.log('Handle finalize planning clicked');
+    
+    if (!profile.id) {
+      console.error('Profile ID is missing');
       return;
     }
 
     const planData = {
       profile_id: profile.id,
-      emergency_reserve_target: plan.emergency_reserve_target,
-      emergency_reserve_current: plan.emergency_reserve_current,
+      emergency_reserve_target: plan?.emergency_reserve_target || calculations.emergencyReserveTarget,
+      emergency_reserve_current: plan?.emergency_reserve_current || 0,
       short_term_allocation: shortTermAllocation,
       medium_term_allocation: mediumTermAllocation,
       long_term_allocation: longTermAllocation,
       monthly_investment_capacity: calculations.monthlyInvestmentCapacity,
-      is_emergency_reserve_complete: plan.is_emergency_reserve_complete,
+      is_emergency_reserve_complete: plan?.is_emergency_reserve_complete || false,
     };
 
     console.log('Submitting updated plan data:', planData);
@@ -279,7 +281,7 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
         </Button>
         
         <Button
-          onClick={handleSubmit}
+          onClick={handleFinalizePlanning}
           className="bg-purple-600 hover:bg-purple-700"
           disabled={isSavingPlan || totalAllocation !== 100}
         >
