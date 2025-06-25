@@ -1,8 +1,6 @@
-
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
 import { Target, TrendingUp, Shield, Calculator } from 'lucide-react';
 import { useInvestmentPlanner } from '@/hooks/useInvestmentPlanner';
 import InvestmentProfileForm from './investment-planner/InvestmentProfileForm';
@@ -188,47 +186,6 @@ const InvestmentPlanner: React.FC = () => {
       <div>
         {renderCurrentStep()}
       </div>
-
-      {/* Quick Access for Existing Users */}
-      {hasProfile && (
-        <Card className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="font-semibold text-blue-800">
-                ⚡ Navegação Rápida
-              </h4>
-              <p className="text-sm text-blue-700">
-                Clique em qualquer etapa acima ou use os atalhos abaixo
-              </p>
-            </div>
-            <div className="flex gap-2">
-              <Badge 
-                variant="outline" 
-                className="cursor-pointer hover:bg-blue-100"
-                onClick={() => goToStep('reserve')}
-              >
-                Reserva
-              </Badge>
-              <Badge 
-                variant="outline" 
-                className="cursor-pointer hover:bg-blue-100"
-                onClick={() => goToStep('plan')}
-              >
-                Plano
-              </Badge>
-              {hasPlan && (
-                <Badge 
-                  variant="outline" 
-                  className="cursor-pointer hover:bg-purple-100"
-                  onClick={() => goToStep('summary')}
-                >
-                  Resumo
-                </Badge>
-              )}
-            </div>
-          </div>
-        </Card>
-      )}
     </div>
   );
 };

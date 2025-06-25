@@ -1,18 +1,15 @@
 import React from 'react';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { 
   CheckCircle, 
   TrendingUp, 
   Shield, 
-  Target, 
   Calendar,
-  Edit,
-  RefreshCw
+  Target
 } from 'lucide-react';
-import { InvestmentProfile, InvestmentPlan, useInvestmentPlanner } from '@/hooks/useInvestmentPlanner';
+import { InvestmentProfile, InvestmentPlan } from '@/hooks/useInvestmentPlanner';
 import { formatCurrency } from '@/utils/formatters';
 
 interface InvestmentPlanSummaryProps {
@@ -24,8 +21,6 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
   profile,
   plan
 }) => {
-  const { goToStep } = useInvestmentPlanner();
-
   const reserveProgress = plan.emergency_reserve_current > 0 
     ? (plan.emergency_reserve_current / plan.emergency_reserve_target) * 100 
     : 0;
@@ -35,18 +30,21 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
   const mediumTermAmount = (monthlyAmount * plan.medium_term_allocation) / 100;
   const longTermAmount = (monthlyAmount * plan.long_term_allocation) / 100;
 
-  const handleAdjustProfile = () => {
-    console.log('Adjust profile button clicked');
-    goToStep('profile');
-  };
-
-  const handleReviewAllocation = () => {
-    console.log('Review allocation button clicked');
-    goToStep('plan');
-  };
-
   return (
     <div className="space-y-6">
+      {/* Instrução para o usuário */}
+      <Card className="p-4 bg-green-50 border-green-200">
+        <div className="flex items-center gap-2 text-green-800">
+          <CheckCircle className="w-5 h-5" />
+          <div>
+            <p className="text-sm font-medium">🎯 Seu plano está pronto!</p>
+            <p className="text-xs text-green-600 mt-1">
+              Use os painéis superiores para navegar e editar qualquer etapa
+            </p>
+          </div>
+        </div>
+      </Card>
+
       {/* Header */}
       <div className="text-center">
         <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -206,27 +204,6 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
           </div>
         </div>
       </Card>
-
-      {/* Ações */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Button
-          variant="outline"
-          onClick={handleAdjustProfile}
-          className="flex items-center gap-2"
-        >
-          <Edit className="w-4 h-4" />
-          Ajustar Perfil
-        </Button>
-        
-        <Button
-          variant="outline"
-          onClick={handleReviewAllocation}
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Revistar Alocação
-        </Button>
-      </div>
 
       {/* Perfil Resumido */}
       <Card className="p-6 bg-gray-50">

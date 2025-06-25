@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
-import { Shield, Calculator, Target, TrendingUp, ArrowLeft } from 'lucide-react';
+import { Shield, Calculator, Target, TrendingUp, Save } from 'lucide-react';
 import { InvestmentProfile, useInvestmentPlanner } from '@/hooks/useInvestmentPlanner';
 import { formatCurrency } from '@/utils/formatters';
 
@@ -26,7 +26,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
   profile,
   calculations
 }) => {
-  const { plan, saveAndGoToPlan, isSavingPlan, goToStep } = useInvestmentPlanner();
+  const { plan, savePlan, isSavingPlan } = useInvestmentPlanner();
   
   const [currentReserve, setCurrentReserve] = useState(
     plan?.emergency_reserve_current || 0
@@ -60,8 +60,8 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
     ? 0 
     : Math.ceil((customReserveTarget - currentReserve) / Math.max(calculations.monthlyInvestmentCapacity, 1));
 
-  const handleContinue = async () => {
-    console.log('📝 Continuando para plano de alocação');
+  const handleSave = async () => {
+    console.log('💾 Salvando dados da reserva');
     
     if (!profile.id) {
       console.error('Profile ID is missing');
@@ -79,16 +79,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
       is_emergency_reserve_complete: isReserveComplete,
     };
 
-    try {
-      await saveAndGoToPlan(planData);
-    } catch (error) {
-      console.error('❌ Erro ao salvar reserva:', error);
-    }
-  };
-
-  const handleBackToProfile = () => {
-    console.log('🔙 Voltando ao perfil');
-    goToStep('profile');
+    savePlan(planData);
   };
 
   const getEmploymentTypeInfo = () => {
@@ -121,6 +112,19 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Instrução para o usuário */}
+      <Card className="p-4 bg-orange-50 border-orange-200">
+        <div className="flex items-center gap-2 text-orange-800">
+          <Shield className="w-5 h-5" />
+          <div>
+            <p className="text-sm font-medium">🛡️ Configure sua reserva de emergência</p>
+            <p className="text-xs text-orange-600 mt-1">
+              Após salvar, clique em "Plano" no painel superior para continuar
+            </p>
+          </div>
+        </div>
+      </Card>
+
       {/* Header */}
       <div className="text-center">
         <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -293,24 +297,15 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
         )}
       </Card>
 
-      {/* Botões Simplificados */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Botão de Salvar */}
+      <div className="flex justify-center">
         <Button
-          variant="outline"
-          onClick={handleBackToProfile}
-          className="flex items-center gap-2"
+          onClick={handleSave}
+          className="bg-orange-600 hover:bg-orange-700 px-8"
           disabled={isSavingPlan}
         >
-          <ArrowLeft className="w-4 h-4" />
-          Voltar ao Perfil
-        </Button>
-        
-        <Button
-          onClick={handleContinue}
-          className="bg-orange-600 hover:bg-orange-700"
-          disabled={isSavingPlan}
-        >
-          {isSavingPlan ? 'Salvando e Indo para Alocação...' : 'Continuar para Alocação →'}
+          <Save className="w-4 h-4 mr-2" />
+          {isSavingPlan ? 'Salvando Reserva...' : 'Salvar Reserva'}
         </Button>
       </div>
     </div>

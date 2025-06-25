@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Progress } from '@/components/ui/progress';
-import { ArrowLeft, TrendingUp, Calendar, Target } from 'lucide-react';
+import { TrendingUp, Calendar, Target, Save } from 'lucide-react';
 import { InvestmentProfile, useInvestmentPlanner } from '@/hooks/useInvestmentPlanner';
 import { formatCurrency } from '@/utils/formatters';
 
@@ -24,7 +24,7 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
   profile,
   calculations
 }) => {
-  const { plan, saveAndGoToSummary, isSavingPlan, goToStep } = useInvestmentPlanner();
+  const { plan, savePlan, isSavingPlan } = useInvestmentPlanner();
 
   const [shortTermAllocation, setShortTermAllocation] = useState(
     plan?.short_term_allocation || calculations.shortTermAllocation
@@ -69,8 +69,8 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
     setMediumTermAllocation(Math.round(remaining * (1 - shortRatio)));
   };
 
-  const handleFinalizePlanning = async () => {
-    console.log('📝 Finalizando planejamento');
+  const handleSave = async () => {
+    console.log('💾 Salvando plano de alocação');
     
     if (!profile.id) {
       console.error('Profile ID is missing');
@@ -88,16 +88,7 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
       is_emergency_reserve_complete: plan?.is_emergency_reserve_complete || false,
     };
 
-    try {
-      await saveAndGoToSummary(planData);
-    } catch (error) {
-      console.error('❌ Erro ao finalizar planejamento:', error);
-    }
-  };
-
-  const handleBackToReserve = () => {
-    console.log('🔙 Voltando à reserva');
-    goToStep('reserve');
+    savePlan(planData);
   };
 
   const monthlyAmount = calculations.monthlyInvestmentCapacity;
@@ -107,6 +98,19 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Instrução para o usuário */}
+      <Card className="p-4 bg-purple-50 border-purple-200">
+        <div className="flex items-center gap-2 text-purple-800">
+          <Target className="w-5 h-5" />
+          <div>
+            <p className="text-sm font-medium">📊 Defina sua alocação de investimentos</p>
+            <p className="text-xs text-purple-600 mt-1">
+              Após salvar, clique em "Acompanhamento" no painel superior para ver o resumo
+            </p>
+          </div>
+        </div>
+      </Card>
+
       {/* Header */}
       <div className="text-center">
         <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -276,24 +280,15 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
         </div>
       </Card>
 
-      {/* Botões Simplificados */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Botão de Salvar */}
+      <div className="flex justify-center">
         <Button
-          variant="outline"
-          onClick={handleBackToReserve}
-          className="flex items-center gap-2"
-          disabled={isSavingPlan}
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Voltar à Reserva
-        </Button>
-        
-        <Button
-          onClick={handleFinalizePlanning}
-          className="bg-purple-600 hover:bg-purple-700"
+          onClick={handleSave}
+          className="bg-purple-600 hover:bg-purple-700 px-8"
           disabled={isSavingPlan || totalAllocation !== 100}
         >
-          {isSavingPlan ? 'Salvando e Indo para Resumo...' : 'Finalizar Planejamento →'}
+          <Save className="w-4 h-4 mr-2" />
+          {isSavingPlan ? 'Salvando Plano...' : 'Salvar Plano'}
         </Button>
       </div>
     </div>
