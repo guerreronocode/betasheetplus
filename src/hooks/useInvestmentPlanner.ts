@@ -247,39 +247,37 @@ export const useInvestmentPlanner = () => {
     };
   }, [profile]);
 
-  // Função CORRIGIDA para salvar perfil E navegar
+  // Função DEFINITIVA para salvar perfil E navegar
   const saveProfileAndNavigate = async (profileData: Omit<InvestmentProfile, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    console.log('saveProfileAndNavigate called - iniciando salvamento');
+    console.log('🔄 INICIANDO saveProfileAndNavigate');
     try {
       await saveProfileMutation.mutateAsync(profileData);
-      console.log('Profile saved successfully - FORÇANDO navegação para reserve');
+      console.log('✅ Profile salvo com sucesso, FORÇANDO navegação');
       
-      // Forçar navegação de forma síncrona
-      setTimeout(() => {
-        console.log('Executando setCurrentStep para reserve');
-        setCurrentStep('reserve');
-      }, 100);
+      // NAVEGAÇÃO FORÇADA IMEDIATA
+      setCurrentStep('reserve');
+      console.log('📍 setCurrentStep("reserve") executado');
       
     } catch (error) {
-      console.error('Failed to save profile:', error);
+      console.error('❌ Erro ao salvar profile:', error);
+      throw error;
     }
   };
 
-  // Função CORRIGIDA para salvar plano E navegar
+  // Função DEFINITIVA para salvar plano E navegar
   const savePlanAndNavigate = async (planData: Omit<InvestmentPlan, 'id' | 'created_at' | 'updated_at'>, targetStep: 'plan' | 'summary') => {
-    console.log('savePlanAndNavigate called - iniciando salvamento para:', targetStep);
+    console.log('🔄 INICIANDO savePlanAndNavigate para:', targetStep);
     try {
       await savePlanMutation.mutateAsync(planData);
-      console.log('Plan saved successfully - FORÇANDO navegação para:', targetStep);
+      console.log('✅ Plan salvo com sucesso, FORÇANDO navegação para:', targetStep);
       
-      // Forçar navegação de forma síncrona
-      setTimeout(() => {
-        console.log('Executando setCurrentStep para:', targetStep);
-        setCurrentStep(targetStep);
-      }, 100);
+      // NAVEGAÇÃO FORÇADA IMEDIATA
+      setCurrentStep(targetStep);
+      console.log(`📍 setCurrentStep("${targetStep}") executado`);
       
     } catch (error) {
-      console.error('Failed to save plan:', error);
+      console.error('❌ Erro ao salvar plan:', error);
+      throw error;
     }
   };
 

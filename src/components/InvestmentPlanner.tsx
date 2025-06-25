@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -24,18 +23,21 @@ const InvestmentPlanner: React.FC = () => {
     isEmergencyReserveComplete
   } = useInvestmentPlanner();
 
-  // Log para debug do estado atual
+  // Debug logs INTENSIVOS
   useEffect(() => {
-    console.log('InvestmentPlanner renderizou com currentStep:', currentStep);
-    console.log('InvestmentPlanner state completo:', { 
-      currentStep, 
-      hasProfile, 
-      hasPlan, 
-      profile: !!profile, 
-      plan: !!plan,
-      calculations: !!calculations 
-    });
+    console.log('🚀 InvestmentPlanner RENDERIZOU');
+    console.log('📍 currentStep atual:', currentStep);
+    console.log('👤 hasProfile:', hasProfile);
+    console.log('📋 hasPlan:', hasPlan);
+    console.log('💾 profile exists:', !!profile);
+    console.log('📊 plan exists:', !!plan);
+    console.log('🔢 calculations exists:', !!calculations);
   }, [currentStep, hasProfile, hasPlan, profile, plan, calculations]);
+
+  // Log específico para mudanças do currentStep
+  useEffect(() => {
+    console.log('🔄 CURRENT STEP MUDOU PARA:', currentStep);
+  }, [currentStep]);
 
   if (isLoading) {
     return (
@@ -84,15 +86,17 @@ const InvestmentPlanner: React.FC = () => {
     setCurrentStep(step);
   };
 
-  // Renderização condicional baseada no currentStep
+  // Renderização condicional SIMPLIFICADA com logs
   const renderCurrentStep = () => {
-    console.log('Renderizando step:', currentStep);
+    console.log('🎨 RENDERIZANDO STEP:', currentStep);
     
     switch (currentStep) {
       case 'profile':
+        console.log('✏️ Renderizando InvestmentProfileForm');
         return <InvestmentProfileForm />;
       
       case 'reserve':
+        console.log('🛡️ Renderizando EmergencyReserveCalculator');
         if (profile && calculations) {
           return (
             <EmergencyReserveCalculator 
@@ -101,9 +105,11 @@ const InvestmentPlanner: React.FC = () => {
             />
           );
         }
+        console.log('⚠️ Profile ou calculations não disponíveis para reserve');
         return <div>Carregando dados do perfil...</div>;
       
       case 'plan':
+        console.log('📊 Renderizando InvestmentPlanForm');
         if (profile && calculations) {
           return (
             <InvestmentPlanForm 
@@ -112,9 +118,11 @@ const InvestmentPlanner: React.FC = () => {
             />
           );
         }
+        console.log('⚠️ Profile ou calculations não disponíveis para plan');
         return <div>Carregando dados do perfil...</div>;
       
       case 'summary':
+        console.log('📈 Renderizando InvestmentPlanSummary');
         if (profile && plan) {
           return (
             <InvestmentPlanSummary 
@@ -123,10 +131,11 @@ const InvestmentPlanner: React.FC = () => {
             />
           );
         }
+        console.log('⚠️ Profile ou plan não disponíveis para summary');
         return <div>Carregando dados do plano...</div>;
       
       default:
-        console.warn('Step desconhecido:', currentStep);
+        console.warn('❓ Step desconhecido:', currentStep);
         return <InvestmentProfileForm />;
     }
   };
@@ -141,6 +150,10 @@ const InvestmentPlanner: React.FC = () => {
         <p className="text-gray-600">
           Construa seu patrimônio de forma estruturada e inteligente
         </p>
+        {/* DEBUG INFO */}
+        <div className="mt-2 text-xs text-gray-500 bg-gray-100 p-2 rounded">
+          DEBUG: Step atual = {currentStep} | Profile = {hasProfile ? 'OK' : 'NO'} | Plan = {hasPlan ? 'OK' : 'NO'}
+        </div>
       </div>
 
       {/* Progress Steps */}
@@ -195,8 +208,8 @@ const InvestmentPlanner: React.FC = () => {
         </div>
       </Card>
 
-      {/* Step Content */}
-      <div key={currentStep}>
+      {/* Step Content com KEY para forçar re-render */}
+      <div key={`step-${currentStep}`}>
         {renderCurrentStep()}
       </div>
 

@@ -45,7 +45,9 @@ const InvestmentProfileForm: React.FC = () => {
   const watchedValues = watch();
   const monthlyBalance = watchedValues.monthly_income - watchedValues.monthly_expenses;
 
-  const onSubmit = (data: ProfileFormData) => {
+  const onSubmit = async (data: ProfileFormData) => {
+    console.log('🔥 FORM SUBMIT INICIADO');
+    
     const profileData = {
       ...data,
       short_term_goals: data.short_term_goals.split(',').map(s => s.trim()).filter(Boolean),
@@ -53,8 +55,15 @@ const InvestmentProfileForm: React.FC = () => {
       long_term_goals: data.long_term_goals.split(',').map(s => s.trim()).filter(Boolean)
     };
 
-    console.log('Form submitted, calling saveProfileAndNavigate');
-    saveProfileAndNavigate(profileData);
+    console.log('📤 Dados do profile preparados:', profileData);
+    
+    try {
+      console.log('🚀 Chamando saveProfileAndNavigate...');
+      await saveProfileAndNavigate(profileData);
+      console.log('✅ saveProfileAndNavigate CONCLUÍDO');
+    } catch (error) {
+      console.error('❌ Erro no submit:', error);
+    }
   };
 
   const getRiskProfileInfo = (type: string) => {
@@ -385,12 +394,13 @@ const InvestmentProfileForm: React.FC = () => {
         </div>
       </Card>
 
-      {/* Submit */}
+      {/* Submit com logs extras */}
       <Card className="p-6">
         <Button
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700"
           disabled={isSavingProfile || monthlyBalance < 0}
+          onClick={() => console.log('🖱️ BOTÃO SUBMIT CLICADO')}
         >
           {isSavingProfile ? 'Salvando e Navegando...' : 'Continuar para Próxima Etapa →'}
         </Button>
