@@ -133,6 +133,7 @@ export const useInvestmentPlanner = () => {
     onSuccess: (data) => {
       console.log('Profile saved successfully:', data);
       queryClient.invalidateQueries({ queryKey: ['investment-profile'] });
+      // Navegar diretamente para a próxima etapa
       setCurrentStep('reserve');
     },
     onError: (error) => {
@@ -180,6 +181,7 @@ export const useInvestmentPlanner = () => {
     onSuccess: (data) => {
       console.log('Plan saved successfully:', data);
       queryClient.invalidateQueries({ queryKey: ['investment-plan'] });
+      // Navegar diretamente para a próxima etapa
       setCurrentStep('summary');
     },
     onError: (error) => {
@@ -231,26 +233,9 @@ export const useInvestmentPlanner = () => {
     };
   }, [profile]);
 
-  // Função para navegar entre as etapas com validação
+  // Função para navegar entre as etapas
   const navigateToStep = (step: 'profile' | 'reserve' | 'plan' | 'summary') => {
     console.log('Navigating to step:', step);
-    
-    // Verificar se pode navegar para a etapa desejada
-    if (step === 'reserve' && !profile) {
-      console.warn('Cannot navigate to reserve without profile');
-      return;
-    }
-    
-    if (step === 'plan' && !profile) {
-      console.warn('Cannot navigate to plan without profile');
-      return;
-    }
-    
-    if (step === 'summary' && (!profile || !plan)) {
-      console.warn('Cannot navigate to summary without profile and plan');
-      return;
-    }
-    
     setCurrentStep(step);
   };
 

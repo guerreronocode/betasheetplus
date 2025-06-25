@@ -4,7 +4,15 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Target, TrendingUp, Calendar, Shield, PieChart, Edit } from 'lucide-react';
+import { 
+  CheckCircle, 
+  TrendingUp, 
+  Shield, 
+  Target, 
+  Calendar,
+  Edit,
+  RefreshCw
+} from 'lucide-react';
 import { InvestmentProfile, InvestmentPlan, useInvestmentPlanner } from '@/hooks/useInvestmentPlanner';
 import { formatCurrency } from '@/utils/formatters';
 
@@ -19,128 +27,26 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
 }) => {
   const { setCurrentStep } = useInvestmentPlanner();
 
-  const emergencyReserveProgress = plan.emergency_reserve_current > 0 
+  const reserveProgress = plan.emergency_reserve_current > 0 
     ? (plan.emergency_reserve_current / plan.emergency_reserve_target) * 100 
     : 0;
 
-  const allocationData = [
-    {
-      label: 'Curto Prazo',
-      percentage: plan.short_term_allocation,
-      value: (plan.monthly_investment_capacity * plan.short_term_allocation) / 100,
-      color: 'blue',
-      icon: '📅',
-      goals: profile.short_term_goals || []
-    },
-    {
-      label: 'Médio Prazo',
-      percentage: plan.medium_term_allocation,
-      value: (plan.monthly_investment_capacity * plan.medium_term_allocation) / 100,
-      color: 'orange',
-      icon: '🏗️',
-      goals: profile.medium_term_goals || []
-    },
-    {
-      label: 'Longo Prazo',
-      percentage: plan.long_term_allocation,
-      value: (plan.monthly_investment_capacity * plan.long_term_allocation) / 100,
-      color: 'green',
-      icon: '🚀',
-      goals: profile.long_term_goals || []
-    }
-  ];
-
-  const getProfileBadge = () => {
-    const profiles = {
-      conservative: { label: 'Conservador', icon: '🛡️', color: 'blue' },
-      moderate: { label: 'Moderado', icon: '⚖️', color: 'orange' },
-      aggressive: { label: 'Agressivo', icon: '🚀', color: 'red' }
-    };
-    return profiles[profile.risk_profile] || profiles.moderate;
-  };
-
-  const getEmploymentBadge = () => {
-    const types = {
-      clt: { label: 'CLT', icon: '👥' },
-      civil_servant: { label: 'Concursado', icon: '🏛️' },
-      freelancer: { label: 'Freelancer', icon: '💻' },
-      entrepreneur: { label: 'Empreendedor', icon: '🚀' }
-    };
-    return types[profile.employment_type] || types.clt;
-  };
-
-  const profileInfo = getProfileBadge();
-  const employmentInfo = getEmploymentBadge();
+  const monthlyAmount = plan.monthly_investment_capacity;
+  const shortTermAmount = (monthlyAmount * plan.short_term_allocation) / 100;
+  const mediumTermAmount = (monthlyAmount * plan.medium_term_allocation) / 100;
+  const longTermAmount = (monthlyAmount * plan.long_term_allocation) / 100;
 
   return (
     <div className="space-y-6">
-      {/* Header de Sucesso */}
+      {/* Header */}
       <div className="text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle className="w-8 h-8 text-green-600" />
-        </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">
-          🎉 Seu Plano Está Pronto!
+        <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          🎯 Seu Plano de Investimento
         </h3>
         <p className="text-gray-600">
-          Agora é hora de colocar em prática e acompanhar seu progresso
+          Acompanhe seu progresso e mantenha-se no caminho certo
         </p>
       </div>
-
-      {/* Resumo do Perfil */}
-      <Card className="p-6">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-purple-100 rounded-lg">
-            <Target className="w-6 h-6 text-purple-600" />
-          </div>
-          <div>
-            <h4 className="font-semibold text-gray-900">Seu Perfil Financeiro</h4>
-            <p className="text-sm text-gray-600">
-              Resumo das suas características
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          <div className="text-center p-4 bg-gray-50 rounded-lg">
-            <div className="text-sm text-gray-600 mb-1">Idade</div>
-            <div className="text-xl font-bold text-gray-900">{profile.age} anos</div>
-          </div>
-          
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <div className="text-sm text-green-600 mb-1">Trabalho</div>
-            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
-              {employmentInfo.icon} {employmentInfo.label}
-            </Badge>
-          </div>
-          
-          <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <div className="text-sm text-purple-600 mb-1">Perfil</div>
-            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
-              {profileInfo.icon} {profileInfo.label}
-            </Badge>
-          </div>
-          
-          <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <div className="text-sm text-blue-600 mb-1">Renda Mensal</div>
-            <div className="text-lg font-bold text-blue-800">
-              {formatCurrency(profile.monthly_income)}
-            </div>
-          </div>
-          
-          <div className="text-center p-4 bg-green-50 rounded-lg">
-            <div className="text-sm text-green-600 mb-1">Capacidade</div>
-            <div className="text-lg font-bold text-green-800">
-              {formatCurrency(plan.monthly_investment_capacity)}
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-          <div className="font-semibold text-gray-800 mb-2">🎯 Objetivo Principal:</div>
-          <p className="text-gray-700">{profile.main_objective}</p>
-        </div>
-      </Card>
 
       {/* Status da Reserva de Emergência */}
       <Card className="p-6">
@@ -148,149 +54,146 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
           <div className="p-2 bg-orange-100 rounded-lg">
             <Shield className="w-6 h-6 text-orange-600" />
           </div>
-          <div>
+          <div className="flex-1">
             <h4 className="font-semibold text-gray-900">Reserva de Emergência</h4>
-            <p className="text-sm text-gray-600">
-              Sua base de segurança financeira
-            </p>
+            <p className="text-sm text-gray-600">Sua base de segurança financeira</p>
           </div>
+          <Badge variant={plan.is_emergency_reserve_complete ? "default" : "secondary"}>
+            {plan.is_emergency_reserve_complete ? "✅ Completa" : "🏗️ Em construção"}
+          </Badge>
         </div>
 
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <span className="text-sm font-medium text-gray-700">
-              Progresso da Reserva
-            </span>
+            <span className="text-sm font-medium text-gray-700">Progresso</span>
             <span className="text-sm font-semibold text-gray-900">
-              {Math.min(100, emergencyReserveProgress).toFixed(1)}%
+              {Math.min(100, reserveProgress).toFixed(1)}%
             </span>
           </div>
           
-          <Progress value={Math.min(100, emergencyReserveProgress)} className="h-3" />
+          <Progress value={Math.min(100, reserveProgress)} className="h-3" />
           
-          <div className="flex justify-between items-center text-sm text-gray-600">
-            <span>{formatCurrency(plan.emergency_reserve_current)}</span>
-            <span>{formatCurrency(plan.emergency_reserve_target)}</span>
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-600">Atual: {formatCurrency(plan.emergency_reserve_current)}</span>
+            <span className="text-gray-600">Meta: {formatCurrency(plan.emergency_reserve_target)}</span>
           </div>
 
-          {plan.is_emergency_reserve_complete ? (
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="font-semibold text-green-800">✅ Reserva Completa!</span>
-              </div>
-              <p className="text-sm text-green-700 mt-1">
-                Parabéns! Sua segurança financeira está garantida.
+          {!plan.is_emergency_reserve_complete && (
+            <div className="p-3 bg-orange-50 rounded-lg">
+              <p className="text-sm text-orange-700">
+                <strong>Faltam:</strong> {formatCurrency(plan.emergency_reserve_target - plan.emergency_reserve_current)}
               </p>
-            </div>
-          ) : (
-            <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Shield className="w-5 h-5 text-orange-600" />
-                <span className="font-semibold text-orange-800">
-                  Faltam {formatCurrency(Math.max(0, plan.emergency_reserve_target - plan.emergency_reserve_current))}
-                </span>
-              </div>
-              <p className="text-sm text-orange-700 mt-1">
-                Continue priorizando a reserva junto com seus investimentos.
+              <p className="text-xs text-orange-600 mt-1">
+                Continue priorizando a reserva antes de investir agressivamente
               </p>
             </div>
           )}
         </div>
       </Card>
 
-      {/* Plano de Alocação */}
+      {/* Alocação de Investimentos */}
       <Card className="p-6">
         <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <PieChart className="w-6 h-6 text-green-600" />
+          <div className="p-2 bg-blue-100 rounded-lg">
+            <TrendingUp className="w-6 h-6 text-blue-600" />
           </div>
           <div>
-            <h4 className="font-semibold text-gray-900">Seu Plano de Investimento</h4>
-            <p className="text-sm text-gray-600">
-              Distribuição mensal recomendada
-            </p>
+            <h4 className="font-semibold text-gray-900">Alocação Mensal</h4>
+            <p className="text-sm text-gray-600">Distribuição dos seus {formatCurrency(monthlyAmount)}</p>
           </div>
         </div>
 
         <div className="space-y-6">
-          {allocationData.map((allocation, index) => (
-            <div key={index} className="p-4 border-2 border-gray-200 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">{allocation.icon}</span>
-                  <div>
-                    <h5 className="font-semibold text-gray-800">
-                      {allocation.label}
-                    </h5>
-                    <p className="text-sm text-gray-600">
-                      {allocation.percentage.toFixed(1)}% • {formatCurrency(allocation.value)}/mês
-                    </p>
-                  </div>
-                </div>
-                <Badge variant="outline" className="bg-white text-gray-700 border-gray-300">
-                  {allocation.percentage.toFixed(1)}%
-                </Badge>
+          {/* Curto Prazo */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-blue-500" />
+                <span className="text-sm font-medium">Curto Prazo (&lt; 2 anos)</span>
               </div>
-
-              {allocation.goals.length > 0 && (
-                <div className="border-t border-gray-200 pt-3">
-                  <div className="text-sm text-gray-600 mb-2">
-                    <strong>Seus objetivos:</strong>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {allocation.goals.map((goal, idx) => (
-                      <Badge key={idx} variant="outline" className="text-xs">
-                        {goal}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div className="text-right">
+                <div className="text-sm font-semibold">{plan.short_term_allocation}%</div>
+                <div className="text-xs text-gray-600">{formatCurrency(shortTermAmount)}</div>
+              </div>
             </div>
-          ))}
-        </div>
+            <Progress value={plan.short_term_allocation} className="h-2" />
+            {profile.short_term_goals && profile.short_term_goals.length > 0 && (
+              <p className="text-xs text-gray-600">
+                Objetivos: {profile.short_term_goals.join(', ')}
+              </p>
+            )}
+          </div>
 
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center justify-between">
-            <span className="font-semibold text-gray-800">Total Mensal:</span>
-            <span className="text-xl font-bold text-gray-900">
-              {formatCurrency(plan.monthly_investment_capacity)}
-            </span>
+          {/* Médio Prazo */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-orange-500" />
+                <span className="text-sm font-medium">Médio Prazo (2-5 anos)</span>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-semibold">{plan.medium_term_allocation}%</div>
+                <div className="text-xs text-gray-600">{formatCurrency(mediumTermAmount)}</div>
+              </div>
+            </div>
+            <Progress value={plan.medium_term_allocation} className="h-2" />
+            {profile.medium_term_goals && profile.medium_term_goals.length > 0 && (
+              <p className="text-xs text-gray-600">
+                Objetivos: {profile.medium_term_goals.join(', ')}
+              </p>
+            )}
+          </div>
+
+          {/* Longo Prazo */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-purple-500" />
+                <span className="text-sm font-medium">Longo Prazo (&gt; 5 anos)</span>
+              </div>
+              <div className="text-right">
+                <div className="text-sm font-semibold">{plan.long_term_allocation}%</div>
+                <div className="text-xs text-gray-600">{formatCurrency(longTermAmount)}</div>
+              </div>
+            </div>
+            <Progress value={plan.long_term_allocation} className="h-2" />
+            {profile.long_term_goals && profile.long_term_goals.length > 0 && (
+              <p className="text-xs text-gray-600">
+                Objetivos: {profile.long_term_goals.join(', ')}
+              </p>
+            )}
           </div>
         </div>
       </Card>
 
       {/* Próximos Passos */}
-      <Card className="p-6 border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-purple-50">
+      <Card className="p-6 border-2 border-green-200 bg-gradient-to-r from-green-50 to-blue-50">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Calendar className="w-6 h-6 text-blue-600" />
+          <div className="p-2 bg-green-100 rounded-lg">
+            <CheckCircle className="w-6 h-6 text-green-600" />
           </div>
           <div>
-            <h4 className="font-semibold text-blue-800">Próximos Passos</h4>
-            <p className="text-sm text-blue-600">
-              Como começar a investir hoje mesmo
-            </p>
+            <h4 className="font-semibold text-green-800">Próximos Passos</h4>
+            <p className="text-sm text-green-600">Para colocar seu plano em ação</p>
           </div>
         </div>
 
-        <div className="space-y-3 text-sm text-blue-700">
+        <div className="space-y-3 text-sm text-green-700">
           <div className="flex items-start gap-2">
-            <span className="text-blue-500">1️⃣</span>
-            <span>Abra conta em uma corretora de confiança</span>
+            <span className="text-green-500">1️⃣</span>
+            <span>Configure transferências automáticas para cada objetivo</span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-blue-500">2️⃣</span>
-            <span>Configure transferências automáticas mensais conforme seu plano</span>
+            <span className="text-green-500">2️⃣</span>
+            <span>Escolha produtos de investimento adequados para cada prazo</span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-blue-500">3️⃣</span>
-            <span>Comece com investimentos adequados ao seu perfil e objetivos</span>
+            <span className="text-green-500">3️⃣</span>
+            <span>Revise mensalmente e ajuste conforme necessário</span>
           </div>
           <div className="flex items-start gap-2">
-            <span className="text-blue-500">4️⃣</span>
-            <span>Acompanhe seu progresso mensalmente e ajuste conforme necessário</span>
+            <span className="text-green-500">4️⃣</span>
+            <span>Mantenha disciplina e foco nos objetivos de longo prazo</span>
           </div>
         </div>
       </Card>
@@ -299,10 +202,7 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Button
           variant="outline"
-          onClick={() => {
-            console.log('Navigating to profile');
-            setCurrentStep('profile');
-          }}
+          onClick={() => setCurrentStep('profile')}
           className="flex items-center gap-2"
         >
           <Edit className="w-4 h-4" />
@@ -311,28 +211,35 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
         
         <Button
           variant="outline"
-          onClick={() => {
-            console.log('Navigating to plan');
-            setCurrentStep('plan');
-          }}
+          onClick={() => setCurrentStep('plan')}
           className="flex items-center gap-2"
         >
-          <TrendingUp className="w-4 h-4" />
+          <RefreshCw className="w-4 h-4" />
           Revisar Alocação
         </Button>
       </div>
 
-      {/* Concluir */}
-      <Card className="p-6 text-center">
-        <div className="text-lg font-semibold text-gray-900 mb-2">
-          🎯 Seu planejamento está ativo!
+      {/* Perfil Resumido */}
+      <Card className="p-6 bg-gray-50">
+        <h4 className="font-semibold text-gray-800 mb-4">📋 Resumo do Perfil</h4>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="font-medium text-gray-700">Idade:</span>
+            <span className="ml-2 text-gray-600">{profile.age} anos</span>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700">Perfil de Risco:</span>
+            <span className="ml-2 text-gray-600 capitalize">{profile.risk_profile}</span>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700">Situação Profissional:</span>
+            <span className="ml-2 text-gray-600 capitalize">{profile.employment_type}</span>
+          </div>
+          <div>
+            <span className="font-medium text-gray-700">Sobra Mensal:</span>
+            <span className="ml-2 text-gray-600">{formatCurrency(plan.monthly_investment_capacity)}</span>
+          </div>
         </div>
-        <p className="text-gray-600 mb-4">
-          Continue acompanhando seu progresso na aba de objetivos e metas.
-        </p>
-        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
-          ✅ Plano Concluído
-        </Badge>
       </Card>
     </div>
   );

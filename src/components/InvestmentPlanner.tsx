@@ -77,23 +77,6 @@ const InvestmentPlanner: React.FC = () => {
 
   const handleQuickAccess = (step: 'reserve' | 'plan' | 'summary') => {
     console.log('Quick access clicked:', step);
-    
-    // Validar se pode navegar
-    if (step === 'reserve' && !hasProfile) {
-      console.warn('Cannot access reserve without profile');
-      return;
-    }
-    
-    if (step === 'plan' && !hasProfile) {
-      console.warn('Cannot access plan without profile');
-      return;
-    }
-    
-    if (step === 'summary' && (!hasProfile || !hasPlan)) {
-      console.warn('Cannot access summary without profile and plan');
-      return;
-    }
-    
     setCurrentStep(step);
   };
 
@@ -204,15 +187,13 @@ const InvestmentPlanner: React.FC = () => {
               >
                 Reserva
               </Badge>
-              {hasProfile && (
-                <Badge 
-                  variant="outline" 
-                  className="cursor-pointer hover:bg-blue-100"
-                  onClick={() => handleQuickAccess('plan')}
-                >
-                  Plano
-                </Badge>
-              )}
+              <Badge 
+                variant="outline" 
+                className="cursor-pointer hover:bg-blue-100"
+                onClick={() => handleQuickAccess('plan')}
+              >
+                Plano
+              </Badge>
               {hasPlan && (
                 <Badge 
                   variant="outline" 

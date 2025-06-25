@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Slider } from '@/components/ui/slider';
 import { Shield, Calculator, Target, TrendingUp, ArrowLeft } from 'lucide-react';
 import { InvestmentProfile, useInvestmentPlanner } from '@/hooks/useInvestmentPlanner';
 import { formatCurrency } from '@/utils/formatters';
@@ -32,14 +33,33 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
     plan?.emergency_reserve_current || 0
   );
 
+  // Estado para o multiplicador de meses escolhido pelo usuário
+  const [selectedMonths, setSelectedMonths] = useState(
+    calculations.emergencyReserveMultiplier
+  );
+
+  // Calcular limites baseados no tipo de emprego
+  const getReserveMonthsLimits = () => {
+    if (profile.employment_type === 'freelancer' || profile.employment_type === 'entrepreneur') {
+      return { min: 18, max: 24, default: 18 };
+    } else if (profile.employment_type === 'civil_servant') {
+      return { min: 6, max: 12, default: 6 };
+    } else { // CLT
+      return { min: 6, max: 12, default: 6 };
+    }
+  };
+
+  const monthsLimits = getReserveMonthsLimits();
+  const customReserveTarget = profile.monthly_expenses * selectedMonths;
+  
   const reserveProgress = currentReserve > 0 
-    ? (currentReserve / calculations.emergencyReserveTarget) * 100 
+    ? (currentReserve / customReserveTarget) * 100 
     : 0;
 
-  const isReserveComplete = currentReserve >= calculations.emergencyReserveTarget;
+  const isReserveComplete = currentReserve >= customReserveTarget;
   const monthsToComplete = isReserveComplete 
     ? 0 
-    : Math.ceil((calculations.emergencyReserveTarget - currentReserve) / Math.max(calculations.monthlyInvestmentCapacity, 1));
+    : Math.ceil((customReserveTarget - currentReserve) / Math.max(calculations.monthlyInvestmentCapacity, 1));
 
   const handleSubmit = () => {
     if (!profile.id) {
@@ -49,7 +69,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
 
     const planData = {
       profile_id: profile.id,
-      emergency_reserve_target: calculations.emergencyReserveTarget,
+      emergency_reserve_target: customReserveTarget,
       emergency_reserve_current: currentReserve,
       short_term_allocation: calculations.shortTermAllocation,
       medium_term_allocation: calculations.mediumTermAllocation,
@@ -125,16 +145,16 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
           </div>
           
           <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <div className="text-sm text-purple-600 mb-1">Multiplicador</div>
+            <div className="text-sm text-purple-600 mb-1">Meses Escolhidos</div>
             <div className="text-xl font-bold text-purple-800">
-              {calculations.emergencyReserveMultiplier}x meses
+              {selectedMonths} meses
             </div>
           </div>
           
           <div className="text-center p-4 bg-green-50 rounded-lg">
             <div className="text-sm text-green-600 mb-1">Meta da Reserva</div>
             <div className="text-xl font-bold text-green-800">
-              {formatCurrency(calculations.emergencyReserveTarget)}
+              {formatCurrency(customReserveTarget)}
             </div>
           </div>
         </div>
@@ -148,6 +168,50 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
           </p>
           <div className="text-sm text-gray-600">
             <strong>Recomendação:</strong> {employmentInfo.recommendation}
+          </div>
+        </div>
+      </Card>
+
+      {/* Escolha do Período da Reserva */}
+      <Card className="p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-purple-100 rounded-lg">
+            <Target className="w-6 h-6 text-purple-600" />
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-900">Período da Reserva</h4>
+            <p className="text-sm text-gray-600">
+              Quantos meses de despesas você quer guardar?
+            </p>
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div>
+            <Label>Meses de Reserva: {selectedMonths}</Label>
+            <div className="mt-2">
+              <Slider
+                value={[selectedMonths]}
+                onValueChange={(value) => setSelectedMonths(value[0])}
+                min={monthsLimits.min}
+                max={monthsLimits.max}
+                step={1}
+                className="w-full"
+              />
+            </div>
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>{monthsLimits.min} meses (mínimo)</span>
+              <span>{monthsLimits.max} meses (máximo)</span>
+            </div>
+          </div>
+
+          <div className="p-3 bg-blue-50 rounded-lg">
+            <p className="text-sm text-blue-700">
+              <strong>Meta ajustada:</strong> {formatCurrency(customReserveTarget)}
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              {selectedMonths} meses × {formatCurrency(profile.monthly_expenses)} = {formatCurrency(customReserveTarget)}
+            </p>
           </div>
         </div>
       </Card>
@@ -194,7 +258,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
             
             <div className="flex justify-between items-center text-xs text-gray-600">
               <span>{formatCurrency(currentReserve)}</span>
-              <span>{formatCurrency(calculations.emergencyReserveTarget)}</span>
+              <span>{formatCurrency(customReserveTarget)}</span>
             </div>
           </div>
         </div>
@@ -237,7 +301,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
           <div className="mt-4 p-4 bg-white bg-opacity-50 rounded-lg">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-gray-800">
-                Faltam: {formatCurrency(Math.max(0, calculations.emergencyReserveTarget - currentReserve))}
+                Faltam: {formatCurrency(Math.max(0, customReserveTarget - currentReserve))}
               </span>
               <Badge variant="outline" className="bg-white">
                 {monthsToComplete} meses
@@ -254,10 +318,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Button
           variant="outline"
-          onClick={() => {
-            console.log('Navigating back to profile');
-            setCurrentStep('profile');
-          }}
+          onClick={() => setCurrentStep('profile')}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
