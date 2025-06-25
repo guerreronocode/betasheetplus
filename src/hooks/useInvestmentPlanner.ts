@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -40,13 +39,8 @@ export const useInvestmentPlanner = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // DETERMINAR STEP INICIAL baseado nos dados disponíveis
-  const getInitialStep = () => {
-    // Sempre iniciar no profile para permitir edição
-    return 'profile';
-  };
-
-  const [currentStep, setCurrentStep] = useState<'profile' | 'reserve' | 'plan' | 'summary'>(getInitialStep());
+  // Sempre iniciar no profile para permitir edição e navegação manual
+  const [currentStep, setCurrentStep] = useState<'profile' | 'reserve' | 'plan' | 'summary'>('profile');
 
   // Buscar perfil existente
   const {
