@@ -248,26 +248,40 @@ export const useInvestmentPlanner = () => {
     };
   }, [profile]);
 
-  // Função para salvar perfil e navegar manualmente
+  // Função para salvar perfil e navegar - SIMPLIFICADA E DIRETA
   const saveProfileAndNavigate = async (profileData: Omit<InvestmentProfile, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
     console.log('🔄 SALVANDO PROFILE E NAVEGANDO...');
     try {
       await saveProfileMutation.mutateAsync(profileData);
-      console.log('✅ PROFILE SALVO, navegando para reserve');
-      setCurrentStep('reserve');
+      console.log('✅ PROFILE SALVO, forçando navegação para reserve');
+      
+      // NAVEGAÇÃO DIRETA E IMEDIATA
+      setTimeout(() => {
+        console.log('🚀 EXECUTANDO setCurrentStep("reserve")');
+        setCurrentStep('reserve');
+        console.log('✅ currentStep atualizado para reserve');
+      }, 100);
+      
     } catch (error) {
       console.error('❌ Erro ao salvar profile:', error);
       throw error;
     }
   };
 
-  // Função para salvar plano e navegar manualmente
+  // Função para salvar plano e navegar - SIMPLIFICADA E DIRETA
   const savePlanAndNavigate = async (planData: Omit<InvestmentPlan, 'id' | 'created_at' | 'updated_at'>, targetStep: 'plan' | 'summary') => {
     console.log('🔄 SALVANDO PLAN E NAVEGANDO...');
     try {
       await savePlanMutation.mutateAsync(planData);
-      console.log(`✅ PLAN SALVO, navegando para ${targetStep}`);
-      setCurrentStep(targetStep);
+      console.log(`✅ PLAN SALVO, forçando navegação para ${targetStep}`);
+      
+      // NAVEGAÇÃO DIRETA E IMEDIATA
+      setTimeout(() => {
+        console.log(`🚀 EXECUTANDO setCurrentStep("${targetStep}")`);
+        setCurrentStep(targetStep);
+        console.log(`✅ currentStep atualizado para ${targetStep}`);
+      }, 100);
+      
     } catch (error) {
       console.error('❌ Erro ao salvar plan:', error);
       throw error;
