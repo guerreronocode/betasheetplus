@@ -11,6 +11,7 @@ export interface InvestmentProfile {
   main_objective: string;
   risk_profile: 'conservative' | 'moderate' | 'aggressive';
   organization_level: 'no_reserve' | 'building_reserve' | 'reserve_completed';
+  employment_type: 'clt' | 'civil_servant' | 'freelancer' | 'entrepreneur';
   monthly_income: number;
   monthly_expenses: number;
   short_term_goals: string[];
@@ -170,16 +171,16 @@ export const useInvestmentPlanner = () => {
 
     const monthlyInvestmentCapacity = profile.monthly_income - profile.monthly_expenses;
 
-    // Cálculo da reserva de emergência baseado no perfil
-    let emergencyReserveMultiplier = 6; // Padrão concursado/estável
+    // Cálculo da reserva de emergência baseado no tipo de emprego
+    let emergencyReserveMultiplier = 6; // Padrão CLT
     
-    if (profile.organization_level === 'no_reserve') {
-      emergencyReserveMultiplier = 12; // CLT
-    }
-    
-    // Se for freelancer/empresário (deduzido pelo perfil agressivo + baixa organização)
-    if (profile.risk_profile === 'aggressive' && profile.organization_level === 'no_reserve') {
-      emergencyReserveMultiplier = 18;
+    if (profile.employment_type === 'freelancer' || profile.employment_type === 'entrepreneur') {
+      emergencyReserveMultiplier = 18; // Autônomo/Empreendedor
+    } else if (profile.employment_type === 'civil_servant') {
+      emergencyReserveMultiplier = 6; // Concursado
+    } else if (profile.employment_type === 'clt') {
+      // CLT pode escolher entre 6-12 meses (vamos usar 6 como padrão)
+      emergencyReserveMultiplier = 6;
     }
 
     const emergencyReserveTarget = profile.monthly_expenses * emergencyReserveMultiplier;

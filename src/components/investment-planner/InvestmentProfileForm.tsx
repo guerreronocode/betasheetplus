@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { User, Target, TrendingUp, Shield } from 'lucide-react';
+import { User, Target, TrendingUp, Shield, Briefcase } from 'lucide-react';
 import { InvestmentProfile, useInvestmentPlanner } from '@/hooks/useInvestmentPlanner';
 import { formatCurrency } from '@/utils/formatters';
 
@@ -17,6 +17,7 @@ interface ProfileFormData {
   main_objective: string;
   risk_profile: 'conservative' | 'moderate' | 'aggressive';
   organization_level: 'no_reserve' | 'building_reserve' | 'reserve_completed';
+  employment_type: 'clt' | 'civil_servant' | 'freelancer' | 'entrepreneur';
   monthly_income: number;
   monthly_expenses: number;
   short_term_goals: string;
@@ -33,6 +34,7 @@ const InvestmentProfileForm: React.FC = () => {
       main_objective: profile?.main_objective || '',
       risk_profile: profile?.risk_profile || 'moderate',
       organization_level: profile?.organization_level || 'no_reserve',
+      employment_type: profile?.employment_type || 'clt',
       monthly_income: profile?.monthly_income || 0,
       monthly_expenses: profile?.monthly_expenses || 0,
       short_term_goals: profile?.short_term_goals?.join(', ') || '',
@@ -77,6 +79,36 @@ const InvestmentProfileForm: React.FC = () => {
       }
     };
     return profiles[type as keyof typeof profiles];
+  };
+
+  const getEmploymentTypeInfo = (type: string) => {
+    const types = {
+      clt: {
+        label: 'CLT',
+        icon: '👥',
+        description: 'Carteira assinada',
+        reserveMonths: '6-12 meses'
+      },
+      civil_servant: {
+        label: 'Concursado',
+        icon: '🏛️',
+        description: 'Servidor público',
+        reserveMonths: '6 meses'
+      },
+      freelancer: {
+        label: 'Freelancer',
+        icon: '💻',
+        description: 'Trabalho autônomo',
+        reserveMonths: '18 meses'
+      },
+      entrepreneur: {
+        label: 'Empreendedor',
+        icon: '🚀',
+        description: 'Negócio próprio',
+        reserveMonths: '18 meses'
+      }
+    };
+    return types[type as keyof typeof types];
   };
 
   return (
@@ -127,6 +159,46 @@ const InvestmentProfileForm: React.FC = () => {
             {errors.main_objective && <p className="text-red-500 text-sm mt-1">{errors.main_objective.message}</p>}
           </div>
         </div>
+      </Card>
+
+      {/* Situação Profissional */}
+      <Card className="p-6">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 bg-purple-100 rounded-lg">
+            <Briefcase className="w-6 h-6 text-purple-600" />
+          </div>
+          <div>
+            <h4 className="font-semibold text-gray-900">Situação Profissional</h4>
+            <p className="text-sm text-gray-600">Seu tipo de trabalho impacta a reserva de emergência</p>
+          </div>
+        </div>
+
+        <RadioGroup
+          value={watchedValues.employment_type}
+          onValueChange={(value) => setValue('employment_type', value as any)}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
+          {['clt', 'civil_servant', 'freelancer', 'entrepreneur'].map((type) => {
+            const info = getEmploymentTypeInfo(type);
+            return (
+              <div key={type} className="flex items-start space-x-3 p-4 border-2 border-gray-200 rounded-lg hover:border-purple-300 transition-colors">
+                <RadioGroupItem value={type} id={type} className="mt-1" />
+                <div className="flex-1">
+                  <Label htmlFor={type} className="cursor-pointer">
+                    <div className="flex items-center gap-2 font-semibold text-gray-900">
+                      <span>{info.icon}</span>
+                      {info.label}
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{info.description}</p>
+                    <Badge variant="outline" className="mt-2 text-xs">
+                      Reserva: {info.reserveMonths}
+                    </Badge>
+                  </Label>
+                </div>
+              </div>
+            );
+          })}
+        </RadioGroup>
       </Card>
 
       {/* Situação Financeira */}
@@ -222,7 +294,7 @@ const InvestmentProfileForm: React.FC = () => {
         </RadioGroup>
       </Card>
 
-      {/* Organização Financeira */}
+      {/* Reserva de Emergência */}
       <Card className="p-6">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-orange-100 rounded-lg">
@@ -259,7 +331,7 @@ const InvestmentProfileForm: React.FC = () => {
             <RadioGroupItem value="reserve_completed" id="reserve_completed" className="mt-1" />
             <Label htmlFor="reserve_completed" className="cursor-pointer flex-1">
               <div className="font-semibold text-gray-900">✅ Reserva completa</div>
-              <p className="text-sm text-gray-600 mt-1">Tenho 6+ meses de gastos guardados</p>
+              <p className="text-sm text-gray-600 mt-1">Tenho a reserva adequada para meu perfil</p>
             </Label>
           </div>
         </RadioGroup>

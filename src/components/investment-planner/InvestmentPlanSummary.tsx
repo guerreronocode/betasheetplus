@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Target, TrendingUp, Calendar, Shield, PieChart } from 'lucide-react';
+import { CheckCircle, Target, TrendingUp, Calendar, Shield, PieChart, Edit } from 'lucide-react';
 import { InvestmentProfile, InvestmentPlan, useInvestmentPlanner } from '@/hooks/useInvestmentPlanner';
 import { formatCurrency } from '@/utils/formatters';
 
@@ -59,7 +59,18 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
     return profiles[profile.risk_profile];
   };
 
+  const getEmploymentBadge = () => {
+    const types = {
+      clt: { label: 'CLT', icon: '👥' },
+      civil_servant: { label: 'Concursado', icon: '🏛️' },
+      freelancer: { label: 'Freelancer', icon: '💻' },
+      entrepreneur: { label: 'Empreendedor', icon: '🚀' }
+    };
+    return types[profile.employment_type];
+  };
+
   const profileInfo = getProfileBadge();
+  const employmentInfo = getEmploymentBadge();
 
   return (
     <div className="space-y-6">
@@ -90,15 +101,22 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <div className="text-sm text-gray-600 mb-1">Idade</div>
             <div className="text-xl font-bold text-gray-900">{profile.age} anos</div>
           </div>
           
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <div className="text-sm text-green-600 mb-1">Trabalho</div>
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-300">
+              {employmentInfo.icon} {employmentInfo.label}
+            </Badge>
+          </div>
+          
           <div className="text-center p-4 bg-purple-50 rounded-lg">
             <div className="text-sm text-purple-600 mb-1">Perfil</div>
-            <Badge variant="outline" className={`bg-${profileInfo.color}-50 text-${profileInfo.color}-700 border-${profileInfo.color}-300`}>
+            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-300">
               {profileInfo.icon} {profileInfo.label}
             </Badge>
           </div>
@@ -260,7 +278,7 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
         <div className="space-y-3 text-sm text-blue-700">
           <div className="flex items-start gap-2">
             <span className="text-blue-500">1️⃣</span>
-            <span>Abra conta em uma corretora de confiança (XP, Rico, Clear, etc.)</span>
+            <span>Abra conta em uma corretora de confiança</span>
           </div>
           <div className="flex items-start gap-2">
             <span className="text-blue-500">2️⃣</span>
@@ -268,7 +286,7 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
           </div>
           <div className="flex items-start gap-2">
             <span className="text-blue-500">3️⃣</span>
-            <span>Comece com produtos simples: CDB, Tesouro Direto, fundos de renda fixa</span>
+            <span>Comece com investimentos adequados ao seu perfil e objetivos</span>
           </div>
           <div className="flex items-start gap-2">
             <span className="text-blue-500">4️⃣</span>
@@ -284,7 +302,7 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
           onClick={() => setCurrentStep('profile')}
           className="flex items-center gap-2"
         >
-          <Target className="w-4 h-4" />
+          <Edit className="w-4 h-4" />
           Ajustar Perfil
         </Button>
         

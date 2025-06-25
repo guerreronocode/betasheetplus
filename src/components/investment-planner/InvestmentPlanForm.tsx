@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, Target, PieChart, Calculator } from 'lucide-react';
+import { TrendingUp, Target, PieChart, Calculator, ArrowLeft } from 'lucide-react';
 import { InvestmentProfile, useInvestmentPlanner } from '@/hooks/useInvestmentPlanner';
 import { formatCurrency } from '@/utils/formatters';
 
@@ -26,7 +26,7 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
   profile,
   calculations
 }) => {
-  const { plan, savePlan, isSavingPlan } = useInvestmentPlanner();
+  const { plan, savePlan, isSavingPlan, setCurrentStep } = useInvestmentPlanner();
   
   const [allocations, setAllocations] = useState({
     short_term: calculations.shortTermAllocation,
@@ -91,10 +91,10 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
     return {
       goals: termGoals,
       suggestions: term === 'short' 
-        ? ['CDB de liquidez diária', 'Tesouro Selic', 'Conta remunerada']
+        ? ['Liquidez diária', 'Baixo risco', 'Proteção contra inflação']
         : term === 'medium'
-        ? ['CDB pré-fixado', 'Tesouro IPCA+', 'Fundos conservadores']
-        : ['Ações', 'Fundos de índice', 'Tesouro IPCA+ longo', 'Fundos imobiliários']
+        ? ['Renda fixa', 'Proteção IPCA', 'Prazo determinado']
+        : ['Renda variável', 'Fundos de índice', 'Crescimento a longo prazo']
     };
   };
 
@@ -307,35 +307,44 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
         <div className="text-sm text-purple-700">
           {profile.risk_profile === 'conservative' && (
             <p>
-              <strong>Foco na segurança:</strong> Priorize renda fixa (CDB, Tesouro Direto) e mantenha 
-              maior alocação no curto e médio prazo para ter flexibilidade.
+              <strong>Foco na segurança:</strong> Priorize investimentos de baixo risco que protejam 
+              contra a inflação e mantenha maior alocação no curto e médio prazo para ter flexibilidade.
             </p>
           )}
           {profile.risk_profile === 'moderate' && (
             <p>
-              <strong>Equilibrio ideal:</strong> Combine renda fixa para estabilidade e renda variável 
-              (ações, fundos) para crescimento, especialmente no longo prazo.
+              <strong>Equilibrio ideal:</strong> Combine investimentos de baixo risco para estabilidade 
+              e alguns de maior potencial para crescimento, especialmente no longo prazo.
             </p>
           )}
           {profile.risk_profile === 'aggressive' && (
             <p>
-              <strong>Foco no crescimento:</strong> Maximize a alocação no longo prazo com ações, 
-              fundos de índice e ativos de maior potencial de retorno.
+              <strong>Foco no crescimento:</strong> Maximize a alocação no longo prazo com investimentos 
+              de maior potencial de retorno, mantendo o essencial para emergências.
             </p>
           )}
         </div>
       </Card>
 
-      {/* Submit */}
-      <Card className="p-6">
+      {/* Ações */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Button
+          variant="outline"
+          onClick={() => setCurrentStep('reserve')}
+          className="flex items-center gap-2"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Voltar à Reserva
+        </Button>
+        
         <Button
           onClick={handleSubmit}
-          className="w-full bg-green-600 hover:bg-green-700"
+          className="bg-green-600 hover:bg-green-700"
           disabled={isSavingPlan}
         >
           {isSavingPlan ? 'Salvando...' : 'Finalizar Planejamento →'}
         </Button>
-      </Card>
+      </div>
     </div>
   );
 };
