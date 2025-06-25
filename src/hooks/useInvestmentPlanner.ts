@@ -1,5 +1,5 @@
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -40,8 +40,13 @@ export const useInvestmentPlanner = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Estado local para controlar o step atual
-  const [currentStep, setCurrentStep] = useState<'profile' | 'reserve' | 'plan' | 'summary'>('profile');
+  // DETERMINAR STEP INICIAL baseado nos dados disponíveis
+  const getInitialStep = () => {
+    // Sempre iniciar no profile para permitir edição
+    return 'profile';
+  };
+
+  const [currentStep, setCurrentStep] = useState<'profile' | 'reserve' | 'plan' | 'summary'>(getInitialStep());
 
   // Buscar perfil existente
   const {
@@ -100,28 +105,6 @@ export const useInvestmentPlanner = () => {
     },
     enabled: !!profile?.id,
   });
-
-  // NAVEGAÇÃO AUTOMÁTICA baseada nos dados disponíveis
-  useEffect(() => {
-    console.log('🔄 EFFECT: Verificando navegação automática');
-    console.log('- hasProfile:', !!profile);
-    console.log('- hasPlan:', !!plan);
-    console.log('- currentStep:', currentStep);
-    
-    // Se tem profile e plan, mas está no step profile, navegar para summary
-    if (profile && plan && currentStep === 'profile') {
-      console.log('🚀 NAVEGAÇÃO AUTO: profile -> summary');
-      setCurrentStep('summary');
-      return;
-    }
-    
-    // Se tem profile mas não tem plan, e está no step profile, navegar para reserve
-    if (profile && !plan && currentStep === 'profile') {
-      console.log('🚀 NAVEGAÇÃO AUTO: profile -> reserve');
-      setCurrentStep('reserve');
-      return;
-    }
-  }, [profile, plan, currentStep]);
 
   // Salvar perfil
   const saveProfileMutation = useMutation({
@@ -271,24 +254,25 @@ export const useInvestmentPlanner = () => {
     };
   }, [profile]);
 
-  // Função SIMPLIFICADA para salvar perfil
+  // Função para salvar perfil e navegar manualmente
   const saveProfileAndNavigate = async (profileData: Omit<InvestmentProfile, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    console.log('🔄 SALVANDO PROFILE...');
+    console.log('🔄 SALVANDO PROFILE E NAVEGANDO...');
     try {
       await saveProfileMutation.mutateAsync(profileData);
-      console.log('✅ PROFILE SALVO - navegação será automática via useEffect');
+      console.log('✅ PROFILE SALVO, navegando para reserve');
+      setCurrentStep('reserve');
     } catch (error) {
       console.error('❌ Erro ao salvar profile:', error);
       throw error;
     }
   };
 
-  // Função SIMPLIFICADA para salvar plano
+  // Função para salvar plano e navegar manualmente
   const savePlanAndNavigate = async (planData: Omit<InvestmentPlan, 'id' | 'created_at' | 'updated_at'>, targetStep: 'plan' | 'summary') => {
-    console.log('🔄 SALVANDO PLAN...');
+    console.log('🔄 SALVANDO PLAN E NAVEGANDO...');
     try {
       await savePlanMutation.mutateAsync(planData);
-      console.log('✅ PLAN SALVO, navegando para:', targetStep);
+      console.log(`✅ PLAN SALVO, navegando para ${targetStep}`);
       setCurrentStep(targetStep);
     } catch (error) {
       console.error('❌ Erro ao salvar plan:', error);
