@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -24,14 +24,18 @@ const InvestmentPlanner: React.FC = () => {
     isEmergencyReserveComplete
   } = useInvestmentPlanner();
 
-  console.log('InvestmentPlanner state:', { 
-    currentStep, 
-    hasProfile, 
-    hasPlan, 
-    profile: !!profile, 
-    plan: !!plan,
-    calculations: !!calculations 
-  });
+  // Log para debug do estado atual
+  useEffect(() => {
+    console.log('InvestmentPlanner renderizou com currentStep:', currentStep);
+    console.log('InvestmentPlanner state completo:', { 
+      currentStep, 
+      hasProfile, 
+      hasPlan, 
+      profile: !!profile, 
+      plan: !!plan,
+      calculations: !!calculations 
+    });
+  }, [currentStep, hasProfile, hasPlan, profile, plan, calculations]);
 
   if (isLoading) {
     return (
@@ -80,6 +84,53 @@ const InvestmentPlanner: React.FC = () => {
     setCurrentStep(step);
   };
 
+  // Renderização condicional baseada no currentStep
+  const renderCurrentStep = () => {
+    console.log('Renderizando step:', currentStep);
+    
+    switch (currentStep) {
+      case 'profile':
+        return <InvestmentProfileForm />;
+      
+      case 'reserve':
+        if (profile && calculations) {
+          return (
+            <EmergencyReserveCalculator 
+              profile={profile}
+              calculations={calculations}
+            />
+          );
+        }
+        return <div>Carregando dados do perfil...</div>;
+      
+      case 'plan':
+        if (profile && calculations) {
+          return (
+            <InvestmentPlanForm 
+              profile={profile}
+              calculations={calculations}
+            />
+          );
+        }
+        return <div>Carregando dados do perfil...</div>;
+      
+      case 'summary':
+        if (profile && plan) {
+          return (
+            <InvestmentPlanSummary 
+              profile={profile}
+              plan={plan}
+            />
+          );
+        }
+        return <div>Carregando dados do plano...</div>;
+      
+      default:
+        console.warn('Step desconhecido:', currentStep);
+        return <InvestmentProfileForm />;
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -102,9 +153,11 @@ const InvestmentPlanner: React.FC = () => {
             { key: 'summary', label: 'Acompanhamento', description: 'Metas ativas' },
           ].map((step, index) => {
             const status = getStepStatus(step.key);
+            const isCurrentStep = currentStep === step.key;
             return (
               <div key={step.key} className="flex flex-col items-center flex-1">
                 <div className={`p-3 rounded-full border-2 mb-2 ${
+                  isCurrentStep ? 'bg-blue-200 border-blue-500 ring-2 ring-blue-300' :
                   status === 'completed' ? 'bg-green-100 border-green-300' :
                   status === 'current' ? 'bg-blue-100 border-blue-300' :
                   'bg-gray-100 border-gray-300'
@@ -113,11 +166,12 @@ const InvestmentPlanner: React.FC = () => {
                 </div>
                 <div className="text-center">
                   <div className={`font-semibold text-sm ${
+                    isCurrentStep ? 'text-blue-800' :
                     status === 'completed' ? 'text-green-800' :
                     status === 'current' ? 'text-blue-800' :
                     'text-gray-500'
                   }`}>
-                    {step.label}
+                    {step.label} {isCurrentStep && '← ATUAL'}
                   </div>
                   <div className="text-xs text-gray-500 mt-1">
                     {step.description}
@@ -142,30 +196,9 @@ const InvestmentPlanner: React.FC = () => {
       </Card>
 
       {/* Step Content */}
-      {currentStep === 'profile' && (
-        <InvestmentProfileForm />
-      )}
-
-      {currentStep === 'reserve' && profile && calculations && (
-        <EmergencyReserveCalculator 
-          profile={profile}
-          calculations={calculations}
-        />
-      )}
-
-      {currentStep === 'plan' && profile && calculations && (
-        <InvestmentPlanForm 
-          profile={profile}
-          calculations={calculations}
-        />
-      )}
-
-      {currentStep === 'summary' && profile && plan && (
-        <InvestmentPlanSummary 
-          profile={profile}
-          plan={plan}
-        />
-      )}
+      <div key={currentStep}>
+        {renderCurrentStep()}
+      </div>
 
       {/* Quick Access for Existing Users */}
       {hasProfile && (

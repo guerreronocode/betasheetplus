@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -248,25 +247,37 @@ export const useInvestmentPlanner = () => {
     };
   }, [profile]);
 
-  // Função para salvar perfil E navegar
+  // Função CORRIGIDA para salvar perfil E navegar
   const saveProfileAndNavigate = async (profileData: Omit<InvestmentProfile, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-    console.log('saveProfileAndNavigate called');
+    console.log('saveProfileAndNavigate called - iniciando salvamento');
     try {
       await saveProfileMutation.mutateAsync(profileData);
-      console.log('Profile saved successfully, navigating to reserve');
-      setCurrentStep('reserve');
+      console.log('Profile saved successfully - FORÇANDO navegação para reserve');
+      
+      // Forçar navegação de forma síncrona
+      setTimeout(() => {
+        console.log('Executando setCurrentStep para reserve');
+        setCurrentStep('reserve');
+      }, 100);
+      
     } catch (error) {
       console.error('Failed to save profile:', error);
     }
   };
 
-  // Função para salvar plano E navegar
+  // Função CORRIGIDA para salvar plano E navegar
   const savePlanAndNavigate = async (planData: Omit<InvestmentPlan, 'id' | 'created_at' | 'updated_at'>, targetStep: 'plan' | 'summary') => {
-    console.log('savePlanAndNavigate called with target:', targetStep);
+    console.log('savePlanAndNavigate called - iniciando salvamento para:', targetStep);
     try {
       await savePlanMutation.mutateAsync(planData);
-      console.log('Plan saved successfully, navigating to:', targetStep);
-      setCurrentStep(targetStep);
+      console.log('Plan saved successfully - FORÇANDO navegação para:', targetStep);
+      
+      // Forçar navegação de forma síncrona
+      setTimeout(() => {
+        console.log('Executando setCurrentStep para:', targetStep);
+        setCurrentStep(targetStep);
+      }, 100);
+      
     } catch (error) {
       console.error('Failed to save plan:', error);
     }
