@@ -253,7 +253,7 @@ export const useInvestmentPlanner = () => {
     console.log('saveProfileAndNavigate called');
     try {
       await saveProfileMutation.mutateAsync(profileData);
-      console.log('Profile saved, navigating to reserve');
+      console.log('Profile saved successfully, navigating to reserve');
       setCurrentStep('reserve');
     } catch (error) {
       console.error('Failed to save profile:', error);
@@ -265,7 +265,7 @@ export const useInvestmentPlanner = () => {
     console.log('savePlanAndNavigate called with target:', targetStep);
     try {
       await savePlanMutation.mutateAsync(planData);
-      console.log('Plan saved, navigating to:', targetStep);
+      console.log('Plan saved successfully, navigating to:', targetStep);
       setCurrentStep(targetStep);
     } catch (error) {
       console.error('Failed to save plan:', error);

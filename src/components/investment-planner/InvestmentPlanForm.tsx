@@ -70,7 +70,7 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
   };
 
   const handleFinalizePlanning = () => {
-    console.log('Finalize planning button clicked');
+    console.log('Finalize planning button clicked - calling savePlanAndNavigate');
     
     if (!profile.id) {
       console.error('Profile ID is missing');
@@ -290,7 +290,7 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
           className="bg-purple-600 hover:bg-purple-700"
           disabled={isSavingPlan || totalAllocation !== 100}
         >
-          {isSavingPlan ? 'Salvando...' : 'Finalizar Planejamento →'}
+          {isSavingPlan ? 'Salvando e Navegando...' : 'Finalizar Planejamento →'}
         </Button>
       </div>
     </div>

@@ -53,7 +53,7 @@ const InvestmentProfileForm: React.FC = () => {
       long_term_goals: data.long_term_goals.split(',').map(s => s.trim()).filter(Boolean)
     };
 
-    console.log('Submitting profile and navigating');
+    console.log('Form submitted, calling saveProfileAndNavigate');
     saveProfileAndNavigate(profileData);
   };
 
@@ -392,7 +392,7 @@ const InvestmentProfileForm: React.FC = () => {
           className="w-full bg-blue-600 hover:bg-blue-700"
           disabled={isSavingProfile || monthlyBalance < 0}
         >
-          {isSavingProfile ? 'Salvando...' : 'Continuar para Próxima Etapa →'}
+          {isSavingProfile ? 'Salvando e Navegando...' : 'Continuar para Próxima Etapa →'}
         </Button>
         
         {monthlyBalance < 0 && (

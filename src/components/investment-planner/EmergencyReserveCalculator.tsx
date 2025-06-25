@@ -61,7 +61,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
     : Math.ceil((customReserveTarget - currentReserve) / Math.max(calculations.monthlyInvestmentCapacity, 1));
 
   const handleContinue = () => {
-    console.log('Continue button clicked - saving plan data and navigating');
+    console.log('Continue button clicked - calling savePlanAndNavigate');
     
     if (!profile.id) {
       console.error('Profile ID is missing');
@@ -307,7 +307,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
           className="bg-orange-600 hover:bg-orange-700"
           disabled={isSavingPlan}
         >
-          {isSavingPlan ? 'Salvando...' : 'Continuar para Alocação →'}
+          {isSavingPlan ? 'Salvando e Navegando...' : 'Continuar para Alocação →'}
         </Button>
       </div>
     </div>
