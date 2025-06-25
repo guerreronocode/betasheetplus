@@ -71,7 +71,7 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
   };
 
   const handleFinalizePlanning = () => {
-    console.log('Handle finalize planning clicked');
+    console.log('Finalize planning button clicked');
     
     if (!profile.id) {
       console.error('Profile ID is missing');
@@ -91,6 +91,11 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
 
     console.log('Submitting updated plan data:', planData);
     savePlan(planData);
+  };
+
+  const handleBackToReserve = () => {
+    console.log('Back to reserve button clicked');
+    setCurrentStep('reserve');
   };
 
   const monthlyAmount = calculations.monthlyInvestmentCapacity;
@@ -273,8 +278,9 @@ const InvestmentPlanForm: React.FC<InvestmentPlanFormProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Button
           variant="outline"
-          onClick={() => setCurrentStep('reserve')}
+          onClick={handleBackToReserve}
           className="flex items-center gap-2"
+          disabled={isSavingPlan}
         >
           <ArrowLeft className="w-4 h-4" />
           Voltar à Reserva

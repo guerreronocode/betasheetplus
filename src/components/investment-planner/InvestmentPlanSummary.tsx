@@ -37,12 +37,12 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
   const longTermAmount = (monthlyAmount * plan.long_term_allocation) / 100;
 
   const handleAdjustProfile = () => {
-    console.log('Adjust profile clicked');
+    console.log('Adjust profile button clicked');
     setCurrentStep('profile');
   };
 
   const handleReviewAllocation = () => {
-    console.log('Review allocation clicked');
+    console.log('Review allocation button clicked');
     setCurrentStep('plan');
   };
 
@@ -225,7 +225,7 @@ const InvestmentPlanSummary: React.FC<InvestmentPlanSummaryProps> = ({
           className="flex items-center gap-2"
         >
           <RefreshCw className="w-4 h-4" />
-          Revisar Alocação
+          Revistar Alocação
         </Button>
       </div>
 

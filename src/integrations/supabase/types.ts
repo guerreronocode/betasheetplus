@@ -750,6 +750,7 @@ export type Database = {
         Row: {
           age: number
           created_at: string
+          employment_type: string
           id: string
           long_term_goals: string[] | null
           main_objective: string
@@ -765,6 +766,7 @@ export type Database = {
         Insert: {
           age: number
           created_at?: string
+          employment_type?: string
           id?: string
           long_term_goals?: string[] | null
           main_objective: string
@@ -780,6 +782,7 @@ export type Database = {
         Update: {
           age?: number
           created_at?: string
+          employment_type?: string
           id?: string
           long_term_goals?: string[] | null
           main_objective?: string

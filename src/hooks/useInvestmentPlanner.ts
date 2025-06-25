@@ -3,6 +3,7 @@ import { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 export interface InvestmentProfile {
   id?: string;
@@ -51,6 +52,8 @@ export const useInvestmentPlanner = () => {
     queryFn: async () => {
       if (!user) return null;
 
+      console.log('Fetching investment profile for user:', user.id);
+
       const { data, error } = await supabase
         .from('investment_profiles')
         .select('*')
@@ -62,6 +65,7 @@ export const useInvestmentPlanner = () => {
         throw error;
       }
 
+      console.log('Investment profile fetched:', data);
       return data as InvestmentProfile | null;
     },
     enabled: !!user,
@@ -77,6 +81,8 @@ export const useInvestmentPlanner = () => {
     queryFn: async () => {
       if (!profile?.id) return null;
 
+      console.log('Fetching investment plan for profile:', profile.id);
+
       const { data, error } = await supabase
         .from('investment_plans')
         .select('*')
@@ -88,6 +94,7 @@ export const useInvestmentPlanner = () => {
         throw error;
       }
 
+      console.log('Investment plan fetched:', data);
       return data as InvestmentPlan | null;
     },
     enabled: !!profile?.id,
@@ -98,12 +105,15 @@ export const useInvestmentPlanner = () => {
     mutationFn: async (profileData: Omit<InvestmentProfile, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
       if (!user) throw new Error('User not authenticated');
 
+      console.log('Saving profile data:', profileData);
+
       const payload = {
         ...profileData,
         user_id: user.id,
       };
 
       if (profile?.id) {
+        console.log('Updating existing profile:', profile.id);
         const { data, error } = await supabase
           .from('investment_profiles')
           .update(payload)
@@ -117,6 +127,7 @@ export const useInvestmentPlanner = () => {
         }
         return data;
       } else {
+        console.log('Creating new profile');
         const { data, error } = await supabase
           .from('investment_profiles')
           .insert([payload])
@@ -132,11 +143,13 @@ export const useInvestmentPlanner = () => {
     },
     onSuccess: (data) => {
       console.log('Profile saved successfully:', data);
+      toast.success('Perfil salvo com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['investment-profile'] });
       setCurrentStep('reserve');
     },
     onError: (error) => {
       console.error('Error saving profile:', error);
+      toast.error('Erro ao salvar perfil: ' + error.message);
     }
   });
 
@@ -145,12 +158,15 @@ export const useInvestmentPlanner = () => {
     mutationFn: async (planData: Omit<InvestmentPlan, 'id' | 'created_at' | 'updated_at'>) => {
       if (!profile?.id) throw new Error('Profile not found');
 
+      console.log('Saving plan data:', planData);
+
       const payload = {
         ...planData,
         profile_id: profile.id,
       };
 
       if (plan?.id) {
+        console.log('Updating existing plan:', plan.id);
         const { data, error } = await supabase
           .from('investment_plans')
           .update(payload)
@@ -164,6 +180,7 @@ export const useInvestmentPlanner = () => {
         }
         return data;
       } else {
+        console.log('Creating new plan');
         const { data, error } = await supabase
           .from('investment_plans')
           .insert([payload])
@@ -179,7 +196,9 @@ export const useInvestmentPlanner = () => {
     },
     onSuccess: (data) => {
       console.log('Plan saved successfully:', data);
+      toast.success('Plano salvo com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['investment-plan'] });
+      
       if (currentStep === 'reserve') {
         setCurrentStep('plan');
       } else if (currentStep === 'plan') {
@@ -188,6 +207,7 @@ export const useInvestmentPlanner = () => {
     },
     onError: (error) => {
       console.error('Error saving plan:', error);
+      toast.error('Erro ao salvar plano: ' + error.message);
     }
   });
 
@@ -235,7 +255,7 @@ export const useInvestmentPlanner = () => {
     };
   }, [profile]);
 
-  // Função simplificada para navegar entre as etapas
+  // Função para navegar entre as etapas
   const navigateToStep = (step: 'profile' | 'reserve' | 'plan' | 'summary') => {
     console.log('Navigating to step:', step);
     setCurrentStep(step);

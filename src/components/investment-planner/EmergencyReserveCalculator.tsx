@@ -34,7 +34,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
 
   // Estado para o multiplicador de meses escolhido pelo usuário
   const [selectedMonths, setSelectedMonths] = useState(
-    calculations.emergencyReserveMultiplier
+    plan?.emergency_reserve_target ? Math.round(plan.emergency_reserve_target / profile.monthly_expenses) : calculations.emergencyReserveMultiplier
   );
 
   // Calcular limites baseados no tipo de emprego
@@ -61,7 +61,7 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
     : Math.ceil((customReserveTarget - currentReserve) / Math.max(calculations.monthlyInvestmentCapacity, 1));
 
   const handleContinue = () => {
-    console.log('Handle continue clicked');
+    console.log('Continue button clicked - saving plan data');
     
     if (!profile.id) {
       console.error('Profile ID is missing');
@@ -81,6 +81,11 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
 
     console.log('Submitting plan data:', planData);
     savePlan(planData);
+  };
+
+  const handleBackToProfile = () => {
+    console.log('Back to profile button clicked');
+    setCurrentStep('profile');
   };
 
   const getEmploymentTypeInfo = () => {
@@ -260,31 +265,13 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
             <TrendingUp className="w-6 h-6 text-blue-600" />
           </div>
           <div>
-            <h4 className="font-semibold text-blue-800">Próximos Passos</h4>
-            <p className="text-sm text-blue-600">
-              Como estruturar sua reserva de emergência
-            </p>
+            <h4 className="font-semibold text-blue-800">Situação Profissional</h4>
+            <p className="text-sm text-blue-600">{employmentInfo.title}</p>
           </div>
         </div>
 
-        <div className="space-y-3 text-sm text-blue-700">
-          <div className="flex items-start gap-2">
-            <span className="text-blue-500">1️⃣</span>
-            <span>Escolha um investimento que renda acima do IPCA e tenha liquidez diária</span>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-blue-500">2️⃣</span>
-            <span>Configure transferências automáticas mensais para a reserva</span>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-blue-500">3️⃣</span>
-            <span>Use a reserva apenas para emergências REAIS (não para oportunidades)</span>
-          </div>
-          <div className="flex items-start gap-2">
-            <span className="text-blue-500">4️⃣</span>
-            <span>Quando a reserva estiver completa, redirecione o valor para investimentos</span>
-          </div>
-        </div>
+        <p className="text-sm text-blue-700 mb-4">{employmentInfo.description}</p>
+        <p className="text-sm font-medium text-blue-800">{employmentInfo.recommendation}</p>
 
         {!isReserveComplete && (
           <div className="mt-4 p-4 bg-white bg-opacity-50 rounded-lg">
@@ -307,8 +294,9 @@ const EmergencyReserveCalculator: React.FC<EmergencyReserveCalculatorProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <Button
           variant="outline"
-          onClick={() => setCurrentStep('profile')}
+          onClick={handleBackToProfile}
           className="flex items-center gap-2"
+          disabled={isSavingPlan}
         >
           <ArrowLeft className="w-4 h-4" />
           Voltar ao Perfil
