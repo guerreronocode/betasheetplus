@@ -77,7 +77,8 @@ const RecurringTransactions = () => {
       type: form.type,
       frequency: form.frequency,
       start_date: form.start_date,
-      end_date: form.end_date || undefined
+      end_date: form.end_date || undefined,
+      bank_account_id: form.bank_account_id
     };
 
     if (editingTransaction) {
@@ -142,7 +143,7 @@ const RecurringTransactions = () => {
       frequency: transaction.frequency,
       start_date: transaction.start_date,
       end_date: transaction.end_date || '',
-      bank_account_id: ''
+      bank_account_id: transaction.bank_account_id || ''
     });
     setIsDialogOpen(true);
   };
