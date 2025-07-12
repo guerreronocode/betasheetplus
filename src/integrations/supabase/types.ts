@@ -548,6 +548,7 @@ export type Database = {
           date: string
           description: string
           id: string
+          recurring_transaction_id: string | null
           updated_at: string
           user_id: string
         }
@@ -559,6 +560,7 @@ export type Database = {
           date?: string
           description: string
           id?: string
+          recurring_transaction_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -570,6 +572,7 @@ export type Database = {
           date?: string
           description?: string
           id?: string
+          recurring_transaction_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -579,6 +582,13 @@ export type Database = {
             columns: ["bank_account_id"]
             isOneToOne: false
             referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_recurring_transaction_id_fkey"
+            columns: ["recurring_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_transactions"
             referencedColumns: ["id"]
           },
         ]
@@ -642,6 +652,7 @@ export type Database = {
           date: string
           description: string
           id: string
+          recurring_transaction_id: string | null
           updated_at: string
           user_id: string
         }
@@ -653,6 +664,7 @@ export type Database = {
           date?: string
           description: string
           id?: string
+          recurring_transaction_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -664,6 +676,7 @@ export type Database = {
           date?: string
           description?: string
           id?: string
+          recurring_transaction_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -673,6 +686,13 @@ export type Database = {
             columns: ["bank_account_id"]
             isOneToOne: false
             referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "income_recurring_transaction_id_fkey"
+            columns: ["recurring_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "recurring_transactions"
             referencedColumns: ["id"]
           },
         ]

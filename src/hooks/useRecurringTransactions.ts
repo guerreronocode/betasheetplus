@@ -55,7 +55,7 @@ export const useRecurringTransactions = () => {
 
     const startDate = new Date(recurringTransaction.start_date + 'T00:00:00');
     const currentDate = new Date();
-    const transactions: Array<{ description: string; amount: number; category: string; date: string; user_id: string; bank_account_id?: string; }> = [];
+    const transactions: Array<{ description: string; amount: number; category: string; date: string; user_id: string; bank_account_id?: string; recurring_transaction_id: string; }> = [];
 
     let nextDate = new Date(startDate);
     
@@ -73,6 +73,7 @@ export const useRecurringTransactions = () => {
         date: dateString,
         user_id: user.id,
         bank_account_id: recurringTransaction.bank_account_id,
+        recurring_transaction_id: recurringTransaction.id,
       });
 
       // Calcular próxima data baseada na frequência
@@ -101,6 +102,45 @@ export const useRecurringTransactions = () => {
       if (error) {
         console.error('Error creating retroactive transactions:', error);
         throw error;
+      }
+
+      // Atualizar saldo da conta bancária se especificada
+      if (recurringTransaction.bank_account_id) {
+        const totalAmount = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+        const isIncome = recurringTransaction.type === 'income';
+        
+        // Buscar saldo atual da conta
+        const { data: currentAccount, error: fetchError } = await supabase
+          .from('bank_accounts')
+          .select('balance')
+          .eq('id', recurringTransaction.bank_account_id)
+          .eq('user_id', user.id)
+          .single();
+        
+        if (fetchError) {
+          console.error('Error fetching account balance:', fetchError);
+          throw fetchError;
+        }
+        
+        // Calcular novo saldo
+        const newBalance = isIncome 
+          ? currentAccount.balance + totalAmount 
+          : currentAccount.balance - totalAmount;
+        
+        // Atualizar saldo
+        const { error: balanceError } = await supabase
+          .from('bank_accounts')
+          .update({ 
+            balance: newBalance,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', recurringTransaction.bank_account_id)
+          .eq('user_id', user.id);
+
+        if (balanceError) {
+          console.error('Error updating account balance:', balanceError);
+          throw balanceError;
+        }
       }
     }
 
@@ -144,6 +184,7 @@ export const useRecurringTransactions = () => {
       queryClient.invalidateQueries({ queryKey: ['recurring_transactions'] });
       queryClient.invalidateQueries({ queryKey: ['income'] });
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
       
       const message = result.retroactiveCount > 0 
         ? `Transação recorrente criada! ${result.retroactiveCount} lançamentos retroativos adicionados.`
@@ -198,6 +239,85 @@ export const useRecurringTransactions = () => {
     mutationFn: async (id: string) => {
       if (!user) throw new Error('User not authenticated');
 
+      // Primeiro, buscar as transações geradas automaticamente para reverter o saldo
+      const { data: generatedIncomes } = await supabase
+        .from('income')
+        .select('amount, bank_account_id')
+        .eq('recurring_transaction_id', id)
+        .eq('user_id', user.id);
+
+      const { data: generatedExpenses } = await supabase
+        .from('expenses')
+        .select('amount, bank_account_id')
+        .eq('recurring_transaction_id', id)
+        .eq('user_id', user.id);
+
+      // Agrupar transações por conta bancária para calcular o impacto
+      const accountImpacts = new Map<string, number>();
+
+      // Processar receitas (devem ser subtraídas do saldo)
+      generatedIncomes?.forEach(income => {
+        if (income.bank_account_id) {
+          const current = accountImpacts.get(income.bank_account_id) || 0;
+          accountImpacts.set(income.bank_account_id, current - income.amount);
+        }
+      });
+
+      // Processar despesas (devem ser adicionadas de volta ao saldo)
+      generatedExpenses?.forEach(expense => {
+        if (expense.bank_account_id) {
+          const current = accountImpacts.get(expense.bank_account_id) || 0;
+          accountImpacts.set(expense.bank_account_id, current + expense.amount);
+        }
+      });
+
+      // Atualizar saldos das contas afetadas
+      for (const [accountId, impact] of accountImpacts) {
+        if (impact !== 0) {
+          // Buscar saldo atual
+          const { data: currentAccount, error: fetchError } = await supabase
+            .from('bank_accounts')
+            .select('balance')
+            .eq('id', accountId)
+            .eq('user_id', user.id)
+            .single();
+
+          if (fetchError) {
+            console.error('Error fetching account balance:', fetchError);
+            continue; // Continuar com as outras contas
+          }
+
+          // Atualizar saldo
+          const { error: balanceError } = await supabase
+            .from('bank_accounts')
+            .update({ 
+              balance: currentAccount.balance + impact,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', accountId)
+            .eq('user_id', user.id);
+
+          if (balanceError) {
+            console.error('Error updating account balance:', balanceError);
+          }
+        }
+      }
+
+      // Excluir transações geradas automaticamente (ON DELETE CASCADE fará isso automaticamente)
+      // mas vamos fazer explicitamente para garantir
+      await supabase
+        .from('income')
+        .delete()
+        .eq('recurring_transaction_id', id)
+        .eq('user_id', user.id);
+
+      await supabase
+        .from('expenses')
+        .delete()
+        .eq('recurring_transaction_id', id)
+        .eq('user_id', user.id);
+
+      // Desativar a transação recorrente
       const { error } = await supabase
         .from('recurring_transactions')
         .update({ is_active: false })
@@ -209,11 +329,24 @@ export const useRecurringTransactions = () => {
         throw error;
       }
 
-      return id;
+      return { 
+        id, 
+        deletedIncomes: generatedIncomes?.length || 0,
+        deletedExpenses: generatedExpenses?.length || 0 
+      };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['recurring_transactions'] });
-      toast({ title: 'Transação recorrente excluída com sucesso!' });
+      queryClient.invalidateQueries({ queryKey: ['income'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
+      
+      const totalDeleted = result.deletedIncomes + result.deletedExpenses;
+      const message = totalDeleted > 0 
+        ? `Transação recorrente excluída! ${totalDeleted} lançamentos associados foram removidos.`
+        : 'Transação recorrente excluída com sucesso!';
+      
+      toast({ title: message });
     },
     onError: (error) => {
       console.error('Error deleting recurring transaction:', error);
