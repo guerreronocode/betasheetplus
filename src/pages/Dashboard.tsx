@@ -51,6 +51,7 @@ const Dashboard = () => {
             <TabsTrigger value="investments" className="flex-shrink-0">Investimentos</TabsTrigger>
             <TabsTrigger value="goals" className="flex-shrink-0">Metas</TabsTrigger>
             <TabsTrigger value="patrimony" className="flex-shrink-0">Patrimônio</TabsTrigger>
+            <TabsTrigger value="credit-cards" className="flex-shrink-0">Cartões</TabsTrigger>
             <TabsTrigger value="debts" className="flex-shrink-0">Dívidas</TabsTrigger>
             <TabsTrigger value="achievements" className="flex-shrink-0">Conquistas</TabsTrigger>
           </TabsList>
@@ -148,6 +149,10 @@ const Dashboard = () => {
 
           <TabsContent value="patrimony">
             <ImprovedPatrimonyManager />
+          </TabsContent>
+
+          <TabsContent value="credit-cards">
+            <CreditCardManager />
           </TabsContent>
 
           <TabsContent value="debts">
