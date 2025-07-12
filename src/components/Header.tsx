@@ -1,16 +1,25 @@
 
-import React from 'react';
-import { Star, Coins, Calendar, LogOut } from 'lucide-react';
+import React, { useState } from 'react';
+import { Star, Coins, Calendar, LogOut, Settings, Trash2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useUserStats } from '@/hooks/useUserStats';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { 
+  DropdownMenu, 
+  DropdownMenuContent, 
+  DropdownMenuItem, 
+  DropdownMenuSeparator, 
+  DropdownMenuTrigger 
+} from '@/components/ui/dropdown-menu';
+import { AccountResetDialog } from '@/components/AccountResetDialog';
 import { useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const { user, signOut } = useAuth();
   const { userStats } = useUserStats();
   const navigate = useNavigate();
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
   
   const currentDate = new Date().toLocaleDateString('pt-BR', {
     weekday: 'long',
@@ -82,19 +91,38 @@ const Header = () => {
                   </p>
                 </div>
                 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleSignOut}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <LogOut className="w-4 h-4" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    <DropdownMenuItem onClick={() => setIsResetDialogOpen(true)} className="text-destructive">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Zerar todos os dados
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleSignOut}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sair da conta
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             )}
           </div>
         </div>
       </div>
+      
+      <AccountResetDialog 
+        open={isResetDialogOpen} 
+        onOpenChange={setIsResetDialogOpen}
+      />
     </header>
   );
 };
