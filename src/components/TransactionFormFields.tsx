@@ -76,29 +76,40 @@ const TransactionFormFields: React.FC<TransactionFormFieldsProps> = ({
         />
       </div>
       <div>
-        <Label htmlFor={`${type}-bank-account`}>Conta Bancária</Label>
+        <Label htmlFor={`${type}-bank-account`}>Conta Bancária *</Label>
         <Select
           value={form.bank_account_id}
           onValueChange={(value) => handleChange({ bank_account_id: value })}
+          required
         >
           <SelectTrigger>
             <Building className="w-4 h-4 mr-2" />
-            <SelectValue placeholder="Selecione uma conta (opcional)" />
+            <SelectValue placeholder="Selecione uma conta" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="none">Nenhuma conta específica</SelectItem>
-            {bankAccounts.map((account) => (
-              <SelectItem key={account.id} value={account.id}>
-                <div className="flex items-center space-x-2">
-                  <div className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: account.color }}
-                  />
-                  <span>{account.name} - {account.bank_name}</span>
-                </div>
+            {bankAccounts.length === 0 ? (
+              <SelectItem value="no-accounts" disabled>
+                Nenhuma conta cadastrada
               </SelectItem>
-            ))}
+            ) : (
+              bankAccounts.map((account) => (
+                <SelectItem key={account.id} value={account.id}>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: account.color }}
+                    />
+                    <span>{account.name} - {account.bank_name}</span>
+                  </div>
+                </SelectItem>
+              ))
+            )}
           </SelectContent>
         </Select>
+        {bankAccounts.length === 0 && (
+          <p className="text-sm text-red-600 mt-1">
+            Você precisa ter pelo menos uma conta bancária cadastrada para registrar transações.
+          </p>
+        )}
       </div>
       <div>
         <Label htmlFor={`${type}-date`}>Data</Label>

@@ -101,14 +101,14 @@ const AddTransactionForm = () => {
     amount: '',
     category: '',
     date: new Date().toISOString().split('T')[0],
-    bank_account_id: 'none'
+    bank_account_id: ''
   }
   const initialExpenseForm = {
     description: '',
     amount: '',
     category: '',
     date: new Date().toISOString().split('T')[0],
-    bank_account_id: 'none'
+    bank_account_id: ''
   }
 
   const {
@@ -117,13 +117,13 @@ const AddTransactionForm = () => {
     handleSubmit: handleIncomeSubmit,
     isSubmitting: isIncomeSubmitting
   } = useTransactionForm(initialIncomeForm, async (values) => {
-    if (!values.description || !values.amount || !values.category) return;
+    if (!values.description || !values.amount || !values.category || !values.bank_account_id) return;
     await addIncome({
       description: values.description,
       amount: parseFloat(values.amount),
       category: values.category,
       date: values.date,
-      bank_account_id: values.bank_account_id === 'none' ? undefined : values.bank_account_id
+      bank_account_id: values.bank_account_id
     });
   });
 
@@ -133,13 +133,13 @@ const AddTransactionForm = () => {
     handleSubmit: handleExpenseSubmit,
     isSubmitting: isExpenseSubmitting
   } = useTransactionForm(initialExpenseForm, async (values) => {
-    if (!values.description || !values.amount || !values.category) return;
+    if (!values.description || !values.amount || !values.category || !values.bank_account_id) return;
     await addExpense({
       description: values.description,
       amount: parseFloat(values.amount),
       category: values.category,
       date: values.date,
-      bank_account_id: values.bank_account_id === 'none' ? undefined : values.bank_account_id
+      bank_account_id: values.bank_account_id
     });
   });
 
@@ -172,7 +172,7 @@ const AddTransactionForm = () => {
             <Button
               type="submit"
               className="w-full bg-green-600 hover:bg-green-700"
-              disabled={isAddingIncome || isIncomeSubmitting}
+              disabled={isAddingIncome || isIncomeSubmitting || bankAccounts.length === 0}
             >
               {(isAddingIncome || isIncomeSubmitting) ? "Adicionando..." : "Adicionar Receita"}
             </Button>
@@ -190,7 +190,7 @@ const AddTransactionForm = () => {
             <Button
               type="submit"
               className="w-full bg-red-600 hover:bg-red-700"
-              disabled={isAddingExpense || isExpenseSubmitting}
+              disabled={isAddingExpense || isExpenseSubmitting || bankAccounts.length === 0}
             >
               {(isAddingExpense || isExpenseSubmitting) ? "Adicionando..." : "Adicionar Despesa"}
             </Button>

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useRecurringTransactions, RecurringTransaction } from '@/hooks/useRecurringTransactions';
+import { useBankAccounts } from '@/hooks/useBankAccounts';
 import { toast } from '@/hooks/use-toast';
 
 const RecurringTransactions = () => {
@@ -21,6 +22,8 @@ const RecurringTransactions = () => {
     isDeletingRecurring
   } = useRecurringTransactions();
   
+  const { bankAccounts } = useBankAccounts();
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<RecurringTransaction | null>(null);
   const [showRetroactiveDialog, setShowRetroactiveDialog] = useState(false);
@@ -33,7 +36,8 @@ const RecurringTransactions = () => {
     type: 'income' as 'income' | 'expense',
     frequency: 'monthly' as 'daily' | 'weekly' | 'monthly' | 'yearly',
     start_date: new Date().toISOString().split('T')[0],
-    end_date: ''
+    end_date: '',
+    bank_account_id: ''
   });
 
   const incomeCategories = ['Salário', 'Freelance', 'Investimentos', 'Aluguel', 'Vendas', 'Outros'];
@@ -48,7 +52,23 @@ const RecurringTransactions = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.description || !form.amount || !form.category) return;
+    if (!form.description || !form.amount || !form.category || !form.bank_account_id) {
+      toast({
+        title: 'Campos obrigatórios',
+        description: 'Preencha todos os campos obrigatórios, incluindo a conta bancária.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    if (bankAccounts.length === 0) {
+      toast({
+        title: 'Conta bancária necessária',
+        description: 'Você precisa ter pelo menos uma conta bancária cadastrada.',
+        variant: 'destructive'
+      });
+      return;
+    }
     
     const transactionData = {
       description: form.description,
@@ -107,7 +127,8 @@ const RecurringTransactions = () => {
       type: 'income',
       frequency: 'monthly',
       start_date: new Date().toISOString().split('T')[0],
-      end_date: ''
+      end_date: '',
+      bank_account_id: ''
     });
   };
 
@@ -120,7 +141,8 @@ const RecurringTransactions = () => {
       type: transaction.type,
       frequency: transaction.frequency,
       start_date: transaction.start_date,
-      end_date: transaction.end_date || ''
+      end_date: transaction.end_date || '',
+      bank_account_id: ''
     });
     setIsDialogOpen(true);
   };
@@ -279,7 +301,43 @@ const RecurringTransactions = () => {
                   />
                 </div>
                 
-                <Button type="submit" className="w-full" disabled={isAddingRecurring || isUpdatingRecurring}>
+                <div>
+                  <Label htmlFor="bank_account_id">Conta Bancária *</Label>
+                  <Select
+                    value={form.bank_account_id}
+                    onValueChange={(value) => setForm(prev => ({ ...prev, bank_account_id: value }))}
+                    required
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma conta" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {bankAccounts.length === 0 ? (
+                        <SelectItem value="no-accounts" disabled>
+                          Nenhuma conta cadastrada
+                        </SelectItem>
+                      ) : (
+                        bankAccounts.map((account) => (
+                          <SelectItem key={account.id} value={account.id}>
+                            <div className="flex items-center space-x-2">
+                              <div className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: account.color }}
+                              />
+                              <span>{account.name} - {account.bank_name}</span>
+                            </div>
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {bankAccounts.length === 0 && (
+                    <p className="text-sm text-red-600 mt-1">
+                      Você precisa ter pelo menos uma conta bancária cadastrada.
+                    </p>
+                  )}
+                </div>
+                
+                <Button type="submit" className="w-full" disabled={isAddingRecurring || isUpdatingRecurring || bankAccounts.length === 0}>
                   {isAddingRecurring || isUpdatingRecurring 
                     ? (editingTransaction ? 'Atualizando...' : 'Adicionando...') 
                     : (editingTransaction ? 'Atualizar Transação' : 'Criar Transação Recorrente')}

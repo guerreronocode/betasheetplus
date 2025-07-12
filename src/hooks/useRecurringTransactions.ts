@@ -15,6 +15,7 @@ export interface RecurringTransaction {
   start_date: string;
   end_date?: string;
   is_active: boolean;
+  bank_account_id?: string;
 }
 
 export const useRecurringTransactions = () => {
@@ -52,19 +53,26 @@ export const useRecurringTransactions = () => {
   const generateRetroactiveTransactions = async (recurringTransaction: RecurringTransaction) => {
     if (!user) throw new Error('User not authenticated');
 
-    const startDate = new Date(recurringTransaction.start_date);
+    const startDate = new Date(recurringTransaction.start_date + 'T00:00:00');
     const currentDate = new Date();
-    const transactions: Array<{ description: string; amount: number; category: string; date: string; user_id: string; }> = [];
+    const transactions: Array<{ description: string; amount: number; category: string; date: string; user_id: string; bank_account_id?: string; }> = [];
 
     let nextDate = new Date(startDate);
     
     while (isBefore(nextDate, currentDate)) {
+      // Formatar data no formato YYYY-MM-DD sem problemas de timezone
+      const year = nextDate.getFullYear();
+      const month = String(nextDate.getMonth() + 1).padStart(2, '0');
+      const day = String(nextDate.getDate()).padStart(2, '0');
+      const dateString = `${year}-${month}-${day}`;
+
       transactions.push({
         description: recurringTransaction.description,
         amount: recurringTransaction.amount,
         category: recurringTransaction.category,
-        date: nextDate.toISOString().split('T')[0],
+        date: dateString,
         user_id: user.id,
+        bank_account_id: recurringTransaction.bank_account_id,
       });
 
       // Calcular próxima data baseada na frequência
