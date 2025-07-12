@@ -29,6 +29,22 @@ export const useAccountReset = () => {
         }
       }
 
+      // Deletar investment_plans primeiro (via investment_profiles)
+      console.log('🗑️ Limpando investment_plans via investment_profiles');
+      const { data: profileIds } = await supabase
+        .from('investment_profiles')
+        .select('id')
+        .eq('user_id', user.id);
+      
+      if (profileIds && profileIds.length > 0) {
+        for (const profile of profileIds) {
+          await supabase
+            .from('investment_plans')
+            .delete()
+            .eq('profile_id', profile.id);
+        }
+      }
+
       // Lista de tabelas para limpar na ordem correta (considerando foreign keys)
       const tablesToClear = [
         'budgets',
@@ -36,7 +52,6 @@ export const useAccountReset = () => {
         'credit_card_bills',
         'credit_card_purchases',
         'credit_cards',
-        'investment_plans',
         'investment_profiles',
         'monthly_objectives',
         'user_achievements',
