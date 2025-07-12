@@ -13,9 +13,24 @@ export const useAccountReset = () => {
       
       console.log('🔄 Iniciando reset completo da conta para usuário:', user.id);
       
+      // Deletar budget_categories primeiro (via budgets)
+      console.log('🗑️ Limpando budget_categories via budgets');
+      const { data: budgetIds } = await supabase
+        .from('budgets')
+        .select('id')
+        .eq('user_id', user.id);
+      
+      if (budgetIds && budgetIds.length > 0) {
+        for (const budget of budgetIds) {
+          await supabase
+            .from('budget_categories')
+            .delete()
+            .eq('budget_id', budget.id);
+        }
+      }
+
       // Lista de tabelas para limpar na ordem correta (considerando foreign keys)
       const tablesToClear = [
-        'budget_categories',
         'budgets',
         'credit_card_installments', 
         'credit_card_bills',
@@ -37,7 +52,7 @@ export const useAccountReset = () => {
         'user_stats'
       ];
 
-      // Deletar dados de cada tabela - usando type assertions para contornar limitações do TypeScript
+      // Deletar dados de cada tabela
       for (const table of tablesToClear) {
         console.log(`🗑️ Limpando tabela: ${table}`);
         const { error } = await supabase
