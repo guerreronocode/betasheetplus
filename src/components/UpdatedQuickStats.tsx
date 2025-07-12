@@ -7,8 +7,8 @@ import UserLevelDisplay from './UserLevelDisplay';
 
 const UpdatedQuickStats = () => {
   const { 
-    totalIncome, 
-    totalExpenses, 
+    monthlyIncome, 
+    monthlyExpenses, 
     netWorth, 
     availableBalance,
     currentInvestmentValue,
@@ -31,7 +31,7 @@ const UpdatedQuickStats = () => {
     }).format(value);
   };
 
-  const monthlyBalance = totalIncome - totalExpenses;
+  const monthlyBalance = monthlyIncome - monthlyExpenses;
   const isPositive = monthlyBalance >= 0;
 
   if (isLoading) {
@@ -84,7 +84,7 @@ const UpdatedQuickStats = () => {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Receitas do Mês</p>
-              <p className="text-2xl font-bold text-green-600">{formatCurrency(totalIncome)}</p>
+              <p className="text-2xl font-bold text-green-600">{formatCurrency(monthlyIncome)}</p>
             </div>
           </div>
         </Card>
@@ -96,7 +96,7 @@ const UpdatedQuickStats = () => {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-600">Despesas do Mês</p>
-              <p className="text-2xl font-bold text-red-600">{formatCurrency(totalExpenses)}</p>
+              <p className="text-2xl font-bold text-red-600">{formatCurrency(monthlyExpenses)}</p>
             </div>
           </div>
         </Card>
