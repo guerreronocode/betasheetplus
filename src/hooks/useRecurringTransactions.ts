@@ -51,11 +51,20 @@ export const useRecurringTransactions = () => {
 
   // Função para gerar transações retroativas
   const generateRetroactiveTransactions = async (recurringTransaction: RecurringTransaction) => {
+    console.log('🔄 Gerando transações retroativas para:', recurringTransaction);
     if (!user) throw new Error('User not authenticated');
 
     const startDate = new Date(recurringTransaction.start_date + 'T00:00:00');
     const currentDate = new Date();
-    const transactions: Array<{ description: string; amount: number; category: string; date: string; user_id: string; bank_account_id?: string; recurring_transaction_id: string; }> = [];
+    const transactions: Array<{ 
+      description: string; 
+      amount: number; 
+      category: string; 
+      date: string; 
+      user_id: string; 
+      bank_account_id?: string; 
+      recurring_transaction_id: string; 
+    }> = [];
 
     let nextDate = new Date(startDate);
     
@@ -94,6 +103,7 @@ export const useRecurringTransactions = () => {
     }
 
     if (transactions.length > 0) {
+      console.log(`💾 Inserindo ${transactions.length} transações na tabela ${recurringTransaction.type === 'income' ? 'income' : 'expenses'}`);
       const tableName = recurringTransaction.type === 'income' ? 'income' : 'expenses';
       const { error } = await supabase
         .from(tableName)
@@ -103,6 +113,7 @@ export const useRecurringTransactions = () => {
         console.error('Error creating retroactive transactions:', error);
         throw error;
       }
+      console.log('✅ Transações inseridas com sucesso!');
 
       // Atualizar saldo da conta bancária se especificada
       if (recurringTransaction.bank_account_id) {
@@ -237,9 +248,11 @@ export const useRecurringTransactions = () => {
 
   const deleteRecurringTransactionMutation = useMutation({
     mutationFn: async (id: string) => {
+      console.log('🗑️ Excluindo transação recorrente:', id);
       if (!user) throw new Error('User not authenticated');
 
       // Primeiro, buscar as transações geradas automaticamente para reverter o saldo
+      console.log('🔍 Buscando transações geradas automaticamente...');
       const { data: generatedIncomes } = await supabase
         .from('income')
         .select('amount, bank_account_id')
@@ -251,6 +264,8 @@ export const useRecurringTransactions = () => {
         .select('amount, bank_account_id')
         .eq('recurring_transaction_id', id)
         .eq('user_id', user.id);
+        
+      console.log(`📊 Encontradas: ${generatedIncomes?.length || 0} receitas e ${generatedExpenses?.length || 0} despesas`);
 
       // Agrupar transações por conta bancária para calcular o impacto
       const accountImpacts = new Map<string, number>();
