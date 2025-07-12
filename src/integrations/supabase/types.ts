@@ -1038,6 +1038,7 @@ export type Database = {
       recurring_transactions: {
         Row: {
           amount: number
+          bank_account_id: string | null
           category: string
           created_at: string
           description: string
@@ -1052,6 +1053,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          bank_account_id?: string | null
           category: string
           created_at?: string
           description: string
@@ -1066,6 +1068,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          bank_account_id?: string | null
           category?: string
           created_at?: string
           description?: string
@@ -1078,7 +1081,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "recurring_transactions_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_achievements: {
         Row: {
