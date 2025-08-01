@@ -12,10 +12,10 @@ export const BudgetProjectionPanel: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="management" className="w-full">
+      <Tabs defaultValue="projection" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="management">Gestão</TabsTrigger>
           <TabsTrigger value="projection">Projeção</TabsTrigger>
+          <TabsTrigger value="management">Gestão</TabsTrigger>
         </TabsList>
 
         <TabsContent value="management" className="space-y-6">

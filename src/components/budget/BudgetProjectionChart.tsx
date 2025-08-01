@@ -128,37 +128,41 @@ export const BudgetProjectionChart: React.FC = () => {
               <Line
                 type="monotone"
                 dataKey="receita"
-                stroke="hsl(var(--chart-1))"
-                strokeWidth={2}
+                stroke="#10b981"
+                strokeWidth={3}
                 name="Receita Prevista"
-                dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 2, r: 4 }}
+                dot={{ fill: "#10b981", strokeWidth: 2, r: 5 }}
+                strokeDasharray="0"
               />
               
               <Line
                 type="monotone"
                 dataKey="orcamento"
-                stroke="hsl(var(--chart-2))"
-                strokeWidth={2}
+                stroke="#ef4444"
+                strokeWidth={3}
                 name="Orçamento"
-                dot={{ fill: "hsl(var(--chart-2))", strokeWidth: 2, r: 4 }}
+                dot={{ fill: "#ef4444", strokeWidth: 2, r: 5 }}
+                strokeDasharray="5 5"
               />
               
               <Line
                 type="monotone"
                 dataKey="saldoMensal"
-                stroke="hsl(var(--chart-3))"
+                stroke="#f59e0b"
                 strokeWidth={2}
                 name="Saldo Mensal"
-                dot={{ fill: "hsl(var(--chart-3))", strokeWidth: 2, r: 4 }}
+                dot={{ fill: "#f59e0b", strokeWidth: 2, r: 4 }}
+                strokeDasharray="3 3"
               />
               
               <Line
                 type="monotone"
                 dataKey="saldoAcumulado"
-                stroke="hsl(var(--chart-4))"
-                strokeWidth={3}
+                stroke="#3b82f6"
+                strokeWidth={4}
                 name="Saldo Acumulado"
-                dot={{ fill: "hsl(var(--chart-4))", strokeWidth: 2, r: 4 }}
+                dot={{ fill: "#3b82f6", strokeWidth: 3, r: 6 }}
+                strokeDasharray="0"
               />
             </LineChart>
           </ResponsiveContainer>
@@ -168,25 +172,25 @@ export const BudgetProjectionChart: React.FC = () => {
         <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t">
           <div className="text-center">
             <p className="text-sm text-muted-foreground">Receita Total Prevista</p>
-            <p className="text-lg font-bold text-chart-1">
+            <p className="text-lg font-bold" style={{ color: '#10b981' }}>
               {formatCurrency(projectionData.reduce((sum, item) => sum + item.receita, 0))}
             </p>
           </div>
           <div className="text-center">
             <p className="text-sm text-muted-foreground">Orçamento Total</p>
-            <p className="text-lg font-bold text-chart-2">
+            <p className="text-lg font-bold" style={{ color: '#ef4444' }}>
               {formatCurrency(projectionData.reduce((sum, item) => sum + item.orcamento, 0))}
             </p>
           </div>
           <div className="text-center">
             <p className="text-sm text-muted-foreground">Saldo Final Projetado</p>
-            <p className="text-lg font-bold text-chart-4">
+            <p className="text-lg font-bold" style={{ color: '#3b82f6' }}>
               {formatCurrency(projectionData[projectionData.length - 1]?.saldoAcumulado || 0)}
             </p>
           </div>
           <div className="text-center">
             <p className="text-sm text-muted-foreground">Média Mensal</p>
-            <p className="text-lg font-bold">
+            <p className="text-lg font-bold" style={{ color: '#f59e0b' }}>
               {formatCurrency((projectionData[projectionData.length - 1]?.saldoAcumulado || 0) / 12)}
             </p>
           </div>
