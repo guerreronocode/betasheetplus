@@ -34,14 +34,14 @@ export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, 
     description: '',
     is_recurring: false,
     recurring_start_month: new Date().toISOString().slice(0, 7) + '-01',
-    recurring_end_month: '',
+    recurring_end_month: 'no_end',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     const dataToSend = formData.is_recurring 
-      ? { ...formData, month: formData.recurring_start_month || formData.month }
+      ? { ...formData, month: formData.recurring_start_month || formData.month, recurring_end_month: formData.recurring_end_month === 'no_end' ? undefined : formData.recurring_end_month }
       : { ...formData, recurring_start_month: undefined, recurring_end_month: undefined };
     
     createPlannedIncome(dataToSend);
@@ -53,7 +53,7 @@ export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, 
       description: '',
       is_recurring: false,
       recurring_start_month: new Date().toISOString().slice(0, 7) + '-01',
-      recurring_end_month: '',
+      recurring_end_month: 'no_end',
     });
     
     onOpenChange(false);
@@ -180,7 +180,7 @@ export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, 
                     <SelectValue placeholder="Sem fim" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Sem fim</SelectItem>
+                    <SelectItem value="no_end">Sem fim</SelectItem>
                     {monthOptions.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
