@@ -1034,8 +1034,11 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          is_recurring: boolean
           month: string
           planned_amount: number
+          recurring_end_month: string | null
+          recurring_start_month: string | null
           updated_at: string
           user_id: string
         }
@@ -1044,8 +1047,11 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_recurring?: boolean
           month: string
           planned_amount: number
+          recurring_end_month?: string | null
+          recurring_start_month?: string | null
           updated_at?: string
           user_id: string
         }
@@ -1054,8 +1060,11 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          is_recurring?: boolean
           month?: string
           planned_amount?: number
+          recurring_end_month?: string | null
+          recurring_start_month?: string | null
           updated_at?: string
           user_id?: string
         }

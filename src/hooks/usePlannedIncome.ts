@@ -10,6 +10,9 @@ export interface PlannedIncome {
   category: string;
   planned_amount: number;
   description?: string;
+  is_recurring: boolean;
+  recurring_start_month?: string;
+  recurring_end_month?: string;
   created_at: string;
   updated_at: string;
 }
@@ -19,6 +22,9 @@ export interface PlannedIncomeInput {
   category: string;
   planned_amount: number;
   description?: string;
+  is_recurring?: boolean;
+  recurring_start_month?: string;
+  recurring_end_month?: string;
 }
 
 export const usePlannedIncome = () => {

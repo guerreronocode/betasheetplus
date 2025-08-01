@@ -1,0 +1,224 @@
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { usePlannedIncome, PlannedIncomeInput } from '@/hooks/usePlannedIncome';
+
+interface RecurringIncomeFormProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, onOpenChange }) => {
+  const { createPlannedIncome, isCreating } = usePlannedIncome();
+  
+  const incomeCategories = [
+    { value: 'salario', label: 'Salário' },
+    { value: 'freelance', label: 'Freelance' },
+    { value: 'bonus', label: 'Bônus' },
+    { value: 'investimentos', label: 'Investimentos' },
+    { value: 'aluguel', label: 'Aluguel Recebido' },
+    { value: 'pensao', label: 'Pensão' },
+    { value: 'vendas', label: 'Vendas' },
+    { value: 'dividendos', label: 'Dividendos' },
+    { value: 'outros', label: 'Outros' },
+  ];
+
+  const [formData, setFormData] = useState<PlannedIncomeInput>({
+    month: new Date().toISOString().slice(0, 7) + '-01',
+    category: '',
+    planned_amount: 0,
+    description: '',
+    is_recurring: false,
+    recurring_start_month: new Date().toISOString().slice(0, 7) + '-01',
+    recurring_end_month: '',
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const dataToSend = formData.is_recurring 
+      ? { ...formData, month: formData.recurring_start_month || formData.month }
+      : { ...formData, recurring_start_month: undefined, recurring_end_month: undefined };
+    
+    createPlannedIncome(dataToSend);
+    
+    setFormData({
+      month: new Date().toISOString().slice(0, 7) + '-01',
+      category: '',
+      planned_amount: 0,
+      description: '',
+      is_recurring: false,
+      recurring_start_month: new Date().toISOString().slice(0, 7) + '-01',
+      recurring_end_month: '',
+    });
+    
+    onOpenChange(false);
+  };
+
+  const handleInputChange = (field: keyof PlannedIncomeInput, value: string | number | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const monthOptions = Array.from({ length: 24 }, (_, i) => {
+    const date = new Date();
+    date.setMonth(date.getMonth() + i);
+    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    return {
+      value: firstDay.toISOString().slice(0, 10),
+      label: firstDay.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+    };
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Configurar Receita</DialogTitle>
+          <DialogDescription>
+            Configure suas receitas mensais ou recorrentes para projeções mais precisas.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="category">Categoria</Label>
+            <Select 
+              value={formData.category} 
+              onValueChange={(value) => handleInputChange('category', value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione a categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                {incomeCategories.map((category) => (
+                  <SelectItem key={category.value} value={category.value}>
+                    {category.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="planned_amount">Valor</Label>
+            <Input
+              id="planned_amount"
+              type="number"
+              min="0"
+              step="0.01"
+              value={formData.planned_amount}
+              onChange={(e) => handleInputChange('planned_amount', parseFloat(e.target.value) || 0)}
+              placeholder="0,00"
+              required
+            />
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Switch
+              checked={formData.is_recurring}
+              onCheckedChange={(checked) => handleInputChange('is_recurring', checked)}
+            />
+            <Label htmlFor="is_recurring">Receita recorrente (fixa)</Label>
+          </div>
+
+          {!formData.is_recurring && (
+            <div className="space-y-2">
+              <Label htmlFor="month">Mês específico</Label>
+              <Select 
+                value={formData.month} 
+                onValueChange={(value) => handleInputChange('month', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o mês" />
+                </SelectTrigger>
+                <SelectContent>
+                  {monthOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {formData.is_recurring && (
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="recurring_start_month">Início</Label>
+                <Select 
+                  value={formData.recurring_start_month} 
+                  onValueChange={(value) => handleInputChange('recurring_start_month', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Mês de início" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {monthOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="recurring_end_month">Fim (opcional)</Label>
+                <Select 
+                  value={formData.recurring_end_month} 
+                  onValueChange={(value) => handleInputChange('recurring_end_month', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sem fim" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Sem fim</SelectItem>
+                    {monthOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Descrição (opcional)</Label>
+            <Input
+              id="description"
+              value={formData.description}
+              onChange={(e) => handleInputChange('description', e.target.value)}
+              placeholder="Ex: Salário empresa X, freelance..."
+            />
+          </div>
+
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              type="submit" 
+              disabled={isCreating || !formData.category || formData.planned_amount <= 0}
+            >
+              {isCreating ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};

@@ -19,10 +19,21 @@ export const BudgetProjectionChart: React.FC = () => {
       const monthKey = date.toISOString().slice(0, 10);
       const monthLabel = date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
 
-      // Calcular receita prevista para este mês
-      const monthlyPlannedIncome = plannedIncome
-        .filter(income => income.month === monthKey)
+      // Calcular receita prevista para este mês (incluindo recorrentes)
+      const specificIncome = plannedIncome
+        .filter(income => !income.is_recurring && income.month === monthKey)
         .reduce((sum, income) => sum + income.planned_amount, 0);
+      
+      const recurringIncome = plannedIncome
+        .filter(income => {
+          if (!income.is_recurring) return false;
+          const startMonth = new Date(income.recurring_start_month || income.month);
+          const endMonth = income.recurring_end_month ? new Date(income.recurring_end_month) : null;
+          return date >= startMonth && (!endMonth || date <= endMonth);
+        })
+        .reduce((sum, income) => sum + income.planned_amount, 0);
+      
+      const monthlyPlannedIncome = specificIncome + recurringIncome;
 
       // Usar orçamento mensal ou proporcional do anual
       let monthlyBudgetAmount = 0;
