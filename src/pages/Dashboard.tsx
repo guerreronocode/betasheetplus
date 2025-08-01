@@ -46,7 +46,6 @@ const Dashboard = () => {
             <TabsTrigger value="evolution" className="flex-shrink-0">Evolução</TabsTrigger>
             <TabsTrigger value="objectives" className="flex-shrink-0">Objetivos</TabsTrigger>
             <TabsTrigger value="planning" className="flex-shrink-0">Planejamento</TabsTrigger>
-            <TabsTrigger value="projection" className="flex-shrink-0">Projeção</TabsTrigger>
             <TabsTrigger value="planner" className="flex-shrink-0">Planejador</TabsTrigger>
             <TabsTrigger value="accounts" className="flex-shrink-0">Contas</TabsTrigger>
             <TabsTrigger value="transactions" className="flex-shrink-0">Transações</TabsTrigger>
@@ -112,11 +111,10 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="planning">
-            <BudgetPanel />
-          </TabsContent>
-
-          <TabsContent value="projection">
-            <BudgetProjectionPanel />
+            <div className="space-y-6">
+              <BudgetPanel />
+              <BudgetProjectionPanel />
+            </div>
           </TabsContent>
 
           <TabsContent value="planner">
