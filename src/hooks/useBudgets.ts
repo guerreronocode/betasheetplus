@@ -132,6 +132,8 @@ export const useBudgets = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      // Forçar reload completo dos dados
+      queryClient.refetchQueries({ queryKey: ['budgets'] });
     },
   });
 
@@ -190,6 +192,8 @@ export const useBudgets = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      // Forçar reload completo dos dados
+      queryClient.refetchQueries({ queryKey: ['budgets'] });
     },
   });
 

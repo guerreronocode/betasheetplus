@@ -44,8 +44,13 @@ const BudgetComparison: React.FC<BudgetComparisonProps> = ({ budget, period }) =
   };
 
   useEffect(() => {
-    loadComparisons();
-  }, [budget, budget?.total_amount, budget?.budget_categories]);
+    // Delay para garantir que os dados foram atualizados no banco
+    const timeout = setTimeout(() => {
+      loadComparisons();
+    }, 100);
+    
+    return () => clearTimeout(timeout);
+  }, [budget, budget?.total_amount, budget?.budget_categories?.length]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
