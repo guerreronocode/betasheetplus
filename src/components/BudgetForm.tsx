@@ -45,24 +45,26 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
   };
 
   useEffect(() => {
-    if (existingBudget) {
-      setTotalAmount(existingBudget.total_amount || undefined);
-      if (existingBudget.budget_categories && existingBudget.budget_categories.length > 0) {
-        setUseCategories(true);
-        setCategoryBudgets(
-          existingBudget.budget_categories.map(cat => ({
-            category: cat.category,
-            planned_amount: cat.planned_amount
-          }))
-        );
+    if (open) {
+      if (existingBudget) {
+        setTotalAmount(existingBudget.total_amount || undefined);
+        if (existingBudget.budget_categories && existingBudget.budget_categories.length > 0) {
+          setUseCategories(true);
+          setCategoryBudgets(
+            existingBudget.budget_categories.map(cat => ({
+              category: cat.category,
+              planned_amount: cat.planned_amount
+            }))
+          );
+        } else {
+          setUseCategories(false);
+          setCategoryBudgets([]);
+        }
       } else {
+        setTotalAmount(undefined);
         setUseCategories(false);
         setCategoryBudgets([]);
       }
-    } else {
-      setTotalAmount(undefined);
-      setUseCategories(false);
-      setCategoryBudgets([]);
     }
   }, [existingBudget, open]);
 

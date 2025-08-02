@@ -45,7 +45,7 @@ const BudgetComparison: React.FC<BudgetComparisonProps> = ({ budget, period }) =
 
   useEffect(() => {
     loadComparisons();
-  }, [budget]);
+  }, [budget, budget?.total_amount, budget?.budget_categories]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
