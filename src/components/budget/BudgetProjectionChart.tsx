@@ -35,29 +35,11 @@ export const BudgetProjectionChart: React.FC = () => {
       
       const monthlyPlannedIncome = specificIncome + recurringIncome;
 
-      // Calcular orçamento mensal seguindo a nova regra:
-      // 1. Se houver categorias no orçamento mensal, usar soma das categorias
-      // 2. Caso contrário, usar valor fixo mensal ou proporcional do anual
-      // 3. Nenhum valor = zero
+      // Usar orçamento mensal ou proporcional do anual (já calculado automaticamente no backend)
       let monthlyBudgetAmount = 0;
-      
-      if (monthlyBudget?.budget_categories && monthlyBudget.budget_categories.length > 0) {
-        // Prioridade: soma das categorias do orçamento mensal
-        monthlyBudgetAmount = monthlyBudget.budget_categories.reduce(
-          (sum, category) => sum + (category.planned_amount || 0), 
-          0
-        );
-      } else if (monthlyBudget?.total_amount) {
-        // Fallback: valor fixo mensal
+      if (monthlyBudget?.total_amount) {
         monthlyBudgetAmount = monthlyBudget.total_amount;
-      } else if (yearlyBudget?.budget_categories && yearlyBudget.budget_categories.length > 0) {
-        // Orçamento anual com categorias (dividido por 12)
-        monthlyBudgetAmount = yearlyBudget.budget_categories.reduce(
-          (sum, category) => sum + (category.planned_amount || 0), 
-          0
-        ) / 12;
       } else if (yearlyBudget?.total_amount) {
-        // Fallback: valor fixo anual dividido por 12
         monthlyBudgetAmount = yearlyBudget.total_amount / 12;
       }
 

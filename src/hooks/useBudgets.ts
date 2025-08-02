@@ -92,6 +92,13 @@ export const useBudgets = () => {
     }) => {
       if (!user) throw new Error('User not authenticated');
 
+      // Calcular o total_amount baseado no tipo de orçamento
+      let finalTotalAmount = newBudget.total_amount;
+      if (newBudget.categories && newBudget.categories.length > 0) {
+        // Se há categorias, usar a soma das categorias
+        finalTotalAmount = newBudget.categories.reduce((sum, cat) => sum + cat.planned_amount, 0);
+      }
+
       // Primeiro, criar o orçamento principal
       const { data: budget, error: budgetError } = await supabase
         .from('budgets')
@@ -99,7 +106,7 @@ export const useBudgets = () => {
           user_id: user.id,
           period_type: newBudget.period_type,
           period_date: newBudget.period_date,
-          total_amount: newBudget.total_amount,
+          total_amount: finalTotalAmount,
         })
         .select()
         .single();
@@ -139,16 +146,28 @@ export const useBudgets = () => {
       updates: Partial<Budget>;
       categories?: { category: string; planned_amount: number }[];
     }) => {
+      // Calcular o total_amount baseado no tipo de orçamento
+      let finalUpdates = { ...updates };
+      if (categories !== undefined) {
+        if (categories.length > 0) {
+          // Se há categorias, usar a soma das categorias
+          finalUpdates.total_amount = categories.reduce((sum, cat) => sum + cat.planned_amount, 0);
+        } else {
+          // Se categorias foram removidas, manter o total_amount do updates original
+          finalUpdates.total_amount = updates.total_amount;
+        }
+      }
+
       // Atualizar orçamento principal
       const { error: budgetError } = await supabase
         .from('budgets')
-        .update(updates)
+        .update(finalUpdates)
         .eq('id', id);
 
       if (budgetError) throw budgetError;
 
-      // Se há categorias, remover as antigas e criar as novas
-      if (categories) {
+      // Se há categorias definidas, remover as antigas e criar as novas
+      if (categories !== undefined) {
         await supabase
           .from('budget_categories')
           .delete()
