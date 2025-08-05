@@ -28,12 +28,12 @@ export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, 
   ];
 
   const [formData, setFormData] = useState<PlannedIncomeInput>({
-    month: new Date().toISOString().slice(0, 7) + '-01',
+    month: new Date().toISOString().slice(0, 10),
     category: '',
     planned_amount: 0,
     description: '',
     is_recurring: false,
-    recurring_start_month: new Date().toISOString().slice(0, 7) + '-01',
+    recurring_start_month: new Date().toISOString().slice(0, 10),
     recurring_end_month: 'no_end',
   });
 
@@ -47,12 +47,12 @@ export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, 
     createPlannedIncome(dataToSend);
     
     setFormData({
-      month: new Date().toISOString().slice(0, 7) + '-01',
+      month: new Date().toISOString().slice(0, 10),
       category: '',
       planned_amount: 0,
       description: '',
       is_recurring: false,
-      recurring_start_month: new Date().toISOString().slice(0, 7) + '-01',
+      recurring_start_month: new Date().toISOString().slice(0, 10),
       recurring_end_month: 'no_end',
     });
     
@@ -69,7 +69,9 @@ export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, 
   const monthOptions = Array.from({ length: 24 }, (_, i) => {
     const date = new Date();
     date.setMonth(date.getMonth() + i);
-    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
     return {
       value: firstDay.toISOString().slice(0, 10),
       label: firstDay.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })

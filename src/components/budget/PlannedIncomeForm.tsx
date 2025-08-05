@@ -28,7 +28,7 @@ export const PlannedIncomeForm: React.FC<PlannedIncomeFormProps> = ({ open, onOp
   ];
 
   const [formData, setFormData] = useState<PlannedIncomeInput>({
-    month: new Date().toISOString().slice(0, 7) + '-01', // Primeiro dia do mês atual
+    month: new Date().toISOString().slice(0, 10), // Data atual
     category: '',
     planned_amount: 0,
     description: '',
@@ -41,7 +41,7 @@ export const PlannedIncomeForm: React.FC<PlannedIncomeFormProps> = ({ open, onOp
     
     // Reset form
     setFormData({
-      month: new Date().toISOString().slice(0, 7) + '-01',
+      month: new Date().toISOString().slice(0, 10),
       category: '',
       planned_amount: 0,
       description: '',
@@ -61,7 +61,9 @@ export const PlannedIncomeForm: React.FC<PlannedIncomeFormProps> = ({ open, onOp
   const monthOptions = Array.from({ length: 12 }, (_, i) => {
     const date = new Date();
     date.setMonth(date.getMonth() + i);
-    const firstDay = new Date(date.getFullYear(), date.getMonth(), 1);
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
     return {
       value: firstDay.toISOString().slice(0, 10),
       label: firstDay.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
