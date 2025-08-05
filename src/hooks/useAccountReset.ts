@@ -58,8 +58,8 @@ export const useAccountReset = () => {
         'recurring_transactions',
         'income',
         'expenses',
+        'goals', // Deve vir antes de investments devido à foreign key linked_investment_id
         'investments',
-        'goals',
         'debts',
         'assets',
         'liabilities',
