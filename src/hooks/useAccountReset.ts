@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
@@ -6,6 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 export const useAccountReset = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const resetAccountMutation = useMutation({
     mutationFn: async () => {
@@ -56,6 +57,7 @@ export const useAccountReset = () => {
         'monthly_objectives',
         'user_achievements',
         'recurring_transactions',
+        'planned_income', // Adicionado para deletar receitas planejadas
         'income',
         'expenses',
         'goals', // Deve vir antes de investments devido à foreign key linked_investment_id
@@ -109,6 +111,12 @@ export const useAccountReset = () => {
         title: 'Conta zerada com sucesso!',
         description: 'Todos os seus dados financeiros foram removidos. Sua conta está pronta para um novo começo.',
       });
+      
+      // Limpar todo o cache do React Query e recarregar a página
+      queryClient.clear();
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500); // Pequeno delay para mostrar o toast
     },
     onError: (error) => {
       console.error('Erro no reset da conta:', error);
