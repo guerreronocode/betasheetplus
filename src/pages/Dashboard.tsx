@@ -19,12 +19,11 @@ import { CreditCardManager } from '@/components/creditCard/CreditCardManager';
 import CategoryRanking from '@/components/CategoryRanking';
 import CategoryRankingCompact from '@/components/CategoryRankingCompact';
 import MonthlyObjectivesPanel from '@/components/MonthlyObjectivesPanel';
-import BudgetPanel from '@/components/BudgetPanel';
 import FinancialEvolutionPanel from '@/components/FinancialEvolutionPanel';
 import InvestmentPlanner from '@/components/InvestmentPlanner';
 import FinancialScoreCard from '@/components/FinancialScoreCard';
 import DetailedFinancialScore from '@/components/DetailedFinancialScore';
-import { BudgetProjectionPanel } from '@/components/budget/BudgetProjectionPanel';
+import { RefactoredPlanningPanel } from '@/components/budget/RefactoredPlanningPanel';
 import { useFinancialData } from '@/hooks/useFinancialData';
 
 const Dashboard = () => {
@@ -111,10 +110,7 @@ const Dashboard = () => {
           </TabsContent>
 
           <TabsContent value="planning">
-            <div className="space-y-6">
-              <BudgetPanel />
-              <BudgetProjectionPanel />
-            </div>
+            <RefactoredPlanningPanel />
           </TabsContent>
 
           <TabsContent value="planner">

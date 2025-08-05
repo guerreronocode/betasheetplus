@@ -1028,6 +1028,48 @@ export type Database = {
         }
         Relationships: []
       }
+      planned_expenses: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_recurring: boolean
+          month: string
+          planned_amount: number
+          recurring_end_month: string | null
+          recurring_start_month: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_recurring?: boolean
+          month: string
+          planned_amount: number
+          recurring_end_month?: string | null
+          recurring_start_month?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_recurring?: boolean
+          month?: string
+          planned_amount?: number
+          recurring_end_month?: string | null
+          recurring_start_month?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       planned_income: {
         Row: {
           category: string

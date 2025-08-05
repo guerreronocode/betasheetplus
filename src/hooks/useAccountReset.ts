@@ -58,6 +58,7 @@ export const useAccountReset = () => {
         'user_achievements',
         'recurring_transactions',
         'planned_income', // Adicionado para deletar receitas planejadas
+        'planned_expenses', // Adicionado para deletar despesas planejadas
         'income',
         'expenses',
         'goals', // Deve vir antes de investments devido à foreign key linked_investment_id
