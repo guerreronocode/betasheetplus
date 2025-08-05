@@ -42,7 +42,7 @@ export const EnhancedBudgetProjectionChart: React.FC = () => {
     // Gerar dados para os próximos 12 meses
     for (let i = 0; i < 12; i++) {
       const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
-      const monthKey = date.toISOString().slice(0, 10);
+      const monthKey = date.toISOString().slice(0, 7); // YYYY-MM format
       const monthLabel = date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
 
       // Calcular receita prevista para este mês (incluindo recorrentes)
