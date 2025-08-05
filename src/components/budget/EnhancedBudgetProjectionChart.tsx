@@ -53,9 +53,19 @@ export const EnhancedBudgetProjectionChart: React.FC = () => {
       const recurringIncome = plannedIncome
         .filter(income => {
           if (!income.is_recurring) return false;
-          const startMonth = new Date(income.recurring_start_month || income.month);
-          const endMonth = income.recurring_end_month ? new Date(income.recurring_end_month) : null;
-          return date >= startMonth && (!endMonth || date <= endMonth);
+          // Usar formato direto para evitar problemas de timezone
+          const startDate = income.recurring_start_month || income.month;
+          const [startYear, startMonth] = startDate.split('-').map(n => parseInt(n));
+          const endDate = income.recurring_end_month;
+          const [endYear, endMonth] = endDate ? endDate.split('-').map(n => parseInt(n)) : [null, null];
+          
+          const currentYear = date.getFullYear();
+          const currentMonth = date.getMonth() + 1; // getMonth() retorna 0-11, precisamos 1-12
+          
+          const isAfterStart = currentYear > startYear || (currentYear === startYear && currentMonth >= startMonth);
+          const isBeforeEnd = !endDate || currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth);
+          
+          return isAfterStart && isBeforeEnd;
         })
         .reduce((sum, income) => sum + income.planned_amount, 0);
       
@@ -69,9 +79,19 @@ export const EnhancedBudgetProjectionChart: React.FC = () => {
       const recurringExpenses = plannedExpenses
         .filter(expense => {
           if (!expense.is_recurring) return false;
-          const startMonth = new Date(expense.recurring_start_month || expense.month);
-          const endMonth = expense.recurring_end_month ? new Date(expense.recurring_end_month) : null;
-          return date >= startMonth && (!endMonth || date <= endMonth);
+          // Usar formato direto para evitar problemas de timezone
+          const startDate = expense.recurring_start_month || expense.month;
+          const [startYear, startMonth] = startDate.split('-').map(n => parseInt(n));
+          const endDate = expense.recurring_end_month;
+          const [endYear, endMonth] = endDate ? endDate.split('-').map(n => parseInt(n)) : [null, null];
+          
+          const currentYear = date.getFullYear();
+          const currentMonth = date.getMonth() + 1; // getMonth() retorna 0-11, precisamos 1-12
+          
+          const isAfterStart = currentYear > startYear || (currentYear === startYear && currentMonth >= startMonth);
+          const isBeforeEnd = !endDate || currentYear < endYear || (currentYear === endYear && currentMonth <= endMonth);
+          
+          return isAfterStart && isBeforeEnd;
         })
         .reduce((sum, expense) => sum + expense.planned_amount, 0);
       

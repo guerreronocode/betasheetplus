@@ -20,7 +20,9 @@ export const PlannedIncomeList: React.FC = () => {
   };
 
   const formatMonth = (dateString: string) => {
-    const date = new Date(dateString);
+    // Usar o formato direto para evitar problemas de timezone
+    const [year, month] = dateString.split('-');
+    const date = new Date(parseInt(year), parseInt(month) - 1, 1);
     return date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
   };
 
