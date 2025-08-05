@@ -251,6 +251,7 @@ export type Database = {
           id: string
           is_paid: boolean
           paid_account_id: string | null
+          paid_amount: number | null
           paid_at: string | null
           paid_date: string | null
           payment_account_id: string | null
@@ -267,6 +268,7 @@ export type Database = {
           id?: string
           is_paid?: boolean
           paid_account_id?: string | null
+          paid_amount?: number | null
           paid_at?: string | null
           paid_date?: string | null
           payment_account_id?: string | null
@@ -283,6 +285,7 @@ export type Database = {
           id?: string
           is_paid?: boolean
           paid_account_id?: string | null
+          paid_amount?: number | null
           paid_at?: string | null
           paid_date?: string | null
           payment_account_id?: string | null
@@ -1354,6 +1357,22 @@ export type Database = {
           month: string
           projected_available_limit: number
         }[]
+      }
+      mark_bill_as_paid: {
+        Args: { p_bill_id: string; p_payment_account_id?: string }
+        Returns: boolean
+      }
+      process_bill_payment: {
+        Args: {
+          p_bill_id: string
+          p_payment_amount: number
+          p_payment_account_id?: string
+        }
+        Returns: boolean
+      }
+      reverse_bill_payment: {
+        Args: { p_bill_id: string; p_reversal_amount?: number }
+        Returns: boolean
       }
       sync_credit_card_debts_to_patrimony: {
         Args: Record<PropertyKey, never>

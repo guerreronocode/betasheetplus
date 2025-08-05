@@ -120,25 +120,42 @@ export const useCreditCardBills = () => {
     mutationFn: async ({ billId, paymentData }: { billId: string; paymentData: BillPaymentFormData }) => {
       console.log('Paying bill:', billId, paymentData);
 
-      // Atualizar a fatura como paga
-      const { data, error } = await supabase
-        .from('credit_card_bills')
-        .update({
-          is_paid: true,
-          paid_at: new Date().toISOString(),
-          paid_date: paymentData.paid_date,
-          paid_account_id: paymentData.paid_account_id,
-        })
-        .eq('id', billId)
-        .select()
-        .single();
+      // Usar nova função para marcar fatura como paga
+      const { data, error } = await supabase.rpc('mark_bill_as_paid', {
+        p_bill_id: billId,
+        p_payment_account_id: paymentData.paid_account_id
+      });
 
       if (error) {
-        console.error('Error updating bill:', error);
+        console.error('Error marking bill as paid:', error);
         throw error;
       }
 
+      // Atualizar dados adicionais da fatura
+      const { error: updateError } = await supabase
+        .from('credit_card_bills')
+        .update({
+          paid_date: paymentData.paid_date,
+        })
+        .eq('id', billId);
+
+      if (updateError) {
+        console.error('Error updating bill additional data:', updateError);
+        throw updateError;
+      }
+
       // Marcar todas as parcelas desta fatura como pagas
+      const { data: billData, error: billError } = await supabase
+        .from('credit_card_bills')
+        .select('credit_card_id, bill_month, total_amount')
+        .eq('id', billId)
+        .single();
+
+      if (billError) {
+        console.error('Error fetching bill data:', billError);
+        throw billError;
+      }
+
       const { error: installmentsError } = await supabase
         .from('credit_card_installments')
         .update({
@@ -146,8 +163,8 @@ export const useCreditCardBills = () => {
           paid_at: new Date().toISOString(),
           payment_account_id: paymentData.paid_account_id,
         })
-        .eq('credit_card_id', data.credit_card_id)
-        .eq('bill_month', data.bill_month);
+        .eq('credit_card_id', billData.credit_card_id)
+        .eq('bill_month', billData.bill_month);
 
       if (installmentsError) {
         console.error('Error updating installments:', installmentsError);
@@ -167,7 +184,7 @@ export const useCreditCardBills = () => {
           throw accountError;
         }
 
-        const newBalance = account.balance - data.total_amount;
+        const newBalance = account.balance - billData.total_amount;
         
         const { error: updateError } = await supabase
           .from('bank_accounts')
@@ -192,7 +209,7 @@ export const useCreditCardBills = () => {
         // Não falhar o pagamento por causa disso, mas logar
       }
 
-      return data;
+      return billData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credit-card-bills'] });
