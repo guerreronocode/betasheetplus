@@ -11,7 +11,8 @@ const banks = [
 const accountTypes = [
   { value: "checking", label: "Conta Corrente" },
   { value: "savings", label: "Conta Poupança" },
-  { value: "investment", label: "Conta Investimento" }
+  { value: "investment", label: "Conta Investimento" },
+  { value: "physical_wallet", label: "Carteira Física" }
 ];
 
 interface BankAccountFormProps {
@@ -43,7 +44,7 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
       setLocalError("Informe o nome da conta.");
       return;
     }
-    if (!form.bank_name?.trim()) {
+    if (!form.bank_name?.trim() && form.account_type !== "physical_wallet") {
       e.preventDefault();
       setLocalError("Selecione o banco.");
       return;
@@ -80,22 +81,24 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
             required
           />
         </div>
-        <div>
-          <Label htmlFor="bank_name">Banco</Label>
-          <Select
-            value={form.bank_name}
-            onValueChange={(value) => onChange({ ...form, bank_name: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Selecione o banco" />
-            </SelectTrigger>
-            <SelectContent>
-              {banks.map(n => (
-                <SelectItem key={n} value={n}>{n}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {form.account_type !== "physical_wallet" && (
+          <div>
+            <Label htmlFor="bank_name">Banco</Label>
+            <Select
+              value={form.bank_name}
+              onValueChange={(value) => onChange({ ...form, bank_name: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o banco" />
+              </SelectTrigger>
+              <SelectContent>
+                {banks.map(n => (
+                  <SelectItem key={n} value={n}>{n}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
         <div>
           <Label htmlFor="account_type">Tipo de Conta</Label>
           <Select

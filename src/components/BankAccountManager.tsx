@@ -33,7 +33,7 @@ const BankAccountManager = () => {
 
     addBankAccount({
       name: newAccount.name,
-      bank_name: newAccount.bank_name,
+      bank_name: newAccount.account_type === 'physical_wallet' ? 'Carteira Física' : newAccount.bank_name,
       account_type: newAccount.account_type,
       balance: parseFloat(newAccount.balance),
       color: newAccount.color
@@ -54,6 +54,7 @@ const BankAccountManager = () => {
       checking: CreditCard,
       savings: Wallet,
       investment: Building2,
+      physical_wallet: Wallet,
     };
     const IconComponent = icons[type as keyof typeof icons] || CreditCard;
     return <IconComponent className="w-5 h-5" />;
@@ -64,6 +65,7 @@ const BankAccountManager = () => {
       checking: 'Conta Corrente',
       savings: 'Conta Poupança',
       investment: 'Conta Investimento',
+      physical_wallet: 'Carteira Física',
     };
     return names[type as keyof typeof names] || 'Conta Corrente';
   };

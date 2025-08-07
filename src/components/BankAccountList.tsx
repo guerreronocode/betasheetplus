@@ -8,6 +8,7 @@ const getAccountTypeIcon = (type: string) => {
     checking: CreditCard,
     savings: Wallet,
     investment: Building2,
+    physical_wallet: Wallet,
   };
   const IconComponent = icons[type as keyof typeof icons] || CreditCard;
   return <IconComponent className="w-5 h-5" />;
@@ -18,6 +19,7 @@ const getAccountTypeName = (type: string) => {
     checking: 'Conta Corrente',
     savings: 'Conta Poupança',
     investment: 'Conta Investimento',
+    physical_wallet: 'Carteira Física',
   };
   return names[type as keyof typeof names] || 'Conta Corrente';
 };
@@ -48,7 +50,9 @@ const BankAccountList: React.FC<BankAccountListProps> = ({ bankAccounts }) => {
                 </div>
                 <div>
                   <h4 className="font-medium">{account.name}</h4>
-                  <p className="text-sm text-gray-600">{account.bank_name}</p>
+                  {account.account_type !== "physical_wallet" && (
+                    <p className="text-sm text-gray-600">{account.bank_name}</p>
+                  )}
                   <p className="text-xs text-gray-500">{getAccountTypeName(account.account_type)}</p>
                 </div>
               </div>
