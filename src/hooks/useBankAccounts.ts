@@ -38,6 +38,7 @@ export const useBankAccounts = () => {
 
   const addBankAccountMutation = useMutation({
     mutationFn: async (account: Omit<BankAccount, 'id' | 'is_active'>) => {
+      console.log("addBankAccountMutation called with:", account);
       if (!user) throw new Error('User not authenticated');
       const { data, error } = await supabase
         .from('bank_accounts')
@@ -45,13 +46,26 @@ export const useBankAccounts = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error:", error);
+        throw error;
+      }
+      console.log("Account created successfully:", data);
       return data;
     },
     onSuccess: () => {
+      console.log("Mutation successful, invalidating queries");
       queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
       toast({ title: 'Conta bancária adicionada com sucesso!' });
     },
+    onError: (error) => {
+      console.error("Mutation error:", error);
+      toast({ 
+        title: 'Erro ao adicionar conta', 
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
   });
 
   return {

@@ -29,15 +29,22 @@ const BankAccountManager = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newAccount.name || !newAccount.bank_name || !newAccount.balance) return;
+    console.log("handleSubmit called", { newAccount });
+    if (!newAccount.name || !newAccount.balance) {
+      console.log("Missing required fields");
+      return;
+    }
 
-    addBankAccount({
+    const accountData = {
       name: newAccount.name,
       bank_name: newAccount.account_type === 'physical_wallet' ? 'Carteira Física' : newAccount.bank_name,
       account_type: newAccount.account_type,
       balance: parseFloat(newAccount.balance),
       color: newAccount.color
-    });
+    };
+
+    console.log("Calling addBankAccount with:", accountData);
+    addBankAccount(accountData);
 
     setNewAccount({
       name: '',
