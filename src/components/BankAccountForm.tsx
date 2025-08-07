@@ -33,32 +33,39 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
   const [localError, setLocalError] = React.useState<string | null>(null);
 
   const validateBeforeSubmit = (e: React.FormEvent) => {
+    console.log("Form validation started", { form });
     setLocalError(null);
     if (isSaving) {
       e.preventDefault();
       setLocalError("Por favor, aguarde o salvamento.");
+      console.log("Validation failed: isSaving");
       return;
     }
     if (!form.name?.trim()) {
       e.preventDefault();
       setLocalError("Informe o nome da conta.");
+      console.log("Validation failed: no name");
       return;
     }
     if (!form.bank_name?.trim() && form.account_type !== "physical_wallet") {
       e.preventDefault();
       setLocalError("Selecione o banco.");
+      console.log("Validation failed: no bank_name for non-physical wallet");
       return;
     }
     if (!form.balance || isNaN(Number(form.balance)) || Number(form.balance) < 0) {
       e.preventDefault();
       setLocalError("Informe um saldo válido (número maior ou igual a zero).");
+      console.log("Validation failed: invalid balance", { balance: form.balance });
       return;
     }
     if (!form.account_type) {
       e.preventDefault();
       setLocalError("Escolha um tipo de conta.");
+      console.log("Validation failed: no account_type");
       return;
     }
+    console.log("Validation passed, calling onSubmit");
     onSubmit(e);
   };
 
