@@ -147,7 +147,7 @@ export const useCreditCardBills = () => {
       // Marcar todas as parcelas desta fatura como pagas
       const { data: billData, error: billError } = await supabase
         .from('credit_card_bills')
-        .select('credit_card_id, bill_month, total_amount')
+        .select('user_id, credit_card_id, bill_month, total_amount')
         .eq('id', billId)
         .single();
 
@@ -200,6 +200,30 @@ export const useCreditCardBills = () => {
         }
       }
 
+      // CRIAR TRANSAÇÃO DE DESPESA PARA O PAGAMENTO DA FATURA
+      const { data: cardData, error: cardError } = await supabase
+        .from('credit_cards')
+        .select('name')
+        .eq('id', billData.credit_card_id)
+        .single();
+
+      if (!cardError && cardData) {
+        const { error: expenseError } = await supabase
+          .from('expenses')
+          .insert({
+            user_id: billData.user_id,
+            description: `Pagamento fatura ${cardData.name}`,
+            amount: billData.total_amount,
+            category: 'Cartão de Crédito',
+            date: paymentData.paid_date,
+            bank_account_id: paymentData.paid_account_id
+          });
+
+        if (expenseError) {
+          console.error('Erro ao criar transação de despesa:', expenseError);
+        }
+      }
+
       console.log('CRÍTICO: Fatura paga, executando sincronização obrigatória do patrimônio...');
       
       // CRÍTICO: Sincronizar patrimônio após pagamento
@@ -216,6 +240,7 @@ export const useCreditCardBills = () => {
       queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
       queryClient.invalidateQueries({ queryKey: ['credit-card-balances'] });
       queryClient.invalidateQueries({ queryKey: ['liabilities'] }); // CRÍTICO: invalidar patrimônio
+      queryClient.invalidateQueries({ queryKey: ['expenses'] }); // Invalidar despesas
       toast({
         title: "Fatura paga!",
         description: "A fatura foi marcada como paga, o saldo da conta foi atualizado e o patrimônio foi sincronizado.",
@@ -252,6 +277,34 @@ export const useCreditCardBills = () => {
       
       if (error) throw error;
       
+      // CRIAR TRANSAÇÃO DE DESPESA PARA PAGAMENTO PARCIAL
+      const totalPaid = installmentPayments.reduce((sum, payment) => sum + payment.amount, 0);
+      
+      const { data: billData } = await supabase
+        .from('credit_card_bills')
+        .select('user_id, credit_card_id')
+        .eq('id', billId)
+        .single();
+
+      const { data: cardData } = await supabase
+        .from('credit_cards')
+        .select('name')
+        .eq('id', billData?.credit_card_id)
+        .single();
+
+      if (billData && cardData) {
+        await supabase
+          .from('expenses')
+          .insert({
+            user_id: billData.user_id,
+            description: `Pagamento parcial fatura ${cardData.name}`,
+            amount: totalPaid,
+            category: 'Cartão de Crédito',
+            date: new Date().toISOString().split('T')[0],
+            bank_account_id: paymentAccountId
+          });
+      }
+
       // Após pagamento, sincronizar dívidas do cartão no patrimônio
       await supabase.rpc('sync_credit_card_debts_to_patrimony');
       
@@ -263,6 +316,7 @@ export const useCreditCardBills = () => {
       queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
       queryClient.invalidateQueries({ queryKey: ['patrimony'] });
       queryClient.invalidateQueries({ queryKey: ['bill_details'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] }); // Invalidar despesas
       toast({ title: 'Pagamento parcial processado com sucesso!' });
     },
     onError: (error) => {
