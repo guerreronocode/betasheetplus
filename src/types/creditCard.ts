@@ -117,6 +117,7 @@ export interface CreditCardBill {
   paid_account_id?: string;
   paid_at?: string;
   payment_account_id?: string;
+  paid_amount?: number;
   created_at: string;
   updated_at: string;
   credit_cards?: {

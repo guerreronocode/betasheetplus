@@ -7,6 +7,7 @@ import { PurchaseForm } from './PurchaseForm';
 import { BillsList } from './BillsList';
 import { PurchaseStatusPanel } from './PurchaseStatusPanel';
 import { CreditLimitPanel } from './CreditLimitPanel';
+import { CreditCardSelector } from './CreditCardSelector';
 
 export const CreditCardManager: React.FC = () => {
   return (
@@ -50,7 +51,7 @@ export const CreditCardManager: React.FC = () => {
         </TabsContent>
 
         <TabsContent value="bills" className="space-y-6">
-          <BillsList />
+          <CreditCardSelector />
         </TabsContent>
       </Tabs>
     </div>
