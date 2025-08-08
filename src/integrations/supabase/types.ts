@@ -1370,6 +1370,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      process_partial_bill_payment: {
+        Args: {
+          p_bill_id: string
+          p_installment_payments: Json
+          p_payment_account_id: string
+        }
+        Returns: boolean
+      }
       reverse_bill_payment: {
         Args: { p_bill_id: string; p_reversal_amount?: number }
         Returns: boolean

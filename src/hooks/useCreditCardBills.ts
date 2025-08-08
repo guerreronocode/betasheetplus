@@ -231,6 +231,49 @@ export const useCreditCardBills = () => {
     },
   });
 
+  // Mutation para pagamento parcial de fatura
+  const payPartialBillMutation = useMutation({
+    mutationFn: async ({ 
+      billId, 
+      installmentPayments, 
+      paymentAccountId 
+    }: { 
+      billId: string; 
+      installmentPayments: Array<{installment_id: string; amount: number}>; 
+      paymentAccountId: string;
+    }) => {
+      if (!user) throw new Error('User not authenticated');
+      
+      const { error } = await supabase.rpc('process_partial_bill_payment', {
+        p_bill_id: billId,
+        p_installment_payments: installmentPayments,
+        p_payment_account_id: paymentAccountId
+      });
+      
+      if (error) throw error;
+      
+      // Após pagamento, sincronizar dívidas do cartão no patrimônio
+      await supabase.rpc('sync_credit_card_debts_to_patrimony');
+      
+      return true;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['credit-card-bills'] });
+      queryClient.invalidateQueries({ queryKey: ['credit_card_balances'] });
+      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['patrimony'] });
+      queryClient.invalidateQueries({ queryKey: ['bill_details'] });
+      toast({ title: 'Pagamento parcial processado com sucesso!' });
+    },
+    onError: (error) => {
+      toast({ 
+        title: 'Erro ao processar pagamento parcial', 
+        description: error.message,
+        variant: 'destructive'
+      });
+    }
+  });
+
   return {
     bills,
     upcomingBills,
@@ -238,6 +281,8 @@ export const useCreditCardBills = () => {
     isLoading,
     error,
     payBill: payBillMutation.mutate,
+    payPartialBill: payPartialBillMutation.mutate,
     isPaying: payBillMutation.isPending,
+    isPayingPartial: payPartialBillMutation.isPending,
   };
 };

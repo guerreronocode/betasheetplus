@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Calendar, Receipt, AlertCircle, DollarSign, Check } from 'lucide-react';
 import { useBillDetails } from '@/hooks/useBillDetails';
 import { useBankAccounts } from '@/hooks/useBankAccounts';
+import { useCreditCardBills } from '@/hooks/useCreditCardBills';
 import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -47,11 +48,11 @@ export const EnhancedBillDetailsDialog: React.FC<EnhancedBillDetailsDialogProps>
     bill?.bill_month || ''
   );
   const { bankAccounts } = useBankAccounts();
+  const { payPartialBill, isPayingPartial } = useCreditCardBills();
   const { toast } = useToast();
   
   const [partialPayments, setPartialPayments] = useState<PartialPayment[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState<string>('');
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   const handlePartialPaymentChange = (installmentId: string, amount: string) => {
     const numericAmount = parseFloat(amount) || 0;
@@ -79,8 +80,8 @@ export const EnhancedBillDetailsDialog: React.FC<EnhancedBillDetailsDialogProps>
       return;
     }
 
-    const totalPayment = partialPayments.reduce((sum, p) => sum + p.amount, 0);
-    if (totalPayment <= 0) {
+    const validPayments = partialPayments.filter(p => p.amount > 0);
+    if (validPayments.length === 0) {
       toast({
         title: 'Valor inválido',
         description: 'Digite valores válidos para o pagamento.',
@@ -89,25 +90,22 @@ export const EnhancedBillDetailsDialog: React.FC<EnhancedBillDetailsDialogProps>
       return;
     }
 
-    setIsProcessingPayment(true);
+    if (!bill) return;
+
     try {
-      // Aqui você implementaria a lógica de pagamento parcial
-      // Por enquanto, mostraremos apenas uma mensagem de sucesso
-      toast({
-        title: 'Pagamento processado!',
-        description: `Pagamento parcial de ${formatCurrency(totalPayment)} processado com sucesso.`
+      await payPartialBill({
+        billId: bill.id,
+        installmentPayments: validPayments.map(p => ({
+          installment_id: p.installmentId,
+          amount: p.amount
+        })),
+        paymentAccountId: selectedAccountId
       });
       
       setPartialPayments([]);
       onClose();
     } catch (error) {
-      toast({
-        title: 'Erro no pagamento',
-        description: 'Ocorreu um erro ao processar o pagamento parcial.',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsProcessingPayment(false);
+      // Error handling is done in the hook
     }
   };
 
@@ -210,7 +208,7 @@ export const EnhancedBillDetailsDialog: React.FC<EnhancedBillDetailsDialogProps>
               {totalPartialPayment > 0 && (
                 <Button
                   onClick={handleProcessPartialPayments}
-                  disabled={isProcessingPayment || !selectedAccountId}
+                  disabled={isPayingPartial || !selectedAccountId}
                   className="w-full md:w-auto"
                 >
                   <Check className="h-4 w-4 mr-2" />
