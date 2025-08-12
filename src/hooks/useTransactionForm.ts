@@ -14,16 +14,21 @@ export function useTransactionForm<T>(initial: T, onSubmit: (values: T) => Promi
 
   const resetForm = () => setForm(initial);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (isSubmitting) return;
     const now = Date.now();
     if (now - lastSubmit < DEBOUNCE_MS) return;
     setIsSubmitting(true);
     setLastSubmit(now);
-    await onSubmit(form); // espera user logic
-    setIsSubmitting(false);
-    resetForm();
+    try {
+      await onSubmit(form); // espera user logic
+      resetForm(); // só reseta se der certo
+    } catch (error) {
+      console.error('Erro ao submeter formulário:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return {

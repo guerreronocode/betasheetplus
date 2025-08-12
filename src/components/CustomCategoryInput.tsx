@@ -24,12 +24,15 @@ const CustomCategoryInput: React.FC<CustomCategoryInputProps> = ({
 
   function handleAddCategory() {
     if (!custom.trim()) return;
-    if (categories.map(c => c.toLowerCase()).includes(custom.trim().toLowerCase())) return;
-    const next = [...categories, custom.trim()];
+    const trimmedCategory = custom.trim();
+    if (categories.map(c => c.toLowerCase()).includes(trimmedCategory.toLowerCase())) return;
+    
+    // Adiciona à lista local sem resetar o formulário
+    const next = [...categories, trimmedCategory];
     setCategories(next);
-    setValue(custom.trim());
+    setValue(trimmedCategory);
     setCustom("");
-    window.localStorage.setItem("custom-categories-" + placeholder, JSON.stringify(next));
+    
     if (inputRef.current) inputRef.current.focus();
   }
 

@@ -87,14 +87,11 @@ const AddTransactionForm = () => {
   const { addIncome, addExpense, isAddingIncome, isAddingExpense, bankAccounts } = useFinancialData();
   const { categories: unifiedCategories } = useUnifiedCategories();
 
-  // Usar as categorias unificadas como base para as categorias customizadas
-  const incomeCategoriesCfg = useCustomCategories("custom-categories-receita", unifiedCategories.filter(cat => 
-    ['Salário', 'Freelance', 'Investimentos', 'Aluguel', 'Vendas', 'Outros'].includes(cat)
-  ));
+  // Configuração de categorias com base nas categorias unificadas e pré-definidas
+  const baseIncomeCategories = ['Salário', 'Freelance', 'Investimentos', 'Aluguel', 'Vendas', 'Outros'];
+  const incomeCategoriesCfg = useCustomCategories("custom-categories-income", baseIncomeCategories);
 
-  const expenseCategoriesCfg = useCustomCategories("custom-categories-despesa", unifiedCategories.filter(cat => 
-    !['Salário', 'Freelance', 'Investimentos', 'Aluguel', 'Vendas'].includes(cat)
-  ));
+  const expenseCategoriesCfg = useCustomCategories("custom-categories-expense", unifiedCategories);
 
   const initialIncomeForm = {
     description: '',
