@@ -5,22 +5,17 @@ import Header from '@/components/Header';
 import UpdatedQuickStats from '@/components/UpdatedQuickStats';
 import TransactionsList from '@/components/TransactionsList';
 import AdvancedInvestmentManager from '@/components/AdvancedInvestmentManager';
-import AdvancedGoalsPanel from '@/components/AdvancedGoalsPanel';
-
 import BankAccountManager from '@/components/BankAccountManager';
 import UnifiedTransactionForm from '@/components/UnifiedTransactionForm';
 import ImprovedYieldRatesDisplay from '@/components/ImprovedYieldRatesDisplay';
 import ImprovedPatrimonyManager from '@/components/ImprovedPatrimonyManager';
-import LinkedGoalsManager from '@/components/LinkedGoalsManager';
 import TransferBetweenAccounts from '@/components/TransferBetweenAccounts';
 import RecurringTransactions from '@/components/RecurringTransactions';
 import DebtManager from "@/components/debts/DebtManager";
 import { CreditCardManager } from '@/components/creditCard/CreditCardManager';
 import CategoryRanking from '@/components/CategoryRanking';
 import CategoryRankingCompact from '@/components/CategoryRankingCompact';
-import MonthlyObjectivesPanel from '@/components/MonthlyObjectivesPanel';
 import FinancialEvolutionPanel from '@/components/FinancialEvolutionPanel';
-import InvestmentPlanner from '@/components/InvestmentPlanner';
 import FinancialScoreCard from '@/components/FinancialScoreCard';
 import DetailedFinancialScore from '@/components/DetailedFinancialScore';
 import { RefactoredPlanningPanel } from '@/components/budget/RefactoredPlanningPanel';
@@ -43,13 +38,10 @@ const Dashboard = () => {
             <TabsTrigger value="overview" className="flex-shrink-0">Visão Geral</TabsTrigger>
             <TabsTrigger value="score" className="flex-shrink-0">Score</TabsTrigger>
             <TabsTrigger value="evolution" className="flex-shrink-0">Evolução</TabsTrigger>
-            <TabsTrigger value="objectives" className="flex-shrink-0">Objetivos</TabsTrigger>
             <TabsTrigger value="planning" className="flex-shrink-0">Planejamento</TabsTrigger>
-            <TabsTrigger value="planner" className="flex-shrink-0">Planejador</TabsTrigger>
             <TabsTrigger value="accounts" className="flex-shrink-0">Contas</TabsTrigger>
             <TabsTrigger value="transactions" className="flex-shrink-0">Transações</TabsTrigger>
             <TabsTrigger value="investments" className="flex-shrink-0">Investimentos</TabsTrigger>
-            <TabsTrigger value="goals" className="flex-shrink-0">Metas</TabsTrigger>
             <TabsTrigger value="patrimony" className="flex-shrink-0">Patrimônio</TabsTrigger>
             <TabsTrigger value="credit-cards" className="flex-shrink-0">Cartões</TabsTrigger>
             <TabsTrigger value="debts" className="flex-shrink-0">Dívidas</TabsTrigger>
@@ -105,16 +97,8 @@ const Dashboard = () => {
             <FinancialEvolutionPanel />
           </TabsContent>
 
-          <TabsContent value="objectives">
-            <MonthlyObjectivesPanel />
-          </TabsContent>
-
           <TabsContent value="planning">
             <RefactoredPlanningPanel />
-          </TabsContent>
-
-          <TabsContent value="planner">
-            <InvestmentPlanner />
           </TabsContent>
 
           <TabsContent value="accounts">
@@ -141,10 +125,6 @@ const Dashboard = () => {
               <AdvancedInvestmentManager />
               <ImprovedYieldRatesDisplay yieldRates={yieldRates} />
             </div>
-          </TabsContent>
-
-          <TabsContent value="goals">
-            <LinkedGoalsManager />
           </TabsContent>
 
           <TabsContent value="patrimony">

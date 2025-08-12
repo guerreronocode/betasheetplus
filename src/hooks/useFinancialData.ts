@@ -3,7 +3,6 @@ import { useBankAccounts } from './useBankAccounts';
 import { useIncome } from './useIncome';
 import { useExpenses } from './useExpenses';
 import { useInvestments } from './useInvestments';
-import { useGoals } from './useGoals';
 import { useMarketData } from './useMarketData';
 import { usePatrimony } from './usePatrimony';
 import { calculateFinancialMetrics } from '@/utils/financialCalculations';
@@ -12,7 +11,6 @@ import { calculateFinancialMetrics } from '@/utils/financialCalculations';
 export type { IncomeEntry } from './useIncome';
 export type { ExpenseEntry } from './useExpenses';
 export type { Investment } from './useInvestments';
-export type { Goal } from './useGoals';
 export type { BankAccount } from './useBankAccounts';
 export type { YieldRate, AssetPrice } from './useMarketData';
 
@@ -47,15 +45,6 @@ export const useFinancialData = () => {
     isAddingInvestment 
   } = useInvestments();
 
-  const { 
-    goals, 
-    goalsLoading, 
-    addGoal, 
-    updateGoal, 
-    isAddingGoal, 
-    isUpdatingGoal 
-  } = useGoals();
-
   const { yieldRates, assetPrices } = useMarketData();
   const { assets, liabilities } = usePatrimony();
 
@@ -71,14 +60,13 @@ export const useFinancialData = () => {
     currentInvestmentValue
   );
 
-  const isLoading = incomeLoading || expensesLoading || investmentsLoading || goalsLoading || bankAccountsLoading;
+  const isLoading = incomeLoading || expensesLoading || investmentsLoading || bankAccountsLoading;
 
   return {
     // Data
     income,
     expenses,
     investments,
-    goals,
     bankAccounts,
     yieldRates,
     assetPrices,
@@ -94,17 +82,13 @@ export const useFinancialData = () => {
     addInvestment,
     updateInvestment,
     deleteInvestment,
-    addGoal,
     addBankAccount,
-    updateGoal,
     
     // Mutation loading states
     isAddingIncome,
     isAddingExpense,
     isAddingInvestment,
     isAddingBankAccount,
-    isAddingGoal,
-    isUpdatingGoal,
     
     // Financial metrics
     ...financialMetrics,

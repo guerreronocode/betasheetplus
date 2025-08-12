@@ -2,7 +2,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useFinancialData } from './useFinancialData';
 import { useDebts } from '@/modules/debts/hooks/useDebts';
-import { useInvestmentPlanner } from './useInvestmentPlanner';
 import { FinancialScoreService, ScoreDetails } from '@/services/financialScoreService';
 
 export const useFinancialScore = () => {
@@ -15,10 +14,9 @@ export const useFinancialScore = () => {
   } = useFinancialData();
   
   const { debts, isLoading: debtsLoading } = useDebts();
-  const { plan } = useInvestmentPlanner();
 
   const { data: scoreDetails, isLoading: scoreLoading } = useQuery({
-    queryKey: ['financial-score', income, expenses, investments, bankAccounts, debts, plan],
+    queryKey: ['financial-score', income, expenses, investments, bankAccounts, debts],
     queryFn: (): ScoreDetails => {
       return FinancialScoreService.calculateScore({
         income,
@@ -26,8 +24,8 @@ export const useFinancialScore = () => {
         investments,
         bankAccounts,
         debts: debts || [],
-        emergencyReserveTarget: plan?.emergency_reserve_target || 0,
-        emergencyReserveCurrent: plan?.emergency_reserve_current || 0,
+        emergencyReserveTarget: 0,
+        emergencyReserveCurrent: 0,
       });
     },
     enabled: !financialLoading && !debtsLoading,
