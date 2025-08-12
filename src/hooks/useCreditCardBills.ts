@@ -120,6 +120,27 @@ export const useCreditCardBills = () => {
     mutationFn: async ({ billId, paymentData }: { billId: string; paymentData: BillPaymentFormData }) => {
       console.log('Paying bill:', billId, paymentData);
 
+      // BUSCAR DADOS DA FATURA ANTES DE PROCESSAR
+      const { data: billDataBefore, error: billBeforeError } = await supabase
+        .from('credit_card_bills')
+        .select('user_id, credit_card_id, bill_month, total_amount, paid_amount')
+        .eq('id', billId)
+        .single();
+
+      if (billBeforeError) {
+        console.error('Error fetching bill data before payment:', billBeforeError);
+        throw billBeforeError;
+      }
+
+      // Calcular valor restante a ser pago
+      const remainingAmount = billDataBefore.total_amount - (billDataBefore.paid_amount || 0);
+      console.log(`Fatura ${billId}: Total R$ ${billDataBefore.total_amount}, Já pago R$ ${billDataBefore.paid_amount || 0}, Restante R$ ${remainingAmount}`);
+
+      if (remainingAmount <= 0) {
+        console.log('Fatura já está totalmente paga');
+        return billDataBefore;
+      }
+
       // Usar nova função para marcar fatura como paga
       const { data, error } = await supabase.rpc('mark_bill_as_paid', {
         p_bill_id: billId,
@@ -145,17 +166,6 @@ export const useCreditCardBills = () => {
       }
 
       // Marcar todas as parcelas desta fatura como pagas
-      const { data: billData, error: billError } = await supabase
-        .from('credit_card_bills')
-        .select('user_id, credit_card_id, bill_month, total_amount')
-        .eq('id', billId)
-        .single();
-
-      if (billError) {
-        console.error('Error fetching bill data:', billError);
-        throw billError;
-      }
-
       const { error: installmentsError } = await supabase
         .from('credit_card_installments')
         .update({
@@ -163,57 +173,28 @@ export const useCreditCardBills = () => {
           paid_at: new Date().toISOString(),
           payment_account_id: paymentData.paid_account_id,
         })
-        .eq('credit_card_id', billData.credit_card_id)
-        .eq('bill_month', billData.bill_month);
+        .eq('credit_card_id', billDataBefore.credit_card_id)
+        .eq('bill_month', billDataBefore.bill_month);
 
       if (installmentsError) {
         console.error('Error updating installments:', installmentsError);
         throw installmentsError;
       }
 
-      // Se uma conta bancária foi especificada, debitar o valor
-      if (paymentData.paid_account_id) {
-        const { data: account, error: accountError } = await supabase
-          .from('bank_accounts')
-          .select('balance')
-          .eq('id', paymentData.paid_account_id)
-          .single();
-
-        if (accountError) {
-          console.error('Error fetching account:', accountError);
-          throw accountError;
-        }
-
-        const newBalance = account.balance - billData.total_amount;
-        
-        const { error: updateError } = await supabase
-          .from('bank_accounts')
-          .update({ 
-            balance: newBalance,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', paymentData.paid_account_id);
-
-        if (updateError) {
-          console.error('Error updating account balance:', updateError);
-          throw updateError;
-        }
-      }
-
-      // CRIAR TRANSAÇÃO DE DESPESA PARA O PAGAMENTO DA FATURA
+      // CRIAR TRANSAÇÃO DE DESPESA APENAS COM O VALOR RESTANTE
       const { data: cardData, error: cardError } = await supabase
         .from('credit_cards')
         .select('name')
-        .eq('id', billData.credit_card_id)
+        .eq('id', billDataBefore.credit_card_id)
         .single();
 
       if (!cardError && cardData) {
         const { error: expenseError } = await supabase
           .from('expenses')
           .insert({
-            user_id: billData.user_id,
+            user_id: billDataBefore.user_id,
             description: `Pagamento fatura ${cardData.name}`,
-            amount: billData.total_amount,
+            amount: remainingAmount, // USAR APENAS O VALOR RESTANTE
             category: 'Cartão de Crédito',
             date: paymentData.paid_date,
             bank_account_id: paymentData.paid_account_id
@@ -233,7 +214,7 @@ export const useCreditCardBills = () => {
         // Não falhar o pagamento por causa disso, mas logar
       }
 
-      return billData;
+      return billDataBefore;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['credit-card-bills'] });
