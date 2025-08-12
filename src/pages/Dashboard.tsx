@@ -8,7 +8,7 @@ import AdvancedInvestmentManager from '@/components/AdvancedInvestmentManager';
 import AdvancedGoalsPanel from '@/components/AdvancedGoalsPanel';
 import AdvancedAchievements from '@/components/AdvancedAchievements';
 import BankAccountManager from '@/components/BankAccountManager';
-import AddTransactionForm from '@/components/AddTransactionForm';
+import UnifiedTransactionForm from '@/components/UnifiedTransactionForm';
 import ImprovedYieldRatesDisplay from '@/components/ImprovedYieldRatesDisplay';
 import ImprovedPatrimonyManager from '@/components/ImprovedPatrimonyManager';
 import LinkedGoalsManager from '@/components/LinkedGoalsManager';
@@ -124,7 +124,7 @@ const Dashboard = () => {
           <TabsContent value="transactions">
             <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <AddTransactionForm />
+                <UnifiedTransactionForm />
                 <TransferBetweenAccounts />
               </div>
               
