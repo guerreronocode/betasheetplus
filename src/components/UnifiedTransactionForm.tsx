@@ -73,14 +73,23 @@ const UnifiedTransactionForm = () => {
       date: values.date,
       bank_account_id: values.bank_account_id
     });
-  });
+    
+    // Reset personalizado: manter categoria e conta selecionadas
+    handleIncomeChange({
+      description: '',
+      amount: '',
+      date: new Date().toISOString().split('T')[0]
+    });
+  }, { resetOnSuccess: false }); // NÃO RESETAR AUTOMATICAMENTE
 
   const {
     form: expenseForm,
     handleChange: handleExpenseChange,
     handleSubmit: handleExpenseSubmit,
-    isSubmitting: isExpenseSubmitting
+    isSubmitting: isExpenseSubmitting,
+    resetForm: resetExpenseForm
   } = useTransactionForm(initialExpenseForm, async (values) => {
+    console.log('Submitting expense form with values:', values);
     if (!values.description || !values.amount || !values.category) return;
     
     if (values.payment_method === 'credit_card') {
@@ -90,6 +99,7 @@ const UnifiedTransactionForm = () => {
       const installmentValue = values.installment_value ? parseFloat(values.installment_value) : parseFloat(values.amount) / parseInt(values.installments);
       const totalAmount = installmentValue * parseInt(values.installments);
       
+      console.log('Creating credit card purchase...');
       await createPurchase({
         credit_card_id: values.credit_card_id,
         description: values.description,
@@ -101,6 +111,7 @@ const UnifiedTransactionForm = () => {
     } else {
       // Criar despesa normal
       if (!values.bank_account_id) return;
+      console.log('Creating regular expense...');
       await addExpense({
         description: values.description,
         amount: parseFloat(values.amount),
@@ -109,7 +120,17 @@ const UnifiedTransactionForm = () => {
         bank_account_id: values.bank_account_id
       });
     }
-  });
+    console.log('Expense submitted successfully, resetting only some fields');
+    
+    // Reset personalizado: manter categorias, método de pagamento e contas selecionadas
+    handleExpenseChange({
+      description: '',
+      amount: '',
+      date: new Date().toISOString().split('T')[0],
+      installments: '1',
+      installment_value: ''
+    });
+  }, { resetOnSuccess: false }); // NÃO RESETAR AUTOMATICAMENTE
 
   // Atualizar valor da parcela automaticamente
   useEffect(() => {
