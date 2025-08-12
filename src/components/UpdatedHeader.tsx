@@ -2,14 +2,14 @@
 import React from 'react';
 import { Star, Coins, Calendar, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useUserStats } from '@/hooks/useUserStats';
+
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useNavigate } from 'react-router-dom';
 
 const UpdatedHeader = () => {
   const { user, signOut } = useAuth();
-  const { userStats } = useUserStats();
+  
   const navigate = useNavigate();
   
   const currentDate = new Date().toLocaleDateString('pt-BR', {
@@ -54,15 +54,6 @@ const UpdatedHeader = () => {
           </div>
           
           <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2 bg-gradient-finance px-4 py-2 rounded-full text-white">
-              <Star className="w-5 h-5" />
-              <span className="font-semibold">Nível {userStats?.level || 1}</span>
-            </div>
-            
-            <div className="flex items-center space-x-2 bg-yellow-100 px-4 py-2 rounded-full text-yellow-800">
-              <Coins className="w-5 h-5" />
-              <span className="font-semibold">{userStats?.total_points || 0} pts</span>
-            </div>
 
             {user && (
               <div className="flex items-center space-x-3">

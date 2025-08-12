@@ -6,7 +6,7 @@ import UpdatedQuickStats from '@/components/UpdatedQuickStats';
 import TransactionsList from '@/components/TransactionsList';
 import AdvancedInvestmentManager from '@/components/AdvancedInvestmentManager';
 import AdvancedGoalsPanel from '@/components/AdvancedGoalsPanel';
-import AdvancedAchievements from '@/components/AdvancedAchievements';
+
 import BankAccountManager from '@/components/BankAccountManager';
 import UnifiedTransactionForm from '@/components/UnifiedTransactionForm';
 import ImprovedYieldRatesDisplay from '@/components/ImprovedYieldRatesDisplay';
@@ -53,7 +53,7 @@ const Dashboard = () => {
             <TabsTrigger value="patrimony" className="flex-shrink-0">Patrimônio</TabsTrigger>
             <TabsTrigger value="credit-cards" className="flex-shrink-0">Cartões</TabsTrigger>
             <TabsTrigger value="debts" className="flex-shrink-0">Dívidas</TabsTrigger>
-            <TabsTrigger value="achievements" className="flex-shrink-0">Conquistas</TabsTrigger>
+            
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -159,9 +159,6 @@ const Dashboard = () => {
             <DebtManager />
           </TabsContent>
 
-          <TabsContent value="achievements">
-            <AdvancedAchievements />
-          </TabsContent>
         </Tabs>
       </main>
     </div>

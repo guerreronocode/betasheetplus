@@ -2,8 +2,6 @@ import React, { useEffect } from 'react';
 import { TrendingUp, TrendingDown, DollarSign, Target, Wallet } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useFinancialData } from '@/hooks/useFinancialData';
-import { useGamification } from '@/hooks/useGamification';
-import UserLevelDisplay from './UserLevelDisplay';
 
 const UpdatedQuickStats = () => {
   const { 
@@ -15,14 +13,6 @@ const UpdatedQuickStats = () => {
     isLoading 
   } = useFinancialData();
   
-  const { trackActivity } = useGamification();
-
-  // Track daily access when component mounts
-  useEffect(() => {
-    if (trackActivity) {
-      trackActivity('daily_access');
-    }
-  }, [trackActivity]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -55,12 +45,7 @@ const UpdatedQuickStats = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* User Level Display */}
-      <UserLevelDisplay />
-      
-      {/* Financial Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="p-6 hover:shadow-lg transition-shadow">
           <div className="flex items-center space-x-3">
             <div className="p-3 bg-blue-100 rounded-lg">
@@ -117,7 +102,6 @@ const UpdatedQuickStats = () => {
             </div>
           </div>
         </Card>
-      </div>
     </div>
   );
 };
