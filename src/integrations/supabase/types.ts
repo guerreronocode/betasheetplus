@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -1222,6 +1222,44 @@ export type Database = {
         }
         Relationships: []
       }
+      user_categories: {
+        Row: {
+          category_type: string
+          created_at: string
+          id: string
+          name: string
+          parent_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_type?: string
+          created_at?: string
+          id?: string
+          name: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_type?: string
+          created_at?: string
+          id?: string
+          name?: string
+          parent_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "user_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_stats: {
         Row: {
           consecutive_days_accessed: number | null
@@ -1327,20 +1365,20 @@ export type Database = {
     }
     Functions: {
       award_achievement: {
-        Args: { p_user_id: string; p_achievement_id: string; p_points: number }
+        Args: { p_achievement_id: string; p_points: number; p_user_id: string }
         Returns: boolean
       }
       calculate_actual_spending: {
         Args: {
-          p_user_id: string
-          p_period_start: string
-          p_period_end: string
           p_category?: string
+          p_period_end: string
+          p_period_start: string
+          p_user_id: string
         }
         Returns: number
       }
       calculate_bill_month: {
-        Args: { purchase_date: string; closing_day: number }
+        Args: { closing_day: number; purchase_date: string }
         Returns: string
       }
       calculate_credit_cards_patrimony: {
@@ -1348,7 +1386,7 @@ export type Database = {
         Returns: number
       }
       calculate_objective_progress: {
-        Args: { p_user_id: string; p_month: string; p_objective_id: string }
+        Args: { p_month: string; p_objective_id: string; p_user_id: string }
         Returns: undefined
       }
       calculate_projected_credit_limit: {
@@ -1365,8 +1403,8 @@ export type Database = {
       process_bill_payment: {
         Args: {
           p_bill_id: string
-          p_payment_amount: number
           p_payment_account_id?: string
+          p_payment_amount: number
         }
         Returns: boolean
       }

@@ -14,6 +14,7 @@ import { useUnifiedCategories } from "@/hooks/useUnifiedCategories";
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useCreditCardPurchases } from '@/hooks/useCreditCardPurchases';
 import CustomCategoryInput from "./CustomCategoryInput";
+import ImprovedTransactionFormFields from "./ImprovedTransactionFormFields";
 
 const baseIncomeCategories = [
   'Salário',
@@ -361,25 +362,10 @@ const UnifiedTransactionForm = () => {
             </div>
             <div>
               <Label htmlFor="income-category">Categoria</Label>
-              <Select
-                value={incomeForm.category}
-                onValueChange={(value) => handleIncomeChange({ category: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {incomeCategoriesCfg.categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <CustomCategoryInput
-                value={incomeForm.category}
-                setValue={(cat: string) => handleIncomeChange({ category: incomeCategoriesCfg.sanitize(cat) })}
-                categories={incomeCategoriesCfg.categories}
-                setCategories={incomeCategoriesCfg.setCategories}
-                placeholder="Nova categoria de Receita"
+              <ImprovedTransactionFormFields
+                type="income"
+                form={incomeForm}
+                handleChange={handleIncomeChange}
               />
             </div>
             <div>
@@ -473,25 +459,10 @@ const UnifiedTransactionForm = () => {
             </div>
             <div>
               <Label htmlFor="expense-category">Categoria</Label>
-              <Select
-                value={expenseForm.category}
-                onValueChange={(value) => handleExpenseChange({ category: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma categoria" />
-                </SelectTrigger>
-                <SelectContent>
-                  {expenseCategoriesCfg.categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <CustomCategoryInput
-                value={expenseForm.category}
-                setValue={(cat: string) => handleExpenseChange({ category: expenseCategoriesCfg.sanitize(cat) })}
-                categories={expenseCategoriesCfg.categories}
-                setCategories={expenseCategoriesCfg.setCategories}
-                placeholder="Nova categoria de Despesa"
+              <ImprovedTransactionFormFields
+                type="expense"
+                form={expenseForm}
+                handleChange={handleExpenseChange}
               />
             </div>
             
