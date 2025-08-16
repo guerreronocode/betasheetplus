@@ -152,19 +152,34 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
                 
                 <div className="space-y-2">
                   <Label htmlFor="parentCategory">Categoria Pai (opcional)</Label>
-                  <Select value={selectedParent} onValueChange={setSelectedParent} disabled={!!addingSubcategoryTo}>
+                  <Select value={selectedParent || ""} onValueChange={(value) => setSelectedParent(value && value !== "no-options" ? value : "")} disabled={!!addingSubcategoryTo}>
                     <SelectTrigger>
                       <SelectValue placeholder="Criar como categoria principal" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {categories.map(cat => (
+                   <SelectContent>
+                      {categories.filter(cat => !cat.parent_id).map(cat => (
                         <SelectItem key={cat.id} value={cat.id}>
                           {cat.name}
                         </SelectItem>
                       ))}
+                      {categories.filter(cat => !cat.parent_id).length === 0 && (
+                        <SelectItem value="no-options" disabled>
+                          Nenhuma categoria principal
+                        </SelectItem>
+                      )}
                     </SelectContent>
-                  </Select>
-                </div>
+                   </Select>
+                   {selectedParent && !addingSubcategoryTo && (
+                     <Button 
+                       variant="ghost" 
+                       size="sm" 
+                       onClick={() => setSelectedParent('')}
+                       className="text-xs"
+                     >
+                       Remover categoria pai
+                     </Button>
+                   )}
+                 </div>
                 
                 <div className="flex items-end gap-2">
                   <Button 

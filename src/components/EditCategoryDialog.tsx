@@ -23,7 +23,7 @@ const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({
   categoryType 
 }) => {
   const [name, setName] = useState('');
-  const [parentId, setParentId] = useState<string>('');
+  const [parentId, setParentId] = useState<string | undefined>(undefined);
   const [isUpdating, setIsUpdating] = useState(false);
   
   const { categories } = useHierarchicalCategories(categoryType);
@@ -33,7 +33,7 @@ const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({
   useEffect(() => {
     if (category) {
       setName(category.name);
-      setParentId(category.parent_id || '');
+      setParentId(category.parent_id || undefined);
     }
   }, [category]);
 
@@ -104,19 +104,33 @@ const EditCategoryDialog: React.FC<EditCategoryDialogProps> = ({
           
           <div className="space-y-2">
             <Label htmlFor="parentCategory">Categoria Pai (opcional)</Label>
-            <Select value={parentId} onValueChange={setParentId}>
+            <Select value={parentId || ""} onValueChange={(value) => setParentId(value && value !== "no-options" ? value : undefined)}>
               <SelectTrigger>
                 <SelectValue placeholder="Categoria principal" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Categoria principal</SelectItem>
                 {availableParents.map(cat => (
                   <SelectItem key={cat.id} value={cat.id}>
                     {cat.name}
                   </SelectItem>
                 ))}
+                {availableParents.length === 0 && (
+                  <SelectItem value="no-options" disabled>
+                    Nenhuma categoria principal
+                  </SelectItem>
+                )}
               </SelectContent>
             </Select>
+            {parentId && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setParentId(undefined)}
+                className="text-xs"
+              >
+                Remover categoria pai
+              </Button>
+            )}
           </div>
         </div>
 
