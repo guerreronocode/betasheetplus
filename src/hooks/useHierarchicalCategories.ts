@@ -26,19 +26,24 @@ const defaultIncomeCategories = [
   'Salário', 'Freelance', 'Investimentos', 'Renda Extra', 'Outros'
 ];
 
-export const useHierarchicalCategories = () => {
+export const useHierarchicalCategories = (categoryType?: 'income' | 'expense') => {
   const queryClient = useQueryClient();
 
   // Buscar categorias do usuário
   const { data: userCategories = [], isLoading } = useQuery({
-    queryKey: ['user-categories'],
+    queryKey: ['user-categories', categoryType],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('user_categories')
         .select('*')
         .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
         .order('name');
 
+      if (categoryType) {
+        query = query.eq('category_type', categoryType);
+      }
+
+      const { data, error } = await query;
       if (error) throw error;
       return data as Category[];
     },
@@ -69,10 +74,11 @@ export const useHierarchicalCategories = () => {
 
   // Criar categoria
   const createCategoryMutation = useMutation({
-    mutationFn: async ({ name, parent_id }: { name: string; parent_id?: string | null }) => {
+    mutationFn: async ({ name, parent_id, category_type }: { name: string; parent_id?: string | null; category_type: 'income' | 'expense' }) => {
       const insertData: UserCategoryInsert = {
         name,
         parent_id: parent_id || null,
+        category_type,
         user_id: (await supabase.auth.getUser()).data.user?.id!
       };
 
@@ -148,15 +154,27 @@ export const useHierarchicalCategories = () => {
     const organized = organizeCategories(userCategories);
     const options: CategoryOption[] = [];
 
-    // Adicionar categorias padrão que não foram customizadas
-    const allDefaultCategories = [...defaultExpenseCategories, ...defaultIncomeCategories];
+    // Adicionar categorias padrão baseado no tipo, excluindo as já customizadas
+    const defaultCategories = categoryType === 'income' ? defaultIncomeCategories : defaultExpenseCategories;
     const userCategoryNames = userCategories.map(cat => cat.name);
-    const existingCategoryNames = existingCategories || [];
-
-    // Combinar categorias padrão, existentes e personalizadas
-    const allDefaultAndExisting = [...new Set([...allDefaultCategories, ...existingCategoryNames])];
     
-    allDefaultAndExisting.forEach(catName => {
+    // Buscar categorias existentes do tipo específico
+    const relevantExistingCategories = existingCategories?.filter(catName => {
+      // Se não especificou tipo, incluir todas
+      if (!categoryType) return true;
+      
+      // Para tipos específicos, filtrar baseado nas listas padrão
+      if (categoryType === 'income') {
+        return defaultIncomeCategories.includes(catName);
+      } else {
+        return defaultExpenseCategories.includes(catName);
+      }
+    }) || [];
+
+    // Combinar categorias padrão e existentes, excluindo as já customizadas
+    const allRelevantCategories = [...new Set([...defaultCategories, ...relevantExistingCategories])];
+    
+    allRelevantCategories.forEach(catName => {
       if (!userCategoryNames.includes(catName)) {
         options.push({ value: catName, label: catName });
       }

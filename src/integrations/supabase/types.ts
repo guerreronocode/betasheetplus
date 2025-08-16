@@ -1224,6 +1224,7 @@ export type Database = {
       }
       user_categories: {
         Row: {
+          category_type: string
           created_at: string
           id: string
           name: string
@@ -1232,6 +1233,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category_type?: string
           created_at?: string
           id?: string
           name: string
@@ -1240,6 +1242,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category_type?: string
           created_at?: string
           id?: string
           name?: string
@@ -1392,6 +1395,10 @@ export type Database = {
           month: string
           projected_available_limit: number
         }[]
+      }
+      create_default_categories_for_user: {
+        Args: { target_user_id: string }
+        Returns: undefined
       }
       mark_bill_as_paid: {
         Args: { p_bill_id: string; p_payment_account_id?: string }

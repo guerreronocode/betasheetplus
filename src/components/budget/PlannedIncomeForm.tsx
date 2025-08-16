@@ -95,6 +95,7 @@ export const PlannedIncomeForm: React.FC<PlannedIncomeFormProps> = ({ open, onOp
               value={formData.category}
               onChange={(value) => handleInputChange('category', value)}
               placeholder="Selecione a categoria"
+              categoryType="income"
               required
             />
           </div>

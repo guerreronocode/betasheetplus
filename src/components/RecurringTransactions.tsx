@@ -251,6 +251,7 @@ const RecurringTransactions = () => {
                     value={form.category}
                     onChange={(value) => setForm(prev => ({ ...prev, category: value }))}
                     placeholder="Selecione uma categoria"
+                    categoryType={form.type}
                     required
                   />
                 </div>

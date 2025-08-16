@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useHierarchicalCategories, Category } from '@/hooks/useHierarchicalCategories';
 
-interface CategoryManagerProps {}
+interface CategoryManagerProps {
+  categoryType?: 'income' | 'expense';
+}
 
-const CategoryManager: React.FC<CategoryManagerProps> = () => {
+const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expense' }) => {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [selectedParent, setSelectedParent] = useState<string>('');
   
@@ -21,14 +23,15 @@ const CategoryManager: React.FC<CategoryManagerProps> = () => {
     isLoading,
     isCreating,
     isDeleting
-  } = useHierarchicalCategories();
+  } = useHierarchicalCategories(categoryType);
 
   const handleCreateCategory = () => {
     if (!newCategoryName.trim()) return;
     
     createCategory({
       name: newCategoryName.trim(),
-      parent_id: selectedParent || null
+      parent_id: selectedParent || null,
+      category_type: categoryType
     });
     
     setNewCategoryName('');
@@ -71,7 +74,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = () => {
           Gerenciar Categorias
         </CardTitle>
         <CardDescription>
-          Organize suas categorias com até 2 níveis de hierarquia (categoria {'->'} sub-categoria)
+          Organize suas categorias de {categoryType === 'income' ? 'receita' : 'despesa'} com até 2 níveis de hierarquia (categoria {'->'} sub-categoria)
         </CardDescription>
       </CardHeader>
       

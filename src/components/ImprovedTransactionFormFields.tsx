@@ -17,6 +17,7 @@ const ImprovedTransactionFormFields: React.FC<TransactionFormFieldsProps> = ({
       value={form.category}
       onChange={(value) => handleChange({ category: value })}
       placeholder={`Escolha uma categoria de ${type === 'expense' ? 'despesa' : 'receita'}`}
+      categoryType={type === 'expense' ? 'expense' : 'income'}
       required
     />
   );

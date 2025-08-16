@@ -12,6 +12,7 @@ interface HierarchicalCategorySelectorProps {
   placeholder?: string;
   required?: boolean;
   className?: string;
+  categoryType?: 'income' | 'expense';
 }
 
 const HierarchicalCategorySelector: React.FC<HierarchicalCategorySelectorProps> = ({
@@ -19,10 +20,11 @@ const HierarchicalCategorySelector: React.FC<HierarchicalCategorySelectorProps> 
   onChange,
   placeholder = "Escolha uma categoria",
   required,
-  className
+  className,
+  categoryType = 'expense'
 }) => {
   const [isManagerOpen, setIsManagerOpen] = useState(false);
-  const { categoryOptions, isLoading } = useHierarchicalCategories();
+  const { categoryOptions, isLoading } = useHierarchicalCategories(categoryType);
 
   const groupedOptions = React.useMemo(() => {
     const groups: { [key: string]: typeof categoryOptions } = {
@@ -98,7 +100,7 @@ const HierarchicalCategorySelector: React.FC<HierarchicalCategorySelectorProps> 
             <DialogHeader>
               <DialogTitle>Gerenciar Categorias</DialogTitle>
             </DialogHeader>
-            <CategoryManager />
+            <CategoryManager categoryType={categoryType} />
           </DialogContent>
         </Dialog>
       </div>

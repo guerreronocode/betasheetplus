@@ -80,6 +80,7 @@ export const PlannedExpenseForm: React.FC<PlannedExpenseFormProps> = ({
               value={formData.category}
               onChange={(value) => setFormData({ ...formData, category: value })}
               placeholder="Selecione uma categoria"
+              categoryType="expense"
               required
             />
           </div>

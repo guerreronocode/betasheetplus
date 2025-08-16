@@ -1,8 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 
 // Categorias padrão do sistema
-const DEFAULT_CATEGORIES = [
-  // Categorias principais
+const DEFAULT_EXPENSE_CATEGORIES = [
   { name: 'Alimentação', parent_id: null },
   { name: 'Transporte', parent_id: null },
   { name: 'Lazer', parent_id: null },
@@ -10,14 +9,21 @@ const DEFAULT_CATEGORIES = [
   { name: 'Educação', parent_id: null },
   { name: 'Casa', parent_id: null },
   { name: 'Trabalho', parent_id: null },
+  { name: 'Outros', parent_id: null },
+];
+
+const DEFAULT_INCOME_CATEGORIES = [
   { name: 'Salário', parent_id: null },
   { name: 'Freelance', parent_id: null },
   { name: 'Investimentos', parent_id: null },
   { name: 'Vendas', parent_id: null },
+  { name: 'Vale Refeição', parent_id: null },
+  { name: 'Vale Transporte', parent_id: null },
+  { name: 'Mesada', parent_id: null },
   { name: 'Outros', parent_id: null },
 ];
 
-const DEFAULT_SUBCATEGORIES = [
+const DEFAULT_EXPENSE_SUBCATEGORIES = [
   // Subcategorias de Alimentação
   { name: 'Supermercado', parent_name: 'Alimentação' },
   { name: 'Restaurante', parent_name: 'Alimentação' },
@@ -41,39 +47,56 @@ const DEFAULT_SUBCATEGORIES = [
 
 export const createDefaultCategories = async (userId: string) => {
   try {
-    // Primeiro, inserir as categorias principais
-    const { data: mainCategories, error: mainError } = await supabase
+    // Inserir categorias de despesas
+    const { data: expenseCategories, error: expenseError } = await supabase
       .from('user_categories')
       .insert(
-        DEFAULT_CATEGORIES.map(cat => ({
+        DEFAULT_EXPENSE_CATEGORIES.map(cat => ({
           user_id: userId,
           name: cat.name,
-          parent_id: cat.parent_id
+          parent_id: cat.parent_id,
+          category_type: 'expense' as const
         }))
       )
       .select();
 
-    if (mainError) throw mainError;
+    if (expenseError) throw expenseError;
 
-    // Criar um mapa de nome -> id das categorias principais
-    const categoryMap = new Map();
-    mainCategories?.forEach(cat => {
-      categoryMap.set(cat.name, cat.id);
+    // Inserir categorias de receitas
+    const { data: incomeCategories, error: incomeError } = await supabase
+      .from('user_categories')
+      .insert(
+        DEFAULT_INCOME_CATEGORIES.map(cat => ({
+          user_id: userId,
+          name: cat.name,
+          parent_id: cat.parent_id,
+          category_type: 'income' as const
+        }))
+      )
+      .select();
+
+    if (incomeError) throw incomeError;
+
+    // Criar um mapa de nome -> id das categorias principais de despesas
+    const expenseCategoryMap = new Map();
+    expenseCategories?.forEach(cat => {
+      expenseCategoryMap.set(cat.name, cat.id);
     });
 
-    // Inserir as subcategorias
-    const subcategoriesToInsert = DEFAULT_SUBCATEGORIES.map(subcat => ({
+    // Inserir as subcategorias de despesas
+    const expenseSubcategoriesToInsert = DEFAULT_EXPENSE_SUBCATEGORIES.map(subcat => ({
       user_id: userId,
       name: subcat.name,
-      parent_id: categoryMap.get(subcat.parent_name)
+      parent_id: expenseCategoryMap.get(subcat.parent_name),
+      category_type: 'expense' as const
     })).filter(subcat => subcat.parent_id); // Só inserir se a categoria pai existir
 
-    if (subcategoriesToInsert.length > 0) {
-      const { error: subError } = await supabase
+    if (expenseSubcategoriesToInsert.length > 0) {
+      const { error: expenseSubError } = await supabase
         .from('user_categories')
-        .insert(subcategoriesToInsert);
+        .insert(expenseSubcategoriesToInsert);
 
-      if (subError) throw subError;
+      if (expenseSubError) throw expenseSubError;
     }
 
     return true;

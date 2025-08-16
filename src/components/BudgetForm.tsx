@@ -173,6 +173,7 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
                           value={categoryBudget.category}
                           onChange={(value) => handleCategoryChange(index, 'category', value)}
                           placeholder="Escolha uma categoria"
+                          categoryType="expense"
                           required
                         />
                       </div>
