@@ -100,7 +100,6 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType }) => {
                   <SelectValue placeholder="Criar como categoria principal" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Categoria principal</SelectItem>
                   {categories.map(cat => (
                     <SelectItem key={cat.id} value={cat.id}>
                       {cat.name}
