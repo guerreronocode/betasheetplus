@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { createDefaultCategories } from './useDefaultCategories';
 
 export const useAccountReset = () => {
   const { user } = useAuth();
@@ -67,6 +68,7 @@ export const useAccountReset = () => {
         'assets',
         'liabilities',
         'bank_accounts',
+        'user_categories', // Adicionar limpeza das categorias personalizadas
         'user_stats'
       ];
 
@@ -104,6 +106,10 @@ export const useAccountReset = () => {
         console.error('Erro ao recriar estatísticas:', statsError);
         throw new Error(`Falha ao recriar estatísticas: ${statsError.message}`);
       }
+
+      // Criar categorias padrão
+      console.log('📂 Criando categorias padrão');
+      await createDefaultCategories(user.id);
 
       console.log('✅ Reset da conta concluído com sucesso!');
     },

@@ -94,7 +94,6 @@ export const PlannedIncomeForm: React.FC<PlannedIncomeFormProps> = ({ open, onOp
             <HierarchicalCategorySelector
               value={formData.category}
               onChange={(value) => handleInputChange('category', value)}
-              categoryType="income"
               placeholder="Selecione a categoria"
               required
             />

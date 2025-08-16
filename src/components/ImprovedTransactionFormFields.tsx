@@ -16,7 +16,6 @@ const ImprovedTransactionFormFields: React.FC<TransactionFormFieldsProps> = ({
     <HierarchicalCategorySelector
       value={form.category}
       onChange={(value) => handleChange({ category: value })}
-      categoryType={type}
       placeholder={`Escolha uma categoria de ${type === 'expense' ? 'despesa' : 'receita'}`}
       required
     />

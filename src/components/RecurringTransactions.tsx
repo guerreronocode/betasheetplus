@@ -250,7 +250,6 @@ const RecurringTransactions = () => {
                   <HierarchicalCategorySelector
                     value={form.category}
                     onChange={(value) => setForm(prev => ({ ...prev, category: value }))}
-                    categoryType={form.type}
                     placeholder="Selecione uma categoria"
                     required
                   />

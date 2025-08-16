@@ -1224,7 +1224,6 @@ export type Database = {
       }
       user_categories: {
         Row: {
-          category_type: string
           created_at: string
           id: string
           name: string
@@ -1233,7 +1232,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          category_type?: string
           created_at?: string
           id?: string
           name: string
@@ -1242,7 +1240,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          category_type?: string
           created_at?: string
           id?: string
           name?: string

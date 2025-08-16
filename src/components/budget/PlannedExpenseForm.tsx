@@ -79,7 +79,6 @@ export const PlannedExpenseForm: React.FC<PlannedExpenseFormProps> = ({
             <HierarchicalCategorySelector
               value={formData.category}
               onChange={(value) => setFormData({ ...formData, category: value })}
-              categoryType="expense"
               placeholder="Selecione uma categoria"
               required
             />

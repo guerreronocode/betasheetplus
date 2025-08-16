@@ -172,7 +172,6 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
                         <HierarchicalCategorySelector
                           value={categoryBudget.category}
                           onChange={(value) => handleCategoryChange(index, 'category', value)}
-                          categoryType="expense"
                           placeholder="Escolha uma categoria"
                           required
                         />

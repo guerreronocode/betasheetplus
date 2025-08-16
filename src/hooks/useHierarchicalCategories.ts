@@ -26,17 +26,17 @@ const defaultIncomeCategories = [
   'Salário', 'Freelance', 'Investimentos', 'Renda Extra', 'Outros'
 ];
 
-export const useHierarchicalCategories = (categoryType: 'expense' | 'income' | 'both' = 'expense') => {
+export const useHierarchicalCategories = () => {
   const queryClient = useQueryClient();
 
   // Buscar categorias do usuário
   const { data: userCategories = [], isLoading } = useQuery({
-    queryKey: ['hierarchical-categories', categoryType],
+    queryKey: ['user-categories'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('user_categories')
         .select('*')
-        .in('category_type', categoryType === 'both' ? ['expense', 'income', 'both'] : [categoryType, 'both'])
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
         .order('name');
 
       if (error) throw error;
@@ -46,40 +46,33 @@ export const useHierarchicalCategories = (categoryType: 'expense' | 'income' | '
 
   // Buscar categorias das transações existentes
   const { data: existingCategories = [] } = useQuery({
-    queryKey: ['existing-categories', categoryType],
+    queryKey: ['existing-categories'],
     queryFn: async () => {
-      if (categoryType === 'income') {
-        const { data, error } = await supabase
-          .from('income')
-          .select('category')
-          .order('category');
-        if (error) throw error;
-        return [...new Set(data.map(item => item.category))].filter(Boolean);
-      } else {
-        const [expensesResult, purchasesResult] = await Promise.all([
-          supabase.from('expenses').select('category').order('category'),
-          supabase.from('credit_card_purchases').select('category').order('category')
-        ]);
+      const [expensesResult, purchasesResult, incomeResult] = await Promise.all([
+        supabase.from('expenses').select('category').order('category'),
+        supabase.from('credit_card_purchases').select('category').order('category'),
+        supabase.from('income').select('category').order('category')
+      ]);
 
-        if (expensesResult.error) throw expensesResult.error;
-        if (purchasesResult.error) throw purchasesResult.error;
+      if (expensesResult.error) throw expensesResult.error;
+      if (purchasesResult.error) throw purchasesResult.error;
+      if (incomeResult.error) throw incomeResult.error;
 
-        const allCategories = [
-          ...expensesResult.data.map(item => item.category),
-          ...purchasesResult.data.map(item => item.category)
-        ];
-        return [...new Set(allCategories)].filter(Boolean);
-      }
+      const allCategories = [
+        ...expensesResult.data.map(item => item.category),
+        ...purchasesResult.data.map(item => item.category),
+        ...incomeResult.data.map(item => item.category)
+      ];
+      return [...new Set(allCategories)].filter(Boolean);
     },
   });
 
   // Criar categoria
   const createCategoryMutation = useMutation({
-    mutationFn: async ({ name, parent_id, category_type }: { name: string; parent_id?: string | null; category_type: string }) => {
+    mutationFn: async ({ name, parent_id }: { name: string; parent_id?: string | null }) => {
       const insertData: UserCategoryInsert = {
         name,
         parent_id: parent_id || null,
-        category_type,
         user_id: (await supabase.auth.getUser()).data.user?.id!
       };
 
@@ -93,7 +86,7 @@ export const useHierarchicalCategories = (categoryType: 'expense' | 'income' | '
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hierarchical-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['user-categories'] });
       toast.success('Categoria criada com sucesso!');
     },
     onError: (error: any) => {
@@ -118,7 +111,7 @@ export const useHierarchicalCategories = (categoryType: 'expense' | 'income' | '
       if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['hierarchical-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['user-categories'] });
       toast.success('Categoria removida com sucesso!');
     },
     onError: () => {
@@ -156,12 +149,12 @@ export const useHierarchicalCategories = (categoryType: 'expense' | 'income' | '
     const options: CategoryOption[] = [];
 
     // Adicionar categorias padrão que não foram customizadas
-    const defaultCategories = categoryType === 'income' ? defaultIncomeCategories : defaultExpenseCategories;
+    const allDefaultCategories = [...defaultExpenseCategories, ...defaultIncomeCategories];
     const userCategoryNames = userCategories.map(cat => cat.name);
     const existingCategoryNames = existingCategories || [];
 
     // Combinar categorias padrão, existentes e personalizadas
-    const allDefaultAndExisting = [...new Set([...defaultCategories, ...existingCategoryNames])];
+    const allDefaultAndExisting = [...new Set([...allDefaultCategories, ...existingCategoryNames])];
     
     allDefaultAndExisting.forEach(catName => {
       if (!userCategoryNames.includes(catName)) {
