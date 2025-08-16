@@ -2,15 +2,18 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Plus } from 'lucide-react';
+import { Edit, Trash2, Plus, Settings } from 'lucide-react';
 import { usePlannedIncome, PlannedIncome } from '@/hooks/usePlannedIncome';
 import { RecurringIncomeForm } from './RecurringIncomeForm';
 import { EditPlannedIncomeDialog } from './EditPlannedIncomeDialog';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import CategoryManager from '../CategoryManager';
 
 export const PlannedIncomeList: React.FC = () => {
   const { plannedIncome, deletePlannedIncome, isDeleting } = usePlannedIncome();
   const [showForm, setShowForm] = useState(false);
   const [editingIncome, setEditingIncome] = useState<PlannedIncome | null>(null);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -54,10 +57,16 @@ export const PlannedIncomeList: React.FC = () => {
             Gerencie suas receitas fixas e específicas
           </p>
         </div>
-        <Button onClick={() => setShowForm(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Receita
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowCategoryManager(true)}>
+            <Settings className="h-4 w-4 mr-2" />
+            Categorias
+          </Button>
+          <Button onClick={() => setShowForm(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Receita
+          </Button>
+        </div>
       </div>
 
       {/* Receitas Recorrentes */}
@@ -183,6 +192,12 @@ export const PlannedIncomeList: React.FC = () => {
           onOpenChange={(open) => !open && setEditingIncome(null)}
         />
       )}
+
+      <Dialog open={showCategoryManager} onOpenChange={setShowCategoryManager}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <CategoryManager categoryType="income" />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

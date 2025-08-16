@@ -51,7 +51,7 @@ export const useHierarchicalCategories = (categoryType?: 'income' | 'expense') =
 
   // Buscar categorias das transações existentes
   const { data: existingCategories = [] } = useQuery({
-    queryKey: ['existing-categories'],
+    queryKey: ['existing-categories', categoryType],
     queryFn: async () => {
       const [expensesResult, purchasesResult, incomeResult] = await Promise.all([
         supabase.from('expenses').select('category').order('category'),
@@ -93,6 +93,7 @@ export const useHierarchicalCategories = (categoryType?: 'income' | 'expense') =
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['existing-categories'] });
       toast.success('Categoria criada com sucesso!');
     },
     onError: (error: any) => {
@@ -118,6 +119,7 @@ export const useHierarchicalCategories = (categoryType?: 'income' | 'expense') =
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['existing-categories'] });
       toast.success('Categoria removida com sucesso!');
     },
     onError: () => {
