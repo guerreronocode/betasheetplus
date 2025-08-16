@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { Plus, Trash2 } from 'lucide-react';
 import { useBudgets, Budget } from '@/hooks/useBudgets';
 import { useIntegratedCategories } from '@/hooks/useIntegratedCategories';
-import CategorySelector from './shared/CategorySelector';
+import HierarchicalCategorySelector from './shared/HierarchicalCategorySelector';
 
 interface BudgetFormProps {
   open: boolean;
@@ -169,10 +169,11 @@ const BudgetForm: React.FC<BudgetFormProps> = ({
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                       <div>
                         <Label>Categoria</Label>
-                        <CategorySelector
+                        <HierarchicalCategorySelector
                           value={categoryBudget.category}
-                          options={categoryOptions}
                           onChange={(value) => handleCategoryChange(index, 'category', value)}
+                          categoryType="expense"
+                          placeholder="Escolha uma categoria"
                           required
                         />
                       </div>

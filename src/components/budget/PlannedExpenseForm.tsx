@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import HierarchicalCategorySelector from '@/components/shared/HierarchicalCategorySelector';
 import { Switch } from '@/components/ui/switch';
 import { usePlannedExpenses } from '@/hooks/usePlannedExpenses';
 import { format } from 'date-fns';
@@ -30,19 +30,6 @@ export const PlannedExpenseForm: React.FC<PlannedExpenseFormProps> = ({
     recurring_end_month: '',
   });
 
-  const expenseCategories = [
-    { value: 'alimentacao', label: 'Alimentação' },
-    { value: 'transporte', label: 'Transporte' },
-    { value: 'moradia', label: 'Moradia' },
-    { value: 'saude', label: 'Saúde' },
-    { value: 'educacao', label: 'Educação' },
-    { value: 'entretenimento', label: 'Entretenimento' },
-    { value: 'vestuario', label: 'Vestuário' },
-    { value: 'servicos', label: 'Serviços' },
-    { value: 'impostos', label: 'Impostos' },
-    { value: 'financas', label: 'Finanças' },
-    { value: 'outros', label: 'Outros' },
-  ];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,21 +76,13 @@ export const PlannedExpenseForm: React.FC<PlannedExpenseFormProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="category">Categoria</Label>
-            <Select
+            <HierarchicalCategorySelector
               value={formData.category}
-              onValueChange={(value) => setFormData({ ...formData, category: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                {expenseCategories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              onChange={(value) => setFormData({ ...formData, category: value })}
+              categoryType="expense"
+              placeholder="Selecione uma categoria"
+              required
+            />
           </div>
 
           <div className="space-y-2">

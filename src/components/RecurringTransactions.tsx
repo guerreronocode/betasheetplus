@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import HierarchicalCategorySelector from '@/components/shared/HierarchicalCategorySelector';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useRecurringTransactions, RecurringTransaction } from '@/hooks/useRecurringTransactions';
@@ -246,21 +247,13 @@ const RecurringTransactions = () => {
                 
                 <div>
                   <Label htmlFor="category">Categoria</Label>
-                  <Select
+                  <HierarchicalCategorySelector
                     value={form.category}
-                    onValueChange={(value) => setForm(prev => ({ ...prev, category: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma categoria" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(form.type === 'income' ? incomeCategories : expenseCategories).map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    onChange={(value) => setForm(prev => ({ ...prev, category: value }))}
+                    categoryType={form.type}
+                    placeholder="Selecione uma categoria"
+                    required
+                  />
                 </div>
                 
                 <div>

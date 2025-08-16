@@ -151,7 +151,6 @@ export const useHierarchicalCategories = (categoryType: 'expense' | 'income' | '
     return rootCategories;
   };
 
-  // Converter para opções do select
   const getCategoryOptions = (): CategoryOption[] => {
     const organized = organizeCategories(userCategories);
     const options: CategoryOption[] = [];
@@ -175,7 +174,7 @@ export const useHierarchicalCategories = (categoryType: 'expense' | 'income' | '
       options.push({ value: cat.name, label: cat.name });
       cat.subcategories?.forEach(subcat => {
         options.push({ 
-          value: `${cat.name} > ${subcat.name}`, 
+          value: subcat.name, 
           label: `${cat.name} > ${subcat.name}`,
           parent: cat.name
         });

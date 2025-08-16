@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import HierarchicalCategorySelector from '@/components/shared/HierarchicalCategorySelector';
 import { usePlannedIncome, PlannedIncomeInput } from '@/hooks/usePlannedIncome';
 
 interface PlannedIncomeFormProps {
@@ -14,18 +15,6 @@ interface PlannedIncomeFormProps {
 export const PlannedIncomeForm: React.FC<PlannedIncomeFormProps> = ({ open, onOpenChange }) => {
   const { createPlannedIncome, isCreating } = usePlannedIncome();
   
-  // Categorias de receita padrão
-  const incomeCategories = [
-    { value: 'salario', label: 'Salário' },
-    { value: 'freelance', label: 'Freelance' },
-    { value: 'bonus', label: 'Bônus' },
-    { value: 'investimentos', label: 'Investimentos' },
-    { value: 'aluguel', label: 'Aluguel Recebido' },
-    { value: 'pensao', label: 'Pensão' },
-    { value: 'vendas', label: 'Vendas' },
-    { value: 'dividendos', label: 'Dividendos' },
-    { value: 'outros', label: 'Outros' },
-  ];
 
   const [formData, setFormData] = useState<PlannedIncomeInput>({
     month: new Date().toISOString().slice(0, 10), // Data atual
@@ -102,21 +91,13 @@ export const PlannedIncomeForm: React.FC<PlannedIncomeFormProps> = ({ open, onOp
 
           <div className="space-y-2">
             <Label htmlFor="category">Categoria</Label>
-            <Select 
-              value={formData.category} 
-              onValueChange={(value) => handleInputChange('category', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                {incomeCategories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <HierarchicalCategorySelector
+              value={formData.category}
+              onChange={(value) => handleInputChange('category', value)}
+              categoryType="income"
+              placeholder="Selecione a categoria"
+              required
+            />
           </div>
 
           <div className="space-y-2">
