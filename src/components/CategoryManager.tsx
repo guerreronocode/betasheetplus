@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, FolderPlus, Tag, Edit, Users } from 'lucide-react';
+import { Plus, Trash2, FolderPlus, Tag, Edit, PlusCircle, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,6 +18,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
   const [selectedParent, setSelectedParent] = useState<string>('');
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [addingSubcategoryTo, setAddingSubcategoryTo] = useState<Category | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   
   const {
     categories,
@@ -47,56 +48,95 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
     setSelectedParent(parentCategory.id);
   };
 
-  const renderCategory = (category: Category, level = 0) => (
-    <div key={category.id} className={`space-y-2 ${level > 0 ? 'ml-6' : ''}`}>
-      <div className="flex items-center justify-between p-3 border rounded-lg bg-card">
-        <div className="flex items-center gap-2">
-          {level === 0 ? (
-            <Tag className="w-4 h-4 text-primary" />
-          ) : (
-            <div className="w-4 h-4 border-l-2 border-b-2 border-muted-foreground ml-2" />
-          )}
-          <Badge variant={level === 0 ? 'default' : 'secondary'}>
-            {category.name}
-          </Badge>
-        </div>
-        <div className="flex items-center gap-1">
-          {level === 0 && (
+  const toggleCategoryExpansion = (categoryId: string) => {
+    const newExpanded = new Set(expandedCategories);
+    if (newExpanded.has(categoryId)) {
+      newExpanded.delete(categoryId);
+    } else {
+      newExpanded.add(categoryId);
+    }
+    setExpandedCategories(newExpanded);
+  };
+
+  const renderCategory = (category: Category, level = 0) => {
+    const isExpanded = expandedCategories.has(category.id);
+    const hasSubcategories = category.subcategories && category.subcategories.length > 0;
+    
+    return (
+      <div key={category.id} className={`space-y-2 ${level > 0 ? 'ml-6' : ''}`}>
+        <div className="flex items-center justify-between p-3 border rounded-lg bg-card">
+          <div className="flex items-center gap-2">
+            {level === 0 && hasSubcategories && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => toggleCategoryExpansion(category.id)}
+                className="p-0 h-auto w-auto text-muted-foreground hover:text-primary"
+              >
+                {isExpanded ? (
+                  <ChevronDown className="w-4 h-4" />
+                ) : (
+                  <ChevronRight className="w-4 h-4" />
+                )}
+              </Button>
+            )}
+            {level === 0 ? (
+              <Tag className="w-4 h-4 text-primary" />
+            ) : (
+              <div className="w-4 h-4 border-l-2 border-b-2 border-muted-foreground ml-2" />
+            )}
+            <Badge variant={level === 0 ? 'default' : 'secondary'}>
+              {category.name}
+            </Badge>
+            {hasSubcategories && (
+              <Badge variant="outline" className="text-xs">
+                {category.subcategories.length}
+              </Badge>
+            )}
+          </div>
+          <div className="flex items-center gap-1">
+            {level === 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleAddSubcategory(category)}
+                className="text-muted-foreground hover:text-primary"
+                title="Adicionar subcategoria"
+              >
+                <PlusCircle className="w-4 h-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleAddSubcategory(category)}
+              onClick={() => setEditingCategory(category)}
               className="text-muted-foreground hover:text-primary"
-              title="Adicionar subcategoria"
+              title="Editar categoria"
             >
-              <Users className="w-4 h-4" />
+              <Edit className="w-4 h-4" />
             </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setEditingCategory(category)}
-            className="text-muted-foreground hover:text-primary"
-            title="Editar categoria"
-          >
-            <Edit className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => deleteCategory(category.id)}
-            disabled={isDeleting}
-            className="text-destructive hover:text-destructive"
-            title="Excluir categoria"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => deleteCategory(category.id)}
+              disabled={isDeleting}
+              className="text-destructive hover:text-destructive"
+              title="Excluir categoria"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
+        
+        {/* Mostrar subcategorias apenas se expandido */}
+        {hasSubcategories && isExpanded && (
+          <div className="ml-6 space-y-2">
+            {category.subcategories.map(subcat => renderCategory(subcat, level + 1))}
+          </div>
+        )}
       </div>
-      
-      {category.subcategories?.map(subcat => renderCategory(subcat, level + 1))}
-    </div>
-  );
+    );
+  };
 
   return (
     <>
@@ -115,24 +155,25 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
         {/* Lista de categorias com botão de adição no topo */}
         <div className="space-y-3">
           {/* Botão para adicionar nova categoria */}
-          <Card className="border-dashed cursor-pointer hover:bg-muted/50 transition-colors">
-            <CardContent className="flex items-center justify-center p-6" onClick={() => {
+          <div 
+            className="flex items-center justify-between p-3 border border-dashed rounded-lg bg-card cursor-pointer hover:bg-muted/50 transition-colors"
+            onClick={() => {
               if (addingSubcategoryTo) {
                 setAddingSubcategoryTo(null);
                 setSelectedParent('');
               }
-            }}>
-              <div className="text-center">
-                <Plus className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  {addingSubcategoryTo 
-                    ? `Clique aqui para parar de adicionar subcategoria a "${addingSubcategoryTo.name}"`
-                    : 'Clique aqui para adicionar uma nova categoria'
-                  }
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <Plus className="w-4 h-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">
+                {addingSubcategoryTo 
+                  ? `Parar de adicionar subcategoria a "${addingSubcategoryTo.name}"`
+                  : 'Adicionar nova categoria'
+                }
+              </span>
+            </div>
+          </div>
 
           {/* Formulário para criar nova categoria (mostrado quando necessário) */}
           {(addingSubcategoryTo || newCategoryName) && (
@@ -224,11 +265,11 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
               <br />
               Clique no botão acima para criar sua primeira categoria.
             </div>
-          ) : (
+           ) : (
             <div className="space-y-2">
-              {categories.map(category => renderCategory(category))}
+              {categories.filter(cat => !cat.parent_id).map(category => renderCategory(category))}
             </div>
-          )}
+           )}
         </div>
       </CardContent>
     </Card>
