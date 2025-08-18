@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, FolderPlus, Tag, Edit, PlusCircle, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, FolderPlus, Tag, Edit, FolderDown, ChevronDown, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,9 +15,9 @@ interface CategoryManagerProps {
 
 const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expense' }) => {
   const [newCategoryName, setNewCategoryName] = useState('');
-  const [selectedParent, setSelectedParent] = useState<string>('');
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [addingSubcategoryTo, setAddingSubcategoryTo] = useState<Category | null>(null);
+  const [addingMainCategory, setAddingMainCategory] = useState<boolean>(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   
   const {
@@ -34,18 +34,23 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
     
     createCategory({
       name: newCategoryName.trim(),
-      parent_id: selectedParent || addingSubcategoryTo?.id || null,
+      parent_id: addingSubcategoryTo?.id || null,
       category_type: categoryType
     });
     
     setNewCategoryName('');
-    setSelectedParent('');
     setAddingSubcategoryTo(null);
+    setAddingMainCategory(false);
   };
 
   const handleAddSubcategory = (parentCategory: Category) => {
     setAddingSubcategoryTo(parentCategory);
-    setSelectedParent(parentCategory.id);
+    setAddingMainCategory(false);
+  };
+
+  const handleAddMainCategory = () => {
+    setAddingMainCategory(true);
+    setAddingSubcategoryTo(null);
   };
 
   const toggleCategoryExpansion = (categoryId: string) => {
@@ -103,7 +108,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
                 className="text-muted-foreground hover:text-primary"
                 title="Adicionar subcategoria"
               >
-                <PlusCircle className="w-4 h-4" />
+                <FolderDown className="w-4 h-4" />
               </Button>
             )}
             <Button
@@ -157,30 +162,24 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
           {/* Botão para adicionar nova categoria */}
           <div 
             className="flex items-center justify-between p-3 border border-dashed rounded-lg bg-card cursor-pointer hover:bg-muted/50 transition-colors"
-            onClick={() => {
-              if (addingSubcategoryTo) {
-                setAddingSubcategoryTo(null);
-                setSelectedParent('');
-              }
-            }}
+            onClick={handleAddMainCategory}
           >
             <div className="flex items-center gap-2">
               <Plus className="w-4 h-4 text-muted-foreground" />
               <span className="text-sm text-muted-foreground">
-                {addingSubcategoryTo 
-                  ? `Parar de adicionar subcategoria a "${addingSubcategoryTo.name}"`
-                  : 'Adicionar nova categoria'
-                }
+                Adicionar nova categoria
               </span>
             </div>
           </div>
 
           {/* Formulário para criar nova categoria (mostrado quando necessário) */}
-          {(addingSubcategoryTo || newCategoryName) && (
+          {(addingSubcategoryTo || addingMainCategory) && (
             <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="categoryName">Nome da Categoria</Label>
+                  <Label htmlFor="categoryName">
+                    Nome da {addingSubcategoryTo ? 'Sub-categoria' : 'Categoria'}
+                  </Label>
                   <Input
                     id="categoryName"
                     value={newCategoryName}
@@ -191,52 +190,21 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="parentCategory">Categoria Pai (opcional)</Label>
-                  <Select value={selectedParent || ""} onValueChange={(value) => setSelectedParent(value && value !== "no-options" ? value : "")} disabled={!!addingSubcategoryTo}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Criar como categoria principal" />
-                    </SelectTrigger>
-                   <SelectContent>
-                      {categories.filter(cat => !cat.parent_id).map(cat => (
-                        <SelectItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </SelectItem>
-                      ))}
-                      {categories.filter(cat => !cat.parent_id).length === 0 && (
-                        <SelectItem value="no-options" disabled>
-                          Nenhuma categoria principal
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                   </Select>
-                   {selectedParent && !addingSubcategoryTo && (
-                     <Button 
-                       variant="ghost" 
-                       size="sm" 
-                       onClick={() => setSelectedParent('')}
-                       className="text-xs"
-                     >
-                       Remover categoria pai
-                     </Button>
-                   )}
-                 </div>
-                
-                <div className="flex items-end gap-2">
+                <div className="flex items-center gap-2">
                   <Button 
                     onClick={handleCreateCategory}
                     disabled={!newCategoryName.trim() || isCreating}
                     className="flex-1"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    {addingSubcategoryTo ? 'Criar Sub-categoria' : (selectedParent ? 'Criar Sub-categoria' : 'Criar Categoria')}
+                    {addingSubcategoryTo ? 'Criar Sub-categoria' : 'Criar Categoria'}
                   </Button>
                   <Button 
                     variant="outline"
                     onClick={() => {
                       setNewCategoryName('');
-                      setSelectedParent('');
                       setAddingSubcategoryTo(null);
+                      setAddingMainCategory(false);
                     }}
                   >
                     Cancelar
@@ -244,11 +212,9 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
                 </div>
               </div>
               
-              {(selectedParent || addingSubcategoryTo) && (
+              {addingSubcategoryTo && (
                 <div className="text-sm text-muted-foreground">
-                  <strong>Criando sub-categoria de:</strong> {
-                    addingSubcategoryTo?.name || categories.find(c => c.id === selectedParent)?.name
-                  }
+                  <strong>Criando sub-categoria de:</strong> {addingSubcategoryTo.name}
                 </div>
               )}
             </div>
