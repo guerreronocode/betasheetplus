@@ -66,6 +66,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
   const renderCategory = (category: Category, level = 0) => {
     const isExpanded = expandedCategories.has(category.id);
     const hasSubcategories = category.subcategories && category.subcategories.length > 0;
+    const isAddingSubcategoryToThis = addingSubcategoryTo?.id === category.id;
     
     return (
       <div key={category.id} className={`space-y-2 ${level > 0 ? 'ml-6' : ''}`}>
@@ -133,6 +134,51 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
           </div>
         </div>
         
+        {/* Formulário inline para criar subcategoria */}
+        {isAddingSubcategoryToThis && (
+          <div className="ml-6 p-3 border border-dashed rounded-lg bg-muted/30">
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor={`subcategoryName-${category.id}`} className="text-sm">
+                  Nome da Subcategoria
+                </Label>
+                <Input
+                  id={`subcategoryName-${category.id}`}
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  placeholder="Ex: Restaurantes, Cinema..."
+                  maxLength={50}
+                  className="h-8 text-sm"
+                  autoFocus
+                />
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <Button 
+                  onClick={handleCreateCategory}
+                  disabled={!newCategoryName.trim() || isCreating}
+                  size="sm"
+                  className="text-sm"
+                >
+                  <Plus className="w-3 h-3 mr-1" />
+                  Criar
+                </Button>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setNewCategoryName('');
+                    setAddingSubcategoryTo(null);
+                  }}
+                  className="text-sm"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+        
         {/* Mostrar subcategorias apenas se expandido */}
         {hasSubcategories && isExpanded && (
           <div className="ml-6 space-y-2">
@@ -172,14 +218,12 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
             </div>
           </div>
 
-          {/* Formulário para criar nova categoria (mostrado quando necessário) */}
-          {(addingSubcategoryTo || addingMainCategory) && (
+          {/* Formulário para criar nova categoria principal */}
+          {addingMainCategory && (
             <div className="space-y-4 p-4 border rounded-lg bg-muted/50">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="categoryName">
-                    Nome da {addingSubcategoryTo ? 'Sub-categoria' : 'Categoria'}
-                  </Label>
+                  <Label htmlFor="categoryName">Nome da Categoria</Label>
                   <Input
                     id="categoryName"
                     value={newCategoryName}
@@ -197,13 +241,12 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
                     className="flex-1"
                   >
                     <Plus className="w-4 h-4 mr-2" />
-                    {addingSubcategoryTo ? 'Criar Sub-categoria' : 'Criar Categoria'}
+                    Criar Categoria
                   </Button>
                   <Button 
                     variant="outline"
                     onClick={() => {
                       setNewCategoryName('');
-                      setAddingSubcategoryTo(null);
                       setAddingMainCategory(false);
                     }}
                   >
@@ -211,12 +254,6 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
                   </Button>
                 </div>
               </div>
-              
-              {addingSubcategoryTo && (
-                <div className="text-sm text-muted-foreground">
-                  <strong>Criando sub-categoria de:</strong> {addingSubcategoryTo.name}
-                </div>
-              )}
             </div>
           )}
 
