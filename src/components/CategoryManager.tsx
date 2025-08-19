@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, FolderPlus, Edit, FolderDown, ChevronDown, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
   const [addingMainCategory, setAddingMainCategory] = useState<boolean>(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [draggedCategory, setDraggedCategory] = useState<Category | null>(null);
+  const [reorderedCategories, setReorderedCategories] = useState<Category[]>([]);
   
   const {
     categories,
@@ -29,6 +30,11 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
     isCreating,
     isDeleting
   } = useHierarchicalCategories(categoryType);
+
+  // Sincronizar categorias reordenadas com as originais
+  useEffect(() => {
+    setReorderedCategories(categories);
+  }, [categories]);
 
   const handleCreateCategory = () => {
     if (!newCategoryName.trim()) return;
@@ -78,9 +84,21 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
     e.preventDefault();
     if (!draggedCategory || draggedCategory.id === targetCategory.id) return;
     
-    // Aqui você pode implementar a lógica de reordenação das categorias
-    // Por exemplo, trocar a ordem entre draggedCategory e targetCategory
-    console.log('Reordenar:', draggedCategory.name, 'para posição de', targetCategory.name);
+    // Reordenar apenas categorias pai (level 0)
+    const parentCategories = reorderedCategories.filter(cat => !cat.parent_id);
+    const draggedIndex = parentCategories.findIndex(cat => cat.id === draggedCategory.id);
+    const targetIndex = parentCategories.findIndex(cat => cat.id === targetCategory.id);
+    
+    if (draggedIndex !== -1 && targetIndex !== -1) {
+      const newParentCategories = [...parentCategories];
+      // Trocar posições
+      [newParentCategories[draggedIndex], newParentCategories[targetIndex]] = 
+      [newParentCategories[targetIndex], newParentCategories[draggedIndex]];
+      
+      // Manter subcategorias e atualizar lista completa
+      const subcategories = reorderedCategories.filter(cat => cat.parent_id);
+      setReorderedCategories([...newParentCategories, ...subcategories]);
+    }
     
     setDraggedCategory(null);
   };
@@ -127,7 +145,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
                 title={isExpanded ? 'Recolher subcategorias' : 'Expandir subcategorias'}
               >
                 <ChevronDown 
-                  className={`w-4 h-4 transition-transform ${isExpanded ? '' : 'rotate-180'}`} 
+                  className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} 
                 />
               </Button>
             )}
@@ -300,9 +318,9 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
               Clique no botão acima para criar sua primeira categoria.
             </div>
            ) : (
-            <div className="space-y-2">
-              {categories.filter(cat => !cat.parent_id).map(category => renderCategory(category))}
-            </div>
+             <div className="space-y-2">
+               {reorderedCategories.filter(cat => !cat.parent_id).map(category => renderCategory(category))}
+             </div>
            )}
         </div>
       </CardContent>
