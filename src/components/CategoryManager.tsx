@@ -20,6 +20,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
   const [addingMainCategory, setAddingMainCategory] = useState<boolean>(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const [draggedCategory, setDraggedCategory] = useState<Category | null>(null);
+  const [dragOverCategory, setDragOverCategory] = useState<Category | null>(null);
   const [reorderedCategories, setReorderedCategories] = useState<Category[]>([]);
   
   const {
@@ -73,6 +74,37 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
   const handleDragStart = (e: React.DragEvent, category: Category) => {
     setDraggedCategory(category);
     e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', category.id);
+    
+    // Adicionar efeito visual de transparência ao item arrastado
+    setTimeout(() => {
+      if (e.target instanceof HTMLElement) {
+        e.target.style.opacity = '0.5';
+      }
+    }, 0);
+  };
+
+  const handleDragEnd = (e: React.DragEvent) => {
+    if (e.target instanceof HTMLElement) {
+      e.target.style.opacity = '1';
+    }
+    setDraggedCategory(null);
+    setDragOverCategory(null);
+  };
+
+  const handleDragEnter = (e: React.DragEvent, category: Category) => {
+    e.preventDefault();
+    if (draggedCategory && draggedCategory.id !== category.id && !category.parent_id) {
+      setDragOverCategory(category);
+    }
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    // Só remove o dragOver se estiver saindo do elemento completamente
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setDragOverCategory(null);
+    }
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -82,18 +114,20 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
 
   const handleDrop = (e: React.DragEvent, targetCategory: Category) => {
     e.preventDefault();
-    if (!draggedCategory || draggedCategory.id === targetCategory.id) return;
+    if (!draggedCategory || draggedCategory.id === targetCategory.id || targetCategory.parent_id) return;
     
-    // Reordenar apenas categorias pai (level 0)
+    // Trabalhar apenas com categorias pai
     const parentCategories = reorderedCategories.filter(cat => !cat.parent_id);
     const draggedIndex = parentCategories.findIndex(cat => cat.id === draggedCategory.id);
     const targetIndex = parentCategories.findIndex(cat => cat.id === targetCategory.id);
     
     if (draggedIndex !== -1 && targetIndex !== -1) {
       const newParentCategories = [...parentCategories];
-      // Trocar posições
-      [newParentCategories[draggedIndex], newParentCategories[targetIndex]] = 
-      [newParentCategories[targetIndex], newParentCategories[draggedIndex]];
+      
+      // Remover o item da posição original
+      const [removed] = newParentCategories.splice(draggedIndex, 1);
+      // Inserir na nova posição
+      newParentCategories.splice(targetIndex, 0, removed);
       
       // Manter subcategorias e atualizar lista completa
       const subcategories = reorderedCategories.filter(cat => cat.parent_id);
@@ -101,6 +135,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
     }
     
     setDraggedCategory(null);
+    setDragOverCategory(null);
   };
 
   const renderCategory = (category: Category, level = 0) => {
@@ -111,9 +146,18 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
     return (
       <div key={category.id} className={`space-y-2 ${level > 0 ? 'ml-6' : ''}`}>
         <div 
-          className="flex items-center justify-between p-3 border rounded-lg bg-card cursor-grab active:cursor-grabbing hover:shadow-sm transition-shadow"
+          className={`
+            flex items-center justify-between p-3 border rounded-lg bg-card transition-all duration-200
+            ${level === 0 ? 'cursor-grab active:cursor-grabbing' : ''} 
+            ${draggedCategory?.id === category.id ? 'opacity-50 scale-95' : ''} 
+            ${dragOverCategory?.id === category.id ? 'border-primary shadow-lg scale-105 bg-primary/5' : ''} 
+            hover:shadow-sm
+          `}
           draggable={level === 0} // Apenas categorias pai são arrastáveis
           onDragStart={(e) => handleDragStart(e, category)}
+          onDragEnd={handleDragEnd}
+          onDragEnter={(e) => handleDragEnter(e, category)}
+          onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
           onDrop={(e) => handleDrop(e, category)}
         >
