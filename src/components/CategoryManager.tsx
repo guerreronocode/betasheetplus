@@ -112,6 +112,14 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
     e.dataTransfer.dropEffect = 'move';
   };
 
+  // Função para persistir a nova ordem das categorias
+  const updateCategoryOrder = (newOrderedCategories: Category[]) => {
+    // Aqui você implementaria a lógica para salvar no backend
+    // Por enquanto, vamos manter a ordem local
+    setReorderedCategories(newOrderedCategories);
+    console.log('Nova ordem salva:', newOrderedCategories.map(cat => cat.name));
+  };
+
   const handleDrop = (e: React.DragEvent, targetCategory: Category) => {
     e.preventDefault();
     if (!draggedCategory || draggedCategory.id === targetCategory.id || targetCategory.parent_id) return;
@@ -131,7 +139,10 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
       
       // Manter subcategorias e atualizar lista completa
       const subcategories = reorderedCategories.filter(cat => cat.parent_id);
-      setReorderedCategories([...newParentCategories, ...subcategories]);
+      const newOrderedCategories = [...newParentCategories, ...subcategories];
+      
+      // Persistir a nova ordem
+      updateCategoryOrder(newOrderedCategories);
     }
     
     setDraggedCategory(null);
