@@ -37,7 +37,6 @@ const Dashboard = () => {
           <TabsList className="flex flex-wrap gap-1 h-auto p-1 bg-muted">
             <TabsTrigger value="overview" className="flex-shrink-0">Visão Geral</TabsTrigger>
             <TabsTrigger value="score" className="flex-shrink-0">Score</TabsTrigger>
-            <TabsTrigger value="evolution" className="flex-shrink-0">Evolução</TabsTrigger>
             <TabsTrigger value="planning" className="flex-shrink-0">Planejamento</TabsTrigger>
             <TabsTrigger value="accounts" className="flex-shrink-0">Contas</TabsTrigger>
             <TabsTrigger value="transactions" className="flex-shrink-0">Transações</TabsTrigger>
@@ -60,6 +59,9 @@ const Dashboard = () => {
                 <CategoryRankingCompact />
               </div>
             </div>
+            
+            {/* Painel de Evolução Financeira */}
+            <FinancialEvolutionPanel />
             
             <div className="text-center py-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Bem-vindo ao seu Dashboard Financeiro!</h2>
@@ -91,10 +93,6 @@ const Dashboard = () => {
 
           <TabsContent value="score">
             <DetailedFinancialScore />
-          </TabsContent>
-
-          <TabsContent value="evolution">
-            <FinancialEvolutionPanel />
           </TabsContent>
 
           <TabsContent value="planning">
