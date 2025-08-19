@@ -7,12 +7,22 @@ interface CurrencyInputProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   placeholder?: string;
   required?: boolean;
+  min?: number;
+  max?: number;
 }
 
-const CurrencyInput: React.FC<CurrencyInputProps> = ({ value, onChange, placeholder, required }) => (
+const CurrencyInput: React.FC<CurrencyInputProps> = ({ 
+  value, 
+  onChange, 
+  placeholder, 
+  required,
+  min = 0,
+  max = 999999999.99
+}) => (
   <Input
     type="number"
-    min={0}
+    min={min}
+    max={max}
     step="0.01"
     value={value}
     onChange={onChange}
