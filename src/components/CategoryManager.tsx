@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, FolderPlus, Tag, Edit, FolderDown, ChevronDown, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, FolderPlus, Edit, FolderDown, ChevronDown, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +19,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
   const [addingSubcategoryTo, setAddingSubcategoryTo] = useState<Category | null>(null);
   const [addingMainCategory, setAddingMainCategory] = useState<boolean>(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
+  const [draggedCategory, setDraggedCategory] = useState<Category | null>(null);
   
   const {
     categories,
@@ -63,6 +64,27 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
     setExpandedCategories(newExpanded);
   };
 
+  const handleDragStart = (e: React.DragEvent, category: Category) => {
+    setDraggedCategory(category);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e: React.DragEvent, targetCategory: Category) => {
+    e.preventDefault();
+    if (!draggedCategory || draggedCategory.id === targetCategory.id) return;
+    
+    // Aqui você pode implementar a lógica de reordenação das categorias
+    // Por exemplo, trocar a ordem entre draggedCategory e targetCategory
+    console.log('Reordenar:', draggedCategory.name, 'para posição de', targetCategory.name);
+    
+    setDraggedCategory(null);
+  };
+
   const renderCategory = (category: Category, level = 0) => {
     const isExpanded = expandedCategories.has(category.id);
     const hasSubcategories = category.subcategories && category.subcategories.length > 0;
@@ -70,37 +92,46 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
     
     return (
       <div key={category.id} className={`space-y-2 ${level > 0 ? 'ml-6' : ''}`}>
-        <div className="flex items-center justify-between p-3 border rounded-lg bg-card">
-          <div className="flex items-center gap-2">
-            {level === 0 && hasSubcategories && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => toggleCategoryExpansion(category.id)}
-                className="p-0 h-auto w-auto text-muted-foreground hover:text-primary"
-              >
-                {isExpanded ? (
-                  <ChevronDown className="w-4 h-4" />
-                ) : (
-                  <ChevronRight className="w-4 h-4" />
-                )}
-              </Button>
+        <div 
+          className="flex items-center justify-between p-3 border rounded-lg bg-card cursor-grab active:cursor-grabbing hover:shadow-sm transition-shadow"
+          draggable={level === 0} // Apenas categorias pai são arrastáveis
+          onDragStart={(e) => handleDragStart(e, category)}
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDrop(e, category)}
+        >
+          <div className="flex items-center gap-3">
+            {/* Ícone drag handle apenas para categorias pai */}
+            {level === 0 && (
+              <GripVertical className="w-4 h-4 text-muted-foreground" />
             )}
-            {level === 0 ? (
-              <Tag className="w-4 h-4 text-primary" />
-            ) : (
-              <div className="w-4 h-4 border-l-2 border-b-2 border-muted-foreground ml-2" />
-            )}
+            
             <Badge variant={level === 0 ? 'default' : 'secondary'}>
               {category.name}
             </Badge>
+            
             {hasSubcategories && (
               <Badge variant="outline" className="text-xs">
                 {category.subcategories.length}
               </Badge>
             )}
           </div>
+          
           <div className="flex items-center gap-1">
+            {/* Indicador de expansão movido para a direita */}
+            {level === 0 && hasSubcategories && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => toggleCategoryExpansion(category.id)}
+                className="p-1 h-auto w-auto text-muted-foreground hover:text-primary"
+                title={isExpanded ? 'Recolher subcategorias' : 'Expandir subcategorias'}
+              >
+                <ChevronDown 
+                  className={`w-4 h-4 transition-transform ${isExpanded ? '' : 'rotate-180'}`} 
+                />
+              </Button>
+            )}
+            
             {level === 0 && (
               <Button
                 variant="ghost"
@@ -109,7 +140,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
                 className="text-muted-foreground hover:text-primary"
                 title="Adicionar subcategoria"
               >
-                <FolderDown className="w-4 h-4" />
+                <Plus className="w-4 h-4" />
               </Button>
             )}
             <Button
