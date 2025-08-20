@@ -5,6 +5,7 @@ import { useExpenses } from './useExpenses';
 import { useInvestments } from './useInvestments';
 import { useMarketData } from './useMarketData';
 import { usePatrimony } from './usePatrimony';
+import { useBankAccountVaults } from './useBankAccountVaults';
 import { calculateFinancialMetrics } from '@/utils/financialCalculations';
 
 // Re-export all interfaces for backward compatibility
@@ -21,6 +22,11 @@ export const useFinancialData = () => {
     addBankAccount, 
     isAddingBankAccount 
   } = useBankAccounts();
+
+  const { 
+    vaults,
+    getTotalReserved
+  } = useBankAccountVaults();
 
   const { 
     income, 
@@ -51,13 +57,19 @@ export const useFinancialData = () => {
   // Calculate current investment value
   const currentInvestmentValue = investments.reduce((sum, item) => sum + item.current_value, 0);
 
+  // Calculate total reserved amount across all accounts
+  const totalReservedAmount = bankAccounts.reduce((total, account) => {
+    return total + getTotalReserved(account.id);
+  }, 0);
+
   // Calculate financial metrics using the utility function
   const financialMetrics = calculateFinancialMetrics(
     income,
     expenses,
     investments,
     bankAccounts,
-    currentInvestmentValue
+    currentInvestmentValue,
+    totalReservedAmount
   );
 
   const isLoading = incomeLoading || expensesLoading || investmentsLoading || bankAccountsLoading;
@@ -68,6 +80,7 @@ export const useFinancialData = () => {
     expenses,
     investments,
     bankAccounts,
+    vaults,
     yieldRates,
     assetPrices,
     assets,
@@ -92,5 +105,9 @@ export const useFinancialData = () => {
     
     // Financial metrics
     ...financialMetrics,
+    
+    // Vaults helpers
+    getTotalReserved,
+    totalReservedAmount,
   };
 };

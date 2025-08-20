@@ -134,6 +134,42 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_account_vaults: {
+        Row: {
+          bank_account_id: string
+          color: string
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          reserved_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          bank_account_id: string
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          reserved_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          bank_account_id?: string
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          reserved_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bank_accounts: {
         Row: {
           account_type: string

@@ -6,7 +6,8 @@ export const calculateFinancialMetrics = (
   expenses: ExpenseEntry[],
   investments: Investment[],
   bankAccounts: BankAccount[],
-  currentInvestmentValue: number
+  currentInvestmentValue: number,
+  totalReservedAmount: number = 0
 ) => {
   const currentMonth = new Date().getMonth();
   const currentYear = new Date().getFullYear();
@@ -34,8 +35,8 @@ export const calculateFinancialMetrics = (
   // Correct net worth calculation: bank balances + current investment value
   const netWorth = totalBankBalance + currentInvestmentValue;
   
-  // Available balance is the sum of all bank account balances
-  const availableBalance = totalBankBalance;
+  // Available balance is the sum of all bank account balances minus reserved amounts
+  const availableBalance = totalBankBalance - totalReservedAmount;
   
   // Investment return
   const investmentReturn = currentInvestmentValue - totalInvested;
@@ -50,5 +51,6 @@ export const calculateFinancialMetrics = (
     availableBalance,
     netWorth,
     investmentReturn,
+    totalReservedAmount,
   };
 };
