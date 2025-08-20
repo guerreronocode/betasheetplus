@@ -23,9 +23,12 @@ const HierarchicalCategorySelector: React.FC<HierarchicalCategorySelectorProps> 
   className,
   categoryType = 'expense'
 }) => {
+  console.log('HierarchicalCategorySelector - value:', value, 'categoryType:', categoryType);
   const [isManagerOpen, setIsManagerOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const { categoryOptions, isLoading } = useHierarchicalCategories(categoryType);
+  
+  console.log('HierarchicalCategorySelector - categoryOptions:', categoryOptions, 'isLoading:', isLoading);
 
   const groupedOptions = React.useMemo(() => {
     const groups: { [key: string]: { main: typeof categoryOptions[0] | null, subcategories: typeof categoryOptions } } = {};

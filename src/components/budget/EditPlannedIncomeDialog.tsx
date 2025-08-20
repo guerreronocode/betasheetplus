@@ -42,8 +42,9 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
   });
 
   useEffect(() => {
+    console.log('EditPlannedIncomeDialog - income changed:', income);
     const currentDate = new Date().toISOString().slice(0, 10);
-    setFormData({
+    const newFormData = {
       month: income.month || currentDate, // Default para data atual se vazio
       category: income.category,
       planned_amount: income.planned_amount.toString(),
@@ -51,7 +52,9 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
       is_recurring: income.is_recurring,
       recurring_start_month: income.recurring_start_month || currentDate, // Default para data atual se vazio
       recurring_end_month: income.recurring_end_month || 'no_end',
-    });
+    };
+    console.log('EditPlannedIncomeDialog - setting form data:', newFormData);
+    setFormData(newFormData);
   }, [income]);
 
   const handleSubmit = (e: React.FormEvent) => {
