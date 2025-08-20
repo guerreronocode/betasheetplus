@@ -32,30 +32,29 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
   const { updatePlannedIncome, isUpdating } = usePlannedIncome();
 
   const [formData, setFormData] = useState<EditPlannedIncomeFormData>({
-    month: income.month,
-    category: income.category,
-    planned_amount: income.planned_amount.toString(),
-    description: income.description || '',
-    is_recurring: income.is_recurring,
-    recurring_start_month: income.recurring_start_month || '',
-    recurring_end_month: income.recurring_end_month || 'no_end',
+    month: '',
+    category: '',
+    planned_amount: '',
+    description: '',
+    is_recurring: false,
+    recurring_start_month: '',
+    recurring_end_month: 'no_end',
   });
 
   useEffect(() => {
-    if (income && open) { // Só atualizar quando o modal estiver aberto
+    if (income && open) {
       const currentDate = new Date().toISOString().slice(0, 10);
-      const newFormData = {
+      setFormData({
         month: income.month || currentDate,
-        category: income.category,
-        planned_amount: income.planned_amount.toString(),
+        category: income.category || '',
+        planned_amount: income.planned_amount?.toString() || '',
         description: income.description || '',
-        is_recurring: income.is_recurring,
+        is_recurring: income.is_recurring || false,
         recurring_start_month: income.recurring_start_month || currentDate,
         recurring_end_month: income.recurring_end_month || 'no_end',
-      };
-      setFormData(newFormData);
+      });
     }
-  }, [income, open]); // Adicionar 'open' como dependência
+  }, [income, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
