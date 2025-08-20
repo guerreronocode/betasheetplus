@@ -5,6 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Settings } from 'lucide-react';
+import HierarchicalCategorySelector from '@/components/shared/HierarchicalCategorySelector';
+import CategoryManager from '../CategoryManager';
 import { usePlannedIncome, PlannedIncome, PlannedIncomeInput } from '@/hooks/usePlannedIncome';
 
 interface EditPlannedIncomeDialogProps {
@@ -29,18 +32,7 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
   onOpenChange 
 }) => {
   const { updatePlannedIncome, isUpdating } = usePlannedIncome();
-  
-  const incomeCategories = [
-    { value: 'salario', label: 'Salário' },
-    { value: 'freelance', label: 'Freelance' },
-    { value: 'bonus', label: 'Bônus' },
-    { value: 'investimentos', label: 'Investimentos' },
-    { value: 'aluguel', label: 'Aluguel Recebido' },
-    { value: 'pensao', label: 'Pensão' },
-    { value: 'vendas', label: 'Vendas' },
-    { value: 'dividendos', label: 'Dividendos' },
-    { value: 'outros', label: 'Outros' },
-  ];
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
 
   const [formData, setFormData] = useState<EditPlannedIncomeFormData>({
     month: income.month,
@@ -113,21 +105,27 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="category">Categoria</Label>
-            <Select 
-              value={formData.category} 
-              onValueChange={(value) => handleInputChange('category', value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                {incomeCategories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <HierarchicalCategorySelector
+                  value={formData.category}
+                  onChange={(value) => handleInputChange('category', value)}
+                  placeholder="Selecione a categoria"
+                  categoryType="income"
+                  required
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCategoryManager(true)}
+                className="flex-shrink-0"
+                title="Configurar categorias"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -140,7 +138,6 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
               value={formData.planned_amount}
               onChange={(e) => handleInputChange('planned_amount', e.target.value)}
               placeholder="0,00"
-              required
             />
           </div>
 
@@ -242,6 +239,13 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
             </Button>
           </div>
         </form>
+
+        {/* Dialog para gerenciar categorias */}
+        <Dialog open={showCategoryManager} onOpenChange={setShowCategoryManager}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <CategoryManager categoryType="income" />
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );

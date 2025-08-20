@@ -97,7 +97,6 @@ export const PlannedExpenseForm: React.FC<PlannedExpenseFormProps> = ({
               value={formData.planned_amount}
               onChange={(e) => setFormData({ ...formData, planned_amount: e.target.value })}
               placeholder="0,00"
-              required
             />
           </div>
 

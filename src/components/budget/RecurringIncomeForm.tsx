@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Settings } from 'lucide-react';
+import HierarchicalCategorySelector from '@/components/shared/HierarchicalCategorySelector';
 import CategoryManager from '../CategoryManager';
 import { usePlannedIncome, PlannedIncomeInput } from '@/hooks/usePlannedIncome';
 
@@ -17,23 +18,11 @@ interface RecurringIncomeFormProps {
 export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, onOpenChange }) => {
   const { createPlannedIncome, isCreating } = usePlannedIncome();
   const [showCategoryManager, setShowCategoryManager] = useState(false);
-  
-  const incomeCategories = [
-    { value: 'salario', label: 'Salário' },
-    { value: 'freelance', label: 'Freelance' },
-    { value: 'bonus', label: 'Bônus' },
-    { value: 'investimentos', label: 'Investimentos' },
-    { value: 'aluguel', label: 'Aluguel Recebido' },
-    { value: 'pensao', label: 'Pensão' },
-    { value: 'vendas', label: 'Vendas' },
-    { value: 'dividendos', label: 'Dividendos' },
-    { value: 'outros', label: 'Outros' },
-  ];
 
-  const [formData, setFormData] = useState<PlannedIncomeInput>({
+  const [formData, setFormData] = useState({
     month: new Date().toISOString().slice(0, 10),
     category: '',
-    planned_amount: 0,
+    planned_amount: '',
     description: '',
     is_recurring: false,
     recurring_start_month: new Date().toISOString().slice(0, 10),
@@ -43,16 +32,24 @@ export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    const amount = typeof formData.planned_amount === 'string' 
+      ? parseFloat(formData.planned_amount) 
+      : formData.planned_amount;
+    
+    if (!formData.category || !formData.planned_amount || amount <= 0) {
+      return;
+    }
+    
     const dataToSend = formData.is_recurring 
-      ? { ...formData, month: formData.recurring_start_month || formData.month, recurring_end_month: formData.recurring_end_month === 'no_end' ? undefined : formData.recurring_end_month }
-      : { ...formData, recurring_start_month: undefined, recurring_end_month: undefined };
+      ? { ...formData, planned_amount: amount, month: formData.recurring_start_month || formData.month, recurring_end_month: formData.recurring_end_month === 'no_end' ? undefined : formData.recurring_end_month }
+      : { ...formData, planned_amount: amount, recurring_start_month: undefined, recurring_end_month: undefined };
     
     createPlannedIncome(dataToSend);
     
     setFormData({
       month: new Date().toISOString().slice(0, 10),
       category: '',
-      planned_amount: 0,
+      planned_amount: '',
       description: '',
       is_recurring: false,
       recurring_start_month: new Date().toISOString().slice(0, 10),
@@ -62,7 +59,7 @@ export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, 
     onOpenChange(false);
   };
 
-  const handleInputChange = (field: keyof PlannedIncomeInput, value: string | number | boolean) => {
+  const handleInputChange = (field: keyof typeof formData, value: string | number | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -96,21 +93,13 @@ export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, 
             <Label htmlFor="category">Categoria</Label>
             <div className="flex gap-2">
               <div className="flex-1">
-                <Select 
-                  value={formData.category} 
-                  onValueChange={(value) => handleInputChange('category', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {incomeCategories.map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <HierarchicalCategorySelector
+                  value={formData.category}
+                  onChange={(value) => handleInputChange('category', value)}
+                  placeholder="Selecione a categoria"
+                  categoryType="income"
+                  required
+                />
               </div>
               <Button
                 type="button"
@@ -133,9 +122,8 @@ export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, 
               min="0"
               step="0.01"
               value={formData.planned_amount}
-              onChange={(e) => handleInputChange('planned_amount', parseFloat(e.target.value) || 0)}
+              onChange={(e) => handleInputChange('planned_amount', e.target.value)}
               placeholder="0,00"
-              required
             />
           </div>
 
@@ -231,7 +219,7 @@ export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, 
             </Button>
             <Button 
               type="submit" 
-              disabled={isCreating || !formData.category || formData.planned_amount <= 0}
+              disabled={isCreating || !formData.category || !formData.planned_amount || (typeof formData.planned_amount === 'string' ? parseFloat(formData.planned_amount) : formData.planned_amount) <= 0}
             >
               {isCreating ? 'Salvando...' : 'Salvar'}
             </Button>

@@ -6,6 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { Settings } from 'lucide-react';
+import HierarchicalCategorySelector from '@/components/shared/HierarchicalCategorySelector';
+import CategoryManager from '../CategoryManager';
 import { usePlannedExpenses, PlannedExpense } from '@/hooks/usePlannedExpenses';
 
 interface EditPlannedExpenseDialogProps {
@@ -20,6 +23,7 @@ export const EditPlannedExpenseDialog: React.FC<EditPlannedExpenseDialogProps> =
   onOpenChange,
 }) => {
   const { updatePlannedExpense, isUpdating } = usePlannedExpenses();
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
   
   const [formData, setFormData] = useState({
     category: '',
@@ -30,20 +34,6 @@ export const EditPlannedExpenseDialog: React.FC<EditPlannedExpenseDialogProps> =
     recurring_start_month: '',
     recurring_end_month: '',
   });
-
-  const expenseCategories = [
-    { value: 'alimentacao', label: 'Alimentação' },
-    { value: 'transporte', label: 'Transporte' },
-    { value: 'moradia', label: 'Moradia' },
-    { value: 'saude', label: 'Saúde' },
-    { value: 'educacao', label: 'Educação' },
-    { value: 'entretenimento', label: 'Entretenimento' },
-    { value: 'vestuario', label: 'Vestuário' },
-    { value: 'servicos', label: 'Serviços' },
-    { value: 'impostos', label: 'Impostos' },
-    { value: 'financas', label: 'Finanças' },
-    { value: 'outros', label: 'Outros' },
-  ];
 
   // Atualizar form quando expense mudar
   useEffect(() => {
@@ -96,21 +86,27 @@ export const EditPlannedExpenseDialog: React.FC<EditPlannedExpenseDialogProps> =
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="category">Categoria</Label>
-            <Select
-              value={formData.category}
-              onValueChange={(value) => setFormData({ ...formData, category: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione uma categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                {expenseCategories.map((category) => (
-                  <SelectItem key={category.value} value={category.value}>
-                    {category.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <div className="flex-1">
+                <HierarchicalCategorySelector
+                  value={formData.category}
+                  onChange={(value) => setFormData({ ...formData, category: value })}
+                  placeholder="Selecione uma categoria"
+                  categoryType="expense"
+                  required
+                />
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowCategoryManager(true)}
+                className="flex-shrink-0"
+                title="Configurar categorias"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -123,7 +119,6 @@ export const EditPlannedExpenseDialog: React.FC<EditPlannedExpenseDialogProps> =
               value={formData.planned_amount}
               onChange={(e) => setFormData({ ...formData, planned_amount: e.target.value })}
               placeholder="0,00"
-              required
             />
           </div>
 
@@ -198,6 +193,13 @@ export const EditPlannedExpenseDialog: React.FC<EditPlannedExpenseDialogProps> =
             </Button>
           </div>
         </form>
+
+        {/* Dialog para gerenciar categorias */}
+        <Dialog open={showCategoryManager} onOpenChange={setShowCategoryManager}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <CategoryManager categoryType="expense" />
+          </DialogContent>
+        </Dialog>
       </DialogContent>
     </Dialog>
   );

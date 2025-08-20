@@ -148,7 +148,6 @@ export const PlannedIncomeForm: React.FC<PlannedIncomeFormProps> = ({ open, onOp
               value={formData.planned_amount}
               onChange={(e) => handleInputChange('planned_amount', e.target.value)}
               placeholder="0,00"
-              required
             />
           </div>
 
