@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,21 +22,37 @@ export const EditPlannedExpenseDialog: React.FC<EditPlannedExpenseDialogProps> =
 }) => {
   const { updatePlannedExpense, isUpdating } = usePlannedExpenses();
   
-  const [formData, setFormData] = useState({
-    category: '',
-    planned_amount: '',
-    month: '',
-    description: '',
-    is_recurring: false,
-    recurring_start_month: '',
-    recurring_end_month: '',
-  });
+  // Inicializar form data baseado no expense
+  const initializeFormData = () => {
+    if (!expense) return {
+      category: '',
+      planned_amount: '',
+      month: new Date().toISOString().slice(0, 10),
+      description: '',
+      is_recurring: false,
+      recurring_start_month: new Date().toISOString().slice(0, 10),
+      recurring_end_month: '',
+    };
+
+    const currentDate = new Date().toISOString().slice(0, 10);
+    return {
+      category: expense.category || '',
+      planned_amount: expense.planned_amount?.toString() || '',
+      month: expense.month?.slice(0, 10) || currentDate,
+      description: expense.description || '',
+      is_recurring: expense.is_recurring || false,
+      recurring_start_month: expense.recurring_start_month?.slice(0, 10) || currentDate,
+      recurring_end_month: expense.recurring_end_month?.slice(0, 10) || '',
+    };
+  };
+
+  const [formData, setFormData] = useState(() => initializeFormData());
 
   // Atualizar form quando expense mudar
   useEffect(() => {
     if (expense && open) {
       const currentDate = new Date().toISOString().slice(0, 10);
-      setFormData({
+      const newFormData = {
         category: expense.category || '',
         planned_amount: expense.planned_amount?.toString() || '',
         month: expense.month?.slice(0, 10) || currentDate,
@@ -44,7 +60,8 @@ export const EditPlannedExpenseDialog: React.FC<EditPlannedExpenseDialogProps> =
         is_recurring: expense.is_recurring || false,
         recurring_start_month: expense.recurring_start_month?.slice(0, 10) || currentDate,
         recurring_end_month: expense.recurring_end_month?.slice(0, 10) || '',
-      });
+      };
+      setFormData(newFormData);
     }
   }, [expense, open]);
 
@@ -79,6 +96,9 @@ export const EditPlannedExpenseDialog: React.FC<EditPlannedExpenseDialogProps> =
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Editar Despesa Planejada</DialogTitle>
+          <DialogDescription>
+            Modifique os dados da despesa selecionada.
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">

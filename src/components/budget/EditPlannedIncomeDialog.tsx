@@ -31,20 +31,36 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
 }) => {
   const { updatePlannedIncome, isUpdating } = usePlannedIncome();
 
-  const [formData, setFormData] = useState<EditPlannedIncomeFormData>({
-    month: '',
-    category: '',
-    planned_amount: '',
-    description: '',
-    is_recurring: false,
-    recurring_start_month: '',
-    recurring_end_month: 'no_end',
-  });
+  // Inicializar form data baseado no income
+  const initializeFormData = (): EditPlannedIncomeFormData => {
+    if (!income) return {
+      month: new Date().toISOString().slice(0, 10),
+      category: '',
+      planned_amount: '',
+      description: '',
+      is_recurring: false,
+      recurring_start_month: new Date().toISOString().slice(0, 10),
+      recurring_end_month: 'no_end',
+    };
+
+    const currentDate = new Date().toISOString().slice(0, 10);
+    return {
+      month: income.month || currentDate,
+      category: income.category || '',
+      planned_amount: income.planned_amount?.toString() || '',
+      description: income.description || '',
+      is_recurring: income.is_recurring || false,
+      recurring_start_month: income.recurring_start_month || currentDate,
+      recurring_end_month: income.recurring_end_month || 'no_end',
+    };
+  };
+
+  const [formData, setFormData] = useState<EditPlannedIncomeFormData>(() => initializeFormData());
 
   useEffect(() => {
     if (income && open) {
       const currentDate = new Date().toISOString().slice(0, 10);
-      setFormData({
+      const newFormData: EditPlannedIncomeFormData = {
         month: income.month || currentDate,
         category: income.category || '',
         planned_amount: income.planned_amount?.toString() || '',
@@ -52,7 +68,8 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
         is_recurring: income.is_recurring || false,
         recurring_start_month: income.recurring_start_month || currentDate,
         recurring_end_month: income.recurring_end_month || 'no_end',
-      });
+      };
+      setFormData(newFormData);
     }
   }, [income, open]);
 
