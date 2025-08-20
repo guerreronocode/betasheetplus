@@ -23,34 +23,21 @@ const HierarchicalCategorySelector: React.FC<HierarchicalCategorySelectorProps> 
   className,
   categoryType = 'expense'
 }) => {
-  console.log('🔍 HierarchicalCategorySelector RENDER:', {
-    value,
-    categoryType,
-    placeholder,
-    required
-  });
-
   const [isManagerOpen, setIsManagerOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const { categoryOptions, isLoading } = useHierarchicalCategories(categoryType);
 
-  console.log('📋 HierarchicalCategorySelector - categoryOptions:', {
-    categoryOptions: categoryOptions.map(c => ({ value: c.value, label: c.label, parent: c.parent })),
-    isLoading,
-    totalOptions: categoryOptions.length
-  });
-
   // Verificar se a categoria atual existe nas opções
   const currentCategoryExists = categoryOptions.find(option => option.value === value);
-  console.log('✅ HierarchicalCategorySelector - categoria atual:', {
-    value,
-    exists: !!currentCategoryExists,
-    categoryDetails: currentCategoryExists
-  });
+  
+  // Auto-expandir categoria pai se uma subcategoria estiver selecionada
+  React.useEffect(() => {
+    if (value && currentCategoryExists && currentCategoryExists.parent) {
+      setExpandedCategories(prev => new Set(prev).add(currentCategoryExists.parent!));
+    }
+  }, [value, currentCategoryExists]);
 
   const groupedOptions = React.useMemo(() => {
-    console.log('🔄 HierarchicalCategorySelector - criando grupos com:', categoryOptions.length, 'opções');
-    
     const groups: { [key: string]: { main: typeof categoryOptions[0] | null, subcategories: typeof categoryOptions } } = {};
 
     categoryOptions.forEach(option => {
@@ -67,12 +54,6 @@ const HierarchicalCategorySelector: React.FC<HierarchicalCategorySelectorProps> 
         }
       }
     });
-
-    console.log('📊 HierarchicalCategorySelector - grupos criados:', Object.keys(groups).map(key => ({
-      key,
-      hasMain: !!groups[key].main,
-      subcategoriesCount: groups[key].subcategories.length
-    })));
 
     return groups;
   }, [categoryOptions]);
@@ -139,15 +120,14 @@ const HierarchicalCategorySelector: React.FC<HierarchicalCategorySelectorProps> 
     );
   };
 
+  // Obter o texto a ser exibido no SelectValue
+  const getDisplayText = () => {
+    if (!value || !currentCategoryExists) return placeholder;
+    return currentCategoryExists.label;
+  };
+
   // Garantir que o valor só seja definido se a categoria existir nas opções ou se não houver valor
   const selectValue = value && currentCategoryExists ? value : "";
-  
-  console.log('🎯 HierarchicalCategorySelector - valor final do Select:', {
-    originalValue: value,
-    categoryExists: !!currentCategoryExists,
-    finalSelectValue: selectValue,
-    isLoading
-  });
 
   return (
     <div className={className}>
@@ -155,14 +135,15 @@ const HierarchicalCategorySelector: React.FC<HierarchicalCategorySelectorProps> 
         <Select 
           value={selectValue} 
           onValueChange={(newValue) => {
-            console.log('🔄 HierarchicalCategorySelector - onChange:', { from: value, to: newValue });
             onChange(newValue);
           }} 
           required={required} 
           disabled={isLoading}
         >
           <SelectTrigger className="flex-1">
-            <SelectValue placeholder={isLoading ? "Carregando..." : placeholder} />
+            <SelectValue placeholder={isLoading ? "Carregando..." : placeholder}>
+              {selectValue && currentCategoryExists ? currentCategoryExists.label : undefined}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent className="max-h-80 z-50 bg-popover border">
             {Object.keys(groupedOptions).length === 0 && !isLoading && (
