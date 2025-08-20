@@ -139,13 +139,28 @@ const HierarchicalCategorySelector: React.FC<HierarchicalCategorySelectorProps> 
     );
   };
 
+  // Garantir que o valor só seja definido se a categoria existir nas opções ou se não houver valor
+  const selectValue = value && currentCategoryExists ? value : "";
+  
+  console.log('🎯 HierarchicalCategorySelector - valor final do Select:', {
+    originalValue: value,
+    categoryExists: !!currentCategoryExists,
+    finalSelectValue: selectValue,
+    isLoading
+  });
+
   return (
     <div className={className}>
       <div className="flex gap-2">
-        <Select value={value || ""} onValueChange={(newValue) => {
-          console.log('🔄 HierarchicalCategorySelector - onChange:', { from: value, to: newValue });
-          onChange(newValue);
-        }} required={required} disabled={isLoading}>
+        <Select 
+          value={selectValue} 
+          onValueChange={(newValue) => {
+            console.log('🔄 HierarchicalCategorySelector - onChange:', { from: value, to: newValue });
+            onChange(newValue);
+          }} 
+          required={required} 
+          disabled={isLoading}
+        >
           <SelectTrigger className="flex-1">
             <SelectValue placeholder={isLoading ? "Carregando..." : placeholder} />
           </SelectTrigger>

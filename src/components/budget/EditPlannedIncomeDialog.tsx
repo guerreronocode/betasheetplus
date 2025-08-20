@@ -58,19 +58,7 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
   const [formData, setFormData] = useState<EditPlannedIncomeFormData>(() => initializeFormData());
 
   useEffect(() => {
-    console.log('🔄 EditPlannedIncomeDialog - useEffect chamado:', { income: !!income, open });
-    
     if (income && open) {
-      console.log('📋 EditPlannedIncomeDialog - dados do income:', {
-        category: income.category,
-        planned_amount: income.planned_amount,
-        month: income.month,
-        description: income.description,
-        is_recurring: income.is_recurring,
-        recurring_start_month: income.recurring_start_month,
-        recurring_end_month: income.recurring_end_month
-      });
-
       const currentDate = new Date().toISOString().slice(0, 10);
       const newFormData: EditPlannedIncomeFormData = {
         month: income.month || currentDate,
@@ -82,16 +70,7 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
         recurring_end_month: income.recurring_end_month || 'no_end',
       };
       
-      console.log('✅ EditPlannedIncomeDialog - definindo formData:', newFormData);
       setFormData(newFormData);
-      
-      // Forçar re-render após um pequeno delay para garantir que as categorias foram carregadas
-      setTimeout(() => {
-        console.log('🔄 EditPlannedIncomeDialog - re-verificando formData após delay:', {
-          currentFormData: newFormData,
-          categorySet: newFormData.category
-        });
-      }, 100);
     }
   }, [income, open]);
 
