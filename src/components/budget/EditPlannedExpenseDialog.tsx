@@ -35,13 +35,14 @@ export const EditPlannedExpenseDialog: React.FC<EditPlannedExpenseDialogProps> =
   // Atualizar form quando expense mudar
   useEffect(() => {
     if (expense) {
+      const currentDate = new Date().toISOString().slice(0, 10);
       setFormData({
         category: expense.category,
         planned_amount: expense.planned_amount.toString(),
-        month: expense.month.slice(0, 10), // Format YYYY-MM-DD
+        month: expense.month?.slice(0, 10) || currentDate, // Default para data atual se vazio
         description: expense.description || '',
         is_recurring: expense.is_recurring,
-        recurring_start_month: expense.recurring_start_month?.slice(0, 10) || '',
+        recurring_start_month: expense.recurring_start_month?.slice(0, 10) || currentDate, // Default para data atual se vazio
         recurring_end_month: expense.recurring_end_month?.slice(0, 10) || '',
       });
     }

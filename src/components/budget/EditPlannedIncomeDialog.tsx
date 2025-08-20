@@ -42,13 +42,14 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
   });
 
   useEffect(() => {
+    const currentDate = new Date().toISOString().slice(0, 10);
     setFormData({
-      month: income.month,
+      month: income.month || currentDate, // Default para data atual se vazio
       category: income.category,
       planned_amount: income.planned_amount.toString(),
       description: income.description || '',
       is_recurring: income.is_recurring,
-      recurring_start_month: income.recurring_start_month || '',
+      recurring_start_month: income.recurring_start_month || currentDate, // Default para data atual se vazio
       recurring_end_month: income.recurring_end_month || 'no_end',
     });
   }, [income]);
