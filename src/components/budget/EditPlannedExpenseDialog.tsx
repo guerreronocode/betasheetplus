@@ -34,22 +34,20 @@ export const EditPlannedExpenseDialog: React.FC<EditPlannedExpenseDialogProps> =
 
   // Atualizar form quando expense mudar
   useEffect(() => {
-    console.log('EditPlannedExpenseDialog - expense changed:', expense);
-    if (expense) {
+    if (expense && open) { // Só atualizar quando o modal estiver aberto
       const currentDate = new Date().toISOString().slice(0, 10);
       const newFormData = {
         category: expense.category,
         planned_amount: expense.planned_amount.toString(),
-        month: expense.month?.slice(0, 10) || currentDate, // Default para data atual se vazio
+        month: expense.month?.slice(0, 10) || currentDate,
         description: expense.description || '',
         is_recurring: expense.is_recurring,
-        recurring_start_month: expense.recurring_start_month?.slice(0, 10) || currentDate, // Default para data atual se vazio
+        recurring_start_month: expense.recurring_start_month?.slice(0, 10) || currentDate,
         recurring_end_month: expense.recurring_end_month?.slice(0, 10) || '',
       };
-      console.log('EditPlannedExpenseDialog - setting form data:', newFormData);
       setFormData(newFormData);
     }
-  }, [expense]);
+  }, [expense, open]); // Adicionar 'open' como dependência
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

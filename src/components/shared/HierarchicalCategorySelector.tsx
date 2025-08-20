@@ -23,12 +23,9 @@ const HierarchicalCategorySelector: React.FC<HierarchicalCategorySelectorProps> 
   className,
   categoryType = 'expense'
 }) => {
-  console.log('HierarchicalCategorySelector - value:', value, 'categoryType:', categoryType);
   const [isManagerOpen, setIsManagerOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const { categoryOptions, isLoading } = useHierarchicalCategories(categoryType);
-  
-  console.log('HierarchicalCategorySelector - categoryOptions:', categoryOptions, 'isLoading:', isLoading);
 
   const groupedOptions = React.useMemo(() => {
     const groups: { [key: string]: { main: typeof categoryOptions[0] | null, subcategories: typeof categoryOptions } } = {};
@@ -116,7 +113,7 @@ const HierarchicalCategorySelector: React.FC<HierarchicalCategorySelectorProps> 
   return (
     <div className={className}>
       <div className="flex gap-2">
-        <Select value={value} onValueChange={onChange} required={required} disabled={isLoading}>
+        <Select value={value || ""} onValueChange={onChange} required={required} disabled={isLoading}>
           <SelectTrigger className="flex-1">
             <SelectValue placeholder={isLoading ? "Carregando..." : placeholder} />
           </SelectTrigger>
