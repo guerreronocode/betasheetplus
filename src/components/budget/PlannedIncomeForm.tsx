@@ -116,25 +116,25 @@ export const PlannedIncomeForm: React.FC<PlannedIncomeFormProps> = ({ open, onOp
           <div className="space-y-2">
             <Label htmlFor="category">Categoria</Label>
             <div className="flex gap-2">
-              <div className="flex-1">
-                <HierarchicalCategorySelector
-                  value={formData.category}
-                  onChange={(value) => handleInputChange('category', value)}
-                  placeholder="Selecione a categoria"
-                  categoryType="income"
-                  required
-                />
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowCategoryManager(true)}
-                className="flex-shrink-0"
-                title="Configurar categorias"
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
+            <div className="flex-1">
+              <HierarchicalCategorySelector
+                value={formData.category}
+                onChange={(value) => handleInputChange('category', value)}
+                placeholder="Selecione a categoria"
+                categoryType="income"
+                required
+              />
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowCategoryManager(true)}
+              className="flex-shrink-0"
+              title="Configurar categorias"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
             </div>
           </div>
 

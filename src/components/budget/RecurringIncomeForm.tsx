@@ -5,9 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Settings } from 'lucide-react';
 import HierarchicalCategorySelector from '@/components/shared/HierarchicalCategorySelector';
-import CategoryManager from '../CategoryManager';
 import { usePlannedIncome, PlannedIncomeInput } from '@/hooks/usePlannedIncome';
 
 interface RecurringIncomeFormProps {
@@ -17,7 +15,6 @@ interface RecurringIncomeFormProps {
 
 export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, onOpenChange }) => {
   const { createPlannedIncome, isCreating } = usePlannedIncome();
-  const [showCategoryManager, setShowCategoryManager] = useState(false);
 
   const [formData, setFormData] = useState({
     month: new Date().toISOString().slice(0, 10),
@@ -91,27 +88,13 @@ export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="category">Categoria</Label>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <HierarchicalCategorySelector
-                  value={formData.category}
-                  onChange={(value) => handleInputChange('category', value)}
-                  placeholder="Selecione a categoria"
-                  categoryType="income"
-                  required
-                />
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowCategoryManager(true)}
-                className="flex-shrink-0"
-                title="Configurar categorias"
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-            </div>
+            <HierarchicalCategorySelector
+              value={formData.category}
+              onChange={(value) => handleInputChange('category', value)}
+              placeholder="Selecione a categoria"
+              categoryType="income"
+              required
+            />
           </div>
 
           <div className="space-y-2">
@@ -225,13 +208,6 @@ export const RecurringIncomeForm: React.FC<RecurringIncomeFormProps> = ({ open, 
             </Button>
           </div>
         </form>
-
-        {/* Dialog para gerenciar categorias */}
-        <Dialog open={showCategoryManager} onOpenChange={setShowCategoryManager}>
-          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-            <CategoryManager categoryType="income" />
-          </DialogContent>
-        </Dialog>
       </DialogContent>
     </Dialog>
   );
