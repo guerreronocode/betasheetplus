@@ -19,6 +19,7 @@ import FinancialEvolutionPanel from '@/components/FinancialEvolutionPanel';
 import FinancialScoreCard from '@/components/FinancialScoreCard';
 import DetailedFinancialScore from '@/components/DetailedFinancialScore';
 import { RefactoredPlanningPanel } from '@/components/budget/RefactoredPlanningPanel';
+import { GoalsManager } from '@/components/goals/GoalsManager';
 import { useFinancialData } from '@/hooks/useFinancialData';
 
 const Dashboard = () => {
@@ -41,6 +42,7 @@ const Dashboard = () => {
             <TabsTrigger value="accounts" className="flex-shrink-0">Contas</TabsTrigger>
             <TabsTrigger value="transactions" className="flex-shrink-0">Transações</TabsTrigger>
             <TabsTrigger value="investments" className="flex-shrink-0">Investimentos</TabsTrigger>
+            <TabsTrigger value="goals" className="flex-shrink-0">Metas</TabsTrigger>
             <TabsTrigger value="patrimony" className="flex-shrink-0">Patrimônio</TabsTrigger>
             <TabsTrigger value="credit-cards" className="flex-shrink-0">Cartões</TabsTrigger>
             <TabsTrigger value="debts" className="flex-shrink-0">Dívidas</TabsTrigger>
@@ -123,6 +125,10 @@ const Dashboard = () => {
               <AdvancedInvestmentManager />
               <ImprovedYieldRatesDisplay yieldRates={yieldRates} />
             </div>
+          </TabsContent>
+
+          <TabsContent value="goals">
+            <GoalsManager />
           </TabsContent>
 
           <TabsContent value="patrimony">
