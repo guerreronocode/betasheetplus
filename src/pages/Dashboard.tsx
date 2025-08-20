@@ -10,6 +10,7 @@ import BankAccountManager from '@/components/BankAccountManager';
 import UnifiedTransactionForm from '@/components/UnifiedTransactionForm';
 import ImprovedYieldRatesDisplay from '@/components/ImprovedYieldRatesDisplay';
 import ImprovedPatrimonyManager from '@/components/ImprovedPatrimonyManager';
+import PatrimonySummaryOverview from '@/components/PatrimonySummaryOverview';
 import TransferBetweenAccounts from '@/components/TransferBetweenAccounts';
 import RecurringTransactions from '@/components/RecurringTransactions';
 import DebtManager from "@/components/debts/DebtManager";
@@ -64,7 +65,7 @@ const Dashboard = () => {
             <GoalsSummary />
             
             {/* Resumo dos patrimônios */}
-            <ImprovedPatrimonyManager />
+            <PatrimonySummaryOverview />
           </TabsContent>
 
           <TabsContent value="planning">
