@@ -50,7 +50,19 @@ export const EditPlannedExpenseDialog: React.FC<EditPlannedExpenseDialogProps> =
 
   // Atualizar form quando expense mudar
   useEffect(() => {
+    console.log('🔄 EditPlannedExpenseDialog - useEffect chamado:', { expense: !!expense, open });
+    
     if (expense && open) {
+      console.log('📋 EditPlannedExpenseDialog - dados do expense:', {
+        category: expense.category,
+        planned_amount: expense.planned_amount,
+        month: expense.month,
+        description: expense.description,
+        is_recurring: expense.is_recurring,
+        recurring_start_month: expense.recurring_start_month,
+        recurring_end_month: expense.recurring_end_month
+      });
+
       const currentDate = new Date().toISOString().slice(0, 10);
       const newFormData = {
         category: expense.category || '',
@@ -61,7 +73,17 @@ export const EditPlannedExpenseDialog: React.FC<EditPlannedExpenseDialogProps> =
         recurring_start_month: expense.recurring_start_month?.slice(0, 10) || currentDate,
         recurring_end_month: expense.recurring_end_month?.slice(0, 10) || '',
       };
+      
+      console.log('✅ EditPlannedExpenseDialog - definindo formData:', newFormData);
       setFormData(newFormData);
+      
+      // Forçar re-render após um pequeno delay para garantir que as categorias foram carregadas
+      setTimeout(() => {
+        console.log('🔄 EditPlannedExpenseDialog - re-verificando formData após delay:', {
+          currentFormData: newFormData,
+          categorySet: newFormData.category
+        });
+      }, 100);
     }
   }, [expense, open]);
 

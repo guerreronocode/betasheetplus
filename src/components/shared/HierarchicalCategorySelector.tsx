@@ -23,11 +23,34 @@ const HierarchicalCategorySelector: React.FC<HierarchicalCategorySelectorProps> 
   className,
   categoryType = 'expense'
 }) => {
+  console.log('🔍 HierarchicalCategorySelector RENDER:', {
+    value,
+    categoryType,
+    placeholder,
+    required
+  });
+
   const [isManagerOpen, setIsManagerOpen] = useState(false);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set());
   const { categoryOptions, isLoading } = useHierarchicalCategories(categoryType);
 
+  console.log('📋 HierarchicalCategorySelector - categoryOptions:', {
+    categoryOptions: categoryOptions.map(c => ({ value: c.value, label: c.label, parent: c.parent })),
+    isLoading,
+    totalOptions: categoryOptions.length
+  });
+
+  // Verificar se a categoria atual existe nas opções
+  const currentCategoryExists = categoryOptions.find(option => option.value === value);
+  console.log('✅ HierarchicalCategorySelector - categoria atual:', {
+    value,
+    exists: !!currentCategoryExists,
+    categoryDetails: currentCategoryExists
+  });
+
   const groupedOptions = React.useMemo(() => {
+    console.log('🔄 HierarchicalCategorySelector - criando grupos com:', categoryOptions.length, 'opções');
+    
     const groups: { [key: string]: { main: typeof categoryOptions[0] | null, subcategories: typeof categoryOptions } } = {};
 
     categoryOptions.forEach(option => {
@@ -44,6 +67,12 @@ const HierarchicalCategorySelector: React.FC<HierarchicalCategorySelectorProps> 
         }
       }
     });
+
+    console.log('📊 HierarchicalCategorySelector - grupos criados:', Object.keys(groups).map(key => ({
+      key,
+      hasMain: !!groups[key].main,
+      subcategoriesCount: groups[key].subcategories.length
+    })));
 
     return groups;
   }, [categoryOptions]);
@@ -113,7 +142,10 @@ const HierarchicalCategorySelector: React.FC<HierarchicalCategorySelectorProps> 
   return (
     <div className={className}>
       <div className="flex gap-2">
-        <Select value={value || ""} onValueChange={onChange} required={required} disabled={isLoading}>
+        <Select value={value || ""} onValueChange={(newValue) => {
+          console.log('🔄 HierarchicalCategorySelector - onChange:', { from: value, to: newValue });
+          onChange(newValue);
+        }} required={required} disabled={isLoading}>
           <SelectTrigger className="flex-1">
             <SelectValue placeholder={isLoading ? "Carregando..." : placeholder} />
           </SelectTrigger>
