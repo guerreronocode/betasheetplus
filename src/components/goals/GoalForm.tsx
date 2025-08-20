@@ -3,21 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
 import CurrencyInput from '@/components/shared/CurrencyInput';
 import { useGoals, CreateGoalData } from '@/hooks/useGoals';
 import { Target, Plus } from 'lucide-react';
 
-const GOAL_COLORS = [
-  { value: 'blue', label: '🔵 Azul', class: 'bg-blue-500' },
-  { value: 'green', label: '🟢 Verde', class: 'bg-green-500' },
-  { value: 'purple', label: '🟣 Roxo', class: 'bg-purple-500' },
-  { value: 'orange', label: '🟠 Laranja', class: 'bg-orange-500' },
-  { value: 'red', label: '🔴 Vermelho', class: 'bg-red-500' },
-  { value: 'yellow', label: '🟡 Amarelo', class: 'bg-yellow-500' },
-  { value: 'pink', label: '🩷 Rosa', class: 'bg-pink-500' },
-  { value: 'teal', label: '🩵 Azul claro', class: 'bg-teal-500' },
-];
 
 export const GoalForm = () => {
   const { createGoal, isCreatingGoal } = useGoals();
@@ -26,7 +16,7 @@ export const GoalForm = () => {
     target_amount: 0,
     current_amount: 0,
     deadline: '',
-    color: 'blue',
+    color: '#3B82F6',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -46,7 +36,7 @@ export const GoalForm = () => {
       target_amount: 0,
       current_amount: 0,
       deadline: '',
-      color: 'blue',
+      color: '#3B82F6',
     });
   };
 
@@ -74,24 +64,12 @@ export const GoalForm = () => {
 
             <div>
               <Label htmlFor="color">Cor</Label>
-              <Select
+              <Input
+                id="color"
+                type="color"
                 value={formData.color}
-                onValueChange={(value) => setFormData({ ...formData, color: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {GOAL_COLORS.map((color) => (
-                    <SelectItem key={color.value} value={color.value}>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${color.class}`} />
-                        {color.label}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+              />
             </div>
           </div>
 

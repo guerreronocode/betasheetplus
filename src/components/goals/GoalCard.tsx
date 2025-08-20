@@ -14,27 +14,6 @@ interface GoalCardProps {
   goal: Goal;
 }
 
-const COLOR_CLASSES = {
-  blue: 'border-blue-500 bg-blue-50',
-  green: 'border-green-500 bg-green-50',
-  purple: 'border-purple-500 bg-purple-50',
-  orange: 'border-orange-500 bg-orange-50',
-  red: 'border-red-500 bg-red-50',
-  yellow: 'border-yellow-500 bg-yellow-50',
-  pink: 'border-pink-500 bg-pink-50',
-  teal: 'border-teal-500 bg-teal-50',
-};
-
-const PROGRESS_COLORS = {
-  blue: 'bg-blue-500',
-  green: 'bg-green-500',
-  purple: 'bg-purple-500',
-  orange: 'bg-orange-500',
-  red: 'bg-red-500',
-  yellow: 'bg-yellow-500',
-  pink: 'bg-pink-500',
-  teal: 'bg-teal-500',
-};
 
 export const GoalCard = ({ goal }: GoalCardProps) => {
   const { deleteGoal, updateGoal, isDeletingGoal } = useGoals();
@@ -43,9 +22,6 @@ export const GoalCard = ({ goal }: GoalCardProps) => {
   const progress = Math.min((goal.current_amount / goal.target_amount) * 100, 100);
   const remaining = Math.max(goal.target_amount - goal.current_amount, 0);
   const isCompleted = goal.completed || goal.current_amount >= goal.target_amount;
-
-  const cardColorClass = COLOR_CLASSES[goal.color as keyof typeof COLOR_CLASSES] || COLOR_CLASSES.blue;
-  const progressColorClass = PROGRESS_COLORS[goal.color as keyof typeof PROGRESS_COLORS] || PROGRESS_COLORS.blue;
 
   const handleToggleComplete = () => {
     updateGoal({
@@ -62,7 +38,7 @@ export const GoalCard = ({ goal }: GoalCardProps) => {
 
   return (
     <>
-      <Card className={`relative transition-all duration-200 hover:shadow-lg ${cardColorClass} ${isCompleted ? 'ring-2 ring-green-400' : ''}`}>
+      <Card className={`relative transition-all duration-200 hover:shadow-lg border-l-4 ${isCompleted ? 'ring-2 ring-green-400' : ''}`} style={{ borderLeftColor: goal.color }}>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">
@@ -116,8 +92,8 @@ export const GoalCard = ({ goal }: GoalCardProps) => {
             <div className="relative">
               <Progress value={progress} className="h-3" />
               <div 
-                className={`absolute top-0 left-0 h-3 rounded-full transition-all duration-300 ${progressColorClass}`}
-                style={{ width: `${progress}%` }}
+                className="absolute top-0 left-0 h-3 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%`, backgroundColor: goal.color }}
               />
             </div>
           </div>
