@@ -3,6 +3,7 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import Header from '@/components/Header';
 import UpdatedQuickStats from '@/components/UpdatedQuickStats';
+import QuickFinancialCards from '@/components/QuickFinancialCards';
 import TransactionsList from '@/components/TransactionsList';
 import AdvancedInvestmentManager from '@/components/AdvancedInvestmentManager';
 import BankAccountManager from '@/components/BankAccountManager';
@@ -20,6 +21,7 @@ import FinancialScoreCard from '@/components/FinancialScoreCard';
 import DetailedFinancialScore from '@/components/DetailedFinancialScore';
 import { RefactoredPlanningPanel } from '@/components/budget/RefactoredPlanningPanel';
 import { GoalsManager } from '@/components/goals/GoalsManager';
+import { GoalsSummary } from '@/components/goals/GoalsSummary';
 import { useFinancialData } from '@/hooks/useFinancialData';
 
 const Dashboard = () => {
@@ -37,7 +39,6 @@ const Dashboard = () => {
         <Tabs defaultValue="overview" className="w-full">
           <TabsList className="flex flex-wrap gap-1 h-auto p-1 bg-muted">
             <TabsTrigger value="overview" className="flex-shrink-0">Visão Geral</TabsTrigger>
-            <TabsTrigger value="score" className="flex-shrink-0">Score</TabsTrigger>
             <TabsTrigger value="planning" className="flex-shrink-0">Planejamento</TabsTrigger>
             <TabsTrigger value="accounts" className="flex-shrink-0">Contas</TabsTrigger>
             <TabsTrigger value="transactions" className="flex-shrink-0">Transações</TabsTrigger>
@@ -50,51 +51,20 @@ const Dashboard = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Score de Saúde Financeira - destaque principal */}
-              <div className="lg:col-span-2">
-                <FinancialScoreCard />
-              </div>
-              
-              {/* Widget compacto do ranking */}
-              <div>
-                <CategoryRankingCompact />
-              </div>
-            </div>
+            {/* Dois cards pequenos: % de renda gasta e projeção de saldo */}
+            <QuickFinancialCards />
             
-            {/* Painel de Evolução Financeira */}
+            {/* Score da saúde financeira */}
+            <DetailedFinancialScore />
+            
+            {/* Evolução Financeira */}
             <FinancialEvolutionPanel />
             
-            <div className="text-center py-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Bem-vindo ao seu Dashboard Financeiro!</h2>
-              <p className="text-gray-600 mb-8">Gerencie suas finanças de forma inteligente e organizada.</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 max-w-5xl mx-auto">
-                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                  <h3 className="font-semibold text-blue-900">💰 Contas</h3>
-                  <p className="text-sm text-blue-700">Gerencie suas contas bancárias</p>
-                </div>
-                <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                  <h3 className="font-semibold text-green-900">📊 Transações</h3>
-                  <p className="text-sm text-green-700">Controle receitas e despesas</p>
-                </div>
-                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <h3 className="font-semibold text-purple-900">📈 Investimentos</h3>
-                  <p className="text-sm text-purple-700">Acompanhe seus investimentos</p>
-                </div>
-                <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                  <h3 className="font-semibold text-orange-900">🎯 Metas</h3>
-                  <p className="text-sm text-orange-700">Defina e alcance objetivos</p>
-                </div>
-                <div className="p-4 bg-red-50 rounded-lg border border-red-200">
-                  <h3 className="font-semibold text-red-900">🚀 Planejador</h3>
-                  <p className="text-sm text-red-700">Plano de investimento personalizado</p>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="score">
-            <DetailedFinancialScore />
+            {/* Resumo das Metas */}
+            <GoalsSummary />
+            
+            {/* Resumo dos patrimônios */}
+            <ImprovedPatrimonyManager />
           </TabsContent>
 
           <TabsContent value="planning">
