@@ -19,7 +19,7 @@ const GoalForm: React.FC = () => {
     title: '',
     target_amount: 0,
     deadline: '',
-    color: 'blue',
+    color: '#3B82F6',
     linkedVaults: [],
     linkedInvestments: [],
   });
@@ -45,7 +45,7 @@ const GoalForm: React.FC = () => {
       title: '',
       target_amount: 0,
       deadline: '',
-      color: 'blue',
+      color: '#3B82F6',
       linkedVaults: [],
       linkedInvestments: [],
     });

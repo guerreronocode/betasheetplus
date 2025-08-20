@@ -108,7 +108,7 @@ export const useGoals = () => {
           title: goalData.title,
           target_amount: goalData.target_amount,
           deadline: goalData.deadline,
-          color: goalData.color || 'blue',
+          color: goalData.color || '#3B82F6',
           completed: false,
           user_id: user.id,
         })

@@ -27,7 +27,7 @@ const EditGoalDialog: React.FC<EditGoalDialogProps> = ({ goal, open, onOpenChang
     title: goal?.title || '',
     target_amount: goal?.target_amount || 0,
     deadline: goal?.deadline || '',
-    color: goal?.color || 'blue',
+    color: goal?.color || '#3B82F6',
     linkedVaults: [] as string[],
     linkedInvestments: [] as string[],
   });
