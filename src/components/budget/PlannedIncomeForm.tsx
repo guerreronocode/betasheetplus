@@ -14,35 +14,56 @@ interface PlannedIncomeFormProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface PlannedIncomeFormData {
+  month: string;
+  category: string;
+  planned_amount: string | number;
+  description?: string;
+  is_recurring?: boolean;
+  recurring_start_month?: string;
+  recurring_end_month?: string;
+}
+
 export const PlannedIncomeForm: React.FC<PlannedIncomeFormProps> = ({ open, onOpenChange }) => {
   const { createPlannedIncome, isCreating } = usePlannedIncome();
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   
 
-  const [formData, setFormData] = useState<PlannedIncomeInput>({
+  const [formData, setFormData] = useState<PlannedIncomeFormData>({
     month: new Date().toISOString().slice(0, 10), // Data atual
     category: '',
-    planned_amount: 0,
+    planned_amount: '',
     description: '',
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    createPlannedIncome(formData);
+    const amount = typeof formData.planned_amount === 'string' 
+      ? parseFloat(formData.planned_amount) 
+      : formData.planned_amount;
+    
+    if (!formData.category || !formData.planned_amount || amount <= 0) {
+      return;
+    }
+    
+    createPlannedIncome({
+      ...formData,
+      planned_amount: amount
+    });
     
     // Reset form
     setFormData({
       month: new Date().toISOString().slice(0, 10),
       category: '',
-      planned_amount: 0,
+      planned_amount: '',
       description: '',
     });
     
     onOpenChange(false);
   };
 
-  const handleInputChange = (field: keyof PlannedIncomeInput, value: string | number) => {
+  const handleInputChange = (field: keyof PlannedIncomeFormData, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -125,7 +146,7 @@ export const PlannedIncomeForm: React.FC<PlannedIncomeFormProps> = ({ open, onOp
               min="0"
               step="0.01"
               value={formData.planned_amount}
-              onChange={(e) => handleInputChange('planned_amount', parseFloat(e.target.value) || 0)}
+              onChange={(e) => handleInputChange('planned_amount', e.target.value)}
               placeholder="0,00"
               required
             />
@@ -151,7 +172,7 @@ export const PlannedIncomeForm: React.FC<PlannedIncomeFormProps> = ({ open, onOp
             </Button>
             <Button 
               type="submit" 
-              disabled={isCreating || !formData.category || formData.planned_amount <= 0}
+              disabled={isCreating || !formData.category || !formData.planned_amount || (typeof formData.planned_amount === 'string' ? parseFloat(formData.planned_amount) : formData.planned_amount) <= 0}
             >
               {isCreating ? 'Salvando...' : 'Salvar'}
             </Button>

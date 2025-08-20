@@ -13,6 +13,16 @@ interface EditPlannedIncomeDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+interface EditPlannedIncomeFormData {
+  month: string;
+  category: string;
+  planned_amount: string | number;
+  description?: string;
+  is_recurring?: boolean;
+  recurring_start_month?: string;
+  recurring_end_month?: string;
+}
+
 export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = ({ 
   income, 
   open, 
@@ -32,10 +42,10 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
     { value: 'outros', label: 'Outros' },
   ];
 
-  const [formData, setFormData] = useState<PlannedIncomeInput>({
+  const [formData, setFormData] = useState<EditPlannedIncomeFormData>({
     month: income.month,
     category: income.category,
-    planned_amount: income.planned_amount,
+    planned_amount: income.planned_amount.toString(),
     description: income.description || '',
     is_recurring: income.is_recurring,
     recurring_start_month: income.recurring_start_month || '',
@@ -46,7 +56,7 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
     setFormData({
       month: income.month,
       category: income.category,
-      planned_amount: income.planned_amount,
+      planned_amount: income.planned_amount.toString(),
       description: income.description || '',
       is_recurring: income.is_recurring,
       recurring_start_month: income.recurring_start_month || '',
@@ -57,15 +67,23 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    const amount = typeof formData.planned_amount === 'string' 
+      ? parseFloat(formData.planned_amount) 
+      : formData.planned_amount;
+    
+    if (!formData.category || !formData.planned_amount || amount <= 0) {
+      return;
+    }
+    
     const dataToUpdate = formData.is_recurring 
-      ? { ...formData, month: formData.recurring_start_month || formData.month, recurring_end_month: formData.recurring_end_month === 'no_end' ? undefined : formData.recurring_end_month }
-      : { ...formData, recurring_start_month: undefined, recurring_end_month: undefined };
+      ? { ...formData, planned_amount: amount, month: formData.recurring_start_month || formData.month, recurring_end_month: formData.recurring_end_month === 'no_end' ? undefined : formData.recurring_end_month }
+      : { ...formData, planned_amount: amount, recurring_start_month: undefined, recurring_end_month: undefined };
     
     updatePlannedIncome({ id: income.id, updates: dataToUpdate });
     onOpenChange(false);
   };
 
-  const handleInputChange = (field: keyof PlannedIncomeInput, value: string | number | boolean) => {
+  const handleInputChange = (field: keyof EditPlannedIncomeFormData, value: string | number | boolean) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -120,7 +138,7 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
               min="0"
               step="0.01"
               value={formData.planned_amount}
-              onChange={(e) => handleInputChange('planned_amount', parseFloat(e.target.value) || 0)}
+              onChange={(e) => handleInputChange('planned_amount', e.target.value)}
               placeholder="0,00"
               required
             />
@@ -218,7 +236,7 @@ export const EditPlannedIncomeDialog: React.FC<EditPlannedIncomeDialogProps> = (
             </Button>
             <Button 
               type="submit" 
-              disabled={isUpdating || !formData.category || formData.planned_amount <= 0}
+              disabled={isUpdating || !formData.category || !formData.planned_amount || (typeof formData.planned_amount === 'string' ? parseFloat(formData.planned_amount) : formData.planned_amount) <= 0}
             >
               {isUpdating ? 'Salvando...' : 'Salvar Alterações'}
             </Button>

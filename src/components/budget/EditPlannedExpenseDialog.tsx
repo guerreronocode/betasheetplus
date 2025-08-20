@@ -63,14 +63,16 @@ export const EditPlannedExpenseDialog: React.FC<EditPlannedExpenseDialogProps> =
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.category || !formData.planned_amount) {
+    const amount = parseFloat(formData.planned_amount);
+    
+    if (!formData.category || !formData.planned_amount || amount <= 0) {
       return;
     }
 
     const expenseData = {
       id: expense.id,
       category: formData.category,
-      planned_amount: parseFloat(formData.planned_amount),
+      planned_amount: amount,
       month: formData.is_recurring ? formData.recurring_start_month : formData.month,
       description: formData.description || undefined,
       is_recurring: formData.is_recurring,
@@ -191,7 +193,7 @@ export const EditPlannedExpenseDialog: React.FC<EditPlannedExpenseDialogProps> =
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isUpdating}>
+            <Button type="submit" disabled={isUpdating || !formData.category || !formData.planned_amount || parseFloat(formData.planned_amount) <= 0}>
               {isUpdating ? 'Salvando...' : 'Salvar Alterações'}
             </Button>
           </div>

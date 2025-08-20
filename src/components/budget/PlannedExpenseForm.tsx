@@ -34,13 +34,15 @@ export const PlannedExpenseForm: React.FC<PlannedExpenseFormProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.category || !formData.planned_amount) {
+    const amount = parseFloat(formData.planned_amount);
+    
+    if (!formData.category || !formData.planned_amount || amount <= 0) {
       return;
     }
 
     const expenseData = {
       category: formData.category,
-      planned_amount: parseFloat(formData.planned_amount),
+      planned_amount: amount,
       month: formData.is_recurring ? formData.recurring_start_month : formData.month,
       description: formData.description || undefined,
       is_recurring: formData.is_recurring,
@@ -165,7 +167,7 @@ export const PlannedExpenseForm: React.FC<PlannedExpenseFormProps> = ({
             >
               Cancelar
             </Button>
-            <Button type="submit" disabled={isCreating}>
+            <Button type="submit" disabled={isCreating || !formData.category || !formData.planned_amount || parseFloat(formData.planned_amount) <= 0}>
               {isCreating ? 'Criando...' : 'Criar Despesa'}
             </Button>
           </div>

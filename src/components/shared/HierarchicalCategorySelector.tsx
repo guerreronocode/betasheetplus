@@ -69,24 +69,28 @@ const HierarchicalCategorySelector: React.FC<HierarchicalCategorySelectorProps> 
       <div key={groupKey}>
         {/* Categoria principal */}
         {group.main && (
-          <SelectItem value={group.main.value}>
-            <div className="flex items-center justify-between w-full">
+          <div className="relative">
+            <SelectItem value={group.main.value} className="pr-8">
               <span>{group.main.label}</span>
-              {hasSubcategories && (
-                <button
-                  type="button"
-                  onClick={(e) => toggleCategoryExpansion(groupKey, e)}
-                  className="ml-2 hover:bg-accent hover:text-accent-foreground rounded p-1 transition-colors"
-                >
-                  {isExpanded ? (
-                    <ChevronDown className="w-3 h-3" />
-                  ) : (
-                    <ChevronRight className="w-3 h-3" />
-                  )}
-                </button>
-              )}
-            </div>
-          </SelectItem>
+            </SelectItem>
+            {hasSubcategories && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  toggleCategoryExpansion(groupKey, e);
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-accent hover:text-accent-foreground rounded p-1 transition-colors z-10"
+              >
+                {isExpanded ? (
+                  <ChevronDown className="w-3 h-3" />
+                ) : (
+                  <ChevronRight className="w-3 h-3" />
+                )}
+              </button>
+            )}
+          </div>
         )}
         
         {/* Subcategorias (mostradas apenas se expandidas) */}
