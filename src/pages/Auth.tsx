@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { Github, Mail, Eye, EyeOff } from 'lucide-react';
+import { Mail, Eye, EyeOff } from 'lucide-react';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -17,7 +17,7 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
   
-  const { signIn, signUp, signInWithGoogle, signInWithGitHub, user } = useAuth();
+  const { signIn, signUp, signInWithGoogle, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -81,16 +81,6 @@ const Auth = () => {
     }
   };
 
-  const handleGitHubSignIn = async () => {
-    const { error } = await signInWithGitHub();
-    if (error) {
-      toast({
-        title: "Erro no login com GitHub",
-        description: error.message,
-        variant: "destructive"
-      });
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
@@ -210,25 +200,14 @@ const Auth = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3 mt-6">
-            <Button 
-              variant="outline" 
-              onClick={handleGoogleSignIn}
-              className="w-full"
-            >
-              <Mail className="w-4 h-4 mr-2" />
-              Google
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              onClick={handleGitHubSignIn}
-              className="w-full"
-            >
-              <Github className="w-4 h-4 mr-2" />
-              GitHub
-            </Button>
-          </div>
+          <Button 
+            variant="outline" 
+            onClick={handleGoogleSignIn}
+            className="w-full mt-6"
+          >
+            <Mail className="w-4 h-4 mr-2" />
+            Continuar com Google
+          </Button>
         </div>
       </Card>
     </div>
