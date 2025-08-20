@@ -160,8 +160,9 @@ export const useGoals = () => {
 
       return goal;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['goals'] });
+      queryClient.invalidateQueries({ queryKey: ['goal-links'] });
       toast.success('Meta criada com sucesso!');
     },
     onError: (error: any) => {
@@ -249,8 +250,9 @@ export const useGoals = () => {
 
       return goal;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['goals'] });
+      queryClient.invalidateQueries({ queryKey: ['goal-links'] });
       toast.success('Meta atualizada com sucesso!');
     },
     onError: (error: any) => {
