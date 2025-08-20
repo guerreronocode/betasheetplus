@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Target, TrendingUp, CheckCircle, AlertCircle } from 'lucide-react';
 import { useGoals } from '@/hooks/useGoals';
-import { GoalForm } from './GoalForm';
+import GoalForm from './GoalForm';
 import { GoalCard } from './GoalCard';
 import { formatCurrency } from '@/utils/formatters';
 
@@ -29,9 +29,9 @@ export const GoalsManager = () => {
 
   // Estatísticas das metas
   const totalGoals = goals.length;
-  const completedGoals = goals.filter(g => g.completed || g.current_amount >= g.target_amount).length;
+  const completedGoals = goals.filter(g => g.completed || (g.current_amount || 0) >= g.target_amount).length;
   const totalTargetValue = goals.reduce((sum, goal) => sum + goal.target_amount, 0);
-  const totalCurrentValue = goals.reduce((sum, goal) => sum + goal.current_amount, 0);
+  const totalCurrentValue = goals.reduce((sum, goal) => sum + (goal.current_amount || 0), 0);
   const totalProgress = totalTargetValue > 0 ? (totalCurrentValue / totalTargetValue) * 100 : 0;
 
   return (

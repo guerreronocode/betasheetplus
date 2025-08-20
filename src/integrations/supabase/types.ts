@@ -632,15 +632,68 @@ export type Database = {
           },
         ]
       }
+      goal_links: {
+        Row: {
+          created_at: string
+          goal_id: string
+          id: string
+          investment_id: string | null
+          link_type: string
+          updated_at: string
+          user_id: string
+          vault_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          goal_id: string
+          id?: string
+          investment_id?: string | null
+          link_type: string
+          updated_at?: string
+          user_id: string
+          vault_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          goal_id?: string
+          id?: string
+          investment_id?: string | null
+          link_type?: string
+          updated_at?: string
+          user_id?: string
+          vault_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goal_links_goal_id_fkey"
+            columns: ["goal_id"]
+            isOneToOne: false
+            referencedRelation: "goals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_links_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "investments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "goal_links_vault_id_fkey"
+            columns: ["vault_id"]
+            isOneToOne: false
+            referencedRelation: "bank_account_vaults"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       goals: {
         Row: {
           color: string | null
           completed: boolean | null
           created_at: string
-          current_amount: number | null
           deadline: string | null
           id: string
-          linked_investment_id: string | null
           target_amount: number
           title: string
           updated_at: string
@@ -650,10 +703,8 @@ export type Database = {
           color?: string | null
           completed?: boolean | null
           created_at?: string
-          current_amount?: number | null
           deadline?: string | null
           id?: string
-          linked_investment_id?: string | null
           target_amount: number
           title: string
           updated_at?: string
@@ -663,24 +714,14 @@ export type Database = {
           color?: string | null
           completed?: boolean | null
           created_at?: string
-          current_amount?: number | null
           deadline?: string | null
           id?: string
-          linked_investment_id?: string | null
           target_amount?: number
           title?: string
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "goals_linked_investment_id_fkey"
-            columns: ["linked_investment_id"]
-            isOneToOne: false
-            referencedRelation: "investments"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       income: {
         Row: {

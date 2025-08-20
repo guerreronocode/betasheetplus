@@ -8,7 +8,7 @@ import { Goal, useGoals } from '@/hooks/useGoals';
 import { formatCurrency } from '@/utils/formatters';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { EditGoalDialog } from './EditGoalDialog';
+import EditGoalDialog from './EditGoalDialog';
 
 interface GoalCardProps {
   goal: Goal;
@@ -19,9 +19,9 @@ export const GoalCard = ({ goal }: GoalCardProps) => {
   const { deleteGoal, updateGoal, isDeletingGoal } = useGoals();
   const [isEditOpen, setIsEditOpen] = useState(false);
 
-  const progress = Math.min((goal.current_amount / goal.target_amount) * 100, 100);
-  const remaining = Math.max(goal.target_amount - goal.current_amount, 0);
-  const isCompleted = goal.completed || goal.current_amount >= goal.target_amount;
+  const progress = Math.min(((goal.current_amount || 0) / goal.target_amount) * 100, 100);
+  const remaining = Math.max(goal.target_amount - (goal.current_amount || 0), 0);
+  const isCompleted = goal.completed || (goal.current_amount || 0) >= goal.target_amount;
 
   const handleToggleComplete = () => {
     updateGoal({
@@ -65,7 +65,7 @@ export const GoalCard = ({ goal }: GoalCardProps) => {
                 size="sm"
                 onClick={handleToggleComplete}
                 className="h-8 w-8 p-0"
-                disabled={goal.current_amount < goal.target_amount}
+                disabled={(goal.current_amount || 0) < goal.target_amount}
               >
                 <Check className={`w-4 h-4 ${isCompleted ? 'text-green-600' : 'text-gray-400'}`} />
               </Button>
@@ -102,7 +102,7 @@ export const GoalCard = ({ goal }: GoalCardProps) => {
           <div className="grid grid-cols-1 gap-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Valor atual:</span>
-              <span className="font-medium">{formatCurrency(goal.current_amount)}</span>
+              <span className="font-medium">{formatCurrency(goal.current_amount || 0)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Meta:</span>
