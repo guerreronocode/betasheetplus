@@ -42,27 +42,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string, fullName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          full_name: fullName
-        }
+    try {
+      const redirectUrl = `${window.location.origin}/`;
+      
+      // Security: Validate inputs before sending to Supabase
+      if (!email || !password) {
+        return { error: { message: 'Email e senha são obrigatórios' } };
       }
-    });
-    return { error };
+      
+      if (password.length < 8) {
+        return { error: { message: 'A senha deve ter pelo menos 8 caracteres' } };
+      }
+      
+      const { error } = await supabase.auth.signUp({
+        email: email.trim().toLowerCase(),
+        password,
+        options: {
+          emailRedirectTo: redirectUrl,
+          data: {
+            full_name: fullName?.trim()
+          }
+        }
+      });
+      
+      return { error };
+    } catch (error) {
+      console.error('Erro inesperado no cadastro:', error);
+      return { error: { message: 'Erro interno. Tente novamente.' } };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    });
-    return { error };
+    try {
+      // Security: Validate inputs
+      if (!email || !password) {
+        return { error: { message: 'Email e senha são obrigatórios' } };
+      }
+      
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password
+      });
+      
+      return { error };
+    } catch (error) {
+      console.error('Erro inesperado no login:', error);
+      return { error: { message: 'Erro interno. Tente novamente.' } };
+    }
   };
 
   const signOut = async () => {
