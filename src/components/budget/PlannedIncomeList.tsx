@@ -174,6 +174,11 @@ export const PlannedIncomeList: React.FC = () => {
         </Card>
       )}
 
+      {/* Form para nova receita */}
+      <RecurringIncomeForm
+        open={showForm}
+        onOpenChange={setShowForm}
+      />
       
       {editingIncome && (
         <EditPlannedIncomeDialog
