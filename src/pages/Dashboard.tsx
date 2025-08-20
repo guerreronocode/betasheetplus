@@ -127,7 +127,7 @@ const Dashboard = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="goals">
+          <TabsContent value="goals" className="space-y-6">
             <GoalsManager />
           </TabsContent>
 
