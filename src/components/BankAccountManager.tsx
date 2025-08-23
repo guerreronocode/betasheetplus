@@ -30,7 +30,7 @@ const BankAccountManager = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("handleSubmit called", { newAccount });
-    if (!newAccount.name || !newAccount.balance) {
+    if (!newAccount.name) {
       console.log("Missing required fields");
       return;
     }
@@ -39,7 +39,7 @@ const BankAccountManager = () => {
       name: newAccount.name,
       bank_name: newAccount.account_type === 'physical_wallet' ? 'Carteira Física' : newAccount.bank_name,
       account_type: newAccount.account_type,
-      balance: parseFloat(newAccount.balance),
+      balance: newAccount.balance ? parseFloat(newAccount.balance) : 0,
       color: newAccount.color
     };
 
