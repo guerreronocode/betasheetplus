@@ -53,10 +53,26 @@ const TransferBetweenAccounts = () => {
 
       if (fromError) throw fromError;
 
-      if (fromAccount.balance < amount) {
+      // Get total reserved amount in vaults for the source account
+      const { data: vaults, error: vaultsError } = await supabase
+        .from('bank_account_vaults')
+        .select('reserved_amount')
+        .eq('bank_account_id', transferForm.fromAccountId)
+        .eq('user_id', user?.id);
+
+      if (vaultsError) throw vaultsError;
+
+      const totalReserved = vaults?.reduce((sum, vault) => sum + vault.reserved_amount, 0) || 0;
+      const availableBalance = fromAccount.balance - totalReserved;
+
+      if (availableBalance < amount) {
         toast({ 
           title: 'Saldo insuficiente', 
-          description: `A conta ${fromAccount.name} não possui saldo suficiente para esta transferência.`,
+          description: `A conta ${fromAccount.name} não possui saldo disponível suficiente. ` +
+            `Saldo disponível: R$ ${availableBalance.toFixed(2)} ` +
+            `(Saldo total: R$ ${fromAccount.balance.toFixed(2)}, ` +
+            `Reservado em cofres: R$ ${totalReserved.toFixed(2)}). ` +
+            `Para realizar esta transferência, retire primeiro o valor necessário dos cofres.`,
           variant: 'destructive' 
         });
         return;

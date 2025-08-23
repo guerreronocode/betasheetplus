@@ -49,6 +49,28 @@ export const useExpenses = () => {
           .single();
         
         if (fetchError) throw fetchError;
+
+        // Get total reserved amount in vaults for this account
+        const { data: vaults, error: vaultsError } = await supabase
+          .from('bank_account_vaults')
+          .select('reserved_amount')
+          .eq('bank_account_id', expense.bank_account_id)
+          .eq('user_id', user.id);
+
+        if (vaultsError) throw vaultsError;
+
+        const totalReserved = vaults?.reduce((sum, vault) => sum + vault.reserved_amount, 0) || 0;
+        const availableBalance = currentAccount.balance - totalReserved;
+
+        // Check if there's enough available balance (excluding reserved amounts)
+        if (availableBalance < expense.amount) {
+          throw new Error(
+            `Saldo insuficiente. Saldo disponível: R$ ${availableBalance.toFixed(2)} ` +
+            `(Saldo total: R$ ${currentAccount.balance.toFixed(2)}, ` +
+            `Reservado em cofres: R$ ${totalReserved.toFixed(2)}). ` +
+            `Para realizar esta transação, retire primeiro o valor necessário dos cofres.`
+          );
+        }
         
         // Update the balance
         const newBalance = currentAccount.balance - expense.amount;
@@ -78,6 +100,13 @@ export const useExpenses = () => {
       queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
       queryClient.invalidateQueries({ queryKey: ['user_stats'] });
       toast({ title: 'Despesa adicionada com sucesso!' });
+    },
+    onError: (error: Error) => {
+      toast({ 
+        title: 'Erro ao adicionar despesa', 
+        description: error.message,
+        variant: 'destructive'
+      });
     },
   });
 
