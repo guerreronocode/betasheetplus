@@ -45,9 +45,9 @@ const VaultForm: React.FC<VaultFormProps> = ({
       return;
     }
 
-    const amount = parseFloat(form.reserved_amount);
-    if (isNaN(amount) || amount <= 0) {
-      setError('Valor deve ser maior que zero');
+    const amount = form.reserved_amount ? parseFloat(form.reserved_amount) : 0;
+    if (isNaN(amount) || amount < 0) {
+      setError('Valor deve ser maior ou igual a zero');
       return;
     }
 
@@ -107,7 +107,6 @@ const VaultForm: React.FC<VaultFormProps> = ({
               value={form.reserved_amount}
               onChange={(e) => setForm(prev => ({ ...prev, reserved_amount: e.target.value }))}
               placeholder="0,00"
-              required
               max={availableAmount}
             />
           </div>

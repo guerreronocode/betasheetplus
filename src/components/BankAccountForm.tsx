@@ -53,7 +53,8 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
       console.log("Validation failed: no bank_name for non-physical wallet");
       return;
     }
-    if (!form.balance || isNaN(Number(form.balance)) || Number(form.balance) < 0) {
+    const balance = form.balance ? Number(form.balance) : 0;
+    if (isNaN(balance) || balance < 0) {
       e.preventDefault();
       setLocalError("Informe um saldo válido (número maior ou igual a zero).");
       console.log("Validation failed: invalid balance", { balance: form.balance });
@@ -134,7 +135,6 @@ const BankAccountForm: React.FC<BankAccountFormProps> = ({
             value={form.balance}
             onChange={(e) => onChange({ ...form, balance: e.target.value })}
             placeholder="0,00"
-            required
           />
         </div>
         <div>
