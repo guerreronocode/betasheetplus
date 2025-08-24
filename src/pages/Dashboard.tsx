@@ -24,6 +24,8 @@ import { RefactoredPlanningPanel } from '@/components/budget/RefactoredPlanningP
 import { GoalsManager } from '@/components/goals/GoalsManager';
 import { GoalsSummary } from '@/components/goals/GoalsSummary';
 import { useFinancialData } from '@/hooks/useFinancialData';
+import BankStatementUpload from '@/components/BankStatementUpload';
+import BankStatementHistory from '@/components/BankStatementHistory';
 
 const Dashboard = () => {
   const { yieldRates } = useFinancialData();
@@ -81,6 +83,25 @@ const Dashboard = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <UnifiedTransactionForm />
                 <TransferBetweenAccounts />
+              </div>
+              
+              {/* Upload de Extrato Bancário */}
+              <div className="bg-white rounded-lg border p-6">
+                <h2 className="text-xl font-semibold mb-4">Extrato Bancário</h2>
+                <Tabs defaultValue="upload" className="w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="upload">Upload de Extrato</TabsTrigger>
+                    <TabsTrigger value="history">Histórico de Uploads</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="upload" className="mt-4">
+                    <BankStatementUpload />
+                  </TabsContent>
+                  
+                  <TabsContent value="history" className="mt-4">
+                    <BankStatementHistory />
+                  </TabsContent>
+                </Tabs>
               </div>
               
               {/* Ranking completo de categorias */}
