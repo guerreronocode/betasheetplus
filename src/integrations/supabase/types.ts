@@ -209,6 +209,36 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_statement_uploads: {
+        Row: {
+          created_at: string
+          id: string
+          total_transactions: number
+          updated_at: string
+          upload_date: string
+          upload_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          total_transactions?: number
+          updated_at?: string
+          upload_date?: string
+          upload_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          total_transactions?: number
+          updated_at?: string
+          upload_date?: string
+          upload_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       budget_categories: {
         Row: {
           budget_id: string
@@ -589,6 +619,7 @@ export type Database = {
           id: string
           recurring_transaction_id: string | null
           updated_at: string
+          upload_id: string | null
           user_id: string
         }
         Insert: {
@@ -601,6 +632,7 @@ export type Database = {
           id?: string
           recurring_transaction_id?: string | null
           updated_at?: string
+          upload_id?: string | null
           user_id: string
         }
         Update: {
@@ -613,6 +645,7 @@ export type Database = {
           id?: string
           recurring_transaction_id?: string | null
           updated_at?: string
+          upload_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -628,6 +661,13 @@ export type Database = {
             columns: ["recurring_transaction_id"]
             isOneToOne: false
             referencedRelation: "recurring_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expenses_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "bank_statement_uploads"
             referencedColumns: ["id"]
           },
         ]
@@ -734,6 +774,7 @@ export type Database = {
           id: string
           recurring_transaction_id: string | null
           updated_at: string
+          upload_id: string | null
           user_id: string
         }
         Insert: {
@@ -746,6 +787,7 @@ export type Database = {
           id?: string
           recurring_transaction_id?: string | null
           updated_at?: string
+          upload_id?: string | null
           user_id: string
         }
         Update: {
@@ -758,6 +800,7 @@ export type Database = {
           id?: string
           recurring_transaction_id?: string | null
           updated_at?: string
+          upload_id?: string | null
           user_id?: string
         }
         Relationships: [
@@ -773,6 +816,13 @@ export type Database = {
             columns: ["recurring_transaction_id"]
             isOneToOne: false
             referencedRelation: "recurring_transactions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "income_upload_id_fkey"
+            columns: ["upload_id"]
+            isOneToOne: false
+            referencedRelation: "bank_statement_uploads"
             referencedColumns: ["id"]
           },
         ]
