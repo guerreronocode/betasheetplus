@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 const BankStatementUpload = () => {
   const [file, setFile] = useState<File | null>(null);
   const [uploadName, setUploadName] = useState('');
-  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('none');
   const [dragOver, setDragOver] = useState(false);
 
   const { createUpload, isCreatingUpload } = useBankStatementUploads();
@@ -61,13 +61,13 @@ const BankStatementUpload = () => {
       createUpload({
         uploadName: uploadName.trim(),
         fileContent,
-        bankAccountId: selectedAccountId || undefined
+        bankAccountId: selectedAccountId === 'none' ? undefined : selectedAccountId || undefined
       });
       
       // Limpar formulário após sucesso
       setFile(null);
       setUploadName('');
-      setSelectedAccountId('');
+      setSelectedAccountId('none');
     } catch (error) {
       console.error('Erro ao ler arquivo:', error);
     }
@@ -158,7 +158,7 @@ const BankStatementUpload = () => {
               <SelectValue placeholder="Selecione uma conta (opcional)" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Nenhuma conta específica</SelectItem>
+              <SelectItem value="none">Nenhuma conta específica</SelectItem>
               {bankAccounts.map((account) => (
                 <SelectItem key={account.id} value={account.id}>
                   {account.name} - {account.bank_name}
