@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { subMonths, format } from 'date-fns';
 import { useFinancialData } from './useFinancialData';
-import { useCreditCardDebts } from './useCreditCardDebts';
+import { useDebts } from '@/modules/debts/hooks/useDebts';
 
 export interface FinancialEvolutionData {
   month: string;
@@ -24,7 +24,7 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
     liabilities, 
     isLoading: financialDataLoading 
   } = useFinancialData();
-  const { creditCardDebts, isLoading: creditCardDebtsLoading } = useCreditCardDebts();
+  const { totalDebts, isLoading: debtsLoading } = useDebts();
 
   return useQuery({
     queryKey: ['financial-evolution', user?.id, periodMonths],
@@ -43,9 +43,8 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
       // Total de ativos (circulantes + não circulantes)
       const totalAssets = totalBankBalance + totalInvestmentValue + totalAssetsValue;
       
-      // 2. Dívidas = Total das dívidas reais (incluindo cartões de crédito)
-      const creditCardDebtTotal = creditCardDebts?.reduce((sum, debt) => sum + debt.total_debt, 0) || 0;
-      const totalDebt = totalLiabilitiesValue + creditCardDebtTotal;
+      // 2. Dívidas = Total das dívidas cadastradas na aba "Dívidas"
+      const totalDebt = totalDebts;
       
       // Total de passivos (circulantes + não circulantes) = Dívidas
       const totalPassivos = totalDebt;
@@ -75,7 +74,7 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
 
       return data;
     },
-    enabled: !!user && !financialDataLoading && !creditCardDebtsLoading,
+    enabled: !!user && !financialDataLoading && !debtsLoading,
     staleTime: 2 * 60 * 1000, // 2 minutos
   });
 };
