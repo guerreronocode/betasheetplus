@@ -69,6 +69,8 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
           netWorth: 0
         };
 
+        console.log(`Processando mês ${monthKey}:`, monthData);
+
         data.push({
           month: format(monthDate, 'MMM yyyy'),
           netWorth: monthData.netWorth,
@@ -79,6 +81,7 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
         });
       }
 
+      console.log('Dados finais estruturados:', data);
       return data;
     },
     enabled: !!user,

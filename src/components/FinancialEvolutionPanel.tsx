@@ -32,6 +32,10 @@ const FinancialEvolutionPanel = () => {
   const currentData = evolutionData?.[evolutionData.length - 1];
   const previousData = evolutionData?.[evolutionData.length - 2];
 
+  console.log('Evolution Data:', evolutionData);
+  console.log('Current Data:', currentData);
+  console.log('Previous Data:', previousData);
+
   const calculateChange = (current: number, previous: number) => {
     if (!previous) return 0;
     return ((current - previous) / Math.abs(previous)) * 100;
@@ -89,11 +93,12 @@ const FinancialEvolutionPanel = () => {
               <div>
                 <p className="text-sm text-gray-600">Patrimônio Líquido</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {(currentData?.netWorth || 0).toLocaleString('pt-BR', { 
+                  {currentData ? (currentData.netWorth || 0).toLocaleString('pt-BR', { 
                     style: 'currency', 
                     currency: 'BRL' 
-                  })}
+                  }) : 'R$ 0,00'}
                 </p>
+                <p className="text-xs text-gray-400">Debug: {JSON.stringify(currentData)}</p>
               </div>
               <div className={`flex items-center space-x-1 ${netWorthChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {netWorthChange >= 0 ? (
@@ -113,11 +118,12 @@ const FinancialEvolutionPanel = () => {
               <div>
                 <p className="text-sm text-gray-600">Total de Dívidas</p>
                 <p className="text-2xl font-bold text-red-600">
-                  {(currentData?.totalDebt || 0).toLocaleString('pt-BR', { 
+                  {currentData ? (currentData.totalDebt || 0).toLocaleString('pt-BR', { 
                     style: 'currency', 
                     currency: 'BRL' 
-                  })}
+                  }) : 'R$ 0,00'}
                 </p>
+                <p className="text-xs text-gray-400">Debug: totalDebt = {currentData?.totalDebt}</p>
               </div>
               <div className={`flex items-center space-x-1 ${debtChange <= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {debtChange <= 0 ? (
@@ -137,11 +143,12 @@ const FinancialEvolutionPanel = () => {
               <div>
                 <p className="text-sm text-gray-600">Reservas Líquidas</p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {(currentData?.liquidReserves || 0).toLocaleString('pt-BR', { 
+                  {currentData ? (currentData.liquidReserves || 0).toLocaleString('pt-BR', { 
                     style: 'currency', 
                     currency: 'BRL' 
-                  })}
+                  }) : 'R$ 0,00'}
                 </p>
+                <p className="text-xs text-gray-400">Debug: liquidReserves = {currentData?.liquidReserves}</p>
               </div>
               <div className={`flex items-center space-x-1 ${reservesChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {reservesChange >= 0 ? (
