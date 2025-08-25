@@ -98,7 +98,6 @@ const FinancialEvolutionPanel = () => {
                     currency: 'BRL' 
                   }) : 'R$ 0,00'}
                 </p>
-                <p className="text-xs text-gray-400">Debug: {JSON.stringify(currentData)}</p>
               </div>
               <div className={`flex items-center space-x-1 ${netWorthChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {netWorthChange >= 0 ? (
@@ -123,7 +122,6 @@ const FinancialEvolutionPanel = () => {
                     currency: 'BRL' 
                   }) : 'R$ 0,00'}
                 </p>
-                <p className="text-xs text-gray-400">Debug: totalDebt = {currentData?.totalDebt}</p>
               </div>
               <div className={`flex items-center space-x-1 ${debtChange <= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {debtChange <= 0 ? (
@@ -148,7 +146,6 @@ const FinancialEvolutionPanel = () => {
                     currency: 'BRL' 
                   }) : 'R$ 0,00'}
                 </p>
-                <p className="text-xs text-gray-400">Debug: liquidReserves = {currentData?.liquidReserves}</p>
               </div>
               <div className={`flex items-center space-x-1 ${reservesChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {reservesChange >= 0 ? (

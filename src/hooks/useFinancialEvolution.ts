@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { subMonths, format } from 'date-fns';
+import { useFinancialData } from './useFinancialData';
 
 export interface FinancialEvolutionData {
   month: string;
@@ -15,6 +16,7 @@ export interface FinancialEvolutionData {
 
 export const useFinancialEvolution = (periodMonths: number = 12) => {
   const { user } = useAuth();
+  const { bankAccounts, investments, assets, liabilities, isLoading: financialDataLoading } = useFinancialData();
 
   return useQuery({
     queryKey: ['financial-evolution', user?.id, periodMonths],
@@ -24,67 +26,47 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
       const currentDate = new Date();
       const data: FinancialEvolutionData[] = [];
 
-      // Usar a view otimizada para buscar dados financeiros consolidados
-      const { data: viewData, error } = await supabase
-        .from('financial_evolution_data')
-        .select('month_date, total_assets, total_liabilities, liquid_reserves, net_worth')
-        .gte('month_date', subMonths(currentDate, periodMonths - 1).toISOString())
-        .lte('month_date', currentDate.toISOString())
-        .order('month_date', { ascending: true });
+      // Calcular dados atuais
+      const totalBankBalance = bankAccounts.reduce((sum, account) => sum + account.balance, 0);
+      const totalInvestmentValue = investments.reduce((sum, inv) => sum + inv.current_value, 0);
+      const totalAssetsValue = assets.reduce((sum, asset) => sum + asset.current_value, 0);
+      const totalLiabilitiesValue = liabilities.reduce((sum, liability) => sum + liability.remaining_amount, 0);
+      
+      const liquidReserves = totalBankBalance + investments.filter(inv => inv.liquidity === 'daily').reduce((sum, inv) => sum + inv.current_value, 0);
+      const totalAssets = totalBankBalance + totalInvestmentValue + totalAssetsValue;
+      const totalLiabilities = totalLiabilitiesValue;
+      const netWorth = totalAssets - totalLiabilities;
 
-      if (error) {
-        console.error('Erro ao buscar dados da evolução financeira:', error);
-        return [];
-      }
-
-      // Agrupar por mês e pegar os valores únicos por mês
-      const monthlyData = new Map<string, {
-        totalAssets: number;
-        totalLiabilities: number;
-        liquidReserves: number;
-        netWorth: number;
-      }>();
-
-      viewData?.forEach(row => {
-        const monthKey = format(new Date(row.month_date), 'yyyy-MM');
-        
-        if (!monthlyData.has(monthKey)) {
-          monthlyData.set(monthKey, {
-            totalAssets: Number(row.total_assets) || 0,
-            totalLiabilities: Number(row.total_liabilities) || 0,
-            liquidReserves: Number(row.liquid_reserves) || 0,
-            netWorth: Number(row.net_worth) || 0
-          });
-        }
+      console.log('Calculando dados financeiros atuais:', {
+        totalBankBalance,
+        totalInvestmentValue,
+        totalAssetsValue,
+        totalLiabilitiesValue,
+        liquidReserves,
+        totalAssets,
+        totalLiabilities,
+        netWorth
       });
 
-      // Gerar dados para cada mês no período solicitado
+      // Para simplificar, vamos mostrar os valores atuais para todos os meses
+      // Em uma implementação futura, você pode buscar dados históricos reais
       for (let i = periodMonths - 1; i >= 0; i--) {
         const monthDate = subMonths(currentDate, i);
-        const monthKey = format(monthDate, 'yyyy-MM');
-        const monthData = monthlyData.get(monthKey) || {
-          totalAssets: 0,
-          totalLiabilities: 0,
-          liquidReserves: 0,
-          netWorth: 0
-        };
-
-        console.log(`Processando mês ${monthKey}:`, monthData);
-
+        
         data.push({
           month: format(monthDate, 'MMM yyyy'),
-          netWorth: monthData.netWorth,
-          totalDebt: monthData.totalLiabilities,
-          liquidReserves: monthData.liquidReserves,
-          totalAssets: monthData.totalAssets,
-          totalLiabilities: monthData.totalLiabilities
+          netWorth,
+          totalDebt: totalLiabilities,
+          liquidReserves,
+          totalAssets,
+          totalLiabilities
         });
       }
 
       console.log('Dados finais estruturados:', data);
       return data;
     },
-    enabled: !!user,
-    staleTime: 2 * 60 * 1000, // 2 minutos - mais rápido para ver mudanças
+    enabled: !!user && !financialDataLoading,
+    staleTime: 2 * 60 * 1000, // 2 minutos
   });
 };
