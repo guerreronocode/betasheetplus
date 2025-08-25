@@ -81,11 +81,13 @@ const ManageInvestmentCard: React.FC<Props> = ({
         }}
       />
     )}
-    <InvestmentList
-      investments={investments}
-      onEdit={handleEdit}
-      onDelete={handleDelete}
-    />
+      <InvestmentList 
+        investments={investments}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onAport={() => {}}
+        onUpdate={() => {}}
+      />
   </div>
 );
 export default ManageInvestmentCard;

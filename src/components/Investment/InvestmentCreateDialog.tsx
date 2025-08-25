@@ -48,7 +48,7 @@ const yieldTypes = [
 interface InvestmentCreateDialogProps {}
 
 const InvestmentCreateDialog: React.FC<InvestmentCreateDialogProps> = () => {
-  const { addInvestment, isAddingInvestment, yieldRates } = useFinancialData();
+  const { addInvestment, isAddingInvestment, yieldRates, bankAccounts } = useFinancialData();
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
 
   const [form, setForm] = React.useState<{
@@ -60,6 +60,8 @@ const InvestmentCreateDialog: React.FC<InvestmentCreateDialogProps> = () => {
     yield_extra: string;
     yield_percent_index: string;
     purchase_date: string;
+    bank_account_id: string;
+    already_owned: boolean;
   }>({
     name: '',
     type: '',
@@ -68,7 +70,9 @@ const InvestmentCreateDialog: React.FC<InvestmentCreateDialogProps> = () => {
     yield_rate: '',
     yield_extra: '',
     yield_percent_index: '',
-    purchase_date: new Date().toISOString().split('T')[0]
+    purchase_date: new Date().toISOString().split('T')[0],
+    bank_account_id: 'none',
+    already_owned: false
   });
 
   const handleYieldTypeChange = (type: YieldType) => {
@@ -119,7 +123,8 @@ const InvestmentCreateDialog: React.FC<InvestmentCreateDialogProps> = () => {
       amount: parseFloat(form.amount),
       purchase_date: form.purchase_date,
       yield_type: submittedYieldType,
-      yield_rate: yield_rate_final
+      yield_rate: yield_rate_final,
+      bank_account_id: form.already_owned ? undefined : (form.bank_account_id === 'none' ? undefined : form.bank_account_id)
     });
 
     setForm({
@@ -130,7 +135,9 @@ const InvestmentCreateDialog: React.FC<InvestmentCreateDialogProps> = () => {
       yield_rate: '',
       yield_extra: '',
       yield_percent_index: '',
-      purchase_date: new Date().toISOString().split('T')[0]
+      purchase_date: new Date().toISOString().split('T')[0],
+      bank_account_id: 'none',
+      already_owned: false
     });
     setIsDialogOpen(false);
   };
@@ -262,6 +269,51 @@ const InvestmentCreateDialog: React.FC<InvestmentCreateDialogProps> = () => {
               required
             />
           </div>
+          
+          <div className="space-y-3">
+            <Label>Origem do Investimento</Label>
+            <div className="space-y-2">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  checked={!form.already_owned}
+                  onChange={() => setForm(prev => ({ ...prev, already_owned: false }))}
+                />
+                <span>Retirar valor de uma conta bancária</span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  checked={form.already_owned}
+                  onChange={() => setForm(prev => ({ ...prev, already_owned: true }))}
+                />
+                <span>Já possuía este investimento</span>
+              </label>
+            </div>
+          </div>
+
+          {!form.already_owned && (
+            <div>
+              <Label htmlFor="bank_account">Conta Bancária</Label>
+              <Select
+                value={form.bank_account_id}
+                onValueChange={(value) => setForm(prev => ({ ...prev, bank_account_id: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione uma conta" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Não debitar de conta</SelectItem>
+                  {bankAccounts.map(account => (
+                    <SelectItem key={account.id} value={account.id}>
+                      {account.name} - {account.bank_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          
           <Button type="submit" className="w-full" disabled={isAddingInvestment}>
             {isAddingInvestment ? 'Adicionando...' : 'Adicionar Investimento'}
           </Button>

@@ -6,12 +6,16 @@ interface InvestmentListProps {
   investments: any[];
   onEdit: (inv: any) => void;
   onDelete: (id: string) => void;
+  onAport: (inv: any) => void;
+  onUpdate: (inv: any) => void;
 }
 
 const InvestmentList: React.FC<InvestmentListProps> = ({
   investments,
   onEdit,
   onDelete,
+  onAport,
+  onUpdate,
 }) => {
   if (investments.length === 0)
     return (
@@ -31,6 +35,8 @@ const InvestmentList: React.FC<InvestmentListProps> = ({
           investment={investment}
           onEdit={onEdit}
           onDelete={onDelete}
+          onAport={onAport}
+          onUpdate={onUpdate}
           index={idx}
         />
       ))}

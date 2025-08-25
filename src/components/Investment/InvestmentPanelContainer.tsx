@@ -8,9 +8,19 @@ import InvestmentCreateDialog from './InvestmentCreateDialog';
 import InvestmentCalculatorDialog from './InvestmentCalculatorDialog';
 import InvestmentList from './InvestmentList';
 import InvestmentSummary from './InvestmentSummary';
+import InvestmentEditDialog from './InvestmentEditDialog';
+import InvestmentAportDialog from './InvestmentAportDialog';
+import InvestmentUpdateDialog from './InvestmentUpdateDialog';
+import InvestmentDeleteDialog from './InvestmentDeleteDialog';
 
 const InvestmentPanelContainer: React.FC = () => {
-  const { investments, investmentsLoading, updateInvestment, deleteInvestment } = useInvestments();
+  const { investments, investmentsLoading, updateInvestment, deleteInvestment, addInvestmentAport, updateInvestmentValue } = useInvestments();
+  
+  // Estados para os modais
+  const [editingInvestment, setEditingInvestment] = useState(null);
+  const [aportingInvestment, setAportingInvestment] = useState(null);
+  const [updatingInvestment, setUpdatingInvestment] = useState(null);
+  const [deletingInvestment, setDeletingInvestment] = useState(null);
 
   // Calcular totais para o InvestmentSummary
   const totalInvested = investments.reduce((sum, inv) => sum + inv.amount, 0);
@@ -18,12 +28,40 @@ const InvestmentPanelContainer: React.FC = () => {
   const investmentReturn = currentInvestmentValue - totalInvested;
 
   const handleEdit = (investment: any) => {
-    // Implementar lógica de edição se necessário
-    console.log('Edit investment:', investment);
+    setEditingInvestment(investment);
   };
 
   const handleDelete = (id: string) => {
-    deleteInvestment(id);
+    const investment = investments.find(inv => inv.id === id);
+    setDeletingInvestment(investment);
+  };
+
+  const handleAport = (investment: any) => {
+    setAportingInvestment(investment);
+  };
+
+  const handleUpdate = (investment: any) => {
+    setUpdatingInvestment(investment);
+  };
+
+  const handleEditSubmit = (id: string, name: string) => {
+    updateInvestment({ id, name });
+    setEditingInvestment(null);
+  };
+
+  const handleAportSubmit = (investmentId: string, amount: number, currentValue: number, bankAccountId?: string) => {
+    addInvestmentAport(investmentId, amount, currentValue, bankAccountId);
+    setAportingInvestment(null);
+  };
+
+  const handleUpdateSubmit = (investmentId: string, currentValue: number) => {
+    updateInvestmentValue(investmentId, currentValue);
+    setUpdatingInvestment(null);
+  };
+
+  const handleDeleteConfirm = (investmentId: string) => {
+    deleteInvestment(investmentId);
+    setDeletingInvestment(null);
   };
 
   if (investmentsLoading) {
@@ -71,6 +109,37 @@ const InvestmentPanelContainer: React.FC = () => {
         investments={investments}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onAport={handleAport}
+        onUpdate={handleUpdate}
+      />
+
+      {/* Modais */}
+      <InvestmentEditDialog
+        isOpen={!!editingInvestment}
+        onClose={() => setEditingInvestment(null)}
+        investment={editingInvestment}
+        onEdit={handleEditSubmit}
+      />
+
+      <InvestmentAportDialog
+        isOpen={!!aportingInvestment}
+        onClose={() => setAportingInvestment(null)}
+        investment={aportingInvestment}
+        onAport={handleAportSubmit}
+      />
+
+      <InvestmentUpdateDialog
+        isOpen={!!updatingInvestment}
+        onClose={() => setUpdatingInvestment(null)}
+        investment={updatingInvestment}
+        onUpdate={handleUpdateSubmit}
+      />
+
+      <InvestmentDeleteDialog
+        isOpen={!!deletingInvestment}
+        onClose={() => setDeletingInvestment(null)}
+        investment={deletingInvestment}
+        onDelete={handleDeleteConfirm}
       />
     </div>
   );

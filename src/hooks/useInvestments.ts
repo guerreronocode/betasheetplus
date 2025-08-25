@@ -187,12 +187,125 @@ export const useInvestments = () => {
     },
   });
 
+  // Aporte em investimento
+  const addInvestmentAportMutation = useMutation({
+    mutationFn: async ({ investmentId, amount, currentValue, bankAccountId }: {
+      investmentId: string;
+      amount: number;
+      currentValue: number;
+      bankAccountId?: string;
+    }) => {
+      if (!user) throw new Error('User not authenticated');
+
+      // Buscar investimento atual
+      const { data: investment, error: getError } = await supabase
+        .from('investments')
+        .select('amount')
+        .eq('id', investmentId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (getError) throw getError;
+
+      // Atualizar investimento
+      const { error: investmentError } = await supabase
+        .from('investments')
+        .update({
+          amount: investment.amount + amount, 
+          current_value: currentValue,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', investmentId)
+        .eq('user_id', user.id);
+
+      if (investmentError) throw investmentError;
+
+      // Se especificou conta bancária, debitar o valor
+      if (bankAccountId) {
+        const { data: currentAccount, error: fetchError } = await supabase
+          .from('bank_accounts')
+          .select('balance')
+          .eq('id', bankAccountId)
+          .eq('user_id', user.id)
+          .single();
+        
+        if (fetchError) throw fetchError;
+        
+        const newBalance = currentAccount.balance - amount;
+        const { error: accountError } = await supabase
+          .from('bank_accounts')
+          .update({
+            balance: newBalance,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', bankAccountId)
+          .eq('user_id', user.id);
+
+        if (accountError) throw accountError;
+      }
+
+      return { investmentId, amount, currentValue };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['investments'] });
+      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['user_stats'] });
+      toast({ title: 'Aporte realizado com sucesso!' });
+    },
+    onError: (error) => {
+      console.error('Erro ao realizar aporte:', error);
+      toast({ title: 'Erro ao realizar aporte', variant: 'destructive' });
+    }
+  });
+
+  // Atualizar valor do investimento
+  const updateInvestmentValueMutation = useMutation({
+    mutationFn: async ({ investmentId, currentValue }: {
+      investmentId: string;
+      currentValue: number;
+    }) => {
+      if (!user) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('investments')
+        .update({
+          current_value: currentValue,
+          last_yield_update: new Date().toISOString().split('T')[0],
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', investmentId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      return { investmentId, currentValue };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['investments'] });
+      queryClient.invalidateQueries({ queryKey: ['user_stats'] });
+      toast({ title: 'Valor do investimento atualizado!' });
+    },
+    onError: (error) => {
+      console.error('Erro ao atualizar investimento:', error);
+      toast({ title: 'Erro ao atualizar valor do investimento', variant: 'destructive' });
+    }
+  });
+
+  const addInvestmentAport = (investmentId: string, amount: number, currentValue: number, bankAccountId?: string) => {
+    addInvestmentAportMutation.mutate({ investmentId, amount, currentValue, bankAccountId });
+  };
+
+  const updateInvestmentValue = (investmentId: string, currentValue: number) => {
+    updateInvestmentValueMutation.mutate({ investmentId, currentValue });
+  };
+
   return {
     investments,
     investmentsLoading,
     addInvestment: addInvestmentMutation.mutate,
     updateInvestment: updateInvestmentMutation.mutate,
     deleteInvestment: deleteInvestmentMutation.mutate,
+    addInvestmentAport,
+    updateInvestmentValue,
     isAddingInvestment: addInvestmentMutation.isPending,
   };
 };
