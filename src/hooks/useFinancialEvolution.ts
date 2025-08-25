@@ -21,96 +21,86 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
     queryFn: async () => {
       if (!user) return [];
 
+      const data: FinancialEvolutionData[] = [];
       const currentDate = new Date();
-      const startPeriod = subMonths(currentDate, periodMonths - 1);
 
-      // Fazer todas as consultas em paralelo - muito mais eficiente
+      // Buscar todos os dados uma vez só para otimizar
       const [
-        { data: assets },
-        { data: liabilities },
-        { data: investments },
-        { data: bankAccounts },
-        { data: creditCardDebts }
+        { data: allAssets },
+        { data: allLiabilities },
+        { data: allInvestments },
+        { data: allBankAccounts }
       ] = await Promise.all([
         supabase
           .from('assets')
           .select('current_value, category, created_at')
-          .eq('user_id', user.id)
-          .gte('created_at', startPeriod.toISOString()),
+          .eq('user_id', user.id),
         
         supabase
           .from('liabilities')
           .select('remaining_amount, category, created_at')
-          .eq('user_id', user.id)
-          .gte('created_at', startPeriod.toISOString()),
+          .eq('user_id', user.id),
           
         supabase
           .from('investments')
           .select('current_value, amount, liquidity, created_at')
-          .eq('user_id', user.id)
-          .gte('created_at', startPeriod.toISOString()),
+          .eq('user_id', user.id),
           
         supabase
           .from('bank_accounts')
           .select('balance, created_at')
           .eq('user_id', user.id)
           .eq('is_active', true)
-          .gte('created_at', startPeriod.toISOString()),
-          
-        supabase
-          .from('credit_card_installments')
-          .select('amount, bill_month')
-          .eq('user_id', user.id)
-          .eq('is_paid', false)
-          .gte('bill_month', format(startPeriod, 'yyyy-MM-dd'))
       ]);
 
-      // Processar dados para cada mês
-      const data: FinancialEvolutionData[] = [];
-      
+      // Calcular dados para cada mês no período selecionado
       for (let i = periodMonths - 1; i >= 0; i--) {
         const monthDate = subMonths(currentDate, i);
-        const monthEnd = endOfMonth(monthDate);
         const monthStart = startOfMonth(monthDate);
-        
+        const monthEnd = endOfMonth(monthDate);
+
         // Filtrar dados até o final do mês
-        const monthAssets = (assets || []).filter(a => 
+        const assets = (allAssets || []).filter(a => 
           new Date(a.created_at) <= monthEnd
         );
         
-        const monthLiabilities = (liabilities || []).filter(l => 
+        const liabilities = (allLiabilities || []).filter(l => 
           new Date(l.created_at) <= monthEnd
         );
         
-        const monthInvestments = (investments || []).filter(i => 
+        const investments = (allInvestments || []).filter(i => 
           new Date(i.created_at) <= monthEnd
         );
         
-        const monthBankAccounts = (bankAccounts || []).filter(b => 
+        const bankAccounts = (allBankAccounts || []).filter(b => 
           new Date(b.created_at) <= monthEnd
         );
-        
-        const monthCreditCardDebts = (creditCardDebts || []).filter(c => {
-          const billDate = new Date(c.bill_month);
-          return billDate >= monthStart && billDate <= monthEnd;
-        });
+
+        // Buscar dívidas de cartão para o mês específico
+        const { data: creditCardDebts } = await supabase
+          .from('credit_card_installments')
+          .select('amount')
+          .eq('user_id', user.id)
+          .eq('is_paid', false)
+          .gte('bill_month', monthStart.toISOString().split('T')[0])
+          .lte('bill_month', monthEnd.toISOString().split('T')[0]);
 
         // Calcular totais
         const totalAssets = [
-          ...monthAssets.map(a => a.current_value),
-          ...monthInvestments.map(i => i.current_value || i.amount),
-          ...monthBankAccounts.map(b => b.balance)
+          ...assets.map(a => a.current_value),
+          ...investments.map(i => i.current_value || i.amount),
+          ...bankAccounts.map(b => b.balance)
         ].reduce((sum, val) => sum + (Number(val) || 0), 0);
 
         const totalLiabilities = [
-          ...monthLiabilities.map(l => l.remaining_amount),
-          ...monthCreditCardDebts.map(c => c.amount)
+          ...liabilities.map(l => l.remaining_amount),
+          ...(creditCardDebts || []).map(c => c.amount)
         ].reduce((sum, val) => sum + (Number(val) || 0), 0);
 
         // Calcular reservas líquidas
         const liquidReserves = [
-          ...monthBankAccounts.map(b => b.balance),
-          ...monthInvestments
+          ...bankAccounts.map(b => b.balance),
+          ...investments
             .filter(i => i.liquidity === 'daily' || i.liquidity === 'diaria')
             .map(i => i.current_value || i.amount)
         ].reduce((sum, val) => sum + (Number(val) || 0), 0);
