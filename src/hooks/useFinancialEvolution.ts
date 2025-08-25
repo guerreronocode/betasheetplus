@@ -34,33 +34,65 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
       const currentDate = new Date();
       const data: FinancialEvolutionData[] = [];
 
-      // 1. Patrimônio Líquido = (Ativos Circulantes + Não Circulantes) - (Passivos Circulantes + Não Circulantes)
-      const totalBankBalance = bankAccounts.reduce((sum, account) => sum + account.balance, 0);
-      const totalInvestmentValue = investments.reduce((sum, inv) => sum + inv.current_value, 0);
-      const totalAssetsValue = assets.reduce((sum, asset) => sum + asset.current_value, 0);
-      const totalLiabilitiesValue = liabilities.reduce((sum, liability) => sum + liability.remaining_amount, 0);
-      
-      // Total de ativos (circulantes + não circulantes)
-      const totalAssets = totalBankBalance + totalInvestmentValue + totalAssetsValue;
-      
-      // 2. Dívidas = Total das dívidas cadastradas na aba "Dívidas"
-      const totalDebt = totalDebts;
-      
-      // Total de passivos (circulantes + não circulantes) = Dívidas
-      const totalPassivos = totalDebt;
-      
-      // Patrimônio Líquido = Ativos - Passivos
-      const netWorth = totalAssets - totalPassivos;
-
-      // 3. Reserva Líquida = Contas bancárias + investimentos com liquidez diária
-      const liquidReserves = totalBankBalance + investments
-        .filter(inv => inv.liquidity === 'daily')
-        .reduce((sum, inv) => sum + inv.current_value, 0);
-
-      // Para simplificar, vamos mostrar os valores atuais para todos os meses
-      // Em uma implementação futura, você pode buscar dados históricos reais
+      // Para cada mês, calcular valores baseados apenas nos dados que existiam até aquele mês
       for (let i = periodMonths - 1; i >= 0; i--) {
         const monthDate = subMonths(currentDate, i);
+        const monthEnd = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0); // Último dia do mês
+        
+        // 1. Contas bancárias criadas até este mês
+        const { data: monthBankAccounts } = await supabase
+          .from('bank_accounts')
+          .select('balance, created_at')
+          .eq('user_id', user.id)
+          .eq('is_active', true)
+          .lte('created_at', monthEnd.toISOString());
+        
+        const totalBankBalance = monthBankAccounts?.reduce((sum, account) => sum + account.balance, 0) || 0;
+        
+        // 2. Investimentos feitos até este mês
+        const { data: monthInvestments } = await supabase
+          .from('investments')
+          .select('current_value, liquidity, purchase_date')
+          .eq('user_id', user.id)
+          .lte('purchase_date', monthEnd.toISOString());
+        
+        const totalInvestmentValue = monthInvestments?.reduce((sum, inv) => sum + inv.current_value, 0) || 0;
+        
+        // 3. Ativos cadastrados até este mês
+        const { data: monthAssets } = await supabase
+          .from('assets')
+          .select('current_value, created_at')
+          .eq('user_id', user.id)
+          .lte('created_at', monthEnd.toISOString());
+        
+        const totalAssetsValue = monthAssets?.reduce((sum, asset) => sum + asset.current_value, 0) || 0;
+        
+        // 4. Passivos (liabilities) cadastrados até este mês
+        const { data: monthLiabilities } = await supabase
+          .from('liabilities')
+          .select('remaining_amount, created_at')
+          .eq('user_id', user.id)
+          .lte('created_at', monthEnd.toISOString());
+        
+        const totalLiabilitiesValue = monthLiabilities?.reduce((sum, liability) => sum + liability.remaining_amount, 0) || 0;
+        
+        // 5. Dívidas cadastradas até este mês (da aba Dívidas)
+        const { data: monthDebts } = await supabase
+          .from('debts')
+          .select('remaining_balance, created_at')
+          .eq('user_id', user.id)
+          .lte('created_at', monthEnd.toISOString());
+        
+        const totalDebtsValue = monthDebts?.reduce((sum, debt) => sum + debt.remaining_balance, 0) || 0;
+        
+        // Cálculos finais para este mês
+        const totalAssets = totalBankBalance + totalInvestmentValue + totalAssetsValue;
+        const totalDebt = totalLiabilitiesValue + totalDebtsValue;
+        const netWorth = totalAssets - totalDebt;
+        
+        // Reservas líquidas = contas bancárias + investimentos com liquidez diária
+        const liquidReserves = totalBankBalance + (monthInvestments?.filter(inv => inv.liquidity === 'daily')
+          .reduce((sum, inv) => sum + inv.current_value, 0) || 0);
         
         data.push({
           month: format(monthDate, 'MMM yyyy'),
@@ -68,13 +100,13 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
           totalDebt,
           liquidReserves,
           totalAssets,
-          totalLiabilities: totalPassivos
+          totalLiabilities: totalDebt
         });
       }
 
       return data;
     },
-    enabled: !!user && !financialDataLoading && !debtsLoading,
+    enabled: !!user,
     staleTime: 2 * 60 * 1000, // 2 minutos
   });
 };
