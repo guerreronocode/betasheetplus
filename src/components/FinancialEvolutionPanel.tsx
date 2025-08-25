@@ -89,7 +89,7 @@ const FinancialEvolutionPanel = () => {
               <div>
                 <p className="text-sm text-gray-600">Patrimônio Líquido</p>
                 <p className="text-2xl font-bold text-green-600">
-                  {currentData?.netWorth.toLocaleString('pt-BR', { 
+                  {(currentData?.netWorth || 0).toLocaleString('pt-BR', { 
                     style: 'currency', 
                     currency: 'BRL' 
                   })}
@@ -113,7 +113,7 @@ const FinancialEvolutionPanel = () => {
               <div>
                 <p className="text-sm text-gray-600">Total de Dívidas</p>
                 <p className="text-2xl font-bold text-red-600">
-                  {currentData?.totalDebt.toLocaleString('pt-BR', { 
+                  {(currentData?.totalDebt || 0).toLocaleString('pt-BR', { 
                     style: 'currency', 
                     currency: 'BRL' 
                   })}
@@ -137,7 +137,7 @@ const FinancialEvolutionPanel = () => {
               <div>
                 <p className="text-sm text-gray-600">Reservas Líquidas</p>
                 <p className="text-2xl font-bold text-blue-600">
-                  {currentData?.liquidReserves.toLocaleString('pt-BR', { 
+                  {(currentData?.liquidReserves || 0).toLocaleString('pt-BR', { 
                     style: 'currency', 
                     currency: 'BRL' 
                   })}
