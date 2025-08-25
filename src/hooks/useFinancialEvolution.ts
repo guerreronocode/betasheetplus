@@ -16,6 +16,7 @@ export interface FinancialEvolutionData {
 }
 
 export const useFinancialEvolution = (periodMonths: number = 12) => {
+  console.log('🔥 HOOK useFinancialEvolution EXECUTANDO');
   const { user } = useAuth();
   const { 
     bankAccounts, 
@@ -26,10 +27,18 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
   } = useFinancialData();
   const { creditCardDebts, isLoading: creditCardDebtsLoading } = useCreditCardDebts();
 
+  console.log('🔥 USER:', user);
+  console.log('🔥 FINANCIAL DATA LOADING:', financialDataLoading);
+  console.log('🔥 CREDIT CARD DEBTS LOADING:', creditCardDebtsLoading);
+
   return useQuery({
     queryKey: ['financial-evolution', user?.id, periodMonths],
     queryFn: async () => {
-      if (!user) return [];
+      console.log('🔥 QUERY FUNCTION EXECUTANDO');
+      if (!user) {
+        console.log('🔥 SEM USUÁRIO - RETORNANDO ARRAY VAZIO');
+        return [];
+      }
 
       const currentDate = new Date();
       const data: FinancialEvolutionData[] = [];
