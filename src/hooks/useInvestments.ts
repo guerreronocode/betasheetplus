@@ -193,7 +193,7 @@ export const useInvestments = () => {
       investmentId: string;
       amount: number;
       currentValue: number;
-      bankAccountId?: string;
+      bankAccountId: string;
     }) => {
       if (!user) throw new Error('User not authenticated');
 
@@ -220,29 +220,27 @@ export const useInvestments = () => {
 
       if (investmentError) throw investmentError;
 
-      // Se especificou conta bancária, debitar o valor
-      if (bankAccountId) {
-        const { data: currentAccount, error: fetchError } = await supabase
-          .from('bank_accounts')
-          .select('balance')
-          .eq('id', bankAccountId)
-          .eq('user_id', user.id)
-          .single();
-        
-        if (fetchError) throw fetchError;
-        
-        const newBalance = currentAccount.balance - amount;
-        const { error: accountError } = await supabase
-          .from('bank_accounts')
-          .update({
-            balance: newBalance,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', bankAccountId)
-          .eq('user_id', user.id);
+      // Debitar o valor da conta bancária
+      const { data: currentAccount, error: fetchError } = await supabase
+        .from('bank_accounts')
+        .select('balance')
+        .eq('id', bankAccountId)
+        .eq('user_id', user.id)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      const newBalance = currentAccount.balance - amount;
+      const { error: accountError } = await supabase
+        .from('bank_accounts')
+        .update({
+          balance: newBalance,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', bankAccountId)
+        .eq('user_id', user.id);
 
-        if (accountError) throw accountError;
-      }
+      if (accountError) throw accountError;
 
       return { investmentId, amount, currentValue };
     },
@@ -290,7 +288,7 @@ export const useInvestments = () => {
     }
   });
 
-  const addInvestmentAport = (investmentId: string, amount: number, currentValue: number, bankAccountId?: string) => {
+  const addInvestmentAport = (investmentId: string, amount: number, currentValue: number, bankAccountId: string) => {
     addInvestmentAportMutation.mutate({ investmentId, amount, currentValue, bankAccountId });
   };
 

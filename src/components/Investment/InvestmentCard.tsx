@@ -56,7 +56,7 @@ const InvestmentCard: React.FC<InvestmentCardProps> = ({
                 {formatCurrency(returnValue)} ({formatPercentage(returnPercentage)})
               </p>
             </div>
-            <div className="flex flex-col space-y-1">
+            <div className="flex space-x-1">
               <Button size="sm" variant="outline" onClick={() => onEdit(investment)} title="Editar nome">
                 <Edit2 className="w-4 h-4" />
               </Button>

@@ -49,7 +49,7 @@ const InvestmentPanelContainer: React.FC = () => {
     setEditingInvestment(null);
   };
 
-  const handleAportSubmit = (investmentId: string, amount: number, currentValue: number, bankAccountId?: string) => {
+  const handleAportSubmit = (investmentId: string, amount: number, currentValue: number, bankAccountId: string) => {
     addInvestmentAport(investmentId, amount, currentValue, bankAccountId);
     setAportingInvestment(null);
   };

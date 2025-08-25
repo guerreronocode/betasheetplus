@@ -11,7 +11,7 @@ interface InvestmentAportDialogProps {
   isOpen: boolean;
   onClose: () => void;
   investment: any;
-  onAport: (investmentId: string, amount: number, currentValue: number, bankAccountId?: string) => void;
+  onAport: (investmentId: string, amount: number, currentValue: number, bankAccountId: string) => void;
   isLoading?: boolean;
 }
 
@@ -39,9 +39,7 @@ const InvestmentAportDialog: React.FC<InvestmentAportDialogProps> = ({
     
     const aportAmount = parseFloat(amount);
     const newCurrentValue = parseFloat(currentValue);
-    const selectedBankAccountId = bankAccountId === 'none' ? undefined : bankAccountId;
-    
-    onAport(investment.id, aportAmount, newCurrentValue, selectedBankAccountId);
+    onAport(investment.id, aportAmount, newCurrentValue, bankAccountId);
     
     // Reset form
     setAmount('');
@@ -93,13 +91,12 @@ const InvestmentAportDialog: React.FC<InvestmentAportDialogProps> = ({
             </p>
           </div>
           <div>
-            <Label htmlFor="bankAccount">Conta para Débito (Opcional)</Label>
-            <Select value={bankAccountId} onValueChange={setBankAccountId}>
+            <Label htmlFor="bankAccount">Conta para Débito *</Label>
+            <Select value={bankAccountId} onValueChange={setBankAccountId} required>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione uma conta ou deixe vazio" />
+                <SelectValue placeholder="Selecione uma conta" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Não debitar de conta</SelectItem>
                 {bankAccounts.map(account => (
                   <SelectItem key={account.id} value={account.id}>
                     {account.name} - {account.bank_name} ({formatCurrency(account.balance)})
@@ -112,7 +109,7 @@ const InvestmentAportDialog: React.FC<InvestmentAportDialogProps> = ({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isLoading || !amount || !currentValue}>
+            <Button type="submit" disabled={isLoading || !amount || !currentValue || !bankAccountId}>
               {isLoading ? 'Processando...' : 'Realizar Aporte'}
             </Button>
           </div>
