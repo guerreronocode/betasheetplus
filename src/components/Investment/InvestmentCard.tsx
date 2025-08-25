@@ -39,7 +39,7 @@ const InvestmentCard: React.FC<InvestmentCardProps> = ({
   return (
     <div className="animate-slide-up" style={{ animationDelay: `${index * 150}ms` }}>
       <Card className="p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
             <span className="text-2xl">{getInvestmentTypeIcon(investment.type)}</span>
             <div>
@@ -47,8 +47,8 @@ const InvestmentCard: React.FC<InvestmentCardProps> = ({
               <p className="text-sm text-gray-600 capitalize">{investment.type}</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="text-right">
+          <div className="text-right">
+            <div className="mb-3">
               <p className="text-sm text-gray-600">Valor Atual</p>
               <p className="font-semibold">{formatCurrency(investment.current_value)}</p>
               <p className={`text-sm ${returnValue >= 0 ? "text-green-600" : "text-red-600"}`}>
