@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { useBankAccountVaults } from '@/hooks/useBankAccountVaults';
 
 export interface Investment {
   id: string;
@@ -22,6 +23,7 @@ export const useInvestments = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { getTotalReserved } = useBankAccountVaults();
 
   const { data: investments = [], isLoading: investmentsLoading } = useQuery({
     queryKey: ['investments', user?.id],
@@ -197,6 +199,26 @@ export const useInvestments = () => {
     }) => {
       if (!user) throw new Error('User not authenticated');
 
+      // Verificar saldo disponível da conta (considerando cofres)
+      const { data: currentAccount, error: fetchError } = await supabase
+        .from('bank_accounts')
+        .select('balance')
+        .eq('id', bankAccountId)
+        .eq('user_id', user.id)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      const reservedAmount = getTotalReserved(bankAccountId);
+      const availableBalance = currentAccount.balance - reservedAmount;
+      
+      if (availableBalance < amount) {
+        throw new Error(
+          `Saldo insuficiente. Disponível: R$ ${availableBalance.toFixed(2)}. ` +
+          `Para liberar fundos, reduza ou exclua cofres desta conta.`
+        );
+      }
+
       // Buscar investimento atual
       const { data: investment, error: getError } = await supabase
         .from('investments')
@@ -221,15 +243,6 @@ export const useInvestments = () => {
       if (investmentError) throw investmentError;
 
       // Debitar o valor da conta bancária
-      const { data: currentAccount, error: fetchError } = await supabase
-        .from('bank_accounts')
-        .select('balance')
-        .eq('id', bankAccountId)
-        .eq('user_id', user.id)
-        .single();
-      
-      if (fetchError) throw fetchError;
-      
       const newBalance = currentAccount.balance - amount;
       const { error: accountError } = await supabase
         .from('bank_accounts')
@@ -252,7 +265,11 @@ export const useInvestments = () => {
     },
     onError: (error) => {
       console.error('Erro ao realizar aporte:', error);
-      toast({ title: 'Erro ao realizar aporte', variant: 'destructive' });
+      toast({ 
+        title: 'Erro ao realizar aporte', 
+        description: error.message,
+        variant: 'destructive' 
+      });
     }
   });
 
