@@ -37,7 +37,8 @@ export const useHierarchicalCategories = (categoryType?: 'income' | 'expense') =
         .from('user_categories')
         .select('*')
         .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-        .order('name');
+        .order('display_order', { ascending: true })
+        .order('name', { ascending: true });
 
       if (categoryType) {
         query = query.eq('category_type', categoryType);
@@ -75,11 +76,26 @@ export const useHierarchicalCategories = (categoryType?: 'income' | 'expense') =
   // Criar categoria
   const createCategoryMutation = useMutation({
     mutationFn: async ({ name, parent_id, category_type }: { name: string; parent_id?: string | null; category_type: 'income' | 'expense' }) => {
+      const userId = (await supabase.auth.getUser()).data.user?.id!;
+      
+      // Obter a próxima ordem disponível
+      const { data: maxOrderData } = await supabase
+        .from('user_categories')
+        .select('display_order')
+        .eq('user_id', userId)
+        .eq('category_type', category_type)
+        .eq('parent_id', parent_id || null)
+        .order('display_order', { ascending: false })
+        .limit(1);
+      
+      const nextOrder = (maxOrderData?.[0]?.display_order || 0) + 1;
+
       const insertData: UserCategoryInsert = {
         name,
         parent_id: parent_id || null,
         category_type,
-        user_id: (await supabase.auth.getUser()).data.user?.id!
+        user_id: userId,
+        display_order: nextOrder
       };
 
       const { data, error } = await supabase
@@ -124,6 +140,36 @@ export const useHierarchicalCategories = (categoryType?: 'income' | 'expense') =
     },
     onError: () => {
       toast.error('Erro ao remover categoria');
+    },
+  });
+
+  // Atualizar ordem das categorias
+  const updateCategoryOrderMutation = useMutation({
+    mutationFn: async (categoriesWithOrder: { id: string; display_order: number }[]) => {
+      const userId = (await supabase.auth.getUser()).data.user?.id!;
+      
+      // Atualizar cada categoria com sua nova ordem
+      const updates = categoriesWithOrder.map(({ id, display_order }) => 
+        supabase
+          .from('user_categories')
+          .update({ display_order })
+          .eq('id', id)
+          .eq('user_id', userId)
+      );
+
+      const results = await Promise.all(updates);
+      
+      // Verificar se houve erros
+      for (const result of results) {
+        if (result.error) throw result.error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-categories'] });
+      toast.success('Ordem das categorias atualizada!');
+    },
+    onError: () => {
+      toast.error('Erro ao atualizar ordem das categorias');
     },
   });
 
@@ -202,8 +248,10 @@ export const useHierarchicalCategories = (categoryType?: 'income' | 'expense') =
     categoryOptions: getCategoryOptions(),
     createCategory: createCategoryMutation.mutate,
     deleteCategory: deleteCategoryMutation.mutate,
+    updateCategoryOrder: updateCategoryOrderMutation.mutate,
     isLoading,
     isCreating: createCategoryMutation.isPending,
     isDeleting: deleteCategoryMutation.isPending,
+    isUpdatingOrder: updateCategoryOrderMutation.isPending,
   };
 };

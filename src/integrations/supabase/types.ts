@@ -1353,6 +1353,7 @@ export type Database = {
         Row: {
           category_type: string
           created_at: string
+          display_order: number | null
           id: string
           name: string
           parent_id: string | null
@@ -1362,6 +1363,7 @@ export type Database = {
         Insert: {
           category_type?: string
           created_at?: string
+          display_order?: number | null
           id?: string
           name: string
           parent_id?: string | null
@@ -1371,6 +1373,7 @@ export type Database = {
         Update: {
           category_type?: string
           created_at?: string
+          display_order?: number | null
           id?: string
           name?: string
           parent_id?: string | null

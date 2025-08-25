@@ -27,9 +27,11 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
     categories,
     createCategory,
     deleteCategory,
+    updateCategoryOrder,
     isLoading,
     isCreating,
-    isDeleting
+    isDeleting,
+    isUpdatingOrder
   } = useHierarchicalCategories(categoryType);
 
   // Sincronizar categorias reordenadas com as originais
@@ -113,11 +115,21 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
   };
 
   // Função para persistir a nova ordem das categorias
-  const updateCategoryOrder = (newOrderedCategories: Category[]) => {
-    // Aqui você implementaria a lógica para salvar no backend
-    // Por enquanto, vamos manter a ordem local
+  const persistCategoryOrder = (newOrderedCategories: Category[]) => {
+    // Filtrar apenas categorias pai para reordenação
+    const parentCategories = newOrderedCategories.filter(cat => !cat.parent_id);
+    
+    // Criar array com novas ordens
+    const categoriesWithOrder = parentCategories.map((category, index) => ({
+      id: category.id,
+      display_order: index + 1
+    }));
+    
+    // Salvar no backend
+    updateCategoryOrder(categoriesWithOrder);
+    
+    // Atualizar estado local
     setReorderedCategories(newOrderedCategories);
-    console.log('Nova ordem salva:', newOrderedCategories.map(cat => cat.name));
   };
 
   const handleDrop = (e: React.DragEvent, targetCategory: Category) => {
@@ -142,7 +154,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
       const newOrderedCategories = [...newParentCategories, ...subcategories];
       
       // Persistir a nova ordem
-      updateCategoryOrder(newOrderedCategories);
+      persistCategoryOrder(newOrderedCategories);
     }
     
     setDraggedCategory(null);
@@ -162,7 +174,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
             ${level === 0 ? 'cursor-grab active:cursor-grabbing' : ''} 
             ${draggedCategory?.id === category.id ? 'opacity-50 scale-95' : ''} 
             ${dragOverCategory?.id === category.id ? 'border-primary shadow-lg scale-105 bg-primary/5' : ''} 
-            hover:shadow-sm
+            ${isUpdatingOrder ? 'opacity-70 pointer-events-none' : 'hover:shadow-sm'}
           `}
           draggable={level === 0} // Apenas categorias pai são arrastáveis
           onDragStart={(e) => handleDragStart(e, category)}
@@ -229,7 +241,7 @@ const CategoryManager: React.FC<CategoryManagerProps> = ({ categoryType = 'expen
               variant="ghost"
               size="sm"
               onClick={() => deleteCategory(category.id)}
-              disabled={isDeleting}
+              disabled={isDeleting || isUpdatingOrder}
               className="text-destructive hover:text-destructive"
               title="Excluir categoria"
             >
