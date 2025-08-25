@@ -62,6 +62,7 @@ export const useAccountReset = () => {
         'planned_expenses', // Adicionado para deletar despesas planejadas
         'income',
         'expenses',
+        'bank_statement_uploads', // Adicionado para deletar uploads de extrato
         'goals', // Deve vir antes de investments devido à foreign key linked_investment_id
         'investments',
         'debts',
