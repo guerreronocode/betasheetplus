@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { subMonths, format } from 'date-fns';
 import { useFinancialData } from './useFinancialData';
+import { useCreditCardDebts } from './useCreditCardDebts';
 
 export interface FinancialEvolutionData {
   month: string;
@@ -16,7 +17,14 @@ export interface FinancialEvolutionData {
 
 export const useFinancialEvolution = (periodMonths: number = 12) => {
   const { user } = useAuth();
-  const { bankAccounts, investments, assets, liabilities, isLoading: financialDataLoading } = useFinancialData();
+  const { 
+    bankAccounts, 
+    investments, 
+    assets, 
+    liabilities, 
+    isLoading: financialDataLoading 
+  } = useFinancialData();
+  const { creditCardDebts, isLoading: creditCardDebtsLoading } = useCreditCardDebts();
 
   return useQuery({
     queryKey: ['financial-evolution', user?.id, periodMonths],
@@ -26,27 +34,29 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
       const currentDate = new Date();
       const data: FinancialEvolutionData[] = [];
 
-      // Calcular dados atuais
+      // 1. Patrimônio Líquido = (Ativos Circulantes + Não Circulantes) - (Passivos Circulantes + Não Circulantes)
       const totalBankBalance = bankAccounts.reduce((sum, account) => sum + account.balance, 0);
       const totalInvestmentValue = investments.reduce((sum, inv) => sum + inv.current_value, 0);
       const totalAssetsValue = assets.reduce((sum, asset) => sum + asset.current_value, 0);
       const totalLiabilitiesValue = liabilities.reduce((sum, liability) => sum + liability.remaining_amount, 0);
       
-      const liquidReserves = totalBankBalance + investments.filter(inv => inv.liquidity === 'daily').reduce((sum, inv) => sum + inv.current_value, 0);
+      // Total de ativos (circulantes + não circulantes)
       const totalAssets = totalBankBalance + totalInvestmentValue + totalAssetsValue;
-      const totalLiabilities = totalLiabilitiesValue;
-      const netWorth = totalAssets - totalLiabilities;
+      
+      // 2. Dívidas = Total das dívidas reais (incluindo cartões de crédito)
+      const creditCardDebtTotal = creditCardDebts?.reduce((sum, debt) => sum + debt.total_debt, 0) || 0;
+      const totalDebt = totalLiabilitiesValue + creditCardDebtTotal;
+      
+      // Total de passivos (circulantes + não circulantes) = Dívidas
+      const totalPassivos = totalDebt;
+      
+      // Patrimônio Líquido = Ativos - Passivos
+      const netWorth = totalAssets - totalPassivos;
 
-      console.log('Calculando dados financeiros atuais:', {
-        totalBankBalance,
-        totalInvestmentValue,
-        totalAssetsValue,
-        totalLiabilitiesValue,
-        liquidReserves,
-        totalAssets,
-        totalLiabilities,
-        netWorth
-      });
+      // 3. Reserva Líquida = Contas bancárias + investimentos com liquidez diária
+      const liquidReserves = totalBankBalance + investments
+        .filter(inv => inv.liquidity === 'daily')
+        .reduce((sum, inv) => sum + inv.current_value, 0);
 
       // Para simplificar, vamos mostrar os valores atuais para todos os meses
       // Em uma implementação futura, você pode buscar dados históricos reais
@@ -56,17 +66,16 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
         data.push({
           month: format(monthDate, 'MMM yyyy'),
           netWorth,
-          totalDebt: totalLiabilities,
+          totalDebt,
           liquidReserves,
           totalAssets,
-          totalLiabilities
+          totalLiabilities: totalPassivos
         });
       }
 
-      console.log('Dados finais estruturados:', data);
       return data;
     },
-    enabled: !!user && !financialDataLoading,
+    enabled: !!user && !financialDataLoading && !creditCardDebtsLoading,
     staleTime: 2 * 60 * 1000, // 2 minutos
   });
 };
