@@ -1491,7 +1491,21 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      financial_evolution_data: {
+        Row: {
+          category: string | null
+          created_at: string | null
+          liquid_reserves: number | null
+          month_date: string | null
+          net_worth: number | null
+          total_assets: number | null
+          total_liabilities: number | null
+          type: string | null
+          user_id: string | null
+          value: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       award_achievement: {
