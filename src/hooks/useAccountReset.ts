@@ -63,11 +63,13 @@ export const useAccountReset = () => {
         'income',
         'expenses',
         'bank_statement_uploads', // Adicionado para deletar uploads de extrato
+        'goal_links', // CRÍTICO: Limpar links das metas antes das metas
         'goals', // Deve vir antes de investments devido à foreign key linked_investment_id
         'investments',
         'debts',
         'assets',
         'liabilities',
+        'bank_account_vaults', // CRÍTICO: Limpar cofres antes das contas bancárias
         'bank_accounts',
         'user_categories', // Adicionar limpeza das categorias personalizadas
         'user_stats'

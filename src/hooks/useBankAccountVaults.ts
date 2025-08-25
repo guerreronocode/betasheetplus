@@ -96,6 +96,18 @@ export const useBankAccountVaults = (bankAccountId?: string) => {
 
   const deleteVaultMutation = useMutation({
     mutationFn: async (id: string) => {
+      // Primeiro, deletar todos os goal_links associados a este cofre
+      const { error: linksError } = await supabase
+        .from('goal_links')
+        .delete()
+        .eq('vault_id', id);
+      
+      if (linksError) {
+        console.error('Erro ao deletar links das metas:', linksError);
+        throw linksError;
+      }
+
+      // Depois, deletar o cofre
       const { error } = await supabase
         .from('bank_account_vaults')
         .delete()
@@ -105,6 +117,8 @@ export const useBankAccountVaults = (bankAccountId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bank_account_vaults'] });
+      queryClient.invalidateQueries({ queryKey: ['goals'] }); // Invalidar metas para remover cofres deletados
+      queryClient.invalidateQueries({ queryKey: ['goal-links'] }); // Invalidar links das metas
       toast({ title: 'Cofre excluído com sucesso!' });
     },
     onError: (error: any) => {
