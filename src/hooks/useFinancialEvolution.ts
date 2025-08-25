@@ -34,6 +34,13 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
       const currentDate = new Date();
       const data: FinancialEvolutionData[] = [];
 
+      console.log('=== DEBUG FINANCIAL EVOLUTION ===');
+      console.log('Bank accounts:', bankAccounts);
+      console.log('Investments:', investments);  
+      console.log('Assets:', assets);
+      console.log('Liabilities:', liabilities);
+      console.log('Credit Card Debts:', creditCardDebts);
+      
       // 1. Patrimônio Líquido = (Ativos Circulantes + Não Circulantes) - (Passivos Circulantes + Não Circulantes)
       const totalBankBalance = bankAccounts.reduce((sum, account) => sum + account.balance, 0);
       const totalInvestmentValue = investments.reduce((sum, inv) => sum + inv.current_value, 0);
@@ -57,6 +64,17 @@ export const useFinancialEvolution = (periodMonths: number = 12) => {
       const liquidReserves = totalBankBalance + investments
         .filter(inv => inv.liquidity === 'daily')
         .reduce((sum, inv) => sum + inv.current_value, 0);
+
+      console.log('=== VALORES CALCULADOS ===');
+      console.log('totalBankBalance:', totalBankBalance);
+      console.log('totalInvestmentValue:', totalInvestmentValue);
+      console.log('totalAssetsValue:', totalAssetsValue);
+      console.log('totalLiabilitiesValue:', totalLiabilitiesValue);
+      console.log('creditCardDebtTotal:', creditCardDebtTotal);
+      console.log('totalAssets:', totalAssets);
+      console.log('totalDebt:', totalDebt);
+      console.log('netWorth:', netWorth);
+      console.log('liquidReserves:', liquidReserves);
 
       // Para simplificar, vamos mostrar os valores atuais para todos os meses
       // Em uma implementação futura, você pode buscar dados históricos reais
