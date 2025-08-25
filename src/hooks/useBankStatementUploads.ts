@@ -124,9 +124,10 @@ export const useBankStatementUploads = () => {
     mutationFn: async ({ uploadName, fileContent, bankAccountId }: { 
       uploadName: string; 
       fileContent: string; 
-      bankAccountId?: string 
+      bankAccountId: string 
     }) => {
       if (!user) throw new Error('User not authenticated');
+      if (!bankAccountId) throw new Error('Conta bancária é obrigatória');
 
       // Parse do arquivo OFX
       const parsedTransactions = processOFXFile(fileContent);
@@ -134,6 +135,17 @@ export const useBankStatementUploads = () => {
       if (parsedTransactions.length === 0) {
         throw new Error('Nenhuma transação válida encontrada no arquivo');
       }
+
+      // Calcular impacto no saldo (receitas - despesas)
+      const totalIncome = parsedTransactions
+        .filter(t => t.type === 'income')
+        .reduce((sum, t) => sum + t.amount, 0);
+      
+      const totalExpenses = parsedTransactions
+        .filter(t => t.type === 'expense')
+        .reduce((sum, t) => sum + t.amount, 0);
+      
+      const balanceImpact = totalIncome - totalExpenses;
 
       // Criar registro do upload
       const { data: uploadData, error: uploadError } = await supabase
@@ -157,7 +169,7 @@ export const useBankStatementUploads = () => {
           date: t.date,
           description: t.description,
           category: 'Upload extrato bancário',
-          bank_account_id: bankAccountId || null,
+          bank_account_id: bankAccountId,
           upload_id: uploadData.id
         }));
 
@@ -178,7 +190,7 @@ export const useBankStatementUploads = () => {
           date: t.date,
           description: t.description,
           category: 'Upload extrato bancário',
-          bank_account_id: bankAccountId || null,
+          bank_account_id: bankAccountId,
           upload_id: uploadData.id
         }));
 
@@ -190,9 +202,31 @@ export const useBankStatementUploads = () => {
         if (expenseError) throw expenseError;
       }
 
+      // Atualizar saldo da conta bancária
+      const { data: currentAccount, error: fetchError } = await supabase
+        .from('bank_accounts')
+        .select('balance')
+        .eq('id', bankAccountId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const newBalance = (currentAccount.balance || 0) + balanceImpact;
+
+      const { error: balanceError } = await supabase
+        .from('bank_accounts')
+        .update({ 
+          balance: newBalance,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', bankAccountId);
+
+      if (balanceError) throw balanceError;
+
       return {
         upload: uploadData,
-        transactionsCount: parsedTransactions.length
+        transactionsCount: parsedTransactions.length,
+        balanceImpact
       };
     },
     onSuccess: (data) => {
@@ -201,9 +235,13 @@ export const useBankStatementUploads = () => {
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
       queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
       
+      const balanceText = data.balanceImpact >= 0 
+        ? `+R$ ${data.balanceImpact.toFixed(2)}` 
+        : `-R$ ${Math.abs(data.balanceImpact).toFixed(2)}`;
+      
       toast({
         title: 'Upload processado com sucesso!',
-        description: `${data.transactionsCount} transações foram importadas do extrato "${data.upload.upload_name}".`
+        description: `${data.transactionsCount} transações importadas. Saldo alterado: ${balanceText}`
       });
     },
     onError: (error: Error) => {

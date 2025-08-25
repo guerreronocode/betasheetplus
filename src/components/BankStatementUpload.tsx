@@ -11,8 +11,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 const BankStatementUpload = () => {
   const [file, setFile] = useState<File | null>(null);
   const [uploadName, setUploadName] = useState('');
-  const [selectedAccountId, setSelectedAccountId] = useState<string>('none');
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
   const [dragOver, setDragOver] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
 
   const { createUpload, isCreatingUpload } = useBankStatementUploads();
   const { bankAccounts } = useBankAccounts();
@@ -51,8 +52,13 @@ const BankStatementUpload = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!file || !uploadName.trim()) {
-      alert('Por favor, selecione um arquivo e informe um nome para o upload.');
+    if (!file || !uploadName.trim() || !selectedAccountId) {
+      alert('Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    if (!showWarning) {
+      setShowWarning(true);
       return;
     }
 
@@ -61,13 +67,14 @@ const BankStatementUpload = () => {
       createUpload({
         uploadName: uploadName.trim(),
         fileContent,
-        bankAccountId: selectedAccountId === 'none' ? undefined : selectedAccountId || undefined
+        bankAccountId: selectedAccountId
       });
       
       // Limpar formulário após sucesso
       setFile(null);
       setUploadName('');
-      setSelectedAccountId('none');
+      setSelectedAccountId('');
+      setShowWarning(false);
     } catch (error) {
       console.error('Erro ao ler arquivo:', error);
     }
@@ -150,15 +157,14 @@ const BankStatementUpload = () => {
           />
         </div>
 
-        {/* Conta bancária (opcional) */}
+        {/* Conta bancária (obrigatória) */}
         <div className="space-y-2">
-          <Label>Conta Bancária (Opcional)</Label>
-          <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
+          <Label>Conta Bancária *</Label>
+          <Select value={selectedAccountId} onValueChange={setSelectedAccountId} required>
             <SelectTrigger>
-              <SelectValue placeholder="Selecione uma conta (opcional)" />
+              <SelectValue placeholder="Selecione uma conta bancária" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">Nenhuma conta específica</SelectItem>
               {bankAccounts.map((account) => (
                 <SelectItem key={account.id} value={account.id}>
                   {account.name} - {account.bank_name}
@@ -167,7 +173,7 @@ const BankStatementUpload = () => {
             </SelectContent>
           </Select>
           <p className="text-xs text-muted-foreground">
-            Se não selecionada, as transações não afetarão o saldo de nenhuma conta
+            As transações do extrato afetarão o saldo desta conta
           </p>
         </div>
 
@@ -180,17 +186,59 @@ const BankStatementUpload = () => {
               <li>• O arquivo não será armazenado, apenas processado</li>
               <li>• As transações serão categorizadas como "Upload extrato bancário"</li>
               <li>• Valores positivos viram receitas, negativos viram despesas</li>
+              <li>• O saldo da conta selecionada será alterado automaticamente</li>
             </ul>
           </div>
         </div>
 
-        <Button 
-          type="submit" 
-          className="w-full"
-          disabled={!file || !uploadName.trim() || isCreatingUpload}
-        >
-          {isCreatingUpload ? 'Processando...' : 'Processar Upload'}
-        </Button>
+        {/* Aviso sobre duplicatas */}
+        {showWarning && (
+          <div className="flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+            <div className="text-sm">
+              <p className="font-medium mb-2 text-destructive">⚠️ Atenção - Alteração de Saldo</p>
+              <p className="text-destructive mb-2">
+                Este upload irá alterar automaticamente o saldo da conta selecionada.
+              </p>
+              <p className="text-muted-foreground mb-3">
+                <strong>Certifique-se de que:</strong>
+              </p>
+              <ul className="space-y-1 text-muted-foreground text-xs">
+                <li>• Não há transações duplicadas entre o extrato e transações já cadastradas</li>
+                <li>• O período do extrato não se sobrepõe a outros uploads anteriores</li>
+                <li>• O saldo atual da conta está correto antes do upload</li>
+              </ul>
+              <div className="flex gap-2 mt-3">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowWarning(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  variant="destructive" 
+                  size="sm"
+                  disabled={isCreatingUpload}
+                >
+                  {isCreatingUpload ? 'Processando...' : 'Confirmar Upload'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!showWarning && (
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={!file || !uploadName.trim() || !selectedAccountId || isCreatingUpload}
+          >
+            {isCreatingUpload ? 'Processando...' : 'Processar Upload'}
+          </Button>
+        )}
       </form>
     </Card>
   );
