@@ -119,7 +119,7 @@ export const useBankStatementUploads = () => {
     return transactions;
   };
 
-  // Mutation para criar upload e processar transações
+  // Mutation para criar upload e processar transações com substituição segura
   const createUploadMutation = useMutation({
     mutationFn: async ({ uploadName, fileContent, bankAccountId }: { 
       uploadName: string; 
@@ -136,98 +136,26 @@ export const useBankStatementUploads = () => {
         throw new Error('Nenhuma transação válida encontrada no arquivo');
       }
 
-      // Calcular impacto no saldo (receitas - despesas)
-      const totalIncome = parsedTransactions
-        .filter(t => t.type === 'income')
-        .reduce((sum, t) => sum + t.amount, 0);
-      
-      const totalExpenses = parsedTransactions
-        .filter(t => t.type === 'expense')
-        .reduce((sum, t) => sum + t.amount, 0);
-      
-      const balanceImpact = totalIncome - totalExpenses;
+      // Determinar período do extrato (data mais antiga e mais recente)
+      const dates = parsedTransactions.map(t => t.date).sort();
+      const periodStart = dates[0];
+      const periodEnd = dates[dates.length - 1];
 
-      // Criar registro do upload
-      const { data: uploadData, error: uploadError } = await supabase
-        .from('bank_statement_uploads')
-        .insert({
-          user_id: user.id,
-          upload_name: uploadName,
-          total_transactions: parsedTransactions.length
-        })
-        .select()
-        .single();
+      // Executar todas as operações dentro de uma transação RPC
+      const { data: result, error: rpcError } = await supabase.rpc('process_bank_statement_upload', {
+        p_user_id: user.id,
+        p_upload_name: uploadName,
+        p_bank_account_id: bankAccountId,
+        p_period_start: periodStart,
+        p_period_end: periodEnd,
+        p_transactions: parsedTransactions
+      });
 
-      if (uploadError) throw uploadError;
-
-      // Inserir transações de receita
-      const incomeTransactions = parsedTransactions
-        .filter(t => t.type === 'income')
-        .map(t => ({
-          user_id: user.id,
-          amount: t.amount,
-          date: t.date,
-          description: t.description,
-          category: 'Upload extrato bancário',
-          bank_account_id: bankAccountId,
-          upload_id: uploadData.id
-        }));
-
-      if (incomeTransactions.length > 0) {
-        const { error: incomeError } = await supabase
-          .from('income')
-          .insert(incomeTransactions);
-        
-        if (incomeError) throw incomeError;
+      if (rpcError) {
+        throw new Error(`Erro ao processar upload: ${rpcError.message}`);
       }
 
-      // Inserir transações de despesa
-      const expenseTransactions = parsedTransactions
-        .filter(t => t.type === 'expense')
-        .map(t => ({
-          user_id: user.id,
-          amount: t.amount,
-          date: t.date,
-          description: t.description,
-          category: 'Upload extrato bancário',
-          bank_account_id: bankAccountId,
-          upload_id: uploadData.id
-        }));
-
-      if (expenseTransactions.length > 0) {
-        const { error: expenseError } = await supabase
-          .from('expenses')
-          .insert(expenseTransactions);
-        
-        if (expenseError) throw expenseError;
-      }
-
-      // Atualizar saldo da conta bancária
-      const { data: currentAccount, error: fetchError } = await supabase
-        .from('bank_accounts')
-        .select('balance')
-        .eq('id', bankAccountId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      const newBalance = (currentAccount.balance || 0) + balanceImpact;
-
-      const { error: balanceError } = await supabase
-        .from('bank_accounts')
-        .update({ 
-          balance: newBalance,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', bankAccountId);
-
-      if (balanceError) throw balanceError;
-
-      return {
-        upload: uploadData,
-        transactionsCount: parsedTransactions.length,
-        balanceImpact
-      };
+      return result;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['bank_statement_uploads'] });

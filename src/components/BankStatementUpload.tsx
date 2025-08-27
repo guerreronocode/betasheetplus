@@ -181,51 +181,77 @@ const BankStatementUpload = () => {
         <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
           <AlertCircle className="h-5 w-5 text-warning mt-0.5" />
           <div className="text-sm">
-            <p className="font-medium mb-1">Importante:</p>
+            <p className="font-medium mb-1">Como funciona:</p>
             <ul className="space-y-1 text-muted-foreground">
               <li>• O arquivo não será armazenado, apenas processado</li>
-              <li>• As transações serão categorizadas como "Upload extrato bancário"</li>
               <li>• Valores positivos viram receitas, negativos viram despesas</li>
-              <li>• O saldo da conta selecionada será alterado automaticamente</li>
+              <li>• O saldo da conta selecionada será ajustado automaticamente</li>
             </ul>
           </div>
         </div>
 
-        {/* Aviso sobre duplicatas */}
+        {/* Aviso crítico sobre substituição */}
         {showWarning && (
-          <div className="flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-            <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
-            <div className="text-sm">
-              <p className="font-medium mb-2 text-destructive">⚠️ Atenção - Alteração de Saldo</p>
-              <p className="text-destructive mb-2">
-                Este upload irá alterar automaticamente o saldo da conta selecionada.
-              </p>
-              <p className="text-muted-foreground mb-3">
-                <strong>Certifique-se de que:</strong>
-              </p>
-              <ul className="space-y-1 text-muted-foreground text-xs">
-                <li>• Não há transações duplicadas entre o extrato e transações já cadastradas</li>
-                <li>• O período do extrato não se sobrepõe a outros uploads anteriores</li>
-                <li>• O saldo atual da conta está correto antes do upload</li>
-              </ul>
-              <div className="flex gap-2 mt-3">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowWarning(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  type="submit" 
-                  variant="destructive" 
-                  size="sm"
-                  disabled={isCreatingUpload}
-                >
-                  {isCreatingUpload ? 'Processando...' : 'Confirmar Upload'}
-                </Button>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-destructive mt-0.5" />
+              <div className="text-sm">
+                <p className="font-bold mb-2 text-destructive">⚠️ ATENÇÃO: SUBSTITUIÇÃO DE TRANSAÇÕES</p>
+                <p className="text-destructive mb-3 font-medium">
+                  Todas as transações manuais do período do extrato nesta conta serão EXCLUÍDAS e substituídas pelas do extrato bancário.
+                </p>
+                <div className="bg-background/60 p-3 rounded border-l-4 border-destructive mb-3">
+                  <p className="font-medium text-foreground mb-1">Isso significa que:</p>
+                  <ul className="space-y-1 text-muted-foreground text-xs">
+                    <li>• Todas as transações cadastradas manualmente no período do extrato serão apagadas</li>
+                    <li>• Não será possível recuperar essas transações após a confirmação</li>
+                    <li>• A operação é irreversível uma vez confirmada</li>
+                  </ul>
+                </div>
               </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-4 bg-warning/10 border border-warning/20 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-warning mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium mb-2 text-warning">📂 Categorização das Transações</p>
+                <p className="text-muted-foreground mb-2">
+                  As transações importadas receberão a categoria padrão "Upload extrato bancário".
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  <strong>Recomendação:</strong> Após o upload, edite manualmente as categorias para ter uma visualização mais detalhada nos gráficos e relatórios.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium mb-2 text-blue-600">💸 Transferências Entre Contas</p>
+                <p className="text-muted-foreground mb-2">
+                  Se o extrato contém transferências para outras contas suas cadastradas no sistema, faça o upload do extrato na conta de destino também.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  <strong>Exemplo:</strong> Transferência da Conta A → Conta B aparece como despesa na Conta A. Para equilibrar, importe o extrato da Conta B onde aparecerá como receita.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowWarning(false)}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                type="submit" 
+                variant="destructive" 
+                disabled={isCreatingUpload}
+              >
+                {isCreatingUpload ? 'Processando...' : 'Confirmar e Substituir Transações'}
+              </Button>
             </div>
           </div>
         )}
