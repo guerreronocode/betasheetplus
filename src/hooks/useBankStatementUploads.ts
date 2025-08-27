@@ -142,7 +142,7 @@ export const useBankStatementUploads = () => {
       const periodEnd = dates[dates.length - 1];
 
       // Executar todas as operações dentro de uma transação RPC
-      const { data: result, error: rpcError } = await supabase.rpc('process_bank_statement_upload', {
+      const { data: result, error: rpcError } = await supabase.rpc('process_bank_statement_upload' as any, {
         p_user_id: user.id,
         p_upload_name: uploadName,
         p_bank_account_id: bankAccountId,
@@ -155,9 +155,9 @@ export const useBankStatementUploads = () => {
         throw new Error(`Erro ao processar upload: ${rpcError.message}`);
       }
 
-      return result;
+      return result as { uploadId: string; transactionsCount: number; balanceImpact: number; success: boolean };
     },
-    onSuccess: (data) => {
+    onSuccess: (data: { uploadId: string; transactionsCount: number; balanceImpact: number; success: boolean }) => {
       queryClient.invalidateQueries({ queryKey: ['bank_statement_uploads'] });
       queryClient.invalidateQueries({ queryKey: ['income'] });
       queryClient.invalidateQueries({ queryKey: ['expenses'] });

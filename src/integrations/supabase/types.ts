@@ -1548,6 +1548,17 @@ export type Database = {
         Args: { p_bill_id: string; p_payment_account_id?: string }
         Returns: boolean
       }
+      process_bank_statement_upload: {
+        Args: {
+          p_bank_account_id: string
+          p_period_end: string
+          p_period_start: string
+          p_transactions: Json
+          p_upload_name: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
       process_bill_payment: {
         Args: {
           p_bill_id: string
