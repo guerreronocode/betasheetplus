@@ -26,16 +26,20 @@ const QuickStats = () => {
   // Calculate monthly income
   const monthlyIncome = income
     .filter(item => {
-      const date = new Date(item.date);
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+      // Usar a função de formatação para comparar datas corretamente
+      const [year, month, day] = item.date.split('-').map(Number);
+      const itemDate = new Date(year, month - 1, day);
+      return itemDate.getMonth() === currentMonth && itemDate.getFullYear() === currentYear;
     })
     .reduce((sum, item) => sum + item.amount, 0);
 
   // Calculate monthly expenses
   const monthlyExpenses = expenses
     .filter(item => {
-      const date = new Date(item.date);
-      return date.getMonth() === currentMonth && date.getFullYear() === currentYear;
+      // Usar a função de formatação para comparar datas corretamente
+      const [year, month, day] = item.date.split('-').map(Number);
+      const itemDate = new Date(year, month - 1, day);
+      return itemDate.getMonth() === currentMonth && itemDate.getFullYear() === currentYear;
     })
     .reduce((sum, item) => sum + item.amount, 0);
 

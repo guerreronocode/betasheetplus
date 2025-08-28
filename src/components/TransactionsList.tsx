@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowUpCircle, ArrowDownCircle, Calendar, Pencil, Trash2 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { useFinancialData } from '@/hooks/useFinancialData';
+import { formatDateForDisplay } from '@/utils/formatters';
 import EditTransactionModal from './EditTransactionModal';
 
 const TransactionsList = () => {
@@ -35,13 +36,6 @@ const TransactionsList = () => {
       style: 'currency',
       currency: 'BRL'
     }).format(value);
-  };
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
   };
 
   const handleEdit = (transaction: any) => {
@@ -104,7 +98,7 @@ const TransactionsList = () => {
                   <div className="flex items-center space-x-2 text-sm text-gray-600">
                     <span>{transaction.category}</span>
                     <span>•</span>
-                    <span>{formatDate(transaction.date)}</span>
+                    <span>{formatDateForDisplay(transaction.date)}</span>
                   </div>
                 </div>
               </div>

@@ -2,7 +2,7 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Edit2, Trash2, Plus, RefreshCw } from "lucide-react";
-import { formatCurrency, formatPercentage } from "@/utils/formatters";
+import { formatCurrency, formatPercentage, formatDateForDisplay } from "@/utils/formatters";
 
 interface InvestmentCardProps {
   investment: any;
@@ -86,7 +86,7 @@ const InvestmentCard: React.FC<InvestmentCardProps> = ({
             </div>
             <div>
               <p className="text-gray-600">Data</p>
-              <p className="font-medium">{new Date(investment.purchase_date).toLocaleDateString("pt-BR")}</p>
+              <p className="font-medium">{formatDateForDisplay(investment.purchase_date)}</p>
             </div>
           </div>
         </div>

@@ -6,6 +6,7 @@ import { History, Eye, Calendar, Hash } from 'lucide-react';
 import { useBankStatementUploads } from '@/hooks/useBankStatementUploads';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
+import { formatDateForDisplay } from '@/utils/formatters';
 import { ptBR } from 'date-fns/locale';
 
 const BankStatementHistory = () => {
@@ -157,7 +158,7 @@ const BankStatementHistory = () => {
                           <span className="font-medium">{transaction.description}</span>
                         </div>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          <span>{format(new Date(transaction.date), 'dd/MM/yyyy')}</span>
+                          <span>{formatDateForDisplay(transaction.date)}</span>
                           <span>{transaction.category}</span>
                         </div>
                       </div>
