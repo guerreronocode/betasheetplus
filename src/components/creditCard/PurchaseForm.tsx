@@ -10,8 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useCreditCardPurchases } from '@/hooks/useCreditCardPurchases';
 import { useUnifiedCategories } from '@/hooks/useUnifiedCategories';
+import { formatDateForDatabase, getTodayForInput } from "@/utils/formatters";
 import { X } from 'lucide-react';
-import { format } from 'date-fns';
 import * as z from 'zod';
 
 interface PurchaseFormProps {
@@ -42,7 +42,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
       credit_card_id: '',
       description: '',
       amount: 0,
-      purchase_date: format(new Date(), 'yyyy-MM-dd'),
+      purchase_date: getTodayForInput(),
       installments: 1,
       category: '',
       installment_value: 0,
@@ -76,7 +76,7 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
       credit_card_id: data.credit_card_id,
       description: data.description,
       amount: totalInstallments, // Usar o total das parcelas (com juros se houver)
-      purchase_date: data.purchase_date,
+      purchase_date: formatDateForDatabase(data.purchase_date),
       installments: data.installments,
       category: data.category,
     };

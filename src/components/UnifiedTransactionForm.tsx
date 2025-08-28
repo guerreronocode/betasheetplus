@@ -13,6 +13,7 @@ import { useTransactionForm } from "@/hooks/useTransactionForm";
 import { useUnifiedCategories } from "@/hooks/useUnifiedCategories";
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useCreditCardPurchases } from '@/hooks/useCreditCardPurchases';
+import { formatDateForDatabase, getTodayForInput } from "@/utils/formatters";
 import CustomCategoryInput from "./CustomCategoryInput";
 import ImprovedTransactionFormFields from "./ImprovedTransactionFormFields";
 
@@ -44,7 +45,7 @@ const UnifiedTransactionForm = () => {
     description: '',
     amount: '',
     category: '',
-    date: new Date().toISOString().split('T')[0],
+    date: getTodayForInput(),
     bank_account_id: ''
   };
 
@@ -52,7 +53,7 @@ const UnifiedTransactionForm = () => {
     description: '',
     amount: '',
     category: '',
-    date: new Date().toISOString().split('T')[0],
+    date: getTodayForInput(),
     payment_method: 'bank_account', // 'bank_account' or 'credit_card'
     bank_account_id: '',
     credit_card_id: '',
@@ -71,7 +72,7 @@ const UnifiedTransactionForm = () => {
       description: values.description,
       amount: parseFloat(values.amount),
       category: values.category,
-      date: values.date,
+      date: formatDateForDatabase(values.date),
       bank_account_id: values.bank_account_id
     });
     
@@ -79,7 +80,7 @@ const UnifiedTransactionForm = () => {
     handleIncomeChange({
       description: '',
       amount: '',
-      date: new Date().toISOString().split('T')[0]
+      date: getTodayForInput()
     });
   }, { resetOnSuccess: false }); // NÃO RESETAR AUTOMATICAMENTE
 
@@ -105,7 +106,7 @@ const UnifiedTransactionForm = () => {
         credit_card_id: values.credit_card_id,
         description: values.description,
         amount: totalAmount,
-        purchase_date: values.date,
+        purchase_date: formatDateForDatabase(values.date),
         installments: parseInt(values.installments.toString()),
         category: values.category
       });
@@ -117,7 +118,7 @@ const UnifiedTransactionForm = () => {
         description: values.description,
         amount: parseFloat(values.amount),
         category: values.category,
-        date: values.date,
+        date: formatDateForDatabase(values.date),
         bank_account_id: values.bank_account_id
       });
     }
@@ -127,7 +128,7 @@ const UnifiedTransactionForm = () => {
     handleExpenseChange({
       description: '',
       amount: '',
-      date: new Date().toISOString().split('T')[0],
+      date: getTodayForInput(),
       installments: '1',
       installment_value: ''
     });

@@ -10,6 +10,7 @@ import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCustomCategories } from "@/hooks/useCustomCategories";
 import { useTransactionForm } from "@/hooks/useTransactionForm";
 import { useUnifiedCategories } from "@/hooks/useUnifiedCategories";
+import { formatDateForDatabase, getTodayForInput } from "@/utils/formatters";
 import TransactionFormFields from "./TransactionFormFields";
 
 const expenseCategoriesBase = [
@@ -97,14 +98,14 @@ const AddTransactionForm = () => {
     description: '',
     amount: '',
     category: '',
-    date: new Date().toISOString().split('T')[0],
+    date: getTodayForInput(),
     bank_account_id: ''
   }
   const initialExpenseForm = {
     description: '',
     amount: '',
     category: '',
-    date: new Date().toISOString().split('T')[0],
+    date: getTodayForInput(),
     bank_account_id: ''
   }
 
@@ -119,7 +120,7 @@ const AddTransactionForm = () => {
       description: values.description,
       amount: parseFloat(values.amount),
       category: values.category,
-      date: values.date,
+      date: formatDateForDatabase(values.date),
       bank_account_id: values.bank_account_id
     });
   });
@@ -135,7 +136,7 @@ const AddTransactionForm = () => {
       description: values.description,
       amount: parseFloat(values.amount),
       category: values.category,
-      date: values.date,
+      date: formatDateForDatabase(values.date),
       bank_account_id: values.bank_account_id
     });
   });
