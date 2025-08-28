@@ -194,7 +194,7 @@ export const useBankStatementUploads = () => {
         if (uploadError) throw new Error(`Erro ao criar upload: ${uploadError.message}`);
         uploadId = uploadData.id;
 
-        // 2. Buscar transações manuais existentes no período para calcular impacto no saldo
+        // 2. Buscar transações existentes no período para calcular impacto no saldo
         const [existingIncomeResponse, existingExpensesResponse] = await Promise.all([
           supabase
             .from('income')
@@ -202,8 +202,7 @@ export const useBankStatementUploads = () => {
             .eq('user_id', user.id)
             .eq('bank_account_id', bankAccountId)
             .gte('date', periodStart)
-            .lte('date', periodEnd)
-            .is('upload_id', null),
+            .lte('date', periodEnd),
           supabase
             .from('expenses')
             .select('amount')
@@ -211,17 +210,16 @@ export const useBankStatementUploads = () => {
             .eq('bank_account_id', bankAccountId)
             .gte('date', periodStart)
             .lte('date', periodEnd)
-            .is('upload_id', null)
         ]);
 
         if (existingIncomeResponse.error) throw new Error(`Erro ao buscar receitas existentes: ${existingIncomeResponse.error.message}`);
         if (existingExpensesResponse.error) throw new Error(`Erro ao buscar despesas existentes: ${existingExpensesResponse.error.message}`);
 
-        // Calcular saldo das transações que serão removidas
+        // Calcular saldo das transações que serão removidas (todas do período)
         const removedIncomeBalance = existingIncomeResponse.data?.reduce((sum, item) => sum + item.amount, 0) || 0;
         const removedExpensesBalance = existingExpensesResponse.data?.reduce((sum, item) => sum + item.amount, 0) || 0;
 
-        // 3. Excluir transações manuais existentes no período
+        // 3. Excluir todas as transações existentes no período
         const [deleteIncomeResponse, deleteExpensesResponse] = await Promise.all([
           supabase
             .from('income')
@@ -229,8 +227,7 @@ export const useBankStatementUploads = () => {
             .eq('user_id', user.id)
             .eq('bank_account_id', bankAccountId)
             .gte('date', periodStart)
-            .lte('date', periodEnd)
-            .is('upload_id', null),
+            .lte('date', periodEnd),
           supabase
             .from('expenses')
             .delete()
@@ -238,7 +235,6 @@ export const useBankStatementUploads = () => {
             .eq('bank_account_id', bankAccountId)
             .gte('date', periodStart)
             .lte('date', periodEnd)
-            .is('upload_id', null)
         ]);
 
         if (deleteIncomeResponse.error) throw new Error(`Erro ao excluir receitas existentes: ${deleteIncomeResponse.error.message}`);
