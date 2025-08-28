@@ -71,6 +71,42 @@ export const useBankStatementUploads = () => {
     };
   };
 
+  // Extrair período do arquivo OFX
+  const extractOFXPeriod = (fileContent: string): { start: string; end: string } => {
+    // Buscar tags DTSTART e DTEND
+    const dtStartMatch = fileContent.match(/<DTSTART>(\d{8}|\d{14})/);
+    const dtEndMatch = fileContent.match(/<DTEND>(\d{8}|\d{14})/);
+    
+    let periodStart = '';
+    let periodEnd = '';
+    
+    if (dtStartMatch) {
+      const dateStr = dtStartMatch[1];
+      if (dateStr.length >= 8) {
+        const year = dateStr.substring(0, 4);
+        const month = dateStr.substring(4, 6);
+        const day = dateStr.substring(6, 8);
+        periodStart = `${year}-${month}-${day}`;
+      }
+    }
+    
+    if (dtEndMatch) {
+      const dateStr = dtEndMatch[1];
+      if (dateStr.length >= 8) {
+        const year = dateStr.substring(0, 4);
+        const month = dateStr.substring(4, 6);
+        const day = dateStr.substring(6, 8);
+        periodEnd = `${year}-${month}-${day}`;
+      }
+    }
+    
+    if (!periodStart || !periodEnd) {
+      throw new Error('Não foi possível extrair o período do extrato (DTSTART/DTEND não encontradas)');
+    }
+    
+    return { start: periodStart, end: periodEnd };
+  };
+
   // Processar arquivo OFX
   const processOFXFile = (fileContent: string): ParsedTransaction[] => {
     const transactions: ParsedTransaction[] = [];
@@ -129,6 +165,9 @@ export const useBankStatementUploads = () => {
       if (!user) throw new Error('User not authenticated');
       if (!bankAccountId) throw new Error('Conta bancária é obrigatória');
 
+      // Extrair período do extrato
+      const { start: periodStart, end: periodEnd } = extractOFXPeriod(fileContent);
+      
       // Parse do arquivo OFX
       const parsedTransactions = processOFXFile(fileContent);
       
@@ -136,26 +175,163 @@ export const useBankStatementUploads = () => {
         throw new Error('Nenhuma transação válida encontrada no arquivo');
       }
 
-      // Determinar período do extrato (data mais antiga e mais recente)
-      const dates = parsedTransactions.map(t => t.date).sort();
-      const periodStart = dates[0];
-      const periodEnd = dates[dates.length - 1];
+      let uploadId: string | null = null;
+      let balanceChange = 0;
+      
+      try {
+        // 1. Criar o registro de upload
+        const { data: uploadData, error: uploadError } = await supabase
+          .from('bank_statement_uploads')
+          .insert({
+            user_id: user.id,
+            upload_name: uploadName,
+            upload_date: new Date().toISOString(),
+            total_transactions: parsedTransactions.length
+          })
+          .select()
+          .single();
 
-      // Executar todas as operações dentro de uma transação RPC
-      const { data: result, error: rpcError } = await supabase.rpc('process_bank_statement_upload' as any, {
-        p_user_id: user.id,
-        p_upload_name: uploadName,
-        p_bank_account_id: bankAccountId,
-        p_period_start: periodStart,
-        p_period_end: periodEnd,
-        p_transactions: parsedTransactions
-      });
+        if (uploadError) throw new Error(`Erro ao criar upload: ${uploadError.message}`);
+        uploadId = uploadData.id;
 
-      if (rpcError) {
-        throw new Error(`Erro ao processar upload: ${rpcError.message}`);
+        // 2. Buscar transações manuais existentes no período para calcular impacto no saldo
+        const [existingIncomeResponse, existingExpensesResponse] = await Promise.all([
+          supabase
+            .from('income')
+            .select('amount')
+            .eq('user_id', user.id)
+            .eq('bank_account_id', bankAccountId)
+            .gte('date', periodStart)
+            .lte('date', periodEnd)
+            .is('upload_id', null),
+          supabase
+            .from('expenses')
+            .select('amount')
+            .eq('user_id', user.id)
+            .eq('bank_account_id', bankAccountId)
+            .gte('date', periodStart)
+            .lte('date', periodEnd)
+            .is('upload_id', null)
+        ]);
+
+        if (existingIncomeResponse.error) throw new Error(`Erro ao buscar receitas existentes: ${existingIncomeResponse.error.message}`);
+        if (existingExpensesResponse.error) throw new Error(`Erro ao buscar despesas existentes: ${existingExpensesResponse.error.message}`);
+
+        // Calcular saldo das transações que serão removidas
+        const removedIncomeBalance = existingIncomeResponse.data?.reduce((sum, item) => sum + item.amount, 0) || 0;
+        const removedExpensesBalance = existingExpensesResponse.data?.reduce((sum, item) => sum + item.amount, 0) || 0;
+
+        // 3. Excluir transações manuais existentes no período
+        const [deleteIncomeResponse, deleteExpensesResponse] = await Promise.all([
+          supabase
+            .from('income')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('bank_account_id', bankAccountId)
+            .gte('date', periodStart)
+            .lte('date', periodEnd)
+            .is('upload_id', null),
+          supabase
+            .from('expenses')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('bank_account_id', bankAccountId)
+            .gte('date', periodStart)
+            .lte('date', periodEnd)
+            .is('upload_id', null)
+        ]);
+
+        if (deleteIncomeResponse.error) throw new Error(`Erro ao excluir receitas existentes: ${deleteIncomeResponse.error.message}`);
+        if (deleteExpensesResponse.error) throw new Error(`Erro ao excluir despesas existentes: ${deleteExpensesResponse.error.message}`);
+
+        // 4. Inserir novas transações do extrato
+        const incomeTransactions = parsedTransactions
+          .filter(t => t.type === 'income')
+          .map(t => ({
+            user_id: user.id,
+            amount: t.amount,
+            date: t.date,
+            description: t.description,
+            category: 'Outros',
+            bank_account_id: bankAccountId,
+            upload_id: uploadId
+          }));
+
+        const expenseTransactions = parsedTransactions
+          .filter(t => t.type === 'expense')
+          .map(t => ({
+            user_id: user.id,
+            amount: t.amount,
+            date: t.date,
+            description: t.description,
+            category: 'Outros',
+            bank_account_id: bankAccountId,
+            upload_id: uploadId
+          }));
+
+        if (incomeTransactions.length > 0) {
+          const { error: incomeInsertError } = await supabase
+            .from('income')
+            .insert(incomeTransactions);
+          
+          if (incomeInsertError) throw new Error(`Erro ao inserir receitas: ${incomeInsertError.message}`);
+        }
+
+        if (expenseTransactions.length > 0) {
+          const { error: expenseInsertError } = await supabase
+            .from('expenses')
+            .insert(expenseTransactions);
+          
+          if (expenseInsertError) throw new Error(`Erro ao inserir despesas: ${expenseInsertError.message}`);
+        }
+
+        // 5. Calcular novo saldo das transações inseridas
+        const newIncomeBalance = incomeTransactions.reduce((sum, t) => sum + t.amount, 0);
+        const newExpensesBalance = expenseTransactions.reduce((sum, t) => sum + t.amount, 0);
+
+        // Calcular mudança líquida no saldo
+        balanceChange = (newIncomeBalance - newExpensesBalance) - (removedIncomeBalance - removedExpensesBalance);
+
+        // 6. Buscar saldo atual e atualizar
+        const { data: bankAccount, error: fetchError } = await supabase
+          .from('bank_accounts')
+          .select('balance')
+          .eq('id', bankAccountId)
+          .eq('user_id', user.id)
+          .single();
+
+        if (fetchError) throw new Error(`Erro ao buscar saldo atual: ${fetchError.message}`);
+
+        const newBalance = (bankAccount.balance || 0) + balanceChange;
+        
+        const { error: balanceUpdateError } = await supabase
+          .from('bank_accounts')
+          .update({ 
+            balance: newBalance,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', bankAccountId)
+          .eq('user_id', user.id);
+
+        if (balanceUpdateError) throw new Error(`Erro ao atualizar saldo: ${balanceUpdateError.message}`);
+
+        return {
+          uploadId,
+          transactionsCount: parsedTransactions.length,
+          balanceImpact: balanceChange,
+          success: true
+        };
+
+      } catch (error) {
+        // Em caso de erro, tentar limpar o upload criado
+        if (uploadId) {
+          await supabase
+            .from('bank_statement_uploads')
+            .delete()
+            .eq('id', uploadId);
+        }
+        throw error;
       }
-
-      return result as { uploadId: string; transactionsCount: number; balanceImpact: number; success: boolean };
     },
     onSuccess: (data: { uploadId: string; transactionsCount: number; balanceImpact: number; success: boolean }) => {
       queryClient.invalidateQueries({ queryKey: ['bank_statement_uploads'] });
