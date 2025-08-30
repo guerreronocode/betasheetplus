@@ -141,6 +141,22 @@ export const useCreditCardBills = () => {
         return billDataBefore;
       }
 
+      // VALIDAR SALDO SUFICIENTE NA CONTA
+      const { data: accountData, error: accountError } = await supabase
+        .from('bank_accounts')
+        .select('balance')
+        .eq('id', paymentData.paid_account_id)
+        .single();
+
+      if (accountError) {
+        console.error('Error fetching account balance:', accountError);
+        throw new Error('Erro ao verificar saldo da conta');
+      }
+
+      if (accountData.balance < remainingAmount) {
+        throw new Error(`Saldo insuficiente. Saldo disponível: R$ ${accountData.balance.toFixed(2)}, Valor necessário: R$ ${remainingAmount.toFixed(2)}`);
+      }
+
       // Usar nova função para marcar fatura como paga
       const { data, error } = await supabase.rpc('mark_bill_as_paid', {
         p_bill_id: billId,
@@ -250,6 +266,24 @@ export const useCreditCardBills = () => {
     }) => {
       if (!user) throw new Error('User not authenticated');
       
+      // VALIDAR SALDO SUFICIENTE NA CONTA
+      const totalPaid = installmentPayments.reduce((sum, payment) => sum + payment.amount, 0);
+      
+      const { data: accountData, error: accountError } = await supabase
+        .from('bank_accounts')
+        .select('balance')
+        .eq('id', paymentAccountId)
+        .single();
+
+      if (accountError) {
+        console.error('Error fetching account balance:', accountError);
+        throw new Error('Erro ao verificar saldo da conta');
+      }
+
+      if (accountData.balance < totalPaid) {
+        throw new Error(`Saldo insuficiente. Saldo disponível: R$ ${accountData.balance.toFixed(2)}, Valor necessário: R$ ${totalPaid.toFixed(2)}`);
+      }
+      
       const { error } = await supabase.rpc('process_partial_bill_payment', {
         p_bill_id: billId,
         p_installment_payments: installmentPayments,
@@ -259,7 +293,6 @@ export const useCreditCardBills = () => {
       if (error) throw error;
       
       // CRIAR TRANSAÇÃO DE DESPESA PARA PAGAMENTO PARCIAL
-      const totalPaid = installmentPayments.reduce((sum, payment) => sum + payment.amount, 0);
       
       const { data: billData } = await supabase
         .from('credit_card_bills')

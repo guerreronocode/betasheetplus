@@ -60,11 +60,15 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   const hasInterest = difference > 0.01;
   const interestPercentage = amount > 0 ? (difference / amount) * 100 : 0;
 
-  // Atualizar valor da parcela quando o valor total ou número de parcelas mudar
+  // Atualizar valor da parcela automaticamente apenas se não foi definido manualmente
   React.useEffect(() => {
     if (amount > 0 && installments > 0) {
-      const defaultInstallmentValue = amount / installments;
-      form.setValue('installment_value', Number(defaultInstallmentValue.toFixed(2)));
+      const currentInstallmentValue = form.getValues('installment_value');
+      // Só atualizar se o valor da parcela não foi definido manualmente
+      if (currentInstallmentValue === 0 || currentInstallmentValue === undefined) {
+        const defaultInstallmentValue = amount / installments;
+        form.setValue('installment_value', Number(defaultInstallmentValue.toFixed(2)));
+      }
     }
   }, [amount, installments, form]);
 
