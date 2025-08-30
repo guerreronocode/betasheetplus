@@ -35,6 +35,9 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   const { creditCards } = useCreditCards();
   const { createPurchase, isCreating } = useCreditCardPurchases();
   const { categories } = useUnifiedCategories();
+  
+  // Flag para rastrear se o usuário editou manualmente o valor da parcela
+  const [hasManuallyEditedInstallmentValue, setHasManuallyEditedInstallmentValue] = useState(false);
 
   const form = useForm<SimplifiedPurchaseFormData>({
     resolver: zodResolver(simplifiedPurchaseSchema),
@@ -60,17 +63,19 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   const hasInterest = difference > 0.01;
   const interestPercentage = amount > 0 ? (difference / amount) * 100 : 0;
 
-  // Atualizar valor da parcela automaticamente apenas se não foi definido manualmente
+  // Atualizar valor da parcela automaticamente apenas se não foi editado manualmente
   React.useEffect(() => {
-    if (amount > 0 && installments > 0) {
-      const currentInstallmentValue = form.getValues('installment_value');
-      // Só atualizar se o valor da parcela não foi definido manualmente
-      if (currentInstallmentValue === 0 || currentInstallmentValue === undefined) {
-        const defaultInstallmentValue = amount / installments;
-        form.setValue('installment_value', Number(defaultInstallmentValue.toFixed(2)));
-      }
+    if (amount > 0 && installments > 0 && !hasManuallyEditedInstallmentValue) {
+      const defaultInstallmentValue = amount / installments;
+      form.setValue('installment_value', Number(defaultInstallmentValue.toFixed(2)));
     }
-  }, [amount, installments, form]);
+  }, [amount, installments, form, hasManuallyEditedInstallmentValue]);
+
+  // Handler para quando o usuário edita manualmente o valor da parcela
+  const handleInstallmentValueChange = (value: number) => {
+    setHasManuallyEditedInstallmentValue(true);
+    form.setValue('installment_value', value);
+  };
 
   const onSubmit = (data: SimplifiedPurchaseFormData) => {
     console.log('Submitting simplified purchase form:', data);
@@ -231,8 +236,8 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
                       type="number"
                       step="0.01"
                       placeholder="0.00"
-                      {...field}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
+                      value={field.value || ''}
+                      onChange={(e) => handleInstallmentValueChange(Number(e.target.value))}
                     />
                   </FormControl>
                   <FormMessage />
