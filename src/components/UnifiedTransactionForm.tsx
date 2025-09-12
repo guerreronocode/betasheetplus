@@ -458,13 +458,6 @@ const UnifiedTransactionForm = () => {
             </button>
           </form>
         </TabsContent>
-
-        <TabsContent value="expense">
-          <form onSubmit={handleExpenseSubmit} className="space-y-4">
-              {(isAddingIncome || isIncomeSubmitting) ? "Adicionando..." : "Adicionar Receita"}
-            </button>
-          </form>
-        </TabsContent>
         
         <TabsContent value="expense">
           <form onSubmit={handleExpenseSubmit} className="space-y-4">
