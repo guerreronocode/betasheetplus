@@ -49,14 +49,14 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-100">
+    <header className="bg-card border-b border-border fnb-shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <div>
-            <h1 className="text-2xl font-bold bg-gradient-finance bg-clip-text text-transparent">
-              FinanceGame
+            <h1 className="fnb-heading text-2xl font-bold text-fnb-primary">
+              Futuro no Bolso
             </h1>
-            <p className="text-sm text-gray-500 flex items-center mt-1">
+            <p className="fnb-body text-sm text-muted-foreground flex items-center mt-1">
               <Calendar className="w-4 h-4 mr-1" />
               {currentDate}
             </p>
@@ -68,16 +68,16 @@ const Header = () => {
               <div className="flex items-center space-x-3">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user.user_metadata?.avatar_url} />
-                  <AvatarFallback className="bg-gradient-finance text-white text-sm">
+                  <AvatarFallback className="bg-primary text-primary-foreground fnb-body text-sm fnb-shape">
                     {getUserInitials()}
                   </AvatarFallback>
                 </Avatar>
                 
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="fnb-body text-sm font-medium text-foreground">
                     {getUserDisplayName()}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="fnb-body text-xs text-muted-foreground">
                     {user.email}
                   </p>
                 </div>
@@ -87,7 +87,7 @@ const Header = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-gray-500 hover:text-gray-700"
+                      className="text-muted-foreground hover:text-foreground fnb-shape"
                     >
                       <Settings className="w-4 h-4" />
                     </Button>

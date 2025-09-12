@@ -10,6 +10,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import TransactionsHistory from "./pages/TransactionsHistory";
+import StyleGuide from "./pages/StyleGuide";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -40,6 +41,7 @@ const App: React.FC = () => {
                   <TransactionsHistory />
                 </ProtectedRoute>
               } />
+              <Route path="/style-guide" element={<StyleGuide />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>

@@ -19,6 +19,11 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'heading': ['Host Grotesk', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+				'body': ['Roboto', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+				'mono': ['Roboto Mono', 'ui-monospace', 'SFMono-Regular', 'monospace'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -63,22 +68,28 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				finance: {
-					success: '#10B981',
-					warning: '#F59E0B',
-					danger: '#EF4444',
-					info: '#3B82F6',
-					primary: '#6366F1',
-					gradient: {
-						start: '#10B981',
-						end: '#3B82F6'
-					}
+				// Futuro no Bolso - Cores da marca
+				fnb: {
+					primary: 'hsl(var(--fnb-primary))',
+					ink: 'hsl(var(--fnb-ink))',
+					cream: 'hsl(var(--fnb-cream))',
+					red: 'hsl(var(--fnb-red))',
+					orange: 'hsl(var(--fnb-orange))',
+					blue: 'hsl(var(--fnb-blue))',
+					purple: 'hsl(var(--fnb-purple))',
+					green: 'hsl(var(--fnb-green))',
+					success: 'hsl(var(--fnb-success))',
+					error: 'hsl(var(--fnb-error))',
+					warning: 'hsl(var(--fnb-warning))',
+					info: 'hsl(var(--fnb-info))',
 				}
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
 				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)'
+				sm: 'calc(var(--radius) - 4px)',
+				'2xl': '1rem',   /* 16px - padrão FNB */
+				'3xl': '1.5rem', /* 24px - tamanho maior */
 			},
 			keyframes: {
 				'accordion-down': {

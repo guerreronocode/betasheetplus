@@ -4,35 +4,61 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* === FUTURO NO BOLSO - IDENTIDADE VISUAL === */
+    
+    /* Cores Institucionais */
+    --fnb-primary: 71 73% 51%;        /* #C8D641 - Verde primário/acento */
+    --fnb-ink: 174 79% 8%;            /* #092220 - Texto/ink escuro */
+    --fnb-cream: 56 57% 92%;          /* #F5F3E1 - Fundo claro/creme */
+    
+    /* Cores Secundárias/Apoio */
+    --fnb-red: 0 71% 55%;             /* #D93E3E - Vermelho */
+    --fnb-orange: 23 71% 55%;         /* #D97C3E - Laranja */
+    --fnb-blue: 215 71% 55%;          /* #3E7FD9 - Azul */
+    --fnb-purple: 249 71% 55%;        /* #6A3ED9 - Roxo */
+    --fnb-green: 131 71% 55%;         /* #3ED94E - Verde apoio */
+    
+    /* Variações para estados (600/200/100) */
+    --fnb-primary-600: 71 73% 35%;    /* Versão mais escura */
+    --fnb-primary-200: 71 73% 75%;    /* Versão mais clara */
+    --fnb-primary-100: 71 73% 85%;    /* Versão muito clara */
+    
+    /* Cores de Feedback UI */
+    --fnb-success: 131 71% 55%;       /* Verde para sucesso */
+    --fnb-error: 0 71% 55%;           /* Vermelho para erro */
+    --fnb-warning: 23 71% 55%;        /* Laranja para alerta */
+    --fnb-info: 215 71% 55%;          /* Azul para informação */
+    
+    /* === MAPEAMENTO PARA TOKENS SHADCN === */
+    --background: 56 57% 92%;         /* Fundo claro/creme */
+    --foreground: 174 79% 8%;         /* Texto escuro */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;                /* Cards brancos */
+    --card-foreground: 174 79% 8%;    /* Texto dos cards */
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 174 79% 8%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 71 73% 51%;            /* Verde primário */
+    --primary-foreground: 0 0% 100%;  /* Texto no primário (branco) */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 71 73% 85%;          /* Verde claro */
+    --secondary-foreground: 174 79% 8%; /* Texto no secundário */
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 56 25% 85%;              /* Cinza neutro claro */
+    --muted-foreground: 174 20% 35%;  /* Texto desbotado */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 71 73% 51%;             /* Verde acento */
+    --accent-foreground: 0 0% 100%;   /* Texto no acento */
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 71% 55%;         /* Vermelho para destrutivo */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 71 25% 80%;             /* Bordas sutis */
+    --input: 71 25% 90%;              /* Inputs */
+    --ring: 71 73% 51%;               /* Foco/ring */
 
-    --radius: 0.5rem;
+    --radius: 1rem;                   /* 16px - border radius padrão */
 
     --sidebar-background: 0 0% 98%;
 
@@ -52,41 +78,43 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* === DARK MODE - FUTURO NO BOLSO === */
+    --background: 174 79% 8%;         /* Base escura derivada do ink */
+    --foreground: 56 57% 92%;         /* Texto claro */
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 174 50% 12%;              /* Cards escuros */
+    --card-foreground: 56 57% 92%;    /* Texto dos cards */
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 174 50% 12%;
+    --popover-foreground: 56 57% 92%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 71 73% 51%;            /* Verde primário (mantém) */
+    --primary-foreground: 174 79% 8%; /* Texto no primário (escuro) */
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 174 30% 20%;         /* Cinza escuro */
+    --secondary-foreground: 56 57% 92%; /* Texto no secundário */
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 174 20% 25%;             /* Muted escuro */
+    --muted-foreground: 174 10% 65%;  /* Texto desbotado */
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 71 73% 51%;             /* Acento verde (mantém) */
+    --accent-foreground: 174 79% 8%;  /* Texto no acento */
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 71% 55%;         /* Vermelho (mantém) */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --border: 174 20% 25%;            /* Bordas escuras */
+    --input: 174 20% 20%;             /* Inputs escuros */
+    --ring: 71 73% 51%;               /* Ring verde (mantém) */
+    
+    --sidebar-background: 174 79% 8%;
+    --sidebar-foreground: 56 57% 92%;
+    --sidebar-primary: 71 73% 51%;
+    --sidebar-primary-foreground: 174 79% 8%;
+    --sidebar-accent: 174 30% 20%;
+    --sidebar-accent-foreground: 56 57% 92%;
+    --sidebar-border: 174 20% 25%;
+    --sidebar-ring: 71 73% 51%;
   }
 }
 
@@ -96,6 +124,58 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-body;
+  }
+}
+
+@layer components {
+  /* === FUTURO NO BOLSO - COMPONENTES UTILITÁRIOS === */
+  
+  /* Formas/Shapes geométricas */
+  .fnb-shape {
+    @apply rounded-2xl; /* 16px border-radius */
+  }
+  
+  .fnb-shape-sm {
+    @apply rounded-xl; /* 12px */
+  }
+  
+  .fnb-shape-lg {
+    @apply rounded-3xl; /* 24px */
+  }
+  
+  /* Sombras suaves */
+  .fnb-shadow {
+    box-shadow: 0 4px 20px rgba(200, 214, 65, 0.08);
+  }
+  
+  .fnb-shadow-hover {
+    box-shadow: 0 8px 30px rgba(200, 214, 65, 0.12);
+  }
+  
+  /* Classes de tipografia */
+  .fnb-heading {
+    @apply font-heading font-semibold;
+  }
+  
+  .fnb-body {
+    @apply font-body;
+  }
+  
+  .fnb-mono {
+    @apply font-mono tabular-nums;
+  }
+  
+  /* Cores utilitárias */
+  .fnb-primary {
+    color: hsl(var(--fnb-primary));
+  }
+  
+  .fnb-ink {
+    color: hsl(var(--fnb-ink));
+  }
+  
+  .fnb-cream {
+    background-color: hsl(var(--fnb-cream));
   }
 }
