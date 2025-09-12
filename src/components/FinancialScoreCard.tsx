@@ -78,79 +78,38 @@ const FinancialScoreCard = () => {
   };
 
   return (
-    <div className="card-hero animate-scale-in relative overflow-hidden" style={{ position: 'relative' }}>
-      {/* Formas orgânicas decorativas */}
-      <div className="organic-shape absolute top-4 right-8 w-20 h-20 opacity-20 animate-float"></div>
-      <div className="organic-shape absolute bottom-6 left-12 w-16 h-16 opacity-15 animate-float" style={{ animationDelay: '2s' }}></div>
-      
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center space-x-4">
-          <div className="p-3 rounded-2xl shadow-lg" style={{ 
-            background: 'linear-gradient(135deg, var(--support-info-100), rgba(74,144,226,.1))',
-            border: '1px solid var(--support-info-200)'
-          }}>
-            <Shield className="w-8 h-8" style={{ color: 'var(--support-info)' }} />
+    <Card className="p-6 bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-200">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-indigo-100 rounded-lg">
+            <Shield className="w-6 h-6 text-indigo-600" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
-              🎯 Score de Saúde Financeira
-            </h3>
-            <p className="text-sm font-medium mt-1" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
-              {getLevelDescription(scoreDetails.level)}
-            </p>
+            <h3 className="text-lg font-semibold text-gray-900">Score de Saúde Financeira</h3>
+            <p className="text-sm text-gray-600">{getLevelDescription(scoreDetails.level)}</p>
           </div>
         </div>
         
-        <div className="px-4 py-2 rounded-full shadow-sm" style={{
-          background: scoreDetails.score >= 81 ? 'linear-gradient(135deg, var(--support-success-100), var(--support-success-200))' :
-          scoreDetails.score >= 61 ? 'linear-gradient(135deg, var(--support-info-100), var(--support-info-200))' :
-          scoreDetails.score >= 41 ? 'linear-gradient(135deg, var(--support-warning-100), var(--support-warning-200))' :
-          'linear-gradient(135deg, var(--support-danger-100), var(--support-danger-200))',
-          color: scoreDetails.score >= 81 ? 'var(--support-success)' :
-          scoreDetails.score >= 61 ? 'var(--support-info)' :
-          scoreDetails.score >= 41 ? 'var(--support-warning)' :
-          'var(--support-danger)',
-          border: '1px solid ' + (scoreDetails.score >= 81 ? 'var(--support-success-200)' :
-          scoreDetails.score >= 61 ? 'var(--support-info-200)' :
-          scoreDetails.score >= 41 ? 'var(--support-warning-200)' :
-          'var(--support-danger-200)'),
-          fontWeight: 'bold',
-          fontSize: '0.9rem'
-        }}>
+        <Badge variant="outline" className={`${
+          scoreDetails.score >= 81 ? 'bg-green-100 text-green-800 border-green-200' :
+          scoreDetails.score >= 61 ? 'bg-blue-100 text-blue-800 border-blue-200' :
+          scoreDetails.score >= 41 ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
+          'bg-red-100 text-red-800 border-red-200'
+        }`}>
           {getScoreLabel(scoreDetails.score)}
-        </div>
+        </Badge>
       </div>
 
-      <div className="text-center mb-8">
-        <div className="text-5xl font-black mb-4 fn-number relative" style={{ 
-          color: 'var(--text)', 
-          fontFamily: 'var(--font-display)',
-          textShadow: '0 2px 4px rgba(42,74,71,.1)'
-        }}>
-          {scoreDetails.score}
-          <span className="text-2xl opacity-60">/100</span>
+      <div className="text-center mb-6">
+        <div className={`text-4xl font-bold mb-2 ${getScoreColor(scoreDetails.score)}`}>
+          {scoreDetails.score}/100
         </div>
         
-        <div className="w-full rounded-full h-6 mb-6 overflow-hidden" style={{ 
-          background: 'rgba(42,74,71,.08)',
-          boxShadow: 'inset 0 2px 4px rgba(42,74,71,.1)' 
-        }}>
+        <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
           <div 
-            className="h-full rounded-full transition-all duration-1000 relative overflow-hidden"
-            style={{ 
-              width: `${scoreDetails.score}%`, 
-              background: `linear-gradient(90deg, 
-                ${scoreDetails.score >= 81 ? 'var(--support-success)' :
-                scoreDetails.score >= 61 ? 'var(--support-info)' :
-                scoreDetails.score >= 41 ? 'var(--support-warning)' :
-                'var(--support-danger)'}, 
-                var(--brand-primary))`,
-              boxShadow: '0 2px 6px rgba(42,74,71,.2)'
-            }}
-          >
-            {/* Brilho na barra */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30"></div>
-          </div>
+            className={`h-4 rounded-full transition-all duration-1000 ${getScoreBgColor(scoreDetails.score)}`}
+            style={{ width: `${scoreDetails.score}%` }}
+          ></div>
         </div>
       </div>
 
@@ -204,7 +163,7 @@ const FinancialScoreCard = () => {
           </div>
         </div>
       )}
-    </div>
+    </Card>
   );
 };
 

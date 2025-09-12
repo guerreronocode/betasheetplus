@@ -3,7 +3,6 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
-import './styles/fnb-brand.css';
 
 const container = document.getElementById("root");
 if (!container) {

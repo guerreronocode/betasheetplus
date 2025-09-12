@@ -78,28 +78,21 @@ const BankAccountManager = () => {
   };
 
   return (
-    <div className="card-hero animate-scale-in relative overflow-hidden">
-      {/* Forma orgânica decorativa */}
-      <div className="organic-shape absolute top-4 right-4 w-12 h-12 opacity-20"></div>
-      
+    <Card className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <div className="p-3 rounded-2xl shadow-sm" style={{ background: 'var(--support-info-100)' }}>
-            <Building2 className="w-7 h-7" style={{ color: 'var(--support-info)' }} />
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-blue-100 rounded-lg">
+            <Building2 className="w-6 h-6 text-blue-600" />
           </div>
           <div>
-            <h3 className="text-xl font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
-              🏦 Contas Bancárias
-            </h3>
-            <p className="text-sm font-medium" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
-              Gerencie suas contas e saldos
-            </p>
+            <h3 className="text-lg font-semibold text-gray-900">Contas Bancárias</h3>
+            <p className="text-sm text-gray-600">Gerencie suas contas e saldos</p>
           </div>
         </div>
-        <button className="btn-primary" onClick={() => setIsAddingNew(!isAddingNew)}>
+        <Button onClick={() => setIsAddingNew(!isAddingNew)}>
           <Plus className="w-4 h-4 mr-2" />
           Nova Conta
-        </button>
+        </Button>
       </div>
 
       {isAddingNew && (
@@ -113,7 +106,7 @@ const BankAccountManager = () => {
       )}
 
       <BankAccountList bankAccounts={bankAccounts} />
-    </div>
+    </Card>
   );
 };
 

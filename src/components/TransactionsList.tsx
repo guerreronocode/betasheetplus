@@ -48,32 +48,20 @@ const TransactionsList = () => {
   };
 
   return (
-    <div className="card animate-scale-in relative overflow-hidden">
-      {/* Forma orgânica decorativa */}
-      <div className="organic-shape absolute top-4 right-4 w-12 h-12 opacity-20"></div>
-      
+    <Card className="p-6">
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <div className="p-3 rounded-2xl shadow-sm" style={{ background: 'var(--support-info-100)' }}>
-            <Calendar className="w-7 h-7" style={{ color: 'var(--support-info)' }} />
+        <div className="flex items-center space-x-3">
+          <div className="p-2 bg-blue-100 rounded-lg">
+            <Calendar className="w-6 h-6 text-blue-600" />
           </div>
           <div>
-            <h3 className="text-xl font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
-              💸 Transações Recentes
-            </h3>
-            <p className="text-sm font-medium" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
-              Últimas entradas e saídas
-            </p>
+            <h3 className="text-lg font-semibold text-gray-900">Transações Recentes</h3>
+            <p className="text-sm text-gray-600">Últimas entradas e saídas</p>
           </div>
         </div>
-        <button className="btn-secondary text-sm px-4 py-2" style={{ 
-          background: 'var(--brand-primary)', 
-          color: 'var(--brand-ink)',
-          border: 'none',
-          textDecoration: 'none'
-        }}>
-          Ver todas →
-        </button>
+        <a href="/transactions-history" className="text-blue-600 hover:underline font-medium">
+          Ver todas
+        </a>
       </div>
 
       <div className="space-y-3">
@@ -86,26 +74,19 @@ const TransactionsList = () => {
           allTransactions.slice(0, 10).map((transaction, index) => (
             <div
               key={`${transaction.type}-${transaction.id}`}
-              className="flex items-center justify-between p-5 rounded-2xl transition-all duration-300 animate-scale-in border-2"
-              style={{ 
-                animationDelay: `${index * 50}ms`,
-                borderRadius: 'var(--radius-organic)',
-                background: transaction.type === 'income' 
-                  ? 'linear-gradient(135deg, var(--support-success-100), rgba(39,174,96,.05))'
-                  : 'linear-gradient(135deg, var(--support-danger-100), rgba(232,90,79,.05))',
-                borderColor: transaction.type === 'income'
-                  ? 'var(--support-success-200)'
-                  : 'var(--support-danger-200)',
-                marginBottom: '0.75rem'
-              }}
+              className={`flex items-center justify-between p-4 rounded-lg border transition-all duration-200 animate-slide-up ${
+                transaction.type === 'income'
+                  ? 'border-green-200 bg-green-50 hover:border-green-300'
+                  : 'border-red-200 bg-red-50 hover:border-red-300'
+              }`}
+              style={{ animationDelay: `${index * 50}ms` }}
             >
-              <div className="flex items-center space-x-4">
-                <div className="p-3 rounded-xl shadow-sm" style={{
-                  background: transaction.type === 'income'
-                    ? 'var(--support-success)'
-                    : 'var(--support-danger)',
-                  color: 'white'
-                }}>
+              <div className="flex items-center space-x-3">
+                <div className={`p-2 rounded-lg ${
+                  transaction.type === 'income'
+                    ? 'bg-green-200 text-green-700'
+                    : 'bg-red-200 text-red-700'
+                }`}>
                   {transaction.type === 'income' ? (
                     <ArrowUpCircle className="w-5 h-5" />
                   ) : (
@@ -113,39 +94,40 @@ const TransactionsList = () => {
                   )}
                 </div>
                 <div>
-                  <p className="font-semibold text-base" style={{ color: 'var(--text)', fontFamily: 'var(--font-sans)' }}>
-                    {transaction.description}
-                  </p>
-                  <div className="flex items-center space-x-2 text-sm mt-1" style={{ color: 'var(--text-muted)' }}>
-                    <span className="font-medium">{transaction.category}</span>
+                  <p className="font-medium text-gray-900">{transaction.description}</p>
+                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                    <span>{transaction.category}</span>
                     <span>•</span>
                     <span>{formatDateForDisplay(transaction.date)}</span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <button
-                  className="p-2 rounded-full transition-all hover:bg-white/50"
+                  className="hover:bg-gray-200 rounded p-1"
                   title="Editar"
                   onClick={() => handleEdit(transaction)}
                 >
-                  <Pencil className="w-4 h-4" style={{ color: 'var(--support-info)' }} />
+                  <Pencil className="w-4 h-4 text-blue-500" />
                 </button>
-                
-                <div className="text-right">
-                  <p className="text-xl font-bold fn-money" style={{ 
-                    color: transaction.type === 'income' ? 'var(--support-success)' : 'var(--support-danger)',
-                    fontFamily: 'var(--font-mono)'
-                  }}>
-                    {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                  </p>
-                </div>
+                <EditTransactionModal
+                  open={editModalOpen}
+                  onOpenChange={handleCloseModal}
+                  transaction={selectedTransaction}
+                />
+              </div>
+              <div className="text-right">
+                <p className={`font-semibold ${
+                  transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                }`}>
+                  {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                </p>
               </div>
             </div>
           ))
         )}
       </div>
-    </div>
+    </Card>
   );
 };
 

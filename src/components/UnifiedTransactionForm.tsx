@@ -224,20 +224,20 @@ const UnifiedTransactionForm = () => {
 
           {/* Resumo dos valores */}
           {installments > 0 && installmentValue > 0 && (
-              <div className="border rounded-lg p-4 space-y-2" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(42,74,71,.06)', borderRadius: 'var(--radius-lg)' }}>
-                <h4 className="font-medium text-sm mb-2" style={{ fontFamily: 'var(--font-sans)', color: 'var(--brand-ink)' }}>Resumo da Compra</h4>
-                <div className="flex justify-between text-sm">
-                  <span style={{ color: 'var(--brand-ink)', opacity: 0.7 }}>Valor da compra:</span>
-                  <span className="font-medium fn-money" style={{ color: 'var(--brand-ink)' }}>R$ {amount.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span style={{ color: 'var(--brand-ink)', opacity: 0.7 }}>Valor da parcela:</span>
-                  <span className="font-medium fn-money" style={{ color: 'var(--brand-ink)' }}>R$ {installmentValue.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span style={{ color: 'var(--brand-ink)', opacity: 0.7 }}>Total das parcelas:</span>
-                  <span className="font-medium fn-money" style={{ color: 'var(--brand-ink)' }}>R$ {totalInstallments.toFixed(2)}</span>
-                </div>
+            <div className="border rounded-lg p-4 bg-gray-50 space-y-2">
+              <h4 className="font-medium text-sm mb-2">Resumo da Compra</h4>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Valor da compra:</span>
+                <span className="font-medium">R$ {amount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Valor da parcela:</span>
+                <span className="font-medium">R$ {installmentValue.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-600">Total das parcelas:</span>
+                <span className="font-medium">R$ {totalInstallments.toFixed(2)}</span>
+              </div>
               
               {hasInterest && (
                 <>
@@ -315,44 +315,21 @@ const UnifiedTransactionForm = () => {
   };
 
   return (
-    <div className="card-hero animate-scale-in relative overflow-hidden">
-      {/* Forma orgânica decorativa */}
-      <div className="organic-shape absolute top-6 right-6 w-16 h-16 opacity-15 animate-float"></div>
-      
-      <div className="flex items-center space-x-4 mb-8">
-        <div className="p-3 rounded-2xl shadow-sm" style={{ 
-          background: 'linear-gradient(135deg, var(--brand-primary), rgba(196,214,58,.2))',
-          border: '1px solid var(--brand-primary)' 
-        }}>
-          <Plus className="w-7 h-7" style={{ color: 'var(--brand-ink)' }} />
+    <Card className="p-6">
+      <div className="flex items-center space-x-3 mb-6">
+        <div className="p-2 bg-green-100 rounded-lg">
+          <Plus className="w-6 h-6 text-green-600" />
         </div>
         <div>
-          <h3 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
-            ✨ Nova Transação
-          </h3>
-          <p className="text-sm font-medium" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
-            Registre receitas e despesas facilmente
-          </p>
+          <h3 className="text-lg font-semibold text-gray-900">Adicionar Transação</h3>
+          <p className="text-sm text-gray-600">Registre suas receitas e despesas</p>
         </div>
       </div>
 
       <Tabs defaultValue="income" className="w-full">
-        <TabsList className="grid w-full grid-cols-2 p-1 rounded-2xl" style={{ 
-          background: 'rgba(196,214,58,.1)', 
-          border: '1px solid rgba(196,214,58,.2)' 
-        }}>
-          <TabsTrigger value="income" className="rounded-xl font-semibold transition-all" style={{ 
-            color: 'var(--support-success)',
-            fontFamily: 'var(--font-sans)'
-          }}>
-            💰 Receita
-          </TabsTrigger>
-          <TabsTrigger value="expense" className="rounded-xl font-semibold transition-all" style={{ 
-            color: 'var(--support-danger)',
-            fontFamily: 'var(--font-sans)'
-          }}>
-            💸 Despesa
-          </TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="income" className="text-green-600">Receita</TabsTrigger>
+          <TabsTrigger value="expense" className="text-red-600">Despesa</TabsTrigger>
         </TabsList>
         
         <TabsContent value="income">
@@ -442,20 +419,13 @@ const UnifiedTransactionForm = () => {
                 />
               </div>
             </div>
-            <button
+            <Button
               type="submit"
-              className="btn-primary w-full text-lg font-semibold py-4"
+              className="w-full bg-green-600 hover:bg-green-700"
               disabled={isAddingIncome || isIncomeSubmitting || bankAccounts.length === 0}
-              style={{ 
-                background: 'linear-gradient(135deg, var(--support-success), var(--support-success-600))', 
-                color: 'white',
-                border: 'none',
-                borderRadius: 'var(--radius-organic)',
-                boxShadow: 'var(--shadow-soft)'
-              }}
             >
-              {(isAddingIncome || isIncomeSubmitting) ? "💫 Adicionando..." : "✅ Adicionar Receita"}
-            </button>
+              {(isAddingIncome || isIncomeSubmitting) ? "Adicionando..." : "Adicionar Receita"}
+            </Button>
           </form>
         </TabsContent>
         
@@ -538,24 +508,17 @@ const UnifiedTransactionForm = () => {
               </div>
             </div>
             
-            <button
+            <Button
               type="submit"
-              className="btn-primary w-full text-lg font-semibold py-4"
+              className="w-full bg-red-600 hover:bg-red-700"
               disabled={isExpenseDisabled()}
-              style={{ 
-                background: 'linear-gradient(135deg, var(--support-danger), var(--support-danger-600))', 
-                color: 'white',
-                border: 'none',
-                borderRadius: 'var(--radius-organic)',
-                boxShadow: 'var(--shadow-soft)'
-              }}
             >
-              {(isAddingExpense || isExpenseSubmitting || isCreating) ? "💫 Adicionando..." : "💸 Adicionar Despesa"}
-            </button>
+              {(isAddingExpense || isExpenseSubmitting || isCreating) ? "Adicionando..." : "Adicionar Despesa"}
+            </Button>
           </form>
         </TabsContent>
       </Tabs>
-    </div>
+    </Card>
   );
 };
 

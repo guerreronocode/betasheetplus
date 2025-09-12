@@ -49,32 +49,15 @@ const Header = () => {
   };
 
   return (
-    <header className="relative" style={{ 
-      background: 'linear-gradient(135deg, var(--brand-cream), rgba(196,214,58,.08))', 
-      borderBottom: '1px solid rgba(196,214,58,.15)', 
-      boxShadow: 'var(--shadow-soft)' 
-    }}>
-      {/* Formas orgânicas decorativas */}
-      <div className="organic-shape absolute top-4 right-16 w-24 h-24 animate-float" style={{ animationDelay: '0s' }}></div>
-      <div className="organic-shape absolute top-8 right-80 w-16 h-16 animate-float" style={{ animationDelay: '2s' }}></div>
-      
+    <header className="bg-white shadow-sm border-b border-gray-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
-          <div className="animate-scale-in">
-            <h1 className="text-3xl font-bold mb-1" style={{ 
-              fontFamily: 'var(--font-display)', 
-              background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              color: 'transparent'
-            }}>
-              Futuro no Bolso
+        <div className="flex justify-between items-center py-4">
+          <div>
+            <h1 className="text-2xl font-bold bg-gradient-finance bg-clip-text text-transparent">
+              FinanceGame
             </h1>
-            <p className="text-sm font-medium" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
-              Seu futuro sob seu controle
-            </p>
-            <p className="text-sm flex items-center mt-2" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
-              <Calendar className="w-4 h-4 mr-2 opacity-70" />
+            <p className="text-sm text-gray-500 flex items-center mt-1">
+              <Calendar className="w-4 h-4 mr-1" />
               {currentDate}
             </p>
           </div>
@@ -83,30 +66,31 @@ const Header = () => {
 
             {user && (
               <div className="flex items-center space-x-3">
-                <Avatar className="h-10 w-10 ring-2 ring-white shadow-lg">
+                <Avatar className="h-8 w-8">
                   <AvatarImage src={user.user_metadata?.avatar_url} />
-                  <AvatarFallback className="text-sm font-semibold" style={{ 
-                    background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))', 
-                    color: 'var(--brand-ink)' 
-                  }}>
+                  <AvatarFallback className="bg-gradient-finance text-white text-sm">
                     {getUserInitials()}
                   </AvatarFallback>
                 </Avatar>
                 
                 <div className="hidden md:block">
-                  <p className="text-sm font-semibold" style={{ color: 'var(--text)', fontFamily: 'var(--font-sans)' }}>
+                  <p className="text-sm font-medium text-gray-900">
                     {getUserDisplayName()}
                   </p>
-                  <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
+                  <p className="text-xs text-gray-500">
                     {user.email}
                   </p>
                 </div>
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="p-2 rounded-full transition-all duration-200 hover:bg-white/50 hover:shadow-md" style={{ color: 'var(--text-muted)' }}>
-                      <Settings className="w-5 h-5" />
-                    </button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      <Settings className="w-4 h-4" />
+                    </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuItem onClick={() => setIsResetDialogOpen(true)} className="text-destructive">

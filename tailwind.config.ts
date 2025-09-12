@@ -64,14 +64,14 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				finance: {
-					success: '#A1E8A6',      // Verde mais claro e suave
-					warning: '#F2C18A',      // Laranja mais suave
-					danger: '#F2A1A1',       // Vermelho mais claro
-					info: '#8FB4E8',         // Azul mais suave
-					primary: '#E8F157',      // Amarelo-verde mais claro
+					success: '#10B981',
+					warning: '#F59E0B',
+					danger: '#EF4444',
+					info: '#3B82F6',
+					primary: '#6366F1',
 					gradient: {
-						start: '#A1E8A6',   // Verde suave
-						end: '#8FB4E8'       // Azul suave
+						start: '#10B981',
+						end: '#3B82F6'
 					}
 				}
 			},
@@ -134,8 +134,8 @@ export default {
 				'progress-fill': 'progress-fill 1s ease-out'
 			},
 			backgroundImage: {
-				'gradient-finance': 'linear-gradient(135deg, #A1E8A6 0%, #8FB4E8 100%)',    // Gradiente mais suave
-				'gradient-card': 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)'  // Gradiente mais sutil
+				'gradient-finance': 'linear-gradient(135deg, #10B981 0%, #3B82F6 100%)',
+				'gradient-card': 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)'
 			}
 		}
 	},
