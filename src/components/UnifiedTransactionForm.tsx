@@ -224,20 +224,20 @@ const UnifiedTransactionForm = () => {
 
           {/* Resumo dos valores */}
           {installments > 0 && installmentValue > 0 && (
-            <div className="border rounded-lg p-4 bg-gray-50 space-y-2">
-              <h4 className="font-medium text-sm mb-2">Resumo da Compra</h4>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Valor da compra:</span>
-                <span className="font-medium">R$ {amount.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Valor da parcela:</span>
-                <span className="font-medium">R$ {installmentValue.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-600">Total das parcelas:</span>
-                <span className="font-medium">R$ {totalInstallments.toFixed(2)}</span>
-              </div>
+              <div className="border rounded-lg p-4 space-y-2" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(9,34,32,.08)', borderRadius: 'var(--radius-lg)' }}>
+                <h4 className="font-medium text-sm mb-2" style={{ fontFamily: 'var(--font-sans)', color: 'var(--brand-ink)' }}>Resumo da Compra</h4>
+                <div className="flex justify-between text-sm">
+                  <span style={{ color: 'var(--brand-ink)', opacity: 0.7 }}>Valor da compra:</span>
+                  <span className="font-medium fn-money" style={{ color: 'var(--brand-ink)' }}>R$ {amount.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span style={{ color: 'var(--brand-ink)', opacity: 0.7 }}>Valor da parcela:</span>
+                  <span className="font-medium fn-money" style={{ color: 'var(--brand-ink)' }}>R$ {installmentValue.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span style={{ color: 'var(--brand-ink)', opacity: 0.7 }}>Total das parcelas:</span>
+                  <span className="font-medium fn-money" style={{ color: 'var(--brand-ink)' }}>R$ {totalInstallments.toFixed(2)}</span>
+                </div>
               
               {hasInterest && (
                 <>
@@ -315,21 +315,21 @@ const UnifiedTransactionForm = () => {
   };
 
   return (
-    <Card className="p-6">
+    <Card className="p-6" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(9,34,32,.08)', boxShadow: 'var(--shadow-1)' }}>
       <div className="flex items-center space-x-3 mb-6">
-        <div className="p-2 bg-green-100 rounded-lg">
-          <Plus className="w-6 h-6 text-green-600" />
+        <div className="p-2 rounded-lg" style={{ background: 'var(--brand-primary)', opacity: 0.1 }}>
+          <Plus className="w-6 h-6" style={{ color: 'var(--brand-primary)' }} />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">Adicionar Transação</h3>
-          <p className="text-sm text-gray-600">Registre suas receitas e despesas</p>
+          <h3 className="text-lg font-semibold" style={{ fontFamily: 'var(--font-display)', color: 'var(--brand-ink)' }}>Adicionar Transação</h3>
+          <p className="text-sm" style={{ color: 'var(--brand-ink)', opacity: 0.7, fontFamily: 'var(--font-sans)' }}>Registre suas receitas e despesas</p>
         </div>
       </div>
 
       <Tabs defaultValue="income" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="income" className="text-green-600">Receita</TabsTrigger>
-          <TabsTrigger value="expense" className="text-red-600">Despesa</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(9,34,32,.08)' }}>
+          <TabsTrigger value="income" style={{ color: 'var(--support-success-600)' }}>Receita</TabsTrigger>
+          <TabsTrigger value="expense" style={{ color: 'var(--support-danger-600)' }}>Despesa</TabsTrigger>
         </TabsList>
         
         <TabsContent value="income">
@@ -419,13 +419,14 @@ const UnifiedTransactionForm = () => {
                 />
               </div>
             </div>
-            <Button
+            <button
               type="submit"
-              className="w-full bg-green-600 hover:bg-green-700"
+              className="btn-primary w-full"
               disabled={isAddingIncome || isIncomeSubmitting || bankAccounts.length === 0}
+              style={{ background: 'var(--support-success)', color: 'var(--brand-ink)', border: '1px solid var(--support-success-600)' }}
             >
               {(isAddingIncome || isIncomeSubmitting) ? "Adicionando..." : "Adicionar Receita"}
-            </Button>
+            </button>
           </form>
         </TabsContent>
         
@@ -508,13 +509,14 @@ const UnifiedTransactionForm = () => {
               </div>
             </div>
             
-            <Button
+            <button
               type="submit"
-              className="w-full bg-red-600 hover:bg-red-700"
+              className="btn-primary w-full"
               disabled={isExpenseDisabled()}
+              style={{ background: 'var(--support-danger)', color: 'var(--brand-ivory)', border: '1px solid var(--support-danger-600)' }}
             >
               {(isAddingExpense || isExpenseSubmitting || isCreating) ? "Adicionando..." : "Adicionar Despesa"}
-            </Button>
+            </button>
           </form>
         </TabsContent>
       </Tabs>

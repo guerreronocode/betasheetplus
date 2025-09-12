@@ -78,21 +78,21 @@ const BankAccountManager = () => {
   };
 
   return (
-    <Card className="p-6">
+    <div className="card">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Building2 className="w-6 h-6 text-blue-600" />
+          <div className="p-2 rounded-lg" style={{ background: 'var(--support-info-100)' }}>
+            <Building2 className="w-6 h-6" style={{ color: 'var(--support-info-600)' }} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Contas Bancárias</h3>
-            <p className="text-sm text-gray-600">Gerencie suas contas e saldos</p>
+            <h3 className="text-lg font-semibold" style={{ fontFamily: 'var(--font-display)', color: 'var(--brand-ink)' }}>Contas Bancárias</h3>
+            <p className="text-sm" style={{ color: 'var(--brand-ink)', opacity: 0.7, fontFamily: 'var(--font-sans)' }}>Gerencie suas contas e saldos</p>
           </div>
         </div>
-        <Button onClick={() => setIsAddingNew(!isAddingNew)}>
+        <button className="btn-primary" onClick={() => setIsAddingNew(!isAddingNew)}>
           <Plus className="w-4 h-4 mr-2" />
           Nova Conta
-        </Button>
+        </button>
       </div>
 
       {isAddingNew && (
@@ -106,7 +106,7 @@ const BankAccountManager = () => {
       )}
 
       <BankAccountList bankAccounts={bankAccounts} />
-    </Card>
+    </div>
   );
 };
 

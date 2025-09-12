@@ -31,7 +31,7 @@ const Dashboard = () => {
   const { yieldRates } = useFinancialData();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <Header />
       
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -40,16 +40,16 @@ const Dashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="flex flex-wrap gap-1 h-auto p-1 bg-muted">
-            <TabsTrigger value="overview" className="flex-shrink-0">Visão Geral</TabsTrigger>
-            <TabsTrigger value="planning" className="flex-shrink-0">Planejamento</TabsTrigger>
-            <TabsTrigger value="accounts" className="flex-shrink-0">Contas</TabsTrigger>
-            <TabsTrigger value="transactions" className="flex-shrink-0">Transações</TabsTrigger>
-            <TabsTrigger value="investments" className="flex-shrink-0">Investimentos</TabsTrigger>
-            <TabsTrigger value="goals" className="flex-shrink-0">Metas</TabsTrigger>
-            <TabsTrigger value="patrimony" className="flex-shrink-0">Patrimônio</TabsTrigger>
-            <TabsTrigger value="credit-cards" className="flex-shrink-0">Cartões</TabsTrigger>
-            <TabsTrigger value="debts" className="flex-shrink-0">Dívidas</TabsTrigger>
+          <TabsList className="flex flex-wrap gap-1 h-auto p-1" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(9,34,32,.08)' }}>
+            <TabsTrigger value="overview" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Visão Geral</TabsTrigger>
+            <TabsTrigger value="planning" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Planejamento</TabsTrigger>
+            <TabsTrigger value="accounts" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Contas</TabsTrigger>
+            <TabsTrigger value="transactions" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Transações</TabsTrigger>
+            <TabsTrigger value="investments" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Investimentos</TabsTrigger>
+            <TabsTrigger value="goals" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Metas</TabsTrigger>
+            <TabsTrigger value="patrimony" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Patrimônio</TabsTrigger>
+            <TabsTrigger value="credit-cards" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Cartões</TabsTrigger>
+            <TabsTrigger value="debts" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Dívidas</TabsTrigger>
             
           </TabsList>
 
@@ -86,8 +86,8 @@ const Dashboard = () => {
               </div>
               
               {/* Upload de Extrato Bancário */}
-              <div className="bg-white rounded-lg border p-6">
-                <h2 className="text-xl font-semibold mb-4">Extrato Bancário</h2>
+              <div className="card">
+                <h2 className="text-xl font-semibold mb-4" style={{ fontFamily: 'var(--font-display)', color: 'var(--brand-ink)' }}>Extrato Bancário</h2>
                 <Tabs defaultValue="upload" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
                     <TabsTrigger value="upload">Upload de Extrato</TabsTrigger>

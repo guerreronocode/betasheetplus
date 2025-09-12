@@ -78,15 +78,15 @@ const FinancialScoreCard = () => {
   };
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-indigo-50 to-blue-50 border-indigo-200">
+    <div className="card" style={{ background: 'linear-gradient(135deg, var(--brand-ivory), var(--brand-primary))', opacity: 0.9 }}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-indigo-100 rounded-lg">
-            <Shield className="w-6 h-6 text-indigo-600" />
+          <div className="p-2 rounded-lg" style={{ background: 'var(--support-info-100)' }}>
+            <Shield className="w-6 h-6" style={{ color: 'var(--support-info-600)' }} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Score de Saúde Financeira</h3>
-            <p className="text-sm text-gray-600">{getLevelDescription(scoreDetails.level)}</p>
+            <h3 className="text-lg font-semibold" style={{ fontFamily: 'var(--font-display)', color: 'var(--brand-ink)' }}>Score de Saúde Financeira</h3>
+            <p className="text-sm" style={{ color: 'var(--brand-ink)', opacity: 0.7, fontFamily: 'var(--font-sans)' }}>{getLevelDescription(scoreDetails.level)}</p>
           </div>
         </div>
         
@@ -101,14 +101,14 @@ const FinancialScoreCard = () => {
       </div>
 
       <div className="text-center mb-6">
-        <div className={`text-4xl font-bold mb-2 ${getScoreColor(scoreDetails.score)}`}>
+        <div className="text-4xl font-bold mb-2 fn-number" style={{ color: 'var(--brand-ink)', fontFamily: 'var(--font-display)' }}>
           {scoreDetails.score}/100
         </div>
         
-        <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+        <div className="w-full rounded-full h-4 mb-4" style={{ background: 'rgba(9,34,32,.15)' }}>
           <div 
-            className={`h-4 rounded-full transition-all duration-1000 ${getScoreBgColor(scoreDetails.score)}`}
-            style={{ width: `${scoreDetails.score}%` }}
+            className="h-4 rounded-full transition-all duration-1000"
+            style={{ width: `${scoreDetails.score}%`, background: 'var(--brand-primary)' }}
           ></div>
         </div>
       </div>
@@ -163,7 +163,7 @@ const FinancialScoreCard = () => {
           </div>
         </div>
       )}
-    </Card>
+    </div>
   );
 };
 

@@ -48,18 +48,18 @@ const TransactionsList = () => {
   };
 
   return (
-    <Card className="p-6">
+    <Card className="p-6" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(9,34,32,.08)', boxShadow: 'var(--shadow-1)' }}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Calendar className="w-6 h-6 text-blue-600" />
+          <div className="p-2 rounded-lg" style={{ background: 'var(--support-info-100)' }}>
+            <Calendar className="w-6 h-6" style={{ color: 'var(--support-info-600)' }} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Transações Recentes</h3>
-            <p className="text-sm text-gray-600">Últimas entradas e saídas</p>
+            <h3 className="text-lg font-semibold" style={{ fontFamily: 'var(--font-display)', color: 'var(--brand-ink)' }}>Transações Recentes</h3>
+            <p className="text-sm" style={{ color: 'var(--brand-ink)', opacity: 0.7, fontFamily: 'var(--font-sans)' }}>Últimas entradas e saídas</p>
           </div>
         </div>
-        <a href="/transactions-history" className="text-blue-600 hover:underline font-medium">
+        <a href="/transactions-history" className="font-medium hover:underline" style={{ color: 'var(--brand-primary)', fontFamily: 'var(--font-sans)' }}>
           Ver todas
         </a>
       </div>
@@ -76,16 +76,16 @@ const TransactionsList = () => {
               key={`${transaction.type}-${transaction.id}`}
               className={`flex items-center justify-between p-4 rounded-lg border transition-all duration-200 animate-slide-up ${
                 transaction.type === 'income'
-                  ? 'border-green-200 bg-green-50 hover:border-green-300'
-                  : 'border-red-200 bg-red-50 hover:border-red-300'
+                  ? 'is-success'
+                  : 'is-error'
               }`}
-              style={{ animationDelay: `${index * 50}ms` }}
+              style={{ animationDelay: `${index * 50}ms`, borderRadius: 'var(--radius-lg)' }}
             >
               <div className="flex items-center space-x-3">
                 <div className={`p-2 rounded-lg ${
                   transaction.type === 'income'
-                    ? 'bg-green-200 text-green-700'
-                    : 'bg-red-200 text-red-700'
+                    ? 'is-success'
+                    : 'is-error'
                 }`}>
                   {transaction.type === 'income' ? (
                     <ArrowUpCircle className="w-5 h-5" />
@@ -94,8 +94,8 @@ const TransactionsList = () => {
                   )}
                 </div>
                 <div>
-                  <p className="font-medium text-gray-900">{transaction.description}</p>
-                  <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <p className="font-medium" style={{ color: 'var(--brand-ink)', fontFamily: 'var(--font-sans)' }}>{transaction.description}</p>
+                  <div className="flex items-center space-x-2 text-sm" style={{ color: 'var(--brand-ink)', opacity: 0.7 }}>
                     <span>{transaction.category}</span>
                     <span>•</span>
                     <span>{formatDateForDisplay(transaction.date)}</span>
@@ -117,9 +117,10 @@ const TransactionsList = () => {
                 />
               </div>
               <div className="text-right">
-                <p className={`font-semibold ${
-                  transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                }`}>
+                <p className="font-semibold fn-money" style={{ 
+                  color: transaction.type === 'income' ? 'var(--support-success-600)' : 'var(--support-danger-600)',
+                  fontFamily: 'var(--font-mono)'
+                }}>
                   {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                 </p>
               </div>

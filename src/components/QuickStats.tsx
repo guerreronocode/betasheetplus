@@ -109,7 +109,7 @@ const QuickStats = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((stat, index) => (
-        <Card key={index} className="p-6 hover:shadow-lg transition-all duration-200 animate-slide-up border-l-4" style={{ animationDelay: `${index * 100}ms` }}>
+        <div key={index} className="card hover:shadow-lg transition-all duration-200 animate-slide-up" style={{ animationDelay: `${index * 100}ms`, borderLeft: `4px solid var(--brand-primary)` }}>
           <div className="flex items-center justify-between mb-4">
             <div className={`p-3 rounded-lg ${getColorClasses(stat.color)}`}>
               <stat.icon className="w-6 h-6" />
@@ -122,10 +122,10 @@ const QuickStats = () => {
           </div>
           
           <div>
-            <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
-            <p className="text-2xl font-bold text-gray-900">{formatCurrency(stat.value)}</p>
+            <p className="text-sm mb-1" style={{ color: 'var(--brand-ink)', opacity: 0.7, fontFamily: 'var(--font-sans)' }}>{stat.title}</p>
+            <p className="text-2xl font-bold fn-money" style={{ color: 'var(--brand-ink)' }}>{formatCurrency(stat.value)}</p>
           </div>
-        </Card>
+        </div>
       ))}
     </div>
   );
