@@ -34,40 +34,91 @@ const Dashboard = () => {
     <div className="min-h-screen" style={{ background: 'var(--bg)' }}>
       <Header />
       
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <UpdatedQuickStats />
+      {/* Hero Section */}
+      <section className="relative py-12">
+        {/* Formas orgânicas decorativas */}
+        <div className="organic-shape absolute top-8 left-16 w-32 h-32 animate-float" style={{ animationDelay: '1s' }}></div>
+        <div className="organic-shape absolute bottom-16 right-32 w-24 h-24 animate-float" style={{ animationDelay: '3s' }}></div>
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="card-hero animate-scale-in mb-8">
+            <UpdatedQuickStats />
+          </div>
         </div>
-
+      </section>
+      
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-12">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="flex flex-wrap gap-1 h-auto p-1" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(42,74,71,.06)' }}>
-            <TabsTrigger value="overview" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Visão Geral</TabsTrigger>
-            <TabsTrigger value="planning" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Planejamento</TabsTrigger>
-            <TabsTrigger value="accounts" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Contas</TabsTrigger>
-            <TabsTrigger value="transactions" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Transações</TabsTrigger>
-            <TabsTrigger value="investments" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Investimentos</TabsTrigger>
-            <TabsTrigger value="goals" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Metas</TabsTrigger>
-            <TabsTrigger value="patrimony" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Patrimônio</TabsTrigger>
-            <TabsTrigger value="credit-cards" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Cartões</TabsTrigger>
-            <TabsTrigger value="debts" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Dívidas</TabsTrigger>
-            
-          </TabsList>
+          <div className="flex justify-center mb-8">
+            <TabsList className="flex flex-wrap gap-2 p-2 rounded-full" style={{ 
+              background: 'var(--surface)', 
+              border: '1px solid rgba(196,214,58,.1)',
+              boxShadow: 'var(--shadow-soft)'
+            }}>
+              <TabsTrigger value="overview" className="rounded-full px-6 py-3 font-semibold transition-all" style={{ 
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--text)'
+              }}>✨ Visão Geral</TabsTrigger>
+              <TabsTrigger value="planning" className="rounded-full px-6 py-3 font-semibold transition-all" style={{ 
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--text)'
+              }}>📊 Planejamento</TabsTrigger>
+              <TabsTrigger value="accounts" className="rounded-full px-6 py-3 font-semibold transition-all" style={{ 
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--text)'
+              }}>🏦 Contas</TabsTrigger>
+              <TabsTrigger value="transactions" className="rounded-full px-6 py-3 font-semibold transition-all" style={{ 
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--text)'
+              }}>💸 Transações</TabsTrigger>
+              <TabsTrigger value="investments" className="rounded-full px-6 py-3 font-semibold transition-all" style={{ 
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--text)'
+              }}>📈 Investimentos</TabsTrigger>
+              <TabsTrigger value="goals" className="rounded-full px-6 py-3 font-semibold transition-all" style={{ 
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--text)'
+              }}>🎯 Metas</TabsTrigger>
+              <TabsTrigger value="patrimony" className="rounded-full px-6 py-3 font-semibold transition-all" style={{ 
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--text)'
+              }}>💰 Patrimônio</TabsTrigger>
+              <TabsTrigger value="credit-cards" className="rounded-full px-6 py-3 font-semibold transition-all" style={{ 
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--text)'
+              }}>💳 Cartões</TabsTrigger>
+              <TabsTrigger value="debts" className="rounded-full px-6 py-3 font-semibold transition-all" style={{ 
+                fontFamily: 'var(--font-sans)',
+                color: 'var(--text)'
+              }}>⚖️ Dívidas</TabsTrigger>
+            </TabsList>
+          </div>
 
-          <TabsContent value="overview" className="space-y-6">
-            {/* Dois cards pequenos: % de renda gasta e projeção de saldo */}
-            <QuickFinancialCards />
+          <TabsContent value="overview" className="space-y-8 mt-8">
+            {/* Cards financeiros modernos */}
+            <div className="animate-scale-in">
+              <QuickFinancialCards />
+            </div>
             
-            {/* Score da saúde financeira */}
-            <DetailedFinancialScore />
+            {/* Score com design aprimorado */}
+            <div className="animate-scale-in" style={{ animationDelay: '0.1s' }}>
+              <DetailedFinancialScore />
+            </div>
             
-            {/* Evolução Financeira */}
-            <FinancialEvolutionPanel />
+            {/* Evolução com animação */}
+            <div className="animate-scale-in" style={{ animationDelay: '0.2s' }}>
+              <FinancialEvolutionPanel />
+            </div>
             
-            {/* Resumo das Metas */}
-            <GoalsSummary />
+            {/* Resumo das metas */}
+            <div className="animate-scale-in" style={{ animationDelay: '0.3s' }}>
+              <GoalsSummary />
+            </div>
             
-            {/* Resumo dos patrimônios */}
-            <PatrimonySummaryOverview />
+            {/* Patrimônio overview */}
+            <div className="animate-scale-in" style={{ animationDelay: '0.4s' }}>
+              <PatrimonySummaryOverview />
+            </div>
           </TabsContent>
 
           <TabsContent value="planning">
@@ -78,37 +129,50 @@ const Dashboard = () => {
             <BankAccountManager />
           </TabsContent>
 
-          <TabsContent value="transactions">
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <UnifiedTransactionForm />
-                <TransferBetweenAccounts />
+          <TabsContent value="transactions" className="mt-8">
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="animate-scale-in">
+                  <UnifiedTransactionForm />
+                </div>
+                <div className="animate-scale-in" style={{ animationDelay: '0.1s' }}>
+                  <TransferBetweenAccounts />
+                </div>
               </div>
               
-              {/* Upload de Extrato Bancário */}
-              <div className="card">
-                <h2 className="text-xl font-semibold mb-4" style={{ fontFamily: 'var(--font-display)', color: 'var(--brand-ink)' }}>Extrato Bancário</h2>
+              {/* Upload de Extrato com design moderno */}
+              <div className="card-hero animate-scale-in" style={{ animationDelay: '0.2s' }}>
+                <h2 className="text-2xl font-bold mb-6" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
+                  💾 Extrato Bancário
+                </h2>
                 <Tabs defaultValue="upload" className="w-full">
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="upload">Upload de Extrato</TabsTrigger>
-                    <TabsTrigger value="history">Histórico de Uploads</TabsTrigger>
+                  <TabsList className="grid w-full grid-cols-2 rounded-full p-1" style={{ background: 'rgba(196,214,58,.1)' }}>
+                    <TabsTrigger value="upload" className="rounded-full">Upload de Extrato</TabsTrigger>
+                    <TabsTrigger value="history" className="rounded-full">Histórico de Uploads</TabsTrigger>
                   </TabsList>
                   
-                  <TabsContent value="upload" className="mt-4">
+                  <TabsContent value="upload" className="mt-6">
                     <BankStatementUpload />
                   </TabsContent>
                   
-                  <TabsContent value="history" className="mt-4">
+                  <TabsContent value="history" className="mt-6">
                     <BankStatementHistory />
                   </TabsContent>
                 </Tabs>
               </div>
               
-              {/* Ranking completo de categorias */}
-              <CategoryRanking />
+              {/* Ranking e transações com espaçamento */}
+              <div className="animate-scale-in" style={{ animationDelay: '0.3s' }}>
+                <CategoryRanking />
+              </div>
               
-              <RecurringTransactions />
-              <TransactionsList />
+              <div className="animate-scale-in" style={{ animationDelay: '0.4s' }}>
+                <RecurringTransactions />
+              </div>
+              
+              <div className="animate-scale-in" style={{ animationDelay: '0.5s' }}>
+                <TransactionsList />
+              </div>
             </div>
           </TabsContent>
 

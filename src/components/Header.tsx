@@ -49,15 +49,32 @@ const Header = () => {
   };
 
   return (
-    <header style={{ background: 'var(--brand-ivory)', borderBottom: '1px solid rgba(42,74,71,.06)', boxShadow: 'var(--shadow-1)' }}>
+    <header className="relative" style={{ 
+      background: 'linear-gradient(135deg, var(--brand-cream), rgba(196,214,58,.08))', 
+      borderBottom: '1px solid rgba(196,214,58,.15)', 
+      boxShadow: 'var(--shadow-soft)' 
+    }}>
+      {/* Formas orgânicas decorativas */}
+      <div className="organic-shape absolute top-4 right-16 w-24 h-24 animate-float" style={{ animationDelay: '0s' }}></div>
+      <div className="organic-shape absolute top-8 right-80 w-16 h-16 animate-float" style={{ animationDelay: '2s' }}></div>
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-4">
-          <div>
-            <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--brand-primary)' }}>
+        <div className="flex justify-between items-center py-6">
+          <div className="animate-scale-in">
+            <h1 className="text-3xl font-bold mb-1" style={{ 
+              fontFamily: 'var(--font-display)', 
+              background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              color: 'transparent'
+            }}>
               Futuro no Bolso
             </h1>
-            <p className="text-sm flex items-center mt-1" style={{ color: 'var(--brand-ink)', opacity: 0.7, fontFamily: 'var(--font-sans)' }}>
-              <Calendar className="w-4 h-4 mr-1" />
+            <p className="text-sm font-medium" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
+              Seu futuro sob seu controle
+            </p>
+            <p className="text-sm flex items-center mt-2" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
+              <Calendar className="w-4 h-4 mr-2 opacity-70" />
               {currentDate}
             </p>
           </div>
@@ -66,31 +83,30 @@ const Header = () => {
 
             {user && (
               <div className="flex items-center space-x-3">
-                <Avatar className="h-8 w-8">
+                <Avatar className="h-10 w-10 ring-2 ring-white shadow-lg">
                   <AvatarImage src={user.user_metadata?.avatar_url} />
-                  <AvatarFallback className="text-sm" style={{ background: 'var(--brand-primary)', color: 'var(--brand-ink)' }}>
+                  <AvatarFallback className="text-sm font-semibold" style={{ 
+                    background: 'linear-gradient(135deg, var(--brand-primary), var(--brand-secondary))', 
+                    color: 'var(--brand-ink)' 
+                  }}>
                     {getUserInitials()}
                   </AvatarFallback>
                 </Avatar>
                 
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium" style={{ color: 'var(--brand-ink)', fontFamily: 'var(--font-sans)' }}>
+                  <p className="text-sm font-semibold" style={{ color: 'var(--text)', fontFamily: 'var(--font-sans)' }}>
                     {getUserDisplayName()}
                   </p>
-                  <p className="text-xs" style={{ color: 'var(--brand-ink)', opacity: 0.6 }}>
+                  <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>
                     {user.email}
                   </p>
                 </div>
                 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-gray-500 hover:text-gray-700"
-                    >
-                      <Settings className="w-4 h-4" />
-                    </Button>
+                    <button className="p-2 rounded-full transition-all duration-200 hover:bg-white/50 hover:shadow-md" style={{ color: 'var(--text-muted)' }}>
+                      <Settings className="w-5 h-5" />
+                    </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuItem onClick={() => setIsResetDialogOpen(true)} className="text-destructive">

@@ -109,21 +109,32 @@ const QuickStats = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((stat, index) => (
-        <div key={index} className="card hover:shadow-lg transition-all duration-200 animate-slide-up" style={{ animationDelay: `${index * 100}ms`, borderLeft: `4px solid rgba(232,241,87,.4)` }}>
+        <div key={index} className="card animate-scale-in" style={{ 
+          animationDelay: `${index * 100}ms`, 
+          borderLeft: `4px solid var(--brand-primary)`,
+          position: 'relative'
+        }}>
+          {/* Forma orgânica decorativa */}
+          <div className="organic-shape absolute -top-2 -right-2 w-8 h-8 opacity-30"></div>
+          
           <div className="flex items-center justify-between mb-4">
-            <div className={`p-3 rounded-lg ${getColorClasses(stat.color)}`}>
+            <div className={`p-3 rounded-2xl shadow-sm ${getColorClasses(stat.color)}`}>
               <stat.icon className="w-6 h-6" />
             </div>
-            <span className={`text-sm font-medium px-2 py-1 rounded ${
-              stat.positive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+            <span className={`text-sm font-bold px-3 py-1 rounded-full ${
+              stat.positive ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
             }`}>
               {stat.change}
             </span>
           </div>
           
           <div>
-            <p className="text-sm mb-1" style={{ color: 'var(--brand-ink)', opacity: 0.7, fontFamily: 'var(--font-sans)' }}>{stat.title}</p>
-            <p className="text-2xl font-bold fn-money" style={{ color: 'var(--brand-ink)' }}>{formatCurrency(stat.value)}</p>
+            <p className="text-sm mb-2 font-medium" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
+              {stat.title}
+            </p>
+            <p className="text-2xl font-bold fn-money" style={{ color: 'var(--text)', fontFamily: 'var(--font-mono)' }}>
+              {formatCurrency(stat.value)}
+            </p>
           </div>
         </div>
       ))}

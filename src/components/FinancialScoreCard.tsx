@@ -78,38 +78,79 @@ const FinancialScoreCard = () => {
   };
 
   return (
-    <div className="card" style={{ background: 'linear-gradient(135deg, var(--brand-ivory), rgba(232,241,87,.3))' }}>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg" style={{ background: 'var(--support-info-100)' }}>
-            <Shield className="w-6 h-6" style={{ color: 'var(--support-info-600)' }} />
+    <div className="card-hero animate-scale-in relative overflow-hidden" style={{ position: 'relative' }}>
+      {/* Formas orgânicas decorativas */}
+      <div className="organic-shape absolute top-4 right-8 w-20 h-20 opacity-20 animate-float"></div>
+      <div className="organic-shape absolute bottom-6 left-12 w-16 h-16 opacity-15 animate-float" style={{ animationDelay: '2s' }}></div>
+      
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex items-center space-x-4">
+          <div className="p-3 rounded-2xl shadow-lg" style={{ 
+            background: 'linear-gradient(135deg, var(--support-info-100), rgba(74,144,226,.1))',
+            border: '1px solid var(--support-info-200)'
+          }}>
+            <Shield className="w-8 h-8" style={{ color: 'var(--support-info)' }} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold" style={{ fontFamily: 'var(--font-display)', color: 'var(--brand-ink)' }}>Score de Saúde Financeira</h3>
-            <p className="text-sm" style={{ color: 'var(--brand-ink)', opacity: 0.7, fontFamily: 'var(--font-sans)' }}>{getLevelDescription(scoreDetails.level)}</p>
+            <h3 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
+              🎯 Score de Saúde Financeira
+            </h3>
+            <p className="text-sm font-medium mt-1" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
+              {getLevelDescription(scoreDetails.level)}
+            </p>
           </div>
         </div>
         
-        <Badge variant="outline" className={`${
-          scoreDetails.score >= 81 ? 'bg-green-100 text-green-800 border-green-200' :
-          scoreDetails.score >= 61 ? 'bg-blue-100 text-blue-800 border-blue-200' :
-          scoreDetails.score >= 41 ? 'bg-yellow-100 text-yellow-800 border-yellow-200' :
-          'bg-red-100 text-red-800 border-red-200'
-        }`}>
+        <div className="px-4 py-2 rounded-full shadow-sm" style={{
+          background: scoreDetails.score >= 81 ? 'linear-gradient(135deg, var(--support-success-100), var(--support-success-200))' :
+          scoreDetails.score >= 61 ? 'linear-gradient(135deg, var(--support-info-100), var(--support-info-200))' :
+          scoreDetails.score >= 41 ? 'linear-gradient(135deg, var(--support-warning-100), var(--support-warning-200))' :
+          'linear-gradient(135deg, var(--support-danger-100), var(--support-danger-200))',
+          color: scoreDetails.score >= 81 ? 'var(--support-success)' :
+          scoreDetails.score >= 61 ? 'var(--support-info)' :
+          scoreDetails.score >= 41 ? 'var(--support-warning)' :
+          'var(--support-danger)',
+          border: '1px solid ' + (scoreDetails.score >= 81 ? 'var(--support-success-200)' :
+          scoreDetails.score >= 61 ? 'var(--support-info-200)' :
+          scoreDetails.score >= 41 ? 'var(--support-warning-200)' :
+          'var(--support-danger-200)'),
+          fontWeight: 'bold',
+          fontSize: '0.9rem'
+        }}>
           {getScoreLabel(scoreDetails.score)}
-        </Badge>
+        </div>
       </div>
 
-      <div className="text-center mb-6">
-        <div className="text-4xl font-bold mb-2 fn-number" style={{ color: 'var(--brand-ink)', fontFamily: 'var(--font-display)' }}>
-          {scoreDetails.score}/100
+      <div className="text-center mb-8">
+        <div className="text-5xl font-black mb-4 fn-number relative" style={{ 
+          color: 'var(--text)', 
+          fontFamily: 'var(--font-display)',
+          textShadow: '0 2px 4px rgba(42,74,71,.1)'
+        }}>
+          {scoreDetails.score}
+          <span className="text-2xl opacity-60">/100</span>
         </div>
         
-        <div className="w-full rounded-full h-4 mb-4" style={{ background: 'rgba(42,74,71,.1)' }}>
+        <div className="w-full rounded-full h-6 mb-6 overflow-hidden" style={{ 
+          background: 'rgba(42,74,71,.08)',
+          boxShadow: 'inset 0 2px 4px rgba(42,74,71,.1)' 
+        }}>
           <div 
-            className="h-4 rounded-full transition-all duration-1000"
-            style={{ width: `${scoreDetails.score}%`, background: 'linear-gradient(90deg, var(--brand-primary), rgba(232,241,87,.7))' }}
-          ></div>
+            className="h-full rounded-full transition-all duration-1000 relative overflow-hidden"
+            style={{ 
+              width: `${scoreDetails.score}%`, 
+              background: `linear-gradient(90deg, 
+                ${scoreDetails.score >= 81 ? 'var(--support-success)' :
+                scoreDetails.score >= 61 ? 'var(--support-info)' :
+                scoreDetails.score >= 41 ? 'var(--support-warning)' :
+                'var(--support-danger)'}, 
+                var(--brand-primary))`,
+              boxShadow: '0 2px 6px rgba(42,74,71,.2)'
+            }}
+          >
+            {/* Brilho na barra */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white to-transparent opacity-30"></div>
+          </div>
         </div>
       </div>
 

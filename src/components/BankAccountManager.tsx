@@ -78,15 +78,22 @@ const BankAccountManager = () => {
   };
 
   return (
-    <div className="card">
+    <div className="card-hero animate-scale-in relative overflow-hidden">
+      {/* Forma orgânica decorativa */}
+      <div className="organic-shape absolute top-4 right-4 w-12 h-12 opacity-20"></div>
+      
       <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-lg" style={{ background: 'var(--support-info-100)' }}>
-            <Building2 className="w-6 h-6" style={{ color: 'var(--support-info-600)' }} />
+        <div className="flex items-center space-x-4">
+          <div className="p-3 rounded-2xl shadow-sm" style={{ background: 'var(--support-info-100)' }}>
+            <Building2 className="w-7 h-7" style={{ color: 'var(--support-info)' }} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold" style={{ fontFamily: 'var(--font-display)', color: 'var(--brand-ink)' }}>Contas Bancárias</h3>
-            <p className="text-sm" style={{ color: 'var(--brand-ink)', opacity: 0.7, fontFamily: 'var(--font-sans)' }}>Gerencie suas contas e saldos</p>
+            <h3 className="text-xl font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--text)' }}>
+              🏦 Contas Bancárias
+            </h3>
+            <p className="text-sm font-medium" style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-sans)' }}>
+              Gerencie suas contas e saldos
+            </p>
           </div>
         </div>
         <button className="btn-primary" onClick={() => setIsAddingNew(!isAddingNew)}>

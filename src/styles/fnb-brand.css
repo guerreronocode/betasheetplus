@@ -1,96 +1,175 @@
 :root{
-  /* Paleta institucional - tons mais leves */
-  --brand-primary:#E8F157; --brand-ink:#2A4A47; --brand-ivory:#F9F8F2;
+  /* Paleta institucional inspirada na referência */
+  --brand-primary: #C4D63A; --brand-secondary: #E8F157; --brand-ink: #2A4A47; --brand-ivory: #F5F3E1;
+  --brand-cream: #F9F6F0; --brand-sage: #8FA68E;
 
-  /* Apoio (UI) - tons mais suaves */
-  --support-danger:#F2A1A1; --support-warning:#F2C18A; --support-info:#8FB4E8;
-  --support-purple:#B8A1F2; --support-success:#A1E8A6;
+  /* Apoio (UI) - tons mais modernos */
+  --support-danger: #E85A4F; --support-warning: #F4A261; --support-info: #4A90E2;
+  --support-purple: #9B59B6; --support-success: #27AE60;
 
-  /* Tons médios mais claros */
-  --support-danger-600:#E87575; --support-warning-600:#E8A65F; --support-info-600:#7BA3D4;
-  --support-purple-700:#9B7BC7; --support-success-600:#7DD482;
+  /* Tons para profundidade */
+  --support-danger-600: #C44536; --support-warning-600: #E76F51; --support-info-600: #2980B9;
+  --support-purple-700: #8E44AD; --support-success-600: #229954;
 
-  /* Tons claros mais suaves */
-  --support-danger-100:#F9E6E6; --support-warning-100:#F9F0E6; --support-info-100:#EBF2F9;
-  --support-purple-100:#F0EBF9; --support-success-100:#E6F9E7;
+  /* Tons claros para superfícies */
+  --support-danger-100: #FCE4EC; --support-warning-100: #FFF3E0; --support-info-100: #E3F2FD;
+  --support-purple-100: #F3E5F5; --support-success-100: #E8F5E8;
 
-  /* Tons médio-claros mais leves */
-  --support-danger-200:#F5CCCC; --support-warning-200:#F5DDCC; --support-info-200:#D6E5F5;
-  --support-purple-200:#E0D6F5; --support-success-200:#CCF5CE;
+  /* Tons médios para hover */
+  --support-danger-200: #FFCDD2; --support-warning-200: #FFE0B2; --support-info-200: #BBDEFB;
+  --support-purple-200: #E1BEE7; --support-success-200: #C8E6C9;
 
-  /* Shapes / elevação - sombras mais suaves */
-  --radius-lg:16px; --radius-xl:20px;
-  --shadow-1:0 2px 8px rgba(42,74,71,.03);
-  --shadow-2:0 8px 24px rgba(42,74,71,.05);
+  /* Formas e elevação orgânicas */
+  --radius-sm: 8px; --radius-md: 12px; --radius-lg: 20px; --radius-xl: 32px; --radius-organic: 24px;
+  --shadow-soft: 0 4px 20px rgba(42,74,71,.08);
+  --shadow-medium: 0 8px 32px rgba(42,74,71,.12);
+  --shadow-strong: 0 16px 48px rgba(42,74,71,.16);
 
-  /* Tipografia */
-  --font-display:"Host Grotesk",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
-  --font-sans:"Roboto",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
-  --font-mono:"Roboto Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  /* Tipografia expressiva */
+  --font-display: "Host Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-sans: "Roboto", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --font-mono: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
-  /* Base - fundo mais claro, texto mais suave */
-  --bg:#FDFCF8; --text:#2A4A47;
+  /* Base com mais contraste */
+  --bg: #FDFCF8; --surface: #FFFFFF; --text: #2A4A47; --text-muted: #6B7280;
 }
 
-/* Dark mode automático por preferência do sistema - tons mais suaves */
+/* Dark mode mais sofisticado */
 @media (prefers-color-scheme: dark){
-  :root{ --bg:#1A2F2C; --surface:#243532; --text:#F9F8F2; --primary:#E8F157; }
+  :root{ 
+    --bg: #1A2F2C; --surface: #243532; --text: #F9F8F2; --text-muted: #9CA3AF;
+    --brand-primary: #D4E157; --brand-secondary: #F4FF81;
+  }
 }
 
-/* Resets base do tema */
-html,body{
-  background:var(--bg); color:var(--text); font-family:var(--font-sans);
-  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+/* Resets modernos */
+html, body{
+  background: var(--bg); color: var(--text); font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
 }
-h1,h2{ font-family:var(--font-display); font-weight:700; }
-h3,h4,h5,h6{ font-family:var(--font-sans); font-weight:600; }
 
-/* Números e dinheiro com alinhamento de dígitos */
-.fn-money,.fn-number{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
+h1, h2{ 
+  font-family: var(--font-display); font-weight: 700; 
+  letter-spacing: -0.025em; line-height: 1.2;
+}
+h3, h4, h5, h6{ 
+  font-family: var(--font-sans); font-weight: 600; 
+  letter-spacing: -0.015em; line-height: 1.3;
+}
 
-/* Botões - versões mais leves */
+/* Números com estilo */
+.fn-money, .fn-number{ 
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums; 
+  font-weight: 500; letter-spacing: -0.01em;
+}
+
+/* Botões orgânicos modernos */
 .btn-primary{
-  display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
-  padding:.75rem 1rem;border-radius:var(--radius-lg);
-  background:var(--brand-primary);color:var(--brand-ink);border:1px solid rgba(42,74,71,.1);
-  box-shadow:var(--shadow-1);cursor:pointer;transition:filter .15s, transform .05s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.875rem 1.5rem; border-radius: var(--radius-organic);
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+  color: var(--brand-ink); border: none; font-weight: 600;
+  box-shadow: var(--shadow-soft); cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative; overflow: hidden;
 }
-.btn-primary:hover{ filter:brightness(0.93); }
-.btn-primary:active{ transform:translateY(1px); }
+.btn-primary:hover{ 
+  transform: translateY(-2px); box-shadow: var(--shadow-medium);
+  background: linear-gradient(135deg, var(--brand-secondary), var(--brand-primary));
+}
+.btn-primary:active{ transform: translateY(0px); }
 
 .btn-secondary{
-  display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
-  padding:.75rem 1rem;border-radius:var(--radius-lg);
-  background:transparent;color:var(--brand-ink);border:1px solid rgba(42,74,71,.3);
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  padding: 0.875rem 1.5rem; border-radius: var(--radius-organic);
+  background: var(--surface); color: var(--brand-ink); 
+  border: 2px solid var(--brand-primary); font-weight: 600;
+  box-shadow: var(--shadow-soft); cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-secondary:hover{ 
+  background: var(--brand-primary); transform: translateY(-1px);
 }
 
-/* Card / Container - mais leve */
+/* Cards com profundidade */
 .card{
-  background:var(--brand-ivory);
-  border:1px solid rgba(42,74,71,.06);
-  border-radius:var(--radius-lg);
-  box-shadow:var(--shadow-1);
-  padding:1rem;
+  background: var(--surface); border: 1px solid rgba(42,74,71,.06);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-soft);
+  padding: 1.5rem; position: relative; overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card:hover{ 
+  transform: translateY(-4px); box-shadow: var(--shadow-medium);
 }
 
-/* Inputs - bordas mais suaves */
+.card-hero{
+  background: linear-gradient(135deg, var(--brand-cream), rgba(196,214,58,.1));
+  border: 1px solid rgba(196,214,58,.2);
+  border-radius: var(--radius-xl); box-shadow: var(--shadow-medium);
+  padding: 2rem; position: relative;
+}
+
+/* Formas orgânicas decorativas */
+.organic-shape{
+  position: absolute; border-radius: 50%;
+  background: linear-gradient(135deg, rgba(196,214,58,.1), rgba(232,241,87,.15));
+  filter: blur(1px); z-index: -1;
+}
+
+/* Inputs modernos */
 .input, input, select, textarea{
-  border-radius:var(--radius-lg);
-  border:1px solid rgba(42,74,71,.1);
-  padding:.625rem .75rem;background:#fff;color:var(--brand-ink);outline:none;
+  border-radius: var(--radius-md); border: 2px solid rgba(42,74,71,.1);
+  padding: 0.75rem 1rem; background: var(--surface); color: var(--text);
+  font-size: 0.95rem; font-weight: 500; outline: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .input:focus, input:focus, select:focus, textarea:focus{
-  outline:2px solid rgba(42,74,71,.4); outline-offset:2px; box-shadow:0 0 0 2px rgba(42,74,71,.1);
+  border-color: var(--brand-primary); box-shadow: 0 0 0 3px rgba(196,214,58,.1);
+  transform: translateY(-1px);
 }
 
-/* Feedback utilitário */
-.is-success{ background:var(--support-success-100); color:var(--brand-ink); }
-.is-error{   background:var(--support-danger-100);  color:var(--brand-ink); }
-.is-warning{ background:var(--support-warning-100); color:var(--brand-ink); }
-.is-info{    background:var(--support-info-100);    color:var(--brand-ink); }
+/* Estados visuais aprimorados */
+.is-success{ 
+  background: linear-gradient(135deg, var(--support-success-100), rgba(39,174,96,.05));
+  border: 1px solid var(--support-success-200); color: var(--support-success-600);
+}
+.is-error{ 
+  background: linear-gradient(135deg, var(--support-danger-100), rgba(232,90,79,.05));
+  border: 1px solid var(--support-danger-200); color: var(--support-danger-600);
+}
+.is-warning{ 
+  background: linear-gradient(135deg, var(--support-warning-100), rgba(244,162,97,.05));
+  border: 1px solid var(--support-warning-200); color: var(--support-warning-600);
+}
+.is-info{ 
+  background: linear-gradient(135deg, var(--support-info-100), rgba(74,144,226,.05));
+  border: 1px solid var(--support-info-200); color: var(--support-info-600);
+}
 
-/* Tabela financeira - cores mais suaves */
-.table-finance td,.table-finance th{ padding:.5rem .75rem; }
-.table-finance .neg{ color:var(--support-danger-600); font-family:var(--font-mono); }
-.table-finance .pos{ color:var(--support-success-600); font-family:var(--font-mono); }
-.table-finance .val{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; text-align:right; }
+/* Tabela financeira moderna */
+.table-finance{ 
+  border-radius: var(--radius-lg); overflow: hidden; 
+  background: var(--surface); box-shadow: var(--shadow-soft);
+}
+.table-finance td, .table-finance th{ padding: 1rem 1.25rem; }
+.table-finance .neg{ color: var(--support-danger); font-family: var(--font-mono); font-weight: 600; }
+.table-finance .pos{ color: var(--support-success); font-family: var(--font-mono); font-weight: 600; }
+.table-finance .val{ font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; font-weight: 500; }
+
+/* Animações fluidas */
+.animate-float{
+  animation: float 6s ease-in-out infinite;
+}
+@keyframes float{
+  0%, 100%{ transform: translateY(0px); }
+  50%{ transform: translateY(-10px); }
+}
+
+.animate-scale-in{
+  animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes scaleIn{
+  0%{ transform: scale(0.9); opacity: 0; }
+  100%{ transform: scale(1); opacity: 1; }
+}
