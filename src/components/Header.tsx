@@ -49,7 +49,7 @@ const Header = () => {
   };
 
   return (
-    <header style={{ background: 'var(--brand-ivory)', borderBottom: '1px solid rgba(9,34,32,.08)', boxShadow: 'var(--shadow-1)' }}>
+    <header style={{ background: 'var(--brand-ivory)', borderBottom: '1px solid rgba(42,74,71,.06)', boxShadow: 'var(--shadow-1)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           <div>

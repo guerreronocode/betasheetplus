@@ -1,38 +1,40 @@
 :root{
-  /* Paleta institucional */
-  --brand-primary:#C8D641; --brand-ink:#092220; --brand-ivory:#F5F3E1;
+  /* Paleta institucional - tons mais leves */
+  --brand-primary:#E8F157; --brand-ink:#2A4A47; --brand-ivory:#F9F8F2;
 
-  /* Apoio (UI) */
-  --support-danger:#D93E3E; --support-warning:#D97C3E; --support-info:#3E7FD9;
-  --support-purple:#6A3ED9; --support-success:#3ED94E;
+  /* Apoio (UI) - tons mais suaves */
+  --support-danger:#F2A1A1; --support-warning:#F2C18A; --support-info:#8FB4E8;
+  --support-purple:#B8A1F2; --support-success:#A1E8A6;
 
-  /* Tons */
-  --support-danger-600:#A83030; --support-warning-600:#A6602F; --support-info-600:#3062A7;
-  --support-purple-700:#4E3B90; --support-success-600:#30A63B;
+  /* Tons médios mais claros */
+  --support-danger-600:#E87575; --support-warning-600:#E8A65F; --support-info-600:#7BA3D4;
+  --support-purple-700:#9B7BC7; --support-success-600:#7DD482;
 
-  --support-danger-100:#F2C3C3; --support-warning-100:#F2D6C3; --support-info-100:#C3D6F0;
-  --support-purple-100:#CEC1E0; --support-success-100:#C5E0C2;
+  /* Tons claros mais suaves */
+  --support-danger-100:#F9E6E6; --support-warning-100:#F9F0E6; --support-info-100:#EBF2F9;
+  --support-purple-100:#F0EBF9; --support-success-100:#E6F9E7;
 
-  --support-danger-200:#F29292; --support-warning-200:#F2B992; --support-info-200:#93B8E3;
-  --support-purple-200:#A08FC4; --support-success-200:#9FCC90;
+  /* Tons médio-claros mais leves */
+  --support-danger-200:#F5CCCC; --support-warning-200:#F5DDCC; --support-info-200:#D6E5F5;
+  --support-purple-200:#E0D6F5; --support-success-200:#CCF5CE;
 
-  /* Shapes / elevação */
+  /* Shapes / elevação - sombras mais suaves */
   --radius-lg:16px; --radius-xl:20px;
-  --shadow-1:0 2px 8px rgba(9,34,32,.06);
-  --shadow-2:0 8px 24px rgba(9,34,32,.08);
+  --shadow-1:0 2px 8px rgba(42,74,71,.03);
+  --shadow-2:0 8px 24px rgba(42,74,71,.05);
 
   /* Tipografia */
   --font-display:"Host Grotesk",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
   --font-sans:"Roboto",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
   --font-mono:"Roboto Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 
-  /* Base */
-  --bg:#F5F3E1; --text:#092220;
+  /* Base - fundo mais claro, texto mais suave */
+  --bg:#FDFCF8; --text:#2A4A47;
 }
 
-/* Dark mode automático por preferência do sistema */
+/* Dark mode automático por preferência do sistema - tons mais suaves */
 @media (prefers-color-scheme: dark){
-  :root{ --bg:#0E1A19; --surface:#122624; --text:#F5F3E1; --primary:#C8D641; }
+  :root{ --bg:#1A2F2C; --surface:#243532; --text:#F9F8F2; --primary:#E8F157; }
 }
 
 /* Resets base do tema */
@@ -46,39 +48,39 @@ h3,h4,h5,h6{ font-family:var(--font-sans); font-weight:600; }
 /* Números e dinheiro com alinhamento de dígitos */
 .fn-money,.fn-number{ font-family:var(--font-mono); font-variant-numeric:tabular-nums; }
 
-/* Botões */
+/* Botões - versões mais leves */
 .btn-primary{
   display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
   padding:.75rem 1rem;border-radius:var(--radius-lg);
-  background:var(--brand-primary);color:#092220;border:1px solid rgba(9,34,32,.08);
+  background:var(--brand-primary);color:var(--brand-ink);border:1px solid rgba(42,74,71,.1);
   box-shadow:var(--shadow-1);cursor:pointer;transition:filter .15s, transform .05s;
 }
-.btn-primary:hover{ filter:brightness(0.95); }
+.btn-primary:hover{ filter:brightness(0.93); }
 .btn-primary:active{ transform:translateY(1px); }
 
 .btn-secondary{
   display:inline-flex;align-items:center;justify-content:center;gap:.5rem;
   padding:.75rem 1rem;border-radius:var(--radius-lg);
-  background:transparent;color:var(--brand-ink);border:1px solid var(--brand-ink);
+  background:transparent;color:var(--brand-ink);border:1px solid rgba(42,74,71,.3);
 }
 
-/* Card / Container */
+/* Card / Container - mais leve */
 .card{
   background:var(--brand-ivory);
-  border:1px solid rgba(9,34,32,.08);
+  border:1px solid rgba(42,74,71,.06);
   border-radius:var(--radius-lg);
   box-shadow:var(--shadow-1);
   padding:1rem;
 }
 
-/* Inputs */
+/* Inputs - bordas mais suaves */
 .input, input, select, textarea{
   border-radius:var(--radius-lg);
-  border:1px solid rgba(9,34,32,.15);
+  border:1px solid rgba(42,74,71,.1);
   padding:.625rem .75rem;background:#fff;color:var(--brand-ink);outline:none;
 }
 .input:focus, input:focus, select:focus, textarea:focus{
-  outline:2px solid var(--brand-ink); outline-offset:2px; box-shadow:0 0 0 2px rgba(9,34,32,.15);
+  outline:2px solid rgba(42,74,71,.4); outline-offset:2px; box-shadow:0 0 0 2px rgba(42,74,71,.1);
 }
 
 /* Feedback utilitário */
@@ -87,7 +89,7 @@ h3,h4,h5,h6{ font-family:var(--font-sans); font-weight:600; }
 .is-warning{ background:var(--support-warning-100); color:var(--brand-ink); }
 .is-info{    background:var(--support-info-100);    color:var(--brand-ink); }
 
-/* Tabela financeira */
+/* Tabela financeira - cores mais suaves */
 .table-finance td,.table-finance th{ padding:.5rem .75rem; }
 .table-finance .neg{ color:var(--support-danger-600); font-family:var(--font-mono); }
 .table-finance .pos{ color:var(--support-success-600); font-family:var(--font-mono); }

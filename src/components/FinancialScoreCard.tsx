@@ -78,7 +78,7 @@ const FinancialScoreCard = () => {
   };
 
   return (
-    <div className="card" style={{ background: 'linear-gradient(135deg, var(--brand-ivory), var(--brand-primary))', opacity: 0.9 }}>
+    <div className="card" style={{ background: 'linear-gradient(135deg, var(--brand-ivory), rgba(232,241,87,.3))' }}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
           <div className="p-2 rounded-lg" style={{ background: 'var(--support-info-100)' }}>
@@ -105,10 +105,10 @@ const FinancialScoreCard = () => {
           {scoreDetails.score}/100
         </div>
         
-        <div className="w-full rounded-full h-4 mb-4" style={{ background: 'rgba(9,34,32,.15)' }}>
+        <div className="w-full rounded-full h-4 mb-4" style={{ background: 'rgba(42,74,71,.1)' }}>
           <div 
             className="h-4 rounded-full transition-all duration-1000"
-            style={{ width: `${scoreDetails.score}%`, background: 'var(--brand-primary)' }}
+            style={{ width: `${scoreDetails.score}%`, background: 'linear-gradient(90deg, var(--brand-primary), rgba(232,241,87,.7))' }}
           ></div>
         </div>
       </div>

@@ -224,7 +224,7 @@ const UnifiedTransactionForm = () => {
 
           {/* Resumo dos valores */}
           {installments > 0 && installmentValue > 0 && (
-              <div className="border rounded-lg p-4 space-y-2" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(9,34,32,.08)', borderRadius: 'var(--radius-lg)' }}>
+              <div className="border rounded-lg p-4 space-y-2" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(42,74,71,.06)', borderRadius: 'var(--radius-lg)' }}>
                 <h4 className="font-medium text-sm mb-2" style={{ fontFamily: 'var(--font-sans)', color: 'var(--brand-ink)' }}>Resumo da Compra</h4>
                 <div className="flex justify-between text-sm">
                   <span style={{ color: 'var(--brand-ink)', opacity: 0.7 }}>Valor da compra:</span>
@@ -315,7 +315,7 @@ const UnifiedTransactionForm = () => {
   };
 
   return (
-    <Card className="p-6" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(9,34,32,.08)', boxShadow: 'var(--shadow-1)' }}>
+    <Card className="p-6" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(42,74,71,.06)', boxShadow: 'var(--shadow-1)' }}>
       <div className="flex items-center space-x-3 mb-6">
         <div className="p-2 rounded-lg" style={{ background: 'var(--brand-primary)', opacity: 0.1 }}>
           <Plus className="w-6 h-6" style={{ color: 'var(--brand-primary)' }} />
@@ -327,7 +327,7 @@ const UnifiedTransactionForm = () => {
       </div>
 
       <Tabs defaultValue="income" className="w-full">
-        <TabsList className="grid w-full grid-cols-2" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(9,34,32,.08)' }}>
+        <TabsList className="grid w-full grid-cols-2" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(42,74,71,.06)' }}>
           <TabsTrigger value="income" style={{ color: 'var(--support-success-600)' }}>Receita</TabsTrigger>
           <TabsTrigger value="expense" style={{ color: 'var(--support-danger-600)' }}>Despesa</TabsTrigger>
         </TabsList>
@@ -420,10 +420,9 @@ const UnifiedTransactionForm = () => {
               </div>
             </div>
             <button
-              type="submit"
               className="btn-primary w-full"
               disabled={isAddingIncome || isIncomeSubmitting || bankAccounts.length === 0}
-              style={{ background: 'var(--support-success)', color: 'var(--brand-ink)', border: '1px solid var(--support-success-600)' }}
+              style={{ background: 'var(--support-success)', color: 'var(--brand-ink)', border: '1px solid rgba(161,232,166,.5)' }}
             >
               {(isAddingIncome || isIncomeSubmitting) ? "Adicionando..." : "Adicionar Receita"}
             </button>
@@ -510,10 +509,9 @@ const UnifiedTransactionForm = () => {
             </div>
             
             <button
-              type="submit"
               className="btn-primary w-full"
               disabled={isExpenseDisabled()}
-              style={{ background: 'var(--support-danger)', color: 'var(--brand-ivory)', border: '1px solid var(--support-danger-600)' }}
+              style={{ background: 'var(--support-danger)', color: 'var(--brand-ivory)', border: '1px solid rgba(242,161,161,.5)' }}
             >
               {(isAddingExpense || isExpenseSubmitting || isCreating) ? "Adicionando..." : "Adicionar Despesa"}
             </button>

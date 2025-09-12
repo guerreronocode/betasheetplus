@@ -109,7 +109,7 @@ const QuickStats = () => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {stats.map((stat, index) => (
-        <div key={index} className="card hover:shadow-lg transition-all duration-200 animate-slide-up" style={{ animationDelay: `${index * 100}ms`, borderLeft: `4px solid var(--brand-primary)` }}>
+        <div key={index} className="card hover:shadow-lg transition-all duration-200 animate-slide-up" style={{ animationDelay: `${index * 100}ms`, borderLeft: `4px solid rgba(232,241,87,.4)` }}>
           <div className="flex items-center justify-between mb-4">
             <div className={`p-3 rounded-lg ${getColorClasses(stat.color)}`}>
               <stat.icon className="w-6 h-6" />

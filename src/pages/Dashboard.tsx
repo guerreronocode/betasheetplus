@@ -40,7 +40,7 @@ const Dashboard = () => {
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="flex flex-wrap gap-1 h-auto p-1" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(9,34,32,.08)' }}>
+          <TabsList className="flex flex-wrap gap-1 h-auto p-1" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(42,74,71,.06)' }}>
             <TabsTrigger value="overview" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Visão Geral</TabsTrigger>
             <TabsTrigger value="planning" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Planejamento</TabsTrigger>
             <TabsTrigger value="accounts" className="flex-shrink-0" style={{ color: 'var(--brand-ink)' }}>Contas</TabsTrigger>

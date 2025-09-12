@@ -48,7 +48,7 @@ const TransactionsList = () => {
   };
 
   return (
-    <Card className="p-6" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(9,34,32,.08)', boxShadow: 'var(--shadow-1)' }}>
+    <Card className="p-6" style={{ background: 'var(--brand-ivory)', border: '1px solid rgba(42,74,71,.06)', boxShadow: 'var(--shadow-1)' }}>
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center space-x-3">
           <div className="p-2 rounded-lg" style={{ background: 'var(--support-info-100)' }}>
