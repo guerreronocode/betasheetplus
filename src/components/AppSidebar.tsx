@@ -109,10 +109,15 @@ export function AppSidebar() {
   }
 
   return (
-    <Sidebar className="fnb-card border-r-2 border-fnb-accent/20">
-      <SidebarHeader className="p-4 border-b border-fnb-accent/10">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+    <Sidebar 
+      className={`fnb-card border-r-2 border-fnb-accent/20 transition-all duration-300 ${
+        collapsed ? 'w-16' : 'w-64'
+      }`}
+      collapsible="icon"
+    >
+      <SidebarHeader className={`border-b border-fnb-accent/10 ${collapsed ? 'p-2' : 'p-4'}`}>
+        <div className={`flex items-center ${collapsed ? 'flex-col gap-2' : 'justify-between'}`}>
+          <div className={`flex items-center ${collapsed ? 'flex-col gap-2' : 'gap-3'}`}>
             <Avatar className="h-8 w-8 fnb-card">
               <AvatarFallback className="bg-fnb-accent text-fnb-ink text-sm font-title">
                 {user?.email?.charAt(0).toUpperCase() || 'U'}
@@ -125,19 +130,26 @@ export function AppSidebar() {
               </div>
             )}
           </div>
-          {!collapsed && (
-            <SidebarTrigger>
+          {!collapsed ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setOpen(false)}
+              className="h-6 w-6"
+            >
               <ChevronRight className="h-4 w-4 text-fnb-ink/70" />
-            </SidebarTrigger>
+            </Button>
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setOpen(true)}
+              className="h-6 w-6"
+            >
+              <Menu className="h-4 w-4 text-fnb-ink/70" />
+            </Button>
           )}
         </div>
-        {collapsed && (
-          <div className="mt-2">
-            <SidebarTrigger>
-              <Menu className="h-4 w-4 text-fnb-ink/70" />
-            </SidebarTrigger>
-          </div>
-        )}
       </SidebarHeader>
 
       <SidebarContent className="px-2 py-4">
@@ -149,7 +161,7 @@ export function AppSidebar() {
             >
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton 
-                  className="w-full justify-start fnb-card hover:bg-fnb-accent/10 transition-colors"
+                  className={`w-full ${collapsed ? 'justify-center' : 'justify-start'} fnb-card hover:bg-fnb-accent/10 transition-colors ${collapsed ? 'mb-2' : ''}`}
                 >
                   <section.icon className="h-5 w-5 text-fnb-accent" />
                   {!collapsed && (
@@ -184,7 +196,7 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className="p-4 border-t border-fnb-accent/10">
+      <SidebarFooter className={`border-t border-fnb-accent/10 ${collapsed ? 'p-2' : 'p-4'}`}>
         <div className={`${collapsed ? 'flex flex-col gap-2' : 'flex gap-2'}`}>
           <Button
             variant="ghost"

@@ -8,11 +8,19 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider 
+      defaultOpen={true}
+      style={{
+        "--sidebar-width": "16rem",
+        "--sidebar-width-icon": "4rem",
+      } as React.CSSProperties}
+    >
       <div className="min-h-screen flex w-full bg-fnb-cream">
         <AppSidebar />
-        <SidebarInset className="flex-1">
-          {children}
+        <SidebarInset className="flex-1 overflow-auto">
+          <div className="p-6">
+            {children}
+          </div>
         </SidebarInset>
       </div>
     </SidebarProvider>
