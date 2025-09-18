@@ -114,7 +114,7 @@ export function AppSidebar() {
       }`}
       collapsible="icon"
     >
-      <SidebarHeader className={`border-b border-fnb-accent/10 ${collapsed ? 'p-2' : 'p-4'}`}>
+      <SidebarHeader className={`border-b border-fnb-accent/10 ${collapsed ? 'p-1' : 'p-4'}`}>
         <div className={`flex items-center ${collapsed ? 'flex-col gap-2 items-center' : 'justify-between'}`}>
           <Button
             variant="ghost"
@@ -187,7 +187,7 @@ export function AppSidebar() {
         ))}
       </SidebarContent>
 
-      <SidebarFooter className={`border-t border-fnb-accent/10 ${collapsed ? 'p-2' : 'p-4'}`}>
+      <SidebarFooter className={`border-t border-fnb-accent/10 ${collapsed ? 'p-1' : 'p-4'}`}>
         <div className={`${collapsed ? 'flex flex-col gap-2 items-center' : 'flex gap-2'}`}>
           <Button
             variant="ghost"
