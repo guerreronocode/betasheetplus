@@ -85,10 +85,11 @@ export function AppSidebar() {
       setOpen(true)
       setOpenSections([sectionTitle])
     } else {
+      // Permite apenas uma seção aberta por vez
       setOpenSections(prev => 
         prev.includes(sectionTitle) 
-          ? prev.filter(s => s !== sectionTitle)
-          : [...prev, sectionTitle]
+          ? [] // Fecha a seção se já estiver aberta
+          : [sectionTitle] // Abre apenas a seção clicada
       )
     }
   }
@@ -152,20 +153,22 @@ export function AppSidebar() {
                 <SidebarMenuButton 
                   className={`w-full fnb-card hover:bg-fnb-accent/10 transition-colors ${
                     collapsed ? 'justify-center mb-2 h-10 w-10' : 'justify-start'
-                  } ${openSections.includes(section.title) ? 'bg-fnb-accent/20' : ''}`}
+                  } ${openSections.includes(section.title) ? 'bg-green-800 hover:bg-green-700' : ''}`}
                 >
                   <section.icon className={`h-6 w-6 flex-shrink-0 ${
-                    openSections.includes(section.title) ? 'text-fnb-accent' : 'text-fnb-accent'
+                    openSections.includes(section.title) ? 'text-white' : 'text-fnb-accent'
                   }`} />
                   {!collapsed && (
-                    <span className="font-title text-fnb-ink">{section.title}</span>
+                    <span className={`font-title ${
+                      openSections.includes(section.title) ? 'text-white' : 'text-fnb-ink'
+                    }`}>{section.title}</span>
                   )}
                 </SidebarMenuButton>
               </CollapsibleTrigger>
               
               {!collapsed && (
                 <CollapsibleContent>
-                  <SidebarGroupContent className="ml-4 mt-2">
+                  <SidebarGroupContent className="ml-4 mt-2 min-w-0">
                     <SidebarMenu>
                       {section.items.map((item) => (
                         <SidebarMenuItem key={item.title}>
