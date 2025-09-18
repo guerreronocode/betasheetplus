@@ -40,7 +40,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/AuthContext"
 
 const dashboardItems = [
@@ -76,7 +75,7 @@ const mainSections = [
 
 export function AppSidebar() {
   const { state, setOpen } = useSidebar()
-  const { user, signOut } = useAuth()
+  const { signOut } = useAuth()
   const navigate = useNavigate()
   const [openSections, setOpenSections] = useState<string[]>([])
   const collapsed = state === 'collapsed'
@@ -116,21 +115,20 @@ export function AppSidebar() {
       collapsible="icon"
     >
       <SidebarHeader className={`border-b border-fnb-accent/10 ${collapsed ? 'p-2' : 'p-4'}`}>
-        <div className={`flex items-center ${collapsed ? 'flex-col gap-2' : 'justify-between'}`}>
-          <div className={`flex items-center ${collapsed ? 'flex-col gap-2' : 'gap-3'}`}>
-            <Avatar className="h-8 w-8 fnb-card">
-              <AvatarFallback className="bg-fnb-accent text-fnb-ink text-sm font-title">
-                {user?.email?.charAt(0).toUpperCase() || 'U'}
-              </AvatarFallback>
-            </Avatar>
-            {!collapsed && (
-              <div className="flex flex-col">
-                <span className="text-sm font-title text-fnb-ink">Perfil</span>
-                <span className="text-xs text-fnb-ink/70 font-body">{user?.email}</span>
-              </div>
-            )}
-          </div>
-          {!collapsed ? (
+        <div className={`flex items-center ${collapsed ? 'flex-col gap-2 items-center' : 'justify-between'}`}>
+          <Button
+            variant="ghost"
+            size={collapsed ? "icon" : "sm"}
+            onClick={() => console.log('Abrindo gerenciamento de perfil...')}
+            className={`fnb-card hover:bg-fnb-accent/10 transition-colors ${
+              collapsed ? 'h-10 w-10' : 'gap-3'
+            }`}
+          >
+            <User className="h-6 w-6 text-fnb-accent" />
+            {!collapsed && <span className="font-title text-fnb-ink">Perfil</span>}
+          </Button>
+          
+          {!collapsed && (
             <Button
               variant="ghost"
               size="icon"
@@ -138,15 +136,6 @@ export function AppSidebar() {
               className="h-6 w-6"
             >
               <ChevronRight className="h-4 w-4 text-fnb-ink/70" />
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setOpen(true)}
-              className="h-6 w-6"
-            >
-              <Menu className="h-4 w-4 text-fnb-ink/70" />
             </Button>
           )}
         </div>
