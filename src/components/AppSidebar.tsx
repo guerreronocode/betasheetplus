@@ -110,8 +110,8 @@ export function AppSidebar() {
 
   return (
     <Sidebar 
-      className={`fnb-card border-r-2 border-fnb-accent/20 transition-all duration-300 rounded-r-2xl ${
-        collapsed ? 'w-14' : 'w-64'
+      className={`fnb-card border-r-2 border-fnb-accent/20 transition-all duration-150 rounded-r-2xl ${
+        collapsed ? 'w-14 rounded-l-2xl' : 'w-64 rounded-l-2xl'
       }`}
       collapsible="icon"
     >
@@ -161,9 +161,11 @@ export function AppSidebar() {
             >
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton 
-                  className={`w-full ${collapsed ? 'justify-center' : 'justify-start'} fnb-card hover:bg-fnb-accent/10 transition-colors ${collapsed ? 'mb-2' : ''}`}
+                  className={`w-full fnb-card hover:bg-fnb-accent/10 transition-colors ${
+                    collapsed ? 'justify-center mb-2 h-10 w-10' : 'justify-start'
+                  }`}
                 >
-                  <section.icon className="h-6 w-6 text-fnb-accent" />
+                  <section.icon className="h-6 w-6 text-fnb-accent flex-shrink-0" />
                   {!collapsed && (
                     <>
                       <span className="font-title text-fnb-ink">{section.title}</span>
@@ -197,12 +199,14 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className={`border-t border-fnb-accent/10 ${collapsed ? 'p-2' : 'p-4'}`}>
-        <div className={`${collapsed ? 'flex flex-col gap-2' : 'flex gap-2'}`}>
+        <div className={`${collapsed ? 'flex flex-col gap-2 items-center' : 'flex gap-2'}`}>
           <Button
             variant="ghost"
             size={collapsed ? "icon" : "sm"}
             onClick={handleTutorials}
-            className="fnb-card hover:bg-fnb-secondary-blue/10 transition-colors"
+            className={`fnb-card hover:bg-fnb-secondary-blue/10 transition-colors ${
+              collapsed ? 'h-10 w-10' : ''
+            }`}
           >
             <Video className="h-5 w-5 text-fnb-secondary-blue" />
             {!collapsed && <span className="font-body">Tutoriais</span>}
@@ -212,10 +216,12 @@ export function AppSidebar() {
             variant="ghost"
             size={collapsed ? "icon" : "sm"}
             onClick={handleLogout}
-            className="fnb-card hover:bg-fnb-secondary-red/10 transition-colors"
+            className={`fnb-card hover:bg-red-500/10 transition-colors ${
+              collapsed ? 'h-10 w-10' : ''
+            }`}
           >
-            <LogOut className="h-5 w-5 text-fnb-secondary-red" />
-            {!collapsed && <span className="font-body">Sair</span>}
+            <LogOut className="h-5 w-5 text-red-500" />
+            {!collapsed && <span className="font-body text-red-500">Sair</span>}
           </Button>
         </div>
       </SidebarFooter>
