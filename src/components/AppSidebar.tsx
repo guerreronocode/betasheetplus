@@ -110,8 +110,8 @@ export function AppSidebar() {
 
   return (
     <Sidebar 
-      className={`fnb-card border-r-2 border-fnb-accent/20 transition-all duration-300 ${
-        collapsed ? 'w-16' : 'w-64'
+      className={`fnb-card border-r-2 border-fnb-accent/20 transition-all duration-300 rounded-r-2xl ${
+        collapsed ? 'w-14' : 'w-64'
       }`}
       collapsible="icon"
     >
@@ -163,7 +163,7 @@ export function AppSidebar() {
                 <SidebarMenuButton 
                   className={`w-full ${collapsed ? 'justify-center' : 'justify-start'} fnb-card hover:bg-fnb-accent/10 transition-colors ${collapsed ? 'mb-2' : ''}`}
                 >
-                  <section.icon className="h-5 w-5 text-fnb-accent" />
+                  <section.icon className="h-6 w-6 text-fnb-accent" />
                   {!collapsed && (
                     <>
                       <span className="font-title text-fnb-ink">{section.title}</span>
@@ -204,7 +204,7 @@ export function AppSidebar() {
             onClick={handleTutorials}
             className="fnb-card hover:bg-fnb-secondary-blue/10 transition-colors"
           >
-            <Video className="h-4 w-4 text-fnb-secondary-blue" />
+            <Video className="h-5 w-5 text-fnb-secondary-blue" />
             {!collapsed && <span className="font-body">Tutoriais</span>}
           </Button>
           
@@ -214,7 +214,7 @@ export function AppSidebar() {
             onClick={handleLogout}
             className="fnb-card hover:bg-fnb-secondary-red/10 transition-colors"
           >
-            <LogOut className="h-4 w-4 text-fnb-secondary-red" />
+            <LogOut className="h-5 w-5 text-fnb-secondary-red" />
             {!collapsed && <span className="font-body">Sair</span>}
           </Button>
         </div>

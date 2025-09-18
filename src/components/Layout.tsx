@@ -12,7 +12,7 @@ export function Layout({ children }: LayoutProps) {
       defaultOpen={true}
       style={{
         "--sidebar-width": "16rem",
-        "--sidebar-width-icon": "4rem",
+        "--sidebar-width-icon": "3.5rem",
       } as React.CSSProperties}
     >
       <div className="min-h-screen flex w-full bg-fnb-cream">
