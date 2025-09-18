@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import Header from '@/components/Header';
 import UpdatedQuickStats from '@/components/UpdatedQuickStats';
 import QuickFinancialCards from '@/components/QuickFinancialCards';
 import TransactionsList from '@/components/TransactionsList';
@@ -31,26 +30,23 @@ const Dashboard = () => {
   const { yieldRates } = useFinancialData();
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
-      
+    <div className="min-h-screen bg-fnb-cream">      
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <UpdatedQuickStats />
         </div>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="flex flex-wrap gap-1 h-auto p-1 bg-muted">
-            <TabsTrigger value="overview" className="flex-shrink-0">Visão Geral</TabsTrigger>
-            <TabsTrigger value="planning" className="flex-shrink-0">Planejamento</TabsTrigger>
-            <TabsTrigger value="accounts" className="flex-shrink-0">Contas</TabsTrigger>
-            <TabsTrigger value="transactions" className="flex-shrink-0">Transações</TabsTrigger>
-            <TabsTrigger value="investments" className="flex-shrink-0">Investimentos</TabsTrigger>
-            <TabsTrigger value="goals" className="flex-shrink-0">Metas</TabsTrigger>
-            <TabsTrigger value="patrimony" className="flex-shrink-0">Patrimônio</TabsTrigger>
-            <TabsTrigger value="credit-cards" className="flex-shrink-0">Cartões</TabsTrigger>
-            <TabsTrigger value="debts" className="flex-shrink-0">Dívidas</TabsTrigger>
-            
+          <TabsList className="flex flex-wrap gap-1 h-auto p-1 fnb-card">
+            <TabsTrigger value="overview" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Visão Geral</TabsTrigger>
+            <TabsTrigger value="planning" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Planejamento</TabsTrigger>
+            <TabsTrigger value="accounts" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Contas</TabsTrigger>
+            <TabsTrigger value="transactions" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Transações</TabsTrigger>
+            <TabsTrigger value="investments" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Investimentos</TabsTrigger>
+            <TabsTrigger value="goals" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Metas</TabsTrigger>
+            <TabsTrigger value="patrimony" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Patrimônio</TabsTrigger>
+            <TabsTrigger value="credit-cards" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Cartões</TabsTrigger>
+            <TabsTrigger value="debts" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Dívidas</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">

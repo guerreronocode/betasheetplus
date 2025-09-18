@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Layout } from '@/components/Layout';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -17,15 +18,16 @@ const TransactionsHistory = () => {
   // TODO: Add filtros, paginação, totais agregados por mês/categoria
 
   return (
-    <div className="max-w-4xl mx-auto py-10">
-      <h1 className="font-bold text-2xl mb-6">Transações</h1>
-      
-      <Tabs defaultValue="upload" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="upload">Upload de Extrato</TabsTrigger>
-          <TabsTrigger value="history-uploads">Histórico de Uploads</TabsTrigger>
-          <TabsTrigger value="all-transactions">Todas as Transações</TabsTrigger>
-        </TabsList>
+    <Layout>
+      <div className="max-w-4xl mx-auto py-10 px-4">
+        <h1 className="font-title text-2xl font-bold mb-6 text-fnb-ink">Transações</h1>
+        
+        <Tabs defaultValue="upload" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 fnb-card">
+            <TabsTrigger value="upload" className="fnb-card hover:bg-fnb-accent/10">Upload de Extrato</TabsTrigger>
+            <TabsTrigger value="history-uploads" className="fnb-card hover:bg-fnb-accent/10">Histórico de Uploads</TabsTrigger>
+            <TabsTrigger value="all-transactions" className="fnb-card hover:bg-fnb-accent/10">Todas as Transações</TabsTrigger>
+          </TabsList>
 
         <TabsContent value="upload" className="space-y-4">
           <BankStatementUpload />
@@ -36,28 +38,28 @@ const TransactionsHistory = () => {
         </TabsContent>
 
         <TabsContent value="all-transactions" className="space-y-4">
-          <Card className="p-4">
+          <Card className="p-4 fnb-card">
             {allTransactions.length === 0 ? (
-              <div className="text-muted-foreground py-10 text-center">
+              <div className="text-fnb-ink/70 py-10 text-center font-body">
                 Nenhuma transação encontrada.
               </div>
             ) : (
               <div className="space-y-2">
                 {allTransactions.map(transaction => (
-                  <div key={transaction.id} className="flex justify-between items-center border-b pb-2">
+                  <div key={transaction.id} className="flex justify-between items-center border-b border-fnb-accent/10 pb-2">
                     <span>
                       {transaction.type === 'income' ? (
-                        <span className="text-success font-bold mr-2">+</span>
+                        <span className="text-fnb-secondary-green font-bold mr-2 font-mono">+</span>
                       ) : (
-                        <span className="text-destructive font-bold mr-2">-</span>
+                        <span className="text-fnb-secondary-red font-bold mr-2 font-mono">-</span>
                       )}
-                      {transaction.description}
-                      <span className="ml-4 text-xs text-muted-foreground">
+                      <span className="font-body text-fnb-ink">{transaction.description}</span>
+                      <span className="ml-4 text-xs text-fnb-ink/70 font-body">
                         {transaction.category}
                       </span>
                     </span>
-                    <span className={`font-semibold ${
-                      transaction.type === 'income' ? 'text-success' : 'text-destructive'
+                    <span className={`font-mono font-semibold ${
+                      transaction.type === 'income' ? 'text-fnb-secondary-green' : 'text-fnb-secondary-red'
                     }`}>
                       R$ {transaction.amount}
                     </span>
@@ -68,7 +70,8 @@ const TransactionsHistory = () => {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </Layout>
   );
 };
 
