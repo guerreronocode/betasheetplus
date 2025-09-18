@@ -141,7 +141,7 @@ export function AppSidebar() {
         </div>
       </SidebarHeader>
 
-      <SidebarContent className="px-1 py-4">
+      <SidebarContent className="px-2 py-4">
         {mainSections.map((section) => (
           <SidebarGroup key={section.title}>
             <Collapsible 
