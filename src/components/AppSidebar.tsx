@@ -152,16 +152,13 @@ export function AppSidebar() {
                 <SidebarMenuButton 
                   className={`w-full fnb-card hover:bg-fnb-accent/10 transition-colors ${
                     collapsed ? 'justify-center mb-2 h-10 w-10' : 'justify-start'
-                  }`}
+                  } ${openSections.includes(section.title) ? 'bg-fnb-accent/20' : ''}`}
                 >
-                  <section.icon className="h-6 w-6 text-fnb-accent flex-shrink-0" />
+                  <section.icon className={`h-6 w-6 flex-shrink-0 ${
+                    openSections.includes(section.title) ? 'text-fnb-accent' : 'text-fnb-accent'
+                  }`} />
                   {!collapsed && (
-                    <>
-                      <span className="font-title text-fnb-ink">{section.title}</span>
-                      <ChevronRight className={`ml-auto h-4 w-4 text-fnb-ink/50 transition-transform ${
-                        openSections.includes(section.title) ? 'rotate-90' : ''
-                      }`} />
-                    </>
+                    <span className="font-title text-fnb-ink">{section.title}</span>
                   )}
                 </SidebarMenuButton>
               </CollapsibleTrigger>
