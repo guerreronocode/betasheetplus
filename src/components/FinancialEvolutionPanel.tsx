@@ -48,20 +48,19 @@ const FinancialEvolutionPanel = () => {
     : 0;
 
   return (
-    <Card className="p-4 h-full">
-      <div className="flex items-center justify-between mb-4">
+    <Card className="p-3 h-full">
+      <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
-          <div className="p-1.5 bg-blue-100 rounded-lg">
-            <TrendingUp className="w-4 h-4 text-blue-600" />
+          <div className="p-1 bg-blue-100 rounded-lg">
+            <TrendingUp className="w-3 h-3 text-blue-600" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-gray-900">Evolução Financeira</h3>
-            <p className="text-xs text-gray-600">Últimos {selectedPeriod} meses</p>
+            <h3 className="text-xs font-semibold text-gray-900">Evolução Financeira</h3>
           </div>
         </div>
         
         <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-          <SelectTrigger className="w-32 h-8 text-xs">
+          <SelectTrigger className="w-20 h-6 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -75,68 +74,62 @@ const FinancialEvolutionPanel = () => {
       </div>
 
       {/* Cards de indicadores principais */}
-      <div className="grid grid-cols-1 gap-2 mb-4">
-        <div className="flex items-center justify-between p-2 bg-green-50 rounded border border-green-200">
-          <div>
-            <p className="text-xs text-green-600 font-medium">Patrimônio Líquido</p>
-            <p className="text-sm font-bold text-green-700">
-              {currentData ? (currentData.netWorth || 0).toLocaleString('pt-BR', { 
-                style: 'currency', 
-                currency: 'BRL' 
-              }) : 'R$ 0,00'}
-            </p>
-          </div>
-          <div className={`flex items-center space-x-1 ${netWorthChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+      <div className="grid grid-cols-3 gap-1 mb-3">
+        <div className="p-1.5 bg-green-50 rounded border border-green-200">
+          <p className="text-xs text-green-600 font-medium">Patrimônio</p>
+          <p className="text-xs font-bold text-green-700">
+            {currentData ? (currentData.netWorth || 0).toLocaleString('pt-BR', { 
+              style: 'currency', 
+              currency: 'BRL' 
+            }) : 'R$ 0,00'}
+          </p>
+          <div className={`flex items-center justify-center ${netWorthChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {netWorthChange >= 0 ? (
-              <TrendingUp className="w-3 h-3" />
+              <TrendingUp className="w-2 h-2" />
             ) : (
-              <TrendingDown className="w-3 h-3" />
+              <TrendingDown className="w-2 h-2" />
             )}
-            <span className="text-xs font-medium">
+            <span className="text-xs font-medium ml-1">
               {Math.abs(netWorthChange).toFixed(1)}%
             </span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between p-2 bg-red-50 rounded border border-red-200">
-          <div>
-            <p className="text-xs text-red-600 font-medium">Total de Dívidas</p>
-            <p className="text-sm font-bold text-red-700">
-              {currentData ? (currentData.totalDebt || 0).toLocaleString('pt-BR', { 
-                style: 'currency', 
-                currency: 'BRL' 
-              }) : 'R$ 0,00'}
-            </p>
-          </div>
-          <div className={`flex items-center space-x-1 ${debtChange <= 0 ? 'text-green-600' : 'text-red-600'}`}>
+        <div className="p-1.5 bg-red-50 rounded border border-red-200">
+          <p className="text-xs text-red-600 font-medium">Dívidas</p>
+          <p className="text-xs font-bold text-red-700">
+            {currentData ? (currentData.totalDebt || 0).toLocaleString('pt-BR', { 
+              style: 'currency', 
+              currency: 'BRL' 
+            }) : 'R$ 0,00'}
+          </p>
+          <div className={`flex items-center justify-center ${debtChange <= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {debtChange <= 0 ? (
-              <TrendingDown className="w-3 h-3" />
+              <TrendingDown className="w-2 h-2" />
             ) : (
-              <TrendingUp className="w-3 h-3" />
+              <TrendingUp className="w-2 h-2" />
             )}
-            <span className="text-xs font-medium">
+            <span className="text-xs font-medium ml-1">
               {Math.abs(debtChange).toFixed(1)}%
             </span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between p-2 bg-blue-50 rounded border border-blue-200">
-          <div>
-            <p className="text-xs text-blue-600 font-medium">Reservas Líquidas</p>
-            <p className="text-sm font-bold text-blue-700">
-              {currentData ? (currentData.liquidReserves || 0).toLocaleString('pt-BR', { 
-                style: 'currency', 
-                currency: 'BRL' 
-              }) : 'R$ 0,00'}
-            </p>
-          </div>
-          <div className={`flex items-center space-x-1 ${reservesChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+        <div className="p-1.5 bg-blue-50 rounded border border-blue-200">
+          <p className="text-xs text-blue-600 font-medium">Reservas</p>
+          <p className="text-xs font-bold text-blue-700">
+            {currentData ? (currentData.liquidReserves || 0).toLocaleString('pt-BR', { 
+              style: 'currency', 
+              currency: 'BRL' 
+            }) : 'R$ 0,00'}
+          </p>
+          <div className={`flex items-center justify-center ${reservesChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {reservesChange >= 0 ? (
-              <TrendingUp className="w-3 h-3" />
+              <TrendingUp className="w-2 h-2" />
             ) : (
-              <TrendingDown className="w-3 h-3" />
+              <TrendingDown className="w-2 h-2" />
             )}
-            <span className="text-xs font-medium">
+            <span className="text-xs font-medium ml-1">
               {Math.abs(reservesChange).toFixed(1)}%
             </span>
           </div>
@@ -144,19 +137,19 @@ const FinancialEvolutionPanel = () => {
       </div>
 
       {/* Gráfico de evolução */}
-      <div className="h-48">
+      <div className="h-32">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={evolutionData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="month" 
-              tick={{ fontSize: 10 }}
+              tick={{ fontSize: 8 }}
               angle={-45}
               textAnchor="end"
-              height={40}
+              height={25}
             />
             <YAxis 
-              tick={{ fontSize: 10 }}
+              tick={{ fontSize: 8 }}
               tickFormatter={(value) => 
                 new Intl.NumberFormat('pt-BR', {
                   notation: 'compact',
@@ -179,38 +172,38 @@ const FinancialEvolutionPanel = () => {
               type="monotone" 
               dataKey="netWorth" 
               stroke="#10B981" 
-              strokeWidth={2}
+              strokeWidth={1.5}
               name="Patrimônio"
-              dot={{ fill: '#10B981', strokeWidth: 1, r: 2 }}
+              dot={false}
             />
             <Line 
               type="monotone" 
               dataKey="totalDebt" 
               stroke="#EF4444" 
-              strokeWidth={2}
+              strokeWidth={1.5}
               name="Dívidas"
-              dot={{ fill: '#EF4444', strokeWidth: 1, r: 2 }}
+              dot={false}
             />
             <Line 
               type="monotone" 
               dataKey="liquidReserves" 
               stroke="#3B82F6" 
-              strokeWidth={2}
+              strokeWidth={1.5}
               name="Reservas"
-              dot={{ fill: '#3B82F6', strokeWidth: 1, r: 2 }}
+              dot={false}
             />
           </LineChart>
         </ResponsiveContainer>
       </div>
 
       {evolutionData && evolutionData.length === 0 && (
-        <div className="text-center py-8">
-          <Wallet className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-          <h4 className="text-sm font-medium text-gray-900 mb-1">
+        <div className="text-center py-4">
+          <Wallet className="w-6 h-6 mx-auto mb-1 text-gray-300" />
+          <h4 className="text-xs font-medium text-gray-900 mb-1">
             Dados insuficientes
           </h4>
           <p className="text-xs text-gray-600">
-            Continue registrando para ver a evolução
+            Continue registrando
           </p>
         </div>
       )}

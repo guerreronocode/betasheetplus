@@ -31,46 +31,51 @@ const PatrimonySummaryOverview = () => {
   return (
     <>
       <Card className="h-full">
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm">Resumo do Patrimônio</CardTitle>
+            <CardTitle className="text-xs">Patrimônio</CardTitle>
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowDetails(true)}
-              className="h-7 px-2 text-xs"
+              className="h-5 px-2 text-xs"
             >
-              <Eye className="w-3 h-3 mr-1" />
-              Detalhes
+              <Eye className="w-2 h-2 mr-1" />
+              Ver
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="pt-0">
-          <div className="grid grid-cols-2 gap-2 mb-3">
-            <div className="text-center p-2 bg-green-50 rounded border border-green-200">
+        <CardContent className="pt-0 space-y-2">
+          <div className="grid grid-cols-2 gap-1">
+            <div className="text-center p-1.5 bg-green-50 rounded border border-green-200">
               <div className="text-xs text-green-600 font-medium">Ativos</div>
-              <div className="text-sm font-bold text-green-700">
+              <div className="text-xs font-bold text-green-700">
                 {formatCurrency(totalAtivos)}
               </div>
-              <div className="text-xs text-green-500">
-                {(groups.ativo_circulante?.length || 0) + (groups.ativo_nao_circulante?.length || 0)} itens
-              </div>
             </div>
-            <div className="text-center p-2 bg-red-50 rounded border border-red-200">
+            <div className="text-center p-1.5 bg-red-50 rounded border border-red-200">
               <div className="text-xs text-red-600 font-medium">Passivos</div>
-              <div className="text-sm font-bold text-red-700">
+              <div className="text-xs font-bold text-red-700">
                 {formatCurrency(totalPassivos)}
-              </div>
-              <div className="text-xs text-red-500">
-                {(groups.passivo_circulante?.length || 0) + (groups.passivo_nao_circulante?.length || 0)} itens
               </div>
             </div>
           </div>
           
-          <div className="text-center p-3 bg-blue-50 rounded border border-blue-200">
+          <div className="text-center p-2 bg-blue-50 rounded border border-blue-200">
             <div className="text-xs text-blue-600 font-medium">Patrimônio Líquido</div>
-            <div className="text-lg font-bold text-blue-700">
+            <div className="text-sm font-bold text-blue-700">
               {formatCurrency(patrimonioLiquido)}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-1 text-xs text-gray-600">
+            <div className="text-center">
+              <div className="font-medium">{(groups.ativo_circulante?.length || 0) + (groups.ativo_nao_circulante?.length || 0)}</div>
+              <div>Ativos</div>
+            </div>
+            <div className="text-center">
+              <div className="font-medium">{(groups.passivo_circulante?.length || 0) + (groups.passivo_nao_circulante?.length || 0)}</div>
+              <div>Passivos</div>
             </div>
           </div>
         </CardContent>
