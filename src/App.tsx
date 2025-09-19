@@ -48,6 +48,11 @@ const App: React.FC = () => {
                   <FinancialAnalysis />
                 </ProtectedRoute>
               } />
+              <Route path="/monthly-balance" element={
+                <ProtectedRoute>
+                  <MonthlyBalance />
+                </ProtectedRoute>
+              } />
               <Route path="/style-guide" element={<StyleGuide />} />
               <Route path="*" element={<NotFound />} />
             </Routes>

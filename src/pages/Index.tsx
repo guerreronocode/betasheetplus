@@ -1,9 +1,9 @@
 
 import React from "react";
-import MonthlyBalance from "./MonthlyBalance";
+import Dashboard from "./Dashboard";
 
 const Index = () => {
-  return <MonthlyBalance />;
+  return <Dashboard />;
 };
 
 export default Index;
