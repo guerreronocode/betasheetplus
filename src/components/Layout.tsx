@@ -17,7 +17,7 @@ export function Layout({ children }: LayoutProps) {
     >
       <div className="min-h-screen flex w-full bg-fnb-cream">
         <AppSidebar />
-        <SidebarInset className="flex-1 overflow-auto">
+        <SidebarInset className="flex-1">
           {children}
         </SidebarInset>
       </div>
