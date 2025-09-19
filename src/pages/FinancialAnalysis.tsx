@@ -8,21 +8,28 @@ const FinancialAnalysis = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-fnb-cream">      
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-fnb-ink">Análise Financeira</h1>
-            <p className="text-fnb-ink/70 mt-2">Acompanhe seu score, evolução e resumo patrimonial</p>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-fnb-ink">Análise Financeira</h1>
+            <p className="text-fnb-ink/70 mt-1 text-sm">Acompanhe seu score, evolução e resumo patrimonial</p>
           </div>
 
-          <div className="space-y-6">
-            {/* Score da saúde financeira */}
-            <DetailedFinancialScore />
+          <div className="grid grid-cols-1 gap-4 max-w-full">
+            {/* Score da saúde financeira - Ocupa toda a largura */}
+            <div className="w-full">
+              <DetailedFinancialScore />
+            </div>
             
-            {/* Evolução Financeira */}
-            <FinancialEvolutionPanel />
-            
-            {/* Resumo dos patrimônios */}
-            <PatrimonySummaryOverview />
+            {/* Linha com Evolução Financeira e Patrimônio - Dividida em 2 colunas */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div className="w-full">
+                <FinancialEvolutionPanel />
+              </div>
+              
+              <div className="w-full">
+                <PatrimonySummaryOverview />
+              </div>
+            </div>
           </div>
         </main>
       </div>

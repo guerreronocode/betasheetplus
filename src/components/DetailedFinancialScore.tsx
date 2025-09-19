@@ -91,30 +91,30 @@ const DetailedFinancialScore = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header com Score Geral */}
-      <Card className="p-6 text-center bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-        <div className="flex items-center justify-center gap-3 mb-4">
-          <div className="p-3 bg-blue-100 rounded-full">
-            <Shield className="w-8 h-8 text-blue-600" />
+      <Card className="p-4 text-center bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <div className="flex items-center justify-center gap-2 mb-3">
+          <div className="p-2 bg-blue-100 rounded-full">
+            <Shield className="w-5 h-5 text-blue-600" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Score de Saúde Financeira</h2>
-            <p className="text-gray-600">Análise detalhada dos 5 pilares financeiros</p>
+            <h2 className="text-lg font-bold text-gray-900">Score de Saúde Financeira</h2>
+            <p className="text-xs text-gray-600">Análise dos 5 pilares financeiros</p>
           </div>
         </div>
         
-        <div className="text-5xl font-bold text-blue-600 mb-2">
+        <div className="text-3xl font-bold text-blue-600 mb-2">
           {scoreDetails.score}/100
         </div>
         
-        <Badge className={`text-sm px-4 py-1 ${
+        <Badge className={`text-xs px-3 py-1 ${
           scoreDetails.score >= 81 ? 'bg-green-100 text-green-800' :
           scoreDetails.score >= 61 ? 'bg-blue-100 text-blue-800' :
           scoreDetails.score >= 41 ? 'bg-yellow-100 text-yellow-800' :
           'bg-red-100 text-red-800'
         }`}>
-          Saúde Financeira {
+          Saúde {
             scoreDetails.score >= 81 ? 'Excelente' :
             scoreDetails.score >= 61 ? 'Boa' :
             scoreDetails.score >= 41 ? 'Instável' : 'Crítica'
@@ -123,61 +123,46 @@ const DetailedFinancialScore = () => {
       </Card>
 
       {/* Detalhamento por Critério */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         {criteriaConfig.map((config) => {
           const score = scoreDetails.criteria[config.key];
           const Icon = config.icon;
           
           return (
-            <Card key={config.key} className={`p-6 ${getCriteriaColor(score)}`}>
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg bg-white bg-opacity-50`}>
-                    <Icon className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{config.title}</h3>
-                    <p className="text-sm opacity-75">{config.description}</p>
-                  </div>
+            <Card key={config.key} className={`p-3 ${getCriteriaColor(score)}`}>
+              <div className="flex flex-col items-center text-center mb-2">
+                <div className={`p-2 rounded-lg bg-white bg-opacity-50 mb-2`}>
+                  <Icon className="w-4 h-4" />
                 </div>
-                
-                <div className="text-right">
-                  <div className="text-2xl font-bold">{Math.round(score)}</div>
-                  <div className="text-sm opacity-75">pts</div>
-                </div>
+                <h3 className="text-xs font-semibold text-gray-900 mb-1">{config.title}</h3>
+                <div className="text-lg font-bold">{Math.round(score)}</div>
+                <div className="text-xs opacity-75">pts</div>
               </div>
               
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Progresso</span>
-                  <span>{Math.round(score)}%</span>
-                </div>
-                
-                <div className="w-full bg-white bg-opacity-30 rounded-full h-2">
-                  <div 
-                    className={`h-2 rounded-full transition-all duration-1000 ${getCriteriaProgressColor(score)}`}
-                    style={{ width: `${Math.min(100, score)}%` }}
-                  ></div>
-                </div>
+              <div className="w-full bg-white bg-opacity-30 rounded-full h-1.5">
+                <div 
+                  className={`h-1.5 rounded-full transition-all duration-1000 ${getCriteriaProgressColor(score)}`}
+                  style={{ width: `${Math.min(100, score)}%` }}
+                ></div>
               </div>
             </Card>
           );
         })}
       </div>
 
-      {/* Recomendações Completas */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          📋 Plano de Ação Personalizado
+      {/* Recomendações Compactas */}
+      <Card className="p-4">
+        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+          📋 Principais Recomendações
         </h3>
         
-        <div className="space-y-3">
-          {scoreDetails.recommendations.map((recommendation, index) => (
-            <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center text-sm font-semibold mt-0.5">
+        <div className="space-y-2">
+          {scoreDetails.recommendations.slice(0, 3).map((recommendation, index) => (
+            <div key={index} className="flex items-start gap-2 p-2 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="w-4 h-4 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-semibold mt-0.5">
                 {index + 1}
               </div>
-              <p className="text-blue-800 flex-1">{recommendation}</p>
+              <p className="text-xs text-blue-800 flex-1">{recommendation}</p>
             </div>
           ))}
         </div>
