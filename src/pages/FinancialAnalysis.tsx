@@ -20,13 +20,13 @@ const FinancialAnalysis = () => {
               <DetailedFinancialScore />
             </div>
             
-            {/* Linha com Evolução Financeira e Patrimônio - Evolução maior */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-              <div className="lg:col-span-2">
+            {/* Linha com Evolução Financeira e Patrimônio - 3/5 e 2/5 */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+              <div className="lg:col-span-3">
                 <FinancialEvolutionPanel />
               </div>
               
-              <div className="lg:col-span-1">
+              <div className="lg:col-span-2">
                 <PatrimonySummaryOverview />
               </div>
             </div>
