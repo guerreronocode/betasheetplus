@@ -48,19 +48,19 @@ const FinancialEvolutionPanel = () => {
     : 0;
 
   return (
-    <Card className="p-3 h-full">
-      <div className="flex items-center justify-between mb-3">
+    <Card className="p-4 h-full">
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
-          <div className="p-1 bg-blue-100 rounded-lg">
-            <TrendingUp className="w-3 h-3 text-blue-600" />
+          <div className="p-1.5 bg-blue-100 rounded-lg">
+            <TrendingUp className="w-4 h-4 text-blue-600" />
           </div>
           <div>
-            <h3 className="text-xs font-semibold text-gray-900">Evolução Financeira</h3>
+            <h3 className="text-sm font-semibold text-gray-900">Evolução Financeira</h3>
           </div>
         </div>
         
         <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
-          <SelectTrigger className="w-20 h-6 text-xs">
+          <SelectTrigger className="w-24 h-7 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -74,10 +74,10 @@ const FinancialEvolutionPanel = () => {
       </div>
 
       {/* Indicadores principais - Apenas texto */}
-      <div className="grid grid-cols-3 gap-2 mb-3 text-xs">
+      <div className="grid grid-cols-3 gap-3 mb-4 text-xs">
         <div className="text-center">
           <div className="text-green-600 font-medium">Patrimônio</div>
-          <div className="font-bold text-green-700">
+          <div className="font-bold text-green-700 text-sm">
             {currentData ? (currentData.netWorth || 0).toLocaleString('pt-BR', { 
               style: 'currency', 
               currency: 'BRL' 
@@ -85,9 +85,9 @@ const FinancialEvolutionPanel = () => {
           </div>
           <div className={`flex items-center justify-center ${netWorthChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {netWorthChange >= 0 ? (
-              <TrendingUp className="w-2 h-2" />
+              <TrendingUp className="w-3 h-3" />
             ) : (
-              <TrendingDown className="w-2 h-2" />
+              <TrendingDown className="w-3 h-3" />
             )}
             <span className="text-xs font-medium ml-1">
               {Math.abs(netWorthChange).toFixed(1)}%
@@ -97,7 +97,7 @@ const FinancialEvolutionPanel = () => {
 
         <div className="text-center">
           <div className="text-red-600 font-medium">Dívidas</div>
-          <div className="font-bold text-red-700">
+          <div className="font-bold text-red-700 text-sm">
             {currentData ? (currentData.totalDebt || 0).toLocaleString('pt-BR', { 
               style: 'currency', 
               currency: 'BRL' 
@@ -105,9 +105,9 @@ const FinancialEvolutionPanel = () => {
           </div>
           <div className={`flex items-center justify-center ${debtChange <= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {debtChange <= 0 ? (
-              <TrendingDown className="w-2 h-2" />
+              <TrendingDown className="w-3 h-3" />
             ) : (
-              <TrendingUp className="w-2 h-2" />
+              <TrendingUp className="w-3 h-3" />
             )}
             <span className="text-xs font-medium ml-1">
               {Math.abs(debtChange).toFixed(1)}%
@@ -117,7 +117,7 @@ const FinancialEvolutionPanel = () => {
 
         <div className="text-center">
           <div className="text-blue-600 font-medium">Reservas</div>
-          <div className="font-bold text-blue-700">
+          <div className="font-bold text-blue-700 text-sm">
             {currentData ? (currentData.liquidReserves || 0).toLocaleString('pt-BR', { 
               style: 'currency', 
               currency: 'BRL' 
@@ -125,9 +125,9 @@ const FinancialEvolutionPanel = () => {
           </div>
           <div className={`flex items-center justify-center ${reservesChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {reservesChange >= 0 ? (
-              <TrendingUp className="w-2 h-2" />
+              <TrendingUp className="w-3 h-3" />
             ) : (
-              <TrendingDown className="w-2 h-2" />
+              <TrendingDown className="w-3 h-3" />
             )}
             <span className="text-xs font-medium ml-1">
               {Math.abs(reservesChange).toFixed(1)}%
@@ -137,19 +137,20 @@ const FinancialEvolutionPanel = () => {
       </div>
 
       {/* Gráfico de evolução */}
-      <div className="h-32">
+      <div className="h-48">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={evolutionData}>
+          <LineChart data={evolutionData} margin={{ top: 5, right: 30, left: 20, bottom: 50 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
               dataKey="month" 
-              tick={{ fontSize: 8 }}
+              tick={{ fontSize: 10 }}
               angle={-45}
               textAnchor="end"
-              height={25}
+              height={50}
+              interval={0}
             />
             <YAxis 
-              tick={{ fontSize: 8 }}
+              tick={{ fontSize: 10 }}
               tickFormatter={(value) => 
                 new Intl.NumberFormat('pt-BR', {
                   notation: 'compact',
@@ -172,7 +173,7 @@ const FinancialEvolutionPanel = () => {
               type="monotone" 
               dataKey="netWorth" 
               stroke="#10B981" 
-              strokeWidth={1.5}
+              strokeWidth={2}
               name="Patrimônio"
               dot={false}
             />
@@ -180,7 +181,7 @@ const FinancialEvolutionPanel = () => {
               type="monotone" 
               dataKey="totalDebt" 
               stroke="#EF4444" 
-              strokeWidth={1.5}
+              strokeWidth={2}
               name="Dívidas"
               dot={false}
             />
@@ -188,7 +189,7 @@ const FinancialEvolutionPanel = () => {
               type="monotone" 
               dataKey="liquidReserves" 
               stroke="#3B82F6" 
-              strokeWidth={1.5}
+              strokeWidth={2}
               name="Reservas"
               dot={false}
             />
@@ -197,9 +198,9 @@ const FinancialEvolutionPanel = () => {
       </div>
 
       {evolutionData && evolutionData.length === 0 && (
-        <div className="text-center py-4">
-          <Wallet className="w-6 h-6 mx-auto mb-1 text-gray-300" />
-          <h4 className="text-xs font-medium text-gray-900 mb-1">
+        <div className="text-center py-6">
+          <Wallet className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+          <h4 className="text-sm font-medium text-gray-900 mb-1">
             Dados insuficientes
           </h4>
           <p className="text-xs text-gray-600">
