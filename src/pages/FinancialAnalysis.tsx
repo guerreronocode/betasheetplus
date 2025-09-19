@@ -8,7 +8,7 @@ const FinancialAnalysis = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-fnb-cream">      
-        <main className="max-w-8xl mx-auto px-1 sm:px-2 lg:px-3 py-2">
+        <main className="max-w-8xl mx-auto px-4 py-4">
           <div className="mb-3">
             <h1 className="text-xl font-bold text-fnb-ink">Análise Financeira</h1>
           </div>

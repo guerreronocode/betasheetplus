@@ -18,9 +18,7 @@ export function Layout({ children }: LayoutProps) {
       <div className="min-h-screen flex w-full bg-fnb-cream">
         <AppSidebar />
         <SidebarInset className="flex-1 overflow-auto">
-          <div className="p-6">
-            {children}
-          </div>
+          {children}
         </SidebarInset>
       </div>
     </SidebarProvider>
