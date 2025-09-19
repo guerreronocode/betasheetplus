@@ -103,32 +103,32 @@ export const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
   return (
     <Card className="fnb-card">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+        <CardTitle className="flex items-center justify-between text-lg">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-fnb-accent" />
             Receitas vs Despesas - {monthNames[selectedMonth - 1]} {selectedYear}
           </div>
-          <div className="flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded" />
-              <span className="text-fnb-ink/70">Receitas: {formatCurrency(totals.income)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded" />
-              <span className="text-fnb-ink/70">Despesas: {formatCurrency(totals.expenses)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {totals.balance >= 0 ? (
-                <TrendingUp className="h-4 w-4 text-green-600" />
-              ) : (
-                <TrendingDown className="h-4 w-4 text-red-600" />
-              )}
-              <span className={`font-medium ${totals.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                Saldo: {formatCurrency(totals.balance)}
-              </span>
-            </div>
-          </div>
         </CardTitle>
+        <div className="flex items-center gap-4 text-sm mt-4">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-500 rounded" />
+            <span className="text-fnb-ink/70">Receitas: {formatCurrency(totals.income)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-red-500 rounded" />
+            <span className="text-fnb-ink/70">Despesas: {formatCurrency(totals.expenses)}</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {totals.balance >= 0 ? (
+              <TrendingUp className="h-4 w-4 text-green-600" />
+            ) : (
+              <TrendingDown className="h-4 w-4 text-red-600" />
+            )}
+            <span className={`font-medium ${totals.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              Saldo: {formatCurrency(totals.balance)}
+            </span>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
         <div className="h-80">

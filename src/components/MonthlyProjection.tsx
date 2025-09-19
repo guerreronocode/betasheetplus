@@ -95,7 +95,7 @@ export const MonthlyProjection: React.FC = () => {
   return (
     <Card className="fnb-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <Calculator className="h-5 w-5 text-fnb-accent" />
           Projeção Mensal - {monthName.charAt(0).toUpperCase() + monthName.slice(1)}
         </CardTitle>
