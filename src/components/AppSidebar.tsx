@@ -44,9 +44,14 @@ import { useAuth } from "@/contexts/AuthContext"
 
 const dashboardItems = [
   { title: "Balanço mensal", icon: BarChart3 },
-  { title: "Análise financeira", icon: TrendingUp },
   { title: "Planos & Metas", icon: Target },
   { title: "Investimentos", icon: PiggyBank },
+]
+
+const analiseFinanceiraItems = [
+  { title: "Score", icon: TrendingUp },
+  { title: "Evolução Financeira", icon: BarChart3 },
+  { title: "Patrimônio", icon: Building },
 ]
 
 const controleItems = [
@@ -68,6 +73,7 @@ const planejamentoItems = [
 
 const mainSections = [
   { title: "Dashboards", icon: BarChart3, items: dashboardItems },
+  { title: "Análise Financeira", icon: TrendingUp, items: analiseFinanceiraItems },
   { title: "Controle", icon: Wallet, items: controleItems },
   { title: "Gestão de Patrimônio", icon: Building, items: patrimonioItems },
   { title: "Planejamento", icon: Calendar, items: planejamentoItems },
