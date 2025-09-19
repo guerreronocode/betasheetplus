@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import TransactionsHistory from "./pages/TransactionsHistory";
 import StyleGuide from "./pages/StyleGuide";
+import FinancialAnalysis from "./pages/FinancialAnalysis";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +40,11 @@ const App: React.FC = () => {
               <Route path="/transactions-history" element={
                 <ProtectedRoute>
                   <TransactionsHistory />
+                </ProtectedRoute>
+              } />
+              <Route path="/financial-analysis" element={
+                <ProtectedRoute>
+                  <FinancialAnalysis />
                 </ProtectedRoute>
               } />
               <Route path="/style-guide" element={<StyleGuide />} />

@@ -43,37 +43,31 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
 
 const dashboardItems = [
-  { title: "Balanço mensal", icon: BarChart3 },
-  { title: "Planos & Metas", icon: Target },
-  { title: "Investimentos", icon: PiggyBank },
-]
-
-const analiseFinanceiraItems = [
-  { title: "Score", icon: TrendingUp },
-  { title: "Evolução Financeira", icon: BarChart3 },
-  { title: "Patrimônio", icon: Building },
+  { title: "Balanço mensal", icon: BarChart3, path: "/" },
+  { title: "Análise financeira", icon: TrendingUp, path: "/financial-analysis" },
+  { title: "Planos & Metas", icon: Target, path: "/" },
+  { title: "Investimentos", icon: PiggyBank, path: "/" },
 ]
 
 const controleItems = [
-  { title: "Contas", icon: Banknote },
-  { title: "Cartões", icon: CreditCard },
-  { title: "Lançamentos", icon: Plus },
+  { title: "Contas", icon: Banknote, path: "/" },
+  { title: "Cartões", icon: CreditCard, path: "/" },
+  { title: "Lançamentos", icon: Plus, path: "/" },
 ]
 
 const patrimonioItems = [
-  { title: "Investimentos", icon: PiggyBank },
-  { title: "Dívidas", icon: FileText },
-  { title: "Patrimônio", icon: Building },
+  { title: "Investimentos", icon: PiggyBank, path: "/" },
+  { title: "Dívidas", icon: FileText, path: "/" },
+  { title: "Patrimônio", icon: Building, path: "/" },
 ]
 
 const planejamentoItems = [
-  { title: "Orçamento & Projeção", icon: Calendar },
-  { title: "Objetivos & Metas", icon: Goal },
+  { title: "Orçamento & Projeção", icon: Calendar, path: "/" },
+  { title: "Objetivos & Metas", icon: Goal, path: "/" },
 ]
 
 const mainSections = [
   { title: "Dashboards", icon: BarChart3, items: dashboardItems },
-  { title: "Análise Financeira", icon: TrendingUp, items: analiseFinanceiraItems },
   { title: "Controle", icon: Wallet, items: controleItems },
   { title: "Gestão de Patrimônio", icon: Building, items: patrimonioItems },
   { title: "Planejamento", icon: Calendar, items: planejamentoItems },
@@ -182,7 +176,10 @@ export function AppSidebar() {
                     <SidebarMenu>
                       {section.items.map((item) => (
                         <SidebarMenuItem key={item.title}>
-                          <SidebarMenuButton className="hover:bg-fnb-accent/5 transition-colors text-xs truncate">
+                          <SidebarMenuButton 
+                            className="hover:bg-fnb-accent/5 transition-colors text-xs truncate"
+                            onClick={() => navigate(item.path || '/')}
+                          >
                             <item.icon className="h-4 w-4 text-fnb-ink/70 flex-shrink-0" />
                             <span className="font-body text-fnb-ink/90 truncate">{item.title}</span>
                           </SidebarMenuButton>
