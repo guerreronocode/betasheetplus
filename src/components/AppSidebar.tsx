@@ -111,7 +111,7 @@ export function AppSidebar() {
   return (
     <Sidebar 
       className={`fnb-card border-r-2 border-fnb-accent/20 transition-all duration-150 rounded-r-2xl ${
-        collapsed ? 'w-14 rounded-l-2xl' : 'w-64 rounded-l-2xl'
+        collapsed ? 'w-14 rounded-l-2xl' : 'w-56 rounded-l-2xl'
       }`}
       collapsible="icon"
     >
