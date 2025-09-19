@@ -73,16 +73,16 @@ const FinancialEvolutionPanel = () => {
         </Select>
       </div>
 
-      {/* Cards de indicadores principais */}
-      <div className="grid grid-cols-3 gap-1 mb-3">
-        <div className="p-1.5 bg-green-50 rounded border border-green-200">
-          <p className="text-xs text-green-600 font-medium">Patrimônio</p>
-          <p className="text-xs font-bold text-green-700">
+      {/* Indicadores principais - Apenas texto */}
+      <div className="grid grid-cols-3 gap-2 mb-3 text-xs">
+        <div className="text-center">
+          <div className="text-green-600 font-medium">Patrimônio</div>
+          <div className="font-bold text-green-700">
             {currentData ? (currentData.netWorth || 0).toLocaleString('pt-BR', { 
               style: 'currency', 
               currency: 'BRL' 
             }) : 'R$ 0,00'}
-          </p>
+          </div>
           <div className={`flex items-center justify-center ${netWorthChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {netWorthChange >= 0 ? (
               <TrendingUp className="w-2 h-2" />
@@ -95,14 +95,14 @@ const FinancialEvolutionPanel = () => {
           </div>
         </div>
 
-        <div className="p-1.5 bg-red-50 rounded border border-red-200">
-          <p className="text-xs text-red-600 font-medium">Dívidas</p>
-          <p className="text-xs font-bold text-red-700">
+        <div className="text-center">
+          <div className="text-red-600 font-medium">Dívidas</div>
+          <div className="font-bold text-red-700">
             {currentData ? (currentData.totalDebt || 0).toLocaleString('pt-BR', { 
               style: 'currency', 
               currency: 'BRL' 
             }) : 'R$ 0,00'}
-          </p>
+          </div>
           <div className={`flex items-center justify-center ${debtChange <= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {debtChange <= 0 ? (
               <TrendingDown className="w-2 h-2" />
@@ -115,14 +115,14 @@ const FinancialEvolutionPanel = () => {
           </div>
         </div>
 
-        <div className="p-1.5 bg-blue-50 rounded border border-blue-200">
-          <p className="text-xs text-blue-600 font-medium">Reservas</p>
-          <p className="text-xs font-bold text-blue-700">
+        <div className="text-center">
+          <div className="text-blue-600 font-medium">Reservas</div>
+          <div className="font-bold text-blue-700">
             {currentData ? (currentData.liquidReserves || 0).toLocaleString('pt-BR', { 
               style: 'currency', 
               currency: 'BRL' 
             }) : 'R$ 0,00'}
-          </p>
+          </div>
           <div className={`flex items-center justify-center ${reservesChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
             {reservesChange >= 0 ? (
               <TrendingUp className="w-2 h-2" />

@@ -91,55 +91,57 @@ const DetailedFinancialScore = () => {
   };
 
   return (
-    <Card className="p-4">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
-        {/* Score Geral - Coluna da Esquerda */}
-        <div className="flex flex-col justify-center items-center text-center bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-200">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="p-1.5 bg-blue-100 rounded-full">
-              <Shield className="w-4 h-4 text-blue-600" />
+    <Card className="p-6">
+      <div className="space-y-4">
+        {/* Score Geral - Parte Superior */}
+        <div className="flex justify-center">
+          <div className="flex flex-col justify-center items-center text-center bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200 min-w-64">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="p-2 bg-blue-100 rounded-full">
+                <Shield className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-gray-900">Score de Saúde Financeira</h2>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xs font-bold text-gray-900">Score Financeiro</h2>
+            
+            <div className="text-4xl font-bold text-blue-600 mb-2">
+              {scoreDetails.score}/100
             </div>
+            
+            <Badge className={`text-sm px-3 py-1 ${
+              scoreDetails.score >= 81 ? 'bg-green-100 text-green-800' :
+              scoreDetails.score >= 61 ? 'bg-blue-100 text-blue-800' :
+              scoreDetails.score >= 41 ? 'bg-yellow-100 text-yellow-800' :
+              'bg-red-100 text-red-800'
+            }`}>
+              {scoreDetails.score >= 81 ? 'Excelente' :
+               scoreDetails.score >= 61 ? 'Boa' :
+               scoreDetails.score >= 41 ? 'Instável' : 'Crítica'}
+            </Badge>
           </div>
-          
-          <div className="text-3xl font-bold text-blue-600 mb-2">
-            {scoreDetails.score}/100
-          </div>
-          
-          <Badge className={`text-xs px-2 py-1 ${
-            scoreDetails.score >= 81 ? 'bg-green-100 text-green-800' :
-            scoreDetails.score >= 61 ? 'bg-blue-100 text-blue-800' :
-            scoreDetails.score >= 41 ? 'bg-yellow-100 text-yellow-800' :
-            'bg-red-100 text-red-800'
-          }`}>
-            {scoreDetails.score >= 81 ? 'Excelente' :
-             scoreDetails.score >= 61 ? 'Boa' :
-             scoreDetails.score >= 41 ? 'Instável' : 'Crítica'}
-          </Badge>
         </div>
 
-        {/* Detalhamento por Critério - 3 Colunas da Direita */}
-        <div className="lg:col-span-3 grid grid-cols-2 lg:grid-cols-5 gap-2">
+        {/* Detalhamento por Critério - Parte Inferior */}
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           {criteriaConfig.map((config) => {
             const score = scoreDetails.criteria[config.key];
             const Icon = config.icon;
             
             return (
-              <Card key={config.key} className={`p-2 ${getCriteriaColor(score)}`}>
+              <Card key={config.key} className={`p-3 ${getCriteriaColor(score)}`}>
                 <div className="flex flex-col items-center text-center h-full justify-between">
                   <div className="flex flex-col items-center mb-2">
-                    <div className="p-1 rounded-lg bg-white bg-opacity-50 mb-1">
-                      <Icon className="w-3 h-3" />
+                    <div className="p-1.5 rounded-lg bg-white bg-opacity-50 mb-1">
+                      <Icon className="w-4 h-4" />
                     </div>
                     <h3 className="text-xs font-semibold text-gray-900 leading-tight text-center">{config.title}</h3>
-                    <div className="text-sm font-bold mt-1">{Math.round(score)}</div>
+                    <div className="text-lg font-bold mt-1">{Math.round(score)}</div>
                   </div>
                   
-                  <div className="w-full bg-white bg-opacity-30 rounded-full h-1.5">
+                  <div className="w-full bg-white bg-opacity-30 rounded-full h-2">
                     <div 
-                      className={`h-1.5 rounded-full transition-all duration-1000 ${getCriteriaProgressColor(score)}`}
+                      className={`h-2 rounded-full transition-all duration-1000 ${getCriteriaProgressColor(score)}`}
                       style={{ width: `${Math.min(100, score)}%` }}
                     ></div>
                   </div>
