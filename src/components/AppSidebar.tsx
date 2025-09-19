@@ -43,7 +43,7 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
 
 const dashboardItems = [
-  { title: "Balanço mensal", icon: BarChart3, path: "/" },
+  { title: "Balanço mensal", icon: BarChart3, path: "/monthly-balance" },
   { title: "Análise financeira", icon: TrendingUp, path: "/financial-analysis" },
   { title: "Planos & Metas", icon: Target, path: "/" },
   { title: "Investimentos", icon: PiggyBank, path: "/" },
