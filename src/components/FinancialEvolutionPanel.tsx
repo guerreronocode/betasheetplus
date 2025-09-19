@@ -137,7 +137,7 @@ const FinancialEvolutionPanel = () => {
       </div>
 
       {/* Gráfico de evolução */}
-      <div className="h-56">
+      <div className="flex-1 min-h-0">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={evolutionData} margin={{ top: 5, right: 30, left: 20, bottom: 50 }}>
             <CartesianGrid strokeDasharray="3 3" />
