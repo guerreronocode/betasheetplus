@@ -48,7 +48,7 @@ const FinancialEvolutionPanel = () => {
     : 0;
 
   return (
-    <Card className="p-4 h-full">
+    <Card className="p-4">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <div className="p-1.5 bg-blue-100 rounded-lg">
@@ -137,7 +137,7 @@ const FinancialEvolutionPanel = () => {
       </div>
 
       {/* Gráfico de evolução */}
-      <div className="h-48">
+      <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={evolutionData} margin={{ top: 5, right: 30, left: 20, bottom: 50 }}>
             <CartesianGrid strokeDasharray="3 3" />
