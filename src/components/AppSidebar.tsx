@@ -172,13 +172,13 @@ export function AppSidebar() {
               
               {!collapsed && (
                 <CollapsibleContent>
-                  <SidebarGroupContent className="ml-4 mt-2 min-w-0">
+                  <SidebarGroupContent className="ml-2 mt-2 min-w-0 overflow-hidden max-w-full">
                     <SidebarMenu>
                       {section.items.map((item) => (
                         <SidebarMenuItem key={item.title}>
-                          <SidebarMenuButton className="hover:bg-fnb-accent/5 transition-colors">
-                            <item.icon className="h-4 w-4 text-fnb-ink/70" />
-                            <span className="font-body text-fnb-ink/90">{item.title}</span>
+                          <SidebarMenuButton className="hover:bg-fnb-accent/5 transition-colors text-xs truncate">
+                            <item.icon className="h-4 w-4 text-fnb-ink/70 flex-shrink-0" />
+                            <span className="font-body text-fnb-ink/90 truncate">{item.title}</span>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
                       ))}
