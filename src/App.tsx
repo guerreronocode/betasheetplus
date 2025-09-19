@@ -12,7 +12,6 @@ import NotFound from "./pages/NotFound";
 import TransactionsHistory from "./pages/TransactionsHistory";
 import StyleGuide from "./pages/StyleGuide";
 import FinancialAnalysis from "./pages/FinancialAnalysis";
-import MonthlyBalance from "./pages/MonthlyBalance";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -34,11 +33,6 @@ const App: React.FC = () => {
             <Routes>
               <Route path="/auth" element={<Auth />} />
               <Route path="/" element={
-                <ProtectedRoute>
-                  <MonthlyBalance />
-                </ProtectedRoute>
-              } />
-              <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <Index />
                 </ProtectedRoute>
