@@ -131,7 +131,7 @@ export const MonthlyProjection: React.FC = () => {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6 pt-4">
+      <CardContent className="space-y-6 pt-2">
         {/* Percentage of Income Spent */}
         <div>
           <div className="flex items-center justify-between mb-2">

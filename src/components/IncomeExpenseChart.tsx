@@ -133,12 +133,16 @@ export const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
       <CardContent>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 50 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--fnb-accent) / 0.1)" />
               <XAxis 
                 dataKey="day" 
-                tick={{ fill: 'hsl(var(--fnb-ink) / 0.7)', fontSize: 12 }}
+                tick={{ fill: 'hsl(var(--fnb-ink) / 0.7)', fontSize: 10 }}
                 axisLine={{ stroke: 'hsl(var(--fnb-accent) / 0.2)' }}
+                interval={0}
+                angle={-45}
+                textAnchor="end"
+                height={60}
               />
               <YAxis 
                 tick={{ fill: 'hsl(var(--fnb-ink) / 0.7)', fontSize: 12 }}
