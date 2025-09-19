@@ -92,23 +92,23 @@ const DetailedFinancialScore = () => {
 
   return (
     <Card className="p-4">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-full">
         {/* Score Geral - Coluna da Esquerda */}
-        <div className="flex flex-col justify-center items-center text-center bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="p-2 bg-blue-100 rounded-full">
-              <Shield className="w-5 h-5 text-blue-600" />
+        <div className="flex flex-col justify-center items-center text-center bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-3 border border-blue-200">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="p-1.5 bg-blue-100 rounded-full">
+              <Shield className="w-4 h-4 text-blue-600" />
             </div>
             <div>
-              <h2 className="text-sm font-bold text-gray-900">Score Financeiro</h2>
+              <h2 className="text-xs font-bold text-gray-900">Score Financeiro</h2>
             </div>
           </div>
           
-          <div className="text-4xl font-bold text-blue-600 mb-2">
+          <div className="text-3xl font-bold text-blue-600 mb-2">
             {scoreDetails.score}/100
           </div>
           
-          <Badge className={`text-xs px-3 py-1 ${
+          <Badge className={`text-xs px-2 py-1 ${
             scoreDetails.score >= 81 ? 'bg-green-100 text-green-800' :
             scoreDetails.score >= 61 ? 'bg-blue-100 text-blue-800' :
             scoreDetails.score >= 41 ? 'bg-yellow-100 text-yellow-800' :
@@ -118,37 +118,26 @@ const DetailedFinancialScore = () => {
              scoreDetails.score >= 61 ? 'Boa' :
              scoreDetails.score >= 41 ? 'Instável' : 'Crítica'}
           </Badge>
-
-          {/* Top 2 Recomendações */}
-          <div className="mt-4 space-y-1 w-full">
-            <h4 className="text-xs font-semibold text-gray-700 mb-2">🎯 Próximos Passos</h4>
-            {scoreDetails.recommendations.slice(0, 2).map((rec, index) => (
-              <div key={index} className="flex items-start gap-1 p-2 bg-blue-100/50 rounded text-left">
-                <div className="w-3 h-3 bg-blue-600 text-white rounded-full flex items-center justify-center text-xs font-semibold mt-0.5 flex-shrink-0">
-                  {index + 1}
-                </div>
-                <p className="text-xs text-blue-800 leading-tight">{rec}</p>
-              </div>
-            ))}
-          </div>
         </div>
 
-        {/* Detalhamento por Critério - 2 Colunas da Direita */}
-        <div className="lg:col-span-2 grid grid-cols-2 lg:grid-cols-3 gap-2">
+        {/* Detalhamento por Critério - 3 Colunas da Direita */}
+        <div className="lg:col-span-3 grid grid-cols-2 lg:grid-cols-5 gap-2">
           {criteriaConfig.map((config) => {
             const score = scoreDetails.criteria[config.key];
             const Icon = config.icon;
             
             return (
-              <Card key={config.key} className={`p-3 ${getCriteriaColor(score)}`}>
-                <div className="flex flex-col items-center text-center">
-                  <div className="p-1.5 rounded-lg bg-white bg-opacity-50 mb-2">
-                    <Icon className="w-4 h-4" />
+              <Card key={config.key} className={`p-2 ${getCriteriaColor(score)}`}>
+                <div className="flex flex-col items-center text-center h-full justify-between">
+                  <div className="flex flex-col items-center mb-2">
+                    <div className="p-1 rounded-lg bg-white bg-opacity-50 mb-1">
+                      <Icon className="w-3 h-3" />
+                    </div>
+                    <h3 className="text-xs font-semibold text-gray-900 leading-tight text-center">{config.title}</h3>
+                    <div className="text-sm font-bold mt-1">{Math.round(score)}</div>
                   </div>
-                  <h3 className="text-xs font-semibold text-gray-900 mb-1 leading-tight">{config.title}</h3>
-                  <div className="text-lg font-bold">{Math.round(score)}</div>
                   
-                  <div className="w-full bg-white bg-opacity-30 rounded-full h-1.5 mt-2">
+                  <div className="w-full bg-white bg-opacity-30 rounded-full h-1.5">
                     <div 
                       className={`h-1.5 rounded-full transition-all duration-1000 ${getCriteriaProgressColor(score)}`}
                       style={{ width: `${Math.min(100, score)}%` }}
