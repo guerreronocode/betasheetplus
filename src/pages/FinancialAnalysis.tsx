@@ -8,19 +8,19 @@ const FinancialAnalysis = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-fnb-cream">      
-        <main className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
+        <main className="max-w-8xl mx-auto px-1 sm:px-2 lg:px-3 py-2">
           <div className="mb-3">
             <h1 className="text-xl font-bold text-fnb-ink">Análise Financeira</h1>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 max-w-full">
+          <div className="grid grid-cols-1 gap-2 max-w-full">
             {/* Score da saúde financeira - Ocupa toda a largura */}
             <div className="w-full">
               <DetailedFinancialScore />
             </div>
             
             {/* Linha com Evolução Financeira e Patrimônio - 3/5 e 2/5 */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-2">
               <div className="lg:col-span-3">
                 <FinancialEvolutionPanel />
               </div>
