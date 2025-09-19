@@ -83,7 +83,7 @@ export const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-fnb-accent" />
-            Receitas vs Despesas
+            Receitas e Despesas
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -106,7 +106,7 @@ export const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
         <CardTitle className="flex items-center justify-between text-lg">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-fnb-accent" />
-            Receitas vs Despesas - {monthNames[selectedMonth - 1]} {selectedYear}
+            Receitas e Despesas - {monthNames[selectedMonth - 1]} {selectedYear}
           </div>
         </CardTitle>
         <div className="flex items-center gap-4 text-sm mt-4">
