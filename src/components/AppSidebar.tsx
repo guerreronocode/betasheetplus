@@ -151,9 +151,13 @@ export function AppSidebar() {
             >
               <CollapsibleTrigger asChild>
                 <SidebarMenuButton 
-                  className={`w-full fnb-card hover:bg-fnb-accent/10 transition-colors ${
+                  className={`w-full fnb-card transition-colors ${
                     collapsed ? 'justify-center mb-2 h-10 w-10' : 'justify-start'
-                  } ${openSections.includes(section.title) ? 'bg-green-800 hover:bg-green-700' : ''}`}
+                  } ${
+                    openSections.includes(section.title) 
+                      ? 'bg-green-800' 
+                      : 'hover:bg-fnb-accent/10'
+                  }`}
                 >
                   <section.icon className={`h-6 w-6 flex-shrink-0 ${
                     openSections.includes(section.title) ? 'text-white' : 'text-fnb-accent'
