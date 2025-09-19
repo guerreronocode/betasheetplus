@@ -7,7 +7,7 @@ import PatrimonySummaryOverview from '@/components/PatrimonySummaryOverview';
 const FinancialAnalysis = () => {
   return (
     <Layout>
-      <div className="min-h-screen bg-fnb-cream">      
+      <div className="bg-fnb-cream">      
         <main className="max-w-8xl mx-auto px-4 py-4">
           <div className="mb-3">
             <h1 className="text-xl font-bold text-fnb-ink">Análise Financeira</h1>
