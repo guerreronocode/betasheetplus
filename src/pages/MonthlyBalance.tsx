@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { IncomeExpenseChart } from '@/components/IncomeExpenseChart';
 import { MonthlyProjection } from '@/components/MonthlyProjection';
-import { CurrentPeriodSummary } from '@/components/CurrentPeriodSummary';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const MonthlyBalance = () => {
@@ -82,7 +81,6 @@ const MonthlyBalance = () => {
               </div>
               
               <div className="lg:col-span-2">
-                <CurrentPeriodSummary />
                 <MonthlyProjection />
               </div>
             </div>
