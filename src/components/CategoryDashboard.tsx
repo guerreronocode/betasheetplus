@@ -104,63 +104,67 @@ export const CategoryDashboard: React.FC<CategoryDashboardProps> = ({
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-80">
+      <CardContent className="pt-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Receitas por Categoria */}
-          <div>
-            <h4 className="text-sm font-medium text-fnb-ink/70 mb-3 text-center">Receitas por Categoria</h4>
+          <div className="flex flex-col">
+            <h4 className="text-sm font-medium text-fnb-ink/70 mb-2 text-center">Receitas por Categoria</h4>
             {categoryData.incomeByCategory.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={categoryData.incomeByCategory}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {categoryData.incomeByCategory.map((entry, index) => (
-                      <Cell key={`income-cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categoryData.incomeByCategory}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={30}
+                      outerRadius={70}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {categoryData.incomeByCategory.map((entry, index) => (
+                        <Cell key={`income-cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
-              <div className="flex items-center justify-center h-full text-fnb-ink/50">
+              <div className="flex items-center justify-center h-64 text-fnb-ink/50">
                 Nenhuma receita encontrada
               </div>
             )}
           </div>
 
           {/* Despesas por Categoria */}
-          <div>
-            <h4 className="text-sm font-medium text-fnb-ink/70 mb-3 text-center">Despesas por Categoria</h4>
+          <div className="flex flex-col">
+            <h4 className="text-sm font-medium text-fnb-ink/70 mb-2 text-center">Despesas por Categoria</h4>
             {categoryData.expensesByCategory.length > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={categoryData.expensesByCategory}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={80}
-                    paddingAngle={5}
-                    dataKey="value"
-                  >
-                    {categoryData.expensesByCategory.map((entry, index) => (
-                      <Cell key={`expense-cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={categoryData.expensesByCategory}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={30}
+                      outerRadius={70}
+                      paddingAngle={5}
+                      dataKey="value"
+                    >
+                      {categoryData.expensesByCategory.map((entry, index) => (
+                        <Cell key={`expense-cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                    <Legend />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             ) : (
-              <div className="flex items-center justify-center h-full text-fnb-ink/50">
+              <div className="flex items-center justify-center h-64 text-fnb-ink/50">
                 Nenhuma despesa encontrada
               </div>
             )}
