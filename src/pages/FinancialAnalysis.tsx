@@ -8,10 +8,9 @@ const FinancialAnalysis = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-fnb-cream">      
-        <main className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-4">
-          <div className="mb-4">
+        <main className="max-w-8xl mx-auto px-2 sm:px-4 lg:px-6 py-2">
+          <div className="mb-3">
             <h1 className="text-xl font-bold text-fnb-ink">Análise Financeira</h1>
-            <p className="text-fnb-ink/70 mt-1 text-xs">Score, evolução e resumo patrimonial</p>
           </div>
 
           <div className="grid grid-cols-1 gap-3 max-w-full">
