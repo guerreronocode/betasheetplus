@@ -155,7 +155,7 @@ export function AppSidebar() {
                     collapsed ? 'justify-center mb-2 h-10 w-10' : 'justify-start'
                   } ${
                     openSections.includes(section.title) 
-                      ? 'bg-green-800 hover:bg-green-800' 
+                      ? 'bg-green-800 [&:hover]:bg-green-800 [&:hover]:text-white' 
                       : 'hover:bg-fnb-accent/10'
                   }`}
                 >
