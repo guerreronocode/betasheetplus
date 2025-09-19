@@ -137,7 +137,7 @@ const FinancialEvolutionPanel = () => {
       </div>
 
       {/* Gráfico de evolução */}
-      <div className="h-64">
+      <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={evolutionData} margin={{ top: 5, right: 30, left: 20, bottom: 50 }}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -198,7 +198,7 @@ const FinancialEvolutionPanel = () => {
       </div>
 
       {evolutionData && evolutionData.length === 0 && (
-        <div className="text-center py-6">
+        <div className="text-center py-4">
           <Wallet className="w-8 h-8 mx-auto mb-2 text-gray-300" />
           <h4 className="text-sm font-medium text-gray-900 mb-1">
             Dados insuficientes
