@@ -18,7 +18,7 @@ const FinancialEvolutionPanel = () => {
 
   if (isLoading) {
     return (
-      <Card className="p-4 h-full">
+      <Card className="p-4 max-h-[330px] flex flex-col">
         <div className="animate-pulse space-y-3">
           <div className="h-4 bg-gray-200 rounded w-1/3"></div>
           <div className="h-48 bg-gray-200 rounded"></div>
@@ -48,7 +48,7 @@ const FinancialEvolutionPanel = () => {
     : 0;
 
   return (
-    <Card className="p-4">
+    <Card className="p-4 max-h-[330px] flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <div className="p-1.5 bg-blue-100 rounded-lg">
