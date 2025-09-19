@@ -1,14 +1,9 @@
 
-import React from 'react';
-import { Layout } from '@/components/Layout';
-import Dashboard from './Dashboard';
+import React from "react";
+import MonthlyBalance from "./MonthlyBalance";
 
 const Index = () => {
-  return (
-    <Layout>
-      <Dashboard />
-    </Layout>
-  );
+  return <MonthlyBalance />;
 };
 
 export default Index;

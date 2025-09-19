@@ -1,0 +1,94 @@
+import React, { useState } from 'react';
+import { Layout } from '@/components/Layout';
+import { IncomeExpenseChart } from '@/components/IncomeExpenseChart';
+import { MonthlyProjection } from '@/components/MonthlyProjection';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+const MonthlyBalance = () => {
+  const currentDate = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(currentDate.getMonth() + 1);
+  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
+
+  // Generate month options
+  const months = [
+    { value: 1, label: 'Janeiro' },
+    { value: 2, label: 'Fevereiro' },
+    { value: 3, label: 'Março' },
+    { value: 4, label: 'Abril' },
+    { value: 5, label: 'Maio' },
+    { value: 6, label: 'Junho' },
+    { value: 7, label: 'Julho' },
+    { value: 8, label: 'Agosto' },
+    { value: 9, label: 'Setembro' },
+    { value: 10, label: 'Outubro' },
+    { value: 11, label: 'Novembro' },
+    { value: 12, label: 'Dezembro' },
+  ];
+
+  // Generate year options (current year ± 5)
+  const years = Array.from({ length: 11 }, (_, i) => currentDate.getFullYear() - 5 + i);
+
+  return (
+    <Layout>
+      <div className="bg-fnb-cream">      
+        <main className="max-w-8xl mx-auto px-4 py-4">
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-xl font-bold text-fnb-ink">Balanço Mensal</h1>
+              
+              {/* Filtros de Período */}
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-fnb-ink">Período:</span>
+                  <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(Number(value))}>
+                    <SelectTrigger className="w-32 h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {months.map((month) => (
+                        <SelectItem key={month.value} value={month.value.toString()}>
+                          {month.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  
+                  <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(Number(value))}>
+                    <SelectTrigger className="w-20 h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {years.map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-2 max-w-full">
+            {/* Linha com Receitas/Despesas e Projeção Mensal - 3/5 e 2/5 */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-2">
+              <div className="lg:col-span-3">
+                <IncomeExpenseChart 
+                  selectedMonth={selectedMonth} 
+                  selectedYear={selectedYear} 
+                />
+              </div>
+              
+              <div className="lg:col-span-2">
+                <MonthlyProjection />
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </Layout>
+  );
+};
+
+export default MonthlyBalance;

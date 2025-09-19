@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import TransactionsHistory from "./pages/TransactionsHistory";
 import StyleGuide from "./pages/StyleGuide";
 import FinancialAnalysis from "./pages/FinancialAnalysis";
+import MonthlyBalance from "./pages/MonthlyBalance";
 
 const queryClient = new QueryClient({
   defaultOptions: {
