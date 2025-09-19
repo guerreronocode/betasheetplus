@@ -93,18 +93,18 @@ const DetailedFinancialScore = () => {
   return (
     <Card className="p-6">
       <div className="space-y-4">
-        {/* Score Geral - Parte Superior */}
-        <div className="flex justify-center">
-          <div className="flex flex-col justify-center items-center text-center bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200 min-w-64">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="p-2 bg-blue-100 rounded-full">
-                <Shield className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <h2 className="text-sm font-bold text-gray-900">Score de Saúde Financeira</h2>
-              </div>
+        {/* Score Geral - Parte Superior - Expandido */}
+        <div className="w-full bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-4 border border-blue-200">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <div className="p-2 bg-blue-100 rounded-full">
+              <Shield className="w-5 h-5 text-blue-600" />
             </div>
-            
+            <div>
+              <h2 className="text-sm font-bold text-gray-900">Score de Saúde Financeira</h2>
+            </div>
+          </div>
+          
+          <div className="text-center">
             <div className="text-4xl font-bold text-blue-600 mb-2">
               {scoreDetails.score}/100
             </div>
