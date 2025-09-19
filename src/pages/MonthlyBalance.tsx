@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { IncomeExpenseChart } from '@/components/IncomeExpenseChart';
 import { MonthlyProjection } from '@/components/MonthlyProjection';
+import { CategoryDashboard } from '@/components/CategoryDashboard';
+import { BudgetVsRealized } from '@/components/BudgetVsRealized';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const MonthlyBalance = () => {
@@ -71,7 +73,7 @@ const MonthlyBalance = () => {
           </div>
 
           <div className="grid grid-cols-1 gap-2 max-w-full">
-            {/* Linha com Receitas/Despesas e Projeção Mensal - 3/5 e 2/5 */}
+            {/* Linha 1: Receitas/Despesas e Projeção Mensal - 3/5 e 2/5 */}
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-2">
               <div className="lg:col-span-3">
                 <IncomeExpenseChart 
@@ -82,6 +84,23 @@ const MonthlyBalance = () => {
               
               <div className="lg:col-span-2">
                 <MonthlyProjection />
+              </div>
+            </div>
+
+            {/* Linha 2: Dashboard por Categoria e Orçado vs Realizado - 3/5 e 2/5 */}
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-2">
+              <div className="lg:col-span-3">
+                <CategoryDashboard 
+                  selectedMonth={selectedMonth} 
+                  selectedYear={selectedYear} 
+                />
+              </div>
+              
+              <div className="lg:col-span-2">
+                <BudgetVsRealized 
+                  selectedMonth={selectedMonth} 
+                  selectedYear={selectedYear} 
+                />
               </div>
             </div>
           </div>
