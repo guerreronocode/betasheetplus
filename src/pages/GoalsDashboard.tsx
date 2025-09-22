@@ -39,7 +39,9 @@ const GoalsDashboard = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="bg-fnb-cream">      
+        <main className="w-full px-4 py-4">
+          <div className="space-y-6">
         {/* Header com estatísticas principais */}
         <div>
           <h1 className="text-2xl font-bold text-foreground mb-1">Dashboard de Metas</h1>
@@ -178,6 +180,8 @@ const GoalsDashboard = () => {
             )}
           </CardContent>
         </Card>
+          </div>
+        </main>
       </div>
     </Layout>
   );
