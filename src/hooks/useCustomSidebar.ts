@@ -7,8 +7,9 @@ export function useCustomSidebar() {
   
   useEffect(() => {
     const checkOverlay = () => {
-      // Para telas menores que 1024px (lg), usar comportamento de overlay
-      setShouldUseOverlay(window.innerWidth < 1024)
+      // Para telas entre 1024px e 1180px, usar comportamento de overlay
+      const width = window.innerWidth
+      setShouldUseOverlay(width >= 1024 && width <= 1180)
     }
     
     checkOverlay()

@@ -14,24 +14,25 @@ function LayoutContent({ children }: LayoutProps) {
     <div className="min-h-screen flex w-full bg-fnb-cream relative">
       <AppSidebar />
       
-      {/* Backdrop com blur para telas menores que lg quando sidebar está aberta */}
-      {isOverlayOpen && (
-        <div 
-          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
-          onClick={closeOverlay}
-        />
-      )}
-      
       <SidebarInset className={`flex-1 transition-all duration-200 ${
-        shouldUseOverlay ? 'relative z-10' : ''
+        shouldUseOverlay ? 'relative' : ''
       }`}>
-        {/* Trigger da sidebar - sempre visível no topo para telas menores que lg */}
+        {/* Backdrop com blur apenas sobre o conteúdo quando sidebar está aberta */}
+        {isOverlayOpen && (
+          <div 
+            className="absolute inset-0 z-40 bg-black/20 backdrop-blur-sm"
+            onClick={closeOverlay}
+          />
+        )}
+        {/* Trigger da sidebar - sempre visível no topo para telas na faixa de overlay */}
         {shouldUseOverlay && (
           <div className="sticky top-0 z-50 bg-fnb-cream/95 backdrop-blur-sm border-b border-fnb-accent/10 p-2">
             <SidebarTrigger />
           </div>
         )}
-        {children}
+        <div className={shouldUseOverlay ? 'relative z-10' : ''}>
+          {children}
+        </div>
       </SidebarInset>
     </div>
   )
