@@ -13,6 +13,7 @@ import TransactionsHistory from "./pages/TransactionsHistory";
 import StyleGuide from "./pages/StyleGuide";
 import FinancialAnalysis from "./pages/FinancialAnalysis";
 import MonthlyBalance from "./pages/MonthlyBalance";
+import GoalsDashboard from "./pages/GoalsDashboard";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -51,6 +52,11 @@ const App: React.FC = () => {
               <Route path="/monthly-balance" element={
                 <ProtectedRoute>
                   <MonthlyBalance />
+                </ProtectedRoute>
+              } />
+              <Route path="/goals-dashboard" element={
+                <ProtectedRoute>
+                  <GoalsDashboard />
                 </ProtectedRoute>
               } />
               <Route path="/style-guide" element={<StyleGuide />} />
