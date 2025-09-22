@@ -140,29 +140,42 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
       </CardHeader>
       <CardContent>
         <ScrollArea className="h-64">
-          <div className="space-y-4">
+          <div className="space-y-3">
             {budgetData.categoryData.length === 0 ? (
               <div className="text-center text-fnb-ink/50 py-8">
                 Nenhum dado de orçamento ou despesas encontrado para este período.
               </div>
             ) : (
               budgetData.categoryData.map((item) => (
-                <div key={item.category} className="space-y-2">
+                <div key={item.category} className="space-y-1.5">
                   <div className="flex justify-between items-center">
-                    <span className="font-medium text-fnb-ink">{item.category}</span>
-                    <div className="text-sm text-fnb-ink/70">
+                    <span className="font-medium text-fnb-ink text-sm">{item.category}</span>
+                    <div className="text-xs text-fnb-ink/70">
                       {formatCurrency(item.realized)} / {formatCurrency(item.planned)}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Progress 
-                      value={Math.min(item.percentage, 100)} 
-                      className="flex-1"
-                    />
-                    <span className={`text-sm font-medium min-w-[50px] ${
+                    {/* Barra customizada bicolor */}
+                    <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
+                      <div className="h-full flex">
+                        {/* Parte vermelha (gasto) */}
+                        <div 
+                          className="bg-red-500 h-full"
+                          style={{ width: `${Math.min(item.percentage, 100)}%` }}
+                        />
+                        {/* Parte verde (disponível) */}
+                        {item.percentage < 100 && (
+                          <div 
+                            className="bg-green-500 h-full"
+                            style={{ width: `${100 - Math.min(item.percentage, 100)}%` }}
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <span className={`text-xs font-medium min-w-[40px] ${
                       item.overBudget ? 'text-red-600' : 'text-green-600'
                     }`}>
-                      {item.percentage.toFixed(1)}%
+                      {item.percentage.toFixed(0)}%
                     </span>
                   </div>
                   <div className="text-xs text-fnb-ink/60">
