@@ -21,26 +21,15 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
   const { plannedExpenses: plannedExpensesData, isLoading: plannedExpensesLoading } = usePlannedExpenses();
 
   const budgetData = useMemo(() => {
-    if (!income || !expenses || !plannedIncomeData || !plannedExpensesData) {
+    if (!expenses || !plannedExpensesData) {
       return {
-        plannedIncome: 0,
-        realizedIncome: 0,
         plannedExpenses: 0,
         realizedExpenses: 0,
         chartData: []
       };
     }
 
-    const selectedDate = new Date(selectedYear, selectedMonth - 1, 1);
-    
-    // Calculate realized values
-    const realizedIncome = income
-      .filter(item => {
-        const date = new Date(item.date);
-        return date.getMonth() + 1 === selectedMonth && date.getFullYear() === selectedYear;
-      })
-      .reduce((sum, item) => sum + item.amount, 0);
-
+    // Calculate realized expenses
     const realizedExpenses = expenses
       .filter(item => {
         const date = new Date(item.date);
@@ -48,14 +37,7 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
       })
       .reduce((sum, item) => sum + item.amount, 0);
 
-    // Calculate planned values
-    const plannedIncome = plannedIncomeData
-      .filter(item => {
-        const itemDate = new Date(item.month);
-        return itemDate.getMonth() + 1 === selectedMonth && itemDate.getFullYear() === selectedYear;
-      })
-      .reduce((sum, item) => sum + item.planned_amount, 0);
-
+    // Calculate planned expenses (budget limit)
     const plannedExpenses = plannedExpensesData
       .filter(item => {
         const itemDate = new Date(item.month);
@@ -65,29 +47,21 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
 
     const chartData = [
       {
-        category: 'Receitas',
-        planejado: plannedIncome,
-        realizado: realizedIncome,
-        diferenca: realizedIncome - plannedIncome,
-      },
-      {
         category: 'Despesas',
-        planejado: plannedExpenses,
+        orcado: plannedExpenses,
         realizado: realizedExpenses,
         diferenca: realizedExpenses - plannedExpenses,
       },
     ];
 
     return {
-      plannedIncome,
-      realizedIncome,
       plannedExpenses,
       realizedExpenses,
       chartData
     };
-  }, [income, expenses, plannedIncomeData, plannedExpensesData, selectedMonth, selectedYear]);
+  }, [expenses, plannedExpensesData, selectedMonth, selectedYear]);
 
-  const isLoading = financialLoading || plannedIncomeLoading || plannedExpensesLoading;
+  const isLoading = financialLoading || plannedExpensesLoading;
 
   if (isLoading) {
     return (
@@ -112,10 +86,9 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
 
-  const incomeVariance = budgetData.realizedIncome - budgetData.plannedIncome;
   const expenseVariance = budgetData.realizedExpenses - budgetData.plannedExpenses;
-  const netBudgeted = budgetData.plannedIncome - budgetData.plannedExpenses;
-  const netRealized = budgetData.realizedIncome - budgetData.realizedExpenses;
+  const budgetRemaining = budgetData.plannedExpenses - budgetData.realizedExpenses;
+  const overBudget = budgetData.realizedExpenses > budgetData.plannedExpenses;
 
   return (
     <Card className="fnb-card">
@@ -126,27 +99,21 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
         </CardTitle>
         <div className="flex items-center gap-4 text-sm mt-4">
           <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-blue-600" />
-            <span className="text-fnb-ink/70">Saldo Orçado: {formatCurrency(netBudgeted)}</span>
+            <Target className="h-4 w-4 text-blue-600" />
+            <span className="text-fnb-ink/70">Orçamento: {formatCurrency(budgetData.plannedExpenses)}</span>
           </div>
           <div className="flex items-center gap-2">
-            {netRealized >= 0 ? (
-              <TrendingUp className="h-4 w-4 text-green-600" />
-            ) : (
-              <TrendingDown className="h-4 w-4 text-red-600" />
-            )}
-            <span className={`font-medium ${netRealized >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              Saldo Real: {formatCurrency(netRealized)}
-            </span>
+            <TrendingDown className="h-4 w-4 text-red-600" />
+            <span className="text-fnb-ink/70">Gasto Real: {formatCurrency(budgetData.realizedExpenses)}</span>
           </div>
           <div className="flex items-center gap-2">
-            {(netRealized - netBudgeted) >= 0 ? (
+            {!overBudget ? (
               <TrendingUp className="h-4 w-4 text-green-600" />
             ) : (
-              <TrendingDown className="h-4 w-4 text-red-600" />
+              <AlertTriangle className="h-4 w-4 text-red-600" />
             )}
-            <span className={`font-medium ${(netRealized - netBudgeted) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              Variação: {formatCurrency(netRealized - netBudgeted)}
+            <span className={`font-medium ${!overBudget ? 'text-green-600' : 'text-red-600'}`}>
+              {!overBudget ? `Restante: ${formatCurrency(budgetRemaining)}` : `Excesso: ${formatCurrency(Math.abs(budgetRemaining))}`}
             </span>
           </div>
         </div>
@@ -169,7 +136,7 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
               <Tooltip 
                 formatter={(value, name) => [
                   formatCurrency(value as number), 
-                  name === 'planejado' ? 'Planejado' : name === 'realizado' ? 'Realizado' : 'Meta Orçada'
+                  name === 'orcado' ? 'Orçamento' : name === 'realizado' ? 'Gasto Real' : 'Limite Orçado'
                 ]}
                 labelFormatter={(label) => `${label}`}
                 contentStyle={{
@@ -180,14 +147,14 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
                 }}
               />
               <Legend />
-              <Bar dataKey="realizado" fill="#10b981" name="Realizado" />
+              <Bar dataKey="realizado" fill="#ef4444" name="Gasto Real" />
               <Line 
                 type="monotone" 
-                dataKey="planejado" 
+                dataKey="orcado" 
                 stroke="#3b82f6" 
                 strokeWidth={3}
                 dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
-                name="Meta Orçada"
+                name="Limite Orçado"
               />
               <ReferenceLine y={0} stroke="hsl(var(--fnb-ink) / 0.3)" strokeDasharray="2 2" />
             </ComposedChart>
