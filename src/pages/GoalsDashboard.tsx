@@ -48,11 +48,11 @@ const GoalsDashboard = () => {
         {/* ScrollArea que engloba tudo exceto o título */}
         <ScrollArea className="h-[calc(100vh-60px)] px-4">
           <div className="space-y-6 pb-4">
-            {/* Header com parallax */}
+            {/* Descrição simples */}
+            <p className="text-xs text-muted-foreground mb-4">Acompanhe o progresso dos seus objetivos financeiros</p>
+            
+            {/* Estatísticas com parallax */}
             <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg transform-gpu transition-transform duration-300 hover:scale-[1.02]">
-              <p className="text-xs text-muted-foreground mb-4">Acompanhe o progresso dos seus objetivos financeiros</p>
-              
-              {/* Estatísticas em texto com ícones */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 <div className="flex items-center gap-2">
                   <Target className="w-3 h-3 text-primary" />
