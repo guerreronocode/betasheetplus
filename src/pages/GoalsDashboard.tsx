@@ -115,54 +115,50 @@ const GoalsDashboard = () => {
                     const progress = Math.min(((goal.current_amount || 0) / goal.target_amount) * 100, 100);
                     const remaining = Math.max(goal.target_amount - (goal.current_amount || 0), 0);
                     const remainingProgress = 100 - progress;
-                    
-                    // TODO: Implementar cálculo de aporte mensal sugerido
-                    const monthlySuggestion = remaining / 12; // Placeholder: dividir por 12 meses
 
                     return (
-                      <div key={goal.id} className="space-y-2 p-3 border rounded-lg">
-                        {/* Primeira linha: Nome da meta e barra de progresso */}
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="flex-1">
+                      <div key={goal.id} className="p-4 border rounded-lg">
+                        <div className="flex items-center gap-4">
+                          {/* Título da meta */}
+                          <div className="w-48 flex-shrink-0">
                             <h3 className="font-medium text-base">{goal.title}</h3>
                           </div>
-                          <div className="flex-1 max-w-xs">
-                            <div className="relative">
-                              {/* Barra de progresso dupla */}
-                              <div className="flex rounded-full overflow-hidden bg-muted h-5">
-                                {/* Lado esquerdo - Progresso atual */}
-                                <div 
-                                  className="bg-green-500 flex items-center justify-center text-xs font-medium text-white px-2 transition-all"
-                                  style={{ width: `${progress}%` }}
-                                >
-                                  {progress > 25 && (
-                                    <span className="truncate">
-                                      {formatCurrency(goal.current_amount || 0)} ({progress.toFixed(0)}%)
-                                    </span>
-                                  )}
-                                </div>
-                                {/* Lado direito - Valor restante */}
-                                <div 
-                                  className="bg-muted-foreground/20 flex items-center justify-center text-xs font-medium text-muted-foreground px-2 transition-all"
-                                  style={{ width: `${remainingProgress}%` }}
-                                >
-                                  {remainingProgress > 25 && (
-                                    <span className="truncate">
-                                      {formatCurrency(remaining)} ({remainingProgress.toFixed(0)}%)
-                                    </span>
-                                  )}
-                                </div>
+                          
+                          {/* Barra de progresso */}
+                          <div className="flex-1">
+                            <div className="flex rounded-lg overflow-hidden h-8 border">
+                              {/* Parte verde - Valor alcançado */}
+                              <div 
+                                className="bg-green-500 flex items-center justify-center text-xs font-medium text-white px-2"
+                                style={{ width: `${progress}%` }}
+                              >
+                                {progress > 0 && (
+                                  <span className="truncate">
+                                    {formatCurrency(goal.current_amount || 0)} ({progress.toFixed(0)}%)
+                                  </span>
+                                )}
+                              </div>
+                              
+                              {/* Parte vermelha - Valor restante */}
+                              <div 
+                                className="bg-red-500 flex items-center justify-center text-xs font-medium text-white px-2"
+                                style={{ width: `${remainingProgress}%` }}
+                              >
+                                {remainingProgress > 0 && (
+                                  <span className="truncate">
+                                    {formatCurrency(remaining)} ({remainingProgress.toFixed(0)}%)
+                                  </span>
+                                )}
                               </div>
                             </div>
                           </div>
-                        </div>
-
-                        {/* Segunda linha: Sugestão de aporte mensal */}
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>Sugestão de aporte mensal:</span>
-                          <span className="font-medium text-foreground text-sm">
-                            {formatCurrency(monthlySuggestion)}
-                          </span>
+                          
+                          {/* Valor total da meta */}
+                          <div className="w-32 flex-shrink-0 text-right">
+                            <span className="font-semibold text-base">
+                              {formatCurrency(goal.target_amount)}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     );
