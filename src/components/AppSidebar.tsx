@@ -19,6 +19,7 @@ import {
   Menu
 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { useCustomSidebar } from "@/hooks/useCustomSidebar"
 
 import {
   Sidebar,
@@ -30,7 +31,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarTrigger,
-  useSidebar,
   SidebarHeader,
   SidebarFooter,
 } from "@/components/ui/sidebar"
@@ -74,7 +74,7 @@ const mainSections = [
 ]
 
 export function AppSidebar() {
-  const { state, setOpen } = useSidebar()
+  const { state, setOpen, shouldUseOverlay } = useCustomSidebar()
   const { signOut } = useAuth()
   const navigate = useNavigate()
   const [openSections, setOpenSections] = useState<string[]>([])
@@ -112,9 +112,9 @@ export function AppSidebar() {
     <Sidebar 
       className={`fnb-card border-r-2 border-fnb-accent/20 transition-all duration-150 rounded-r-2xl ${
         collapsed ? 'w-14 rounded-l-2xl' : 'w-56 rounded-l-2xl'
-      }`}
+      } ${shouldUseOverlay ? 'lg:fixed lg:z-50 lg:inset-y-0 lg:left-0' : ''}`}
       collapsible="icon"
-      variant="sidebar"
+      variant={shouldUseOverlay ? "floating" : "sidebar"}
     >
       <SidebarHeader className={`border-b border-fnb-accent/10 ${collapsed ? 'p-1' : 'p-4'}`}>
         <div className={`flex items-center ${collapsed ? 'flex-col gap-2 items-center' : 'justify-between'}`}>

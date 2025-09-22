@@ -1,33 +1,36 @@
 import React from "react"
-import { SidebarProvider, SidebarInset, useSidebar, SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/AppSidebar"
+import { useCustomSidebar } from "@/hooks/useCustomSidebar"
 
 interface LayoutProps {
   children: React.ReactNode
 }
 
 function LayoutContent({ children }: LayoutProps) {
-  const { isMobile, openMobile, setOpenMobile } = useSidebar()
+  const { shouldUseOverlay, isOverlayOpen, closeOverlay } = useCustomSidebar()
   
   return (
     <div className="min-h-screen flex w-full bg-fnb-cream relative">
       <AppSidebar />
       
-      {/* Backdrop com blur para mobile quando sidebar está aberta */}
-      {isMobile && openMobile && (
+      {/* Backdrop com blur para telas menores que lg quando sidebar está aberta */}
+      {isOverlayOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm lg:hidden"
-          onClick={() => setOpenMobile(false)}
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm"
+          onClick={closeOverlay}
         />
       )}
       
       <SidebarInset className={`flex-1 transition-all duration-200 ${
-        isMobile ? 'relative z-10' : ''
+        shouldUseOverlay ? 'relative z-10' : ''
       }`}>
-        {/* Trigger da sidebar para mobile - sempre visível no topo */}
-        <div className="lg:hidden sticky top-0 z-50 bg-fnb-cream/95 backdrop-blur-sm border-b border-fnb-accent/10 p-2">
-          <SidebarTrigger />
-        </div>
+        {/* Trigger da sidebar - sempre visível no topo para telas menores que lg */}
+        {shouldUseOverlay && (
+          <div className="sticky top-0 z-50 bg-fnb-cream/95 backdrop-blur-sm border-b border-fnb-accent/10 p-2">
+            <SidebarTrigger />
+          </div>
+        )}
         {children}
       </SidebarInset>
     </div>
