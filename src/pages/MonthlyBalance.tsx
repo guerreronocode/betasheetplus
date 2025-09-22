@@ -33,7 +33,7 @@ const MonthlyBalance = () => {
   return (
     <Layout>
       <div className="bg-fnb-cream">      
-        <main className="max-w-8xl mx-auto px-4 py-4">
+        <main className="w-full px-4 py-4 overflow-hidden">
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
               <h1 className="text-xl font-bold text-fnb-ink">Balanço Mensal</h1>
@@ -72,31 +72,31 @@ const MonthlyBalance = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-2 max-w-full">
+          <div className="grid grid-cols-1 gap-2 w-full min-w-0">
             {/* Linha 1: Receitas/Despesas e Projeção Mensal - 3/5 e 2/5 */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-2">
-              <div className="lg:col-span-3">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 min-w-0">
+              <div className="lg:col-span-3 min-w-0">
                 <IncomeExpenseChart 
                   selectedMonth={selectedMonth} 
                   selectedYear={selectedYear} 
                 />
               </div>
               
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2 min-w-0">
                 <MonthlyProjection />
               </div>
             </div>
 
             {/* Linha 2: Dashboard por Categoria e Orçado vs Realizado - 3/5 e 2/5 */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-2">
-              <div className="lg:col-span-3">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-2 min-w-0">
+              <div className="lg:col-span-3 min-w-0">
                 <CategoryDashboard 
                   selectedMonth={selectedMonth} 
                   selectedYear={selectedYear} 
                 />
               </div>
               
-              <div className="lg:col-span-2">
+              <div className="lg:col-span-2 min-w-0">
                 <BudgetVsRealized 
                   selectedMonth={selectedMonth} 
                   selectedYear={selectedYear} 

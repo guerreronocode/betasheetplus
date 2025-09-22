@@ -79,7 +79,7 @@ export const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
 
   if (isLoading) {
     return (
-      <Card className="fnb-card">
+      <Card className="fnb-card w-full min-w-0 overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5 text-fnb-accent" />
@@ -101,7 +101,7 @@ export const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
   ];
 
   return (
-    <Card className="fnb-card">
+    <Card className="fnb-card w-full min-w-0 overflow-hidden">
       <CardHeader>
         <CardTitle className="flex items-center justify-between text-lg">
           <div className="flex items-center gap-2">
@@ -109,7 +109,7 @@ export const IncomeExpenseChart: React.FC<IncomeExpenseChartProps> = ({
             Receitas e Despesas - {monthNames[selectedMonth - 1]} {selectedYear}
           </div>
         </CardTitle>
-        <div className="flex items-center gap-4 text-sm mt-4">
+        <div className="flex items-center gap-2 text-sm mt-4 flex-wrap">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-green-500 rounded" />
             <span className="text-fnb-ink/70">Receitas: {formatCurrency(totals.income)}</span>

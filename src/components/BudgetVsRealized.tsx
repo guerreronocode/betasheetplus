@@ -86,7 +86,7 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
 
   if (isLoading) {
     return (
-      <Card className="fnb-card">
+    <Card className="fnb-card w-full min-w-0 overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Target className="h-5 w-5 text-fnb-accent" />
@@ -111,13 +111,13 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
   const overBudget = budgetData.realizedExpenses > budgetData.plannedExpenses;
 
   return (
-    <Card className="fnb-card">
+    <Card className="fnb-card w-full min-w-0 overflow-hidden">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Target className="h-5 w-5 text-fnb-accent" />
           Orçado vs Realizado - {monthNames[selectedMonth - 1]} {selectedYear}
         </CardTitle>
-        <div className="flex items-center gap-4 text-sm mt-4">
+        <div className="flex items-center gap-2 text-sm mt-4 flex-wrap">
           <div className="flex items-center gap-2">
             <Target className="h-4 w-4 text-blue-600" />
             <span className="text-fnb-ink/70">Orçamento: {formatCurrency(budgetData.plannedExpenses)}</span>
@@ -154,30 +154,17 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
                       {formatCurrency(item.realized)} / {formatCurrency(item.planned)}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {/* Barra customizada bicolor */}
-                    <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                      <div className="h-full flex">
-                        {/* Parte vermelha (gasto) */}
-                        <div 
-                          className="bg-red-500 h-full"
-                          style={{ width: `${Math.min(item.percentage, 100)}%` }}
-                        />
-                        {/* Parte verde (disponível) */}
-                        {item.percentage < 100 && (
-                          <div 
-                            className="bg-green-500 h-full"
-                            style={{ width: `${100 - Math.min(item.percentage, 100)}%` }}
-                          />
-                        )}
-                      </div>
-                    </div>
-                    <span className={`text-xs font-medium min-w-[40px] ${
-                      item.overBudget ? 'text-red-600' : 'text-green-600'
-                    }`}>
-                      {item.percentage.toFixed(0)}%
-                    </span>
-                  </div>
+                   <div className="flex items-center gap-2">
+                     <Progress 
+                       value={Math.min(item.percentage, 100)} 
+                       className="flex-1 h-2"
+                     />
+                     <span className={`text-xs font-medium min-w-[40px] ${
+                       item.overBudget ? 'text-red-600' : 'text-green-600'
+                     }`}>
+                       {item.percentage.toFixed(0)}%
+                     </span>
+                   </div>
                   <div className="text-xs text-fnb-ink/60">
                     {item.overBudget ? (
                       <span className="text-red-600">

@@ -79,7 +79,7 @@ export const MonthlyProjection: React.FC = () => {
 
   if (isLoading) {
     return (
-      <Card className="fnb-card">
+      <Card className="fnb-card w-full min-w-0 overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Calculator className="h-5 w-5 text-fnb-accent" />
@@ -104,13 +104,13 @@ export const MonthlyProjection: React.FC = () => {
   const monthName = currentDate.toLocaleDateString('pt-BR', { month: 'long' });
 
   return (
-    <Card className="fnb-card">
+    <Card className="fnb-card w-full min-w-0 overflow-hidden">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <Calculator className="h-5 w-5 text-fnb-accent" />
           Projeção Mensal - {monthName.charAt(0).toUpperCase() + monthName.slice(1)}
         </CardTitle>
-        <div className="flex items-center gap-4 text-sm mt-4">
+        <div className="flex items-center gap-2 text-sm mt-4 flex-wrap">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-green-600" />
             <span className="text-fnb-ink/70">Entradas: {formatCurrency(currentMonthData.income)}</span>

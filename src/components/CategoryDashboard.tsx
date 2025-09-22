@@ -62,7 +62,7 @@ export const CategoryDashboard: React.FC<CategoryDashboardProps> = ({
 
   if (isLoading) {
     return (
-      <Card className="fnb-card">
+      <Card className="fnb-card w-full min-w-0 overflow-hidden">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <PieChartIcon className="h-5 w-5 text-fnb-accent" />
@@ -87,13 +87,13 @@ export const CategoryDashboard: React.FC<CategoryDashboardProps> = ({
   const totalExpenses = categoryData.expensesByCategory.reduce((sum, item) => sum + item.value, 0);
 
   return (
-    <Card className="fnb-card">
+    <Card className="fnb-card w-full min-w-0 overflow-hidden">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-lg">
           <PieChartIcon className="h-5 w-5 text-fnb-accent" />
           Dashboard por Categoria - {monthNames[selectedMonth - 1]} {selectedYear}
         </CardTitle>
-        <div className="flex items-center gap-4 text-sm mt-4">
+        <div className="flex items-center gap-2 text-sm mt-4 flex-wrap">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-green-600" />
             <span className="text-fnb-ink/70">Total Receitas: {formatCurrency(totalIncome)}</span>
