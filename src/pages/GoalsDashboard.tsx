@@ -42,109 +42,73 @@ const GoalsDashboard = () => {
       <div className="space-y-6">
         {/* Header com estatísticas principais */}
         <div>
-          <h1 className="text-3xl font-bold text-foreground mb-2">Dashboard de Metas</h1>
-          <p className="text-muted-foreground">Acompanhe o progresso dos seus objetivos financeiros</p>
+          <h1 className="text-2xl font-bold text-foreground mb-1">Dashboard de Metas</h1>
+          <p className="text-sm text-muted-foreground mb-4">Acompanhe o progresso dos seus objetivos financeiros</p>
         </div>
 
-        {/* Cards de estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-primary/10 rounded-lg">
-                  <Target className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Total de Metas</p>
-                  <p className="text-xl font-bold">{totalGoals}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Estatísticas em texto com ícones */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+          <div className="flex items-center gap-2">
+            <Target className="w-4 h-4 text-primary" />
+            <div>
+              <p className="text-xs text-muted-foreground">Total de Metas</p>
+              <p className="text-lg font-semibold">{totalGoals}</p>
+            </div>
+          </div>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-green-500/10 rounded-lg">
-                  <CheckCircle className="w-5 h-5 text-green-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Metas Concluídas</p>
-                  <p className="text-xl font-bold">{completedGoals}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex items-center gap-2">
+            <CheckCircle className="w-4 h-4 text-green-500" />
+            <div>
+              <p className="text-xs text-muted-foreground">Concluídas</p>
+              <p className="text-lg font-semibold">{completedGoals}</p>
+            </div>
+          </div>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-orange-500/10 rounded-lg">
-                  <TrendingUp className="w-5 h-5 text-orange-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Progresso (%)</p>
-                  <p className="text-xl font-bold">{totalProgress.toFixed(1)}%</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-orange-500" />
+            <div>
+              <p className="text-xs text-muted-foreground">Progresso</p>
+              <p className="text-lg font-semibold">{totalProgress.toFixed(1)}%</p>
+            </div>
+          </div>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500/10 rounded-lg">
-                  <DollarSign className="w-5 h-5 text-blue-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Valor Total</p>
-                  <p className="text-lg font-bold">{formatCurrency(totalTargetValue)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex items-center gap-2">
+            <DollarSign className="w-4 h-4 text-blue-500" />
+            <div>
+              <p className="text-xs text-muted-foreground">Valor Total</p>
+              <p className="text-sm font-semibold">{formatCurrency(totalTargetValue)}</p>
+            </div>
+          </div>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-purple-500/10 rounded-lg">
-                  <Wallet className="w-5 h-5 text-purple-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Valor Arrecadado</p>
-                  <p className="text-lg font-bold">{formatCurrency(totalCurrentValue)}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex items-center gap-2">
+            <Wallet className="w-4 h-4 text-purple-500" />
+            <div>
+              <p className="text-xs text-muted-foreground">Arrecadado</p>
+              <p className="text-sm font-semibold">{formatCurrency(totalCurrentValue)}</p>
+            </div>
+          </div>
 
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-500/10 rounded-lg">
-                  <CalendarDays className="w-5 h-5 text-red-500" />
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Valor Restante</p>
-                  <p className="text-lg font-bold">{formatCurrency(Math.max(0, totalRemaining))}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="flex items-center gap-2">
+            <CalendarDays className="w-4 h-4 text-red-500" />
+            <div>
+              <p className="text-xs text-muted-foreground">Restante</p>
+              <p className="text-sm font-semibold">{formatCurrency(Math.max(0, totalRemaining))}</p>
+            </div>
+          </div>
         </div>
 
         {/* Lista de metas */}
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5" />
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Target className="w-4 h-4" />
               Suas Metas Financeiras
             </CardTitle>
           </CardHeader>
           <CardContent>
             {goals.length > 0 ? (
-              <ScrollArea className="h-[600px] pr-4">
-                <div className="space-y-6">
+              <ScrollArea className="h-[500px] pr-4">
+                <div className="space-y-4">
                   {goals.map((goal) => {
                     const progress = Math.min(((goal.current_amount || 0) / goal.target_amount) * 100, 100);
                     const remaining = Math.max(goal.target_amount - (goal.current_amount || 0), 0);
@@ -154,24 +118,24 @@ const GoalsDashboard = () => {
                     const monthlySuggestion = remaining / 12; // Placeholder: dividir por 12 meses
 
                     return (
-                      <div key={goal.id} className="space-y-3 p-4 border rounded-lg">
+                      <div key={goal.id} className="space-y-2 p-3 border rounded-lg">
                         {/* Primeira linha: Nome da meta e barra de progresso */}
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between gap-4">
                           <div className="flex-1">
-                            <h3 className="font-semibold text-lg">{goal.title}</h3>
+                            <h3 className="font-medium text-base">{goal.title}</h3>
                           </div>
-                          <div className="flex-1 max-w-md">
+                          <div className="flex-1 max-w-xs">
                             <div className="relative">
                               {/* Barra de progresso dupla */}
-                              <div className="flex rounded-full overflow-hidden bg-muted h-6">
+                              <div className="flex rounded-full overflow-hidden bg-muted h-5">
                                 {/* Lado esquerdo - Progresso atual */}
                                 <div 
                                   className="bg-green-500 flex items-center justify-center text-xs font-medium text-white px-2 transition-all"
                                   style={{ width: `${progress}%` }}
                                 >
-                                  {progress > 20 && (
+                                  {progress > 25 && (
                                     <span className="truncate">
-                                      {formatCurrency(goal.current_amount || 0)} ({progress.toFixed(1)}%)
+                                      {formatCurrency(goal.current_amount || 0)} ({progress.toFixed(0)}%)
                                     </span>
                                   )}
                                 </div>
@@ -180,9 +144,9 @@ const GoalsDashboard = () => {
                                   className="bg-muted-foreground/20 flex items-center justify-center text-xs font-medium text-muted-foreground px-2 transition-all"
                                   style={{ width: `${remainingProgress}%` }}
                                 >
-                                  {remainingProgress > 20 && (
+                                  {remainingProgress > 25 && (
                                     <span className="truncate">
-                                      {formatCurrency(remaining)} ({remainingProgress.toFixed(1)}%)
+                                      {formatCurrency(remaining)} ({remainingProgress.toFixed(0)}%)
                                     </span>
                                   )}
                                 </div>
@@ -192,9 +156,9 @@ const GoalsDashboard = () => {
                         </div>
 
                         {/* Segunda linha: Sugestão de aporte mensal */}
-                        <div className="flex items-center justify-between text-sm text-muted-foreground">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <span>Sugestão de aporte mensal:</span>
-                          <span className="font-medium text-foreground">
+                          <span className="font-medium text-foreground text-sm">
                             {formatCurrency(monthlySuggestion)}
                           </span>
                         </div>
@@ -204,10 +168,10 @@ const GoalsDashboard = () => {
                 </div>
               </ScrollArea>
             ) : (
-              <div className="text-center py-12">
-                <Target className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Nenhuma meta encontrada</h3>
-                <p className="text-muted-foreground">
+              <div className="text-center py-8">
+                <Target className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                <h3 className="text-base font-medium mb-1">Nenhuma meta encontrada</h3>
+                <p className="text-sm text-muted-foreground">
                   Crie sua primeira meta financeira para começar a acompanhar seus objetivos!
                 </p>
               </div>
