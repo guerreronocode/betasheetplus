@@ -148,56 +148,46 @@ const InvestmentDashboard = () => {
             </div>
 
             {/* Filtro de Período */}
-            <Card className="fnb-card">
-              <CardHeader>
-                <div className="space-y-2">
-                  <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="w-full justify-start text-left font-normal">
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {startDate && endDate ? (
-                          <>
-                            {format(startDate, "dd/MM/yyyy")} - {format(endDate, "dd/MM/yyyy")}
-                          </>
-                        ) : (
-                          <span>Selecionar período</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <div className="p-4 space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label htmlFor="start-date" className="text-sm font-medium mb-2 block">Data inicial</Label>
-                            <Calendar
-                              mode="single"
-                              selected={startDate}
-                              onSelect={setStartDate}
-                              className={cn("pointer-events-auto")}
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="end-date" className="text-sm font-medium mb-2 block">Data final</Label>
-                            <Calendar
-                              mode="single"
-                              selected={endDate}
-                              onSelect={setEndDate}
-                              className={cn("pointer-events-auto")}
-                            />
-                          </div>
-                        </div>
-                        <Button 
-                          onClick={() => setIsDatePickerOpen(false)} 
-                          className="w-full"
-                        >
-                          Filtrar
-                        </Button>
+            <div className="flex justify-end mb-4">
+              <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="shadow-lg">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    Filtrar Data
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <div className="p-4 space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label htmlFor="start-date" className="text-sm font-medium mb-2 block">Data inicial</Label>
+                        <Calendar
+                          mode="single"
+                          selected={startDate}
+                          onSelect={setStartDate}
+                          className={cn("pointer-events-auto")}
+                        />
                       </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </CardHeader>
-            </Card>
+                      <div>
+                        <Label htmlFor="end-date" className="text-sm font-medium mb-2 block">Data final</Label>
+                        <Calendar
+                          mode="single"
+                          selected={endDate}
+                          onSelect={setEndDate}
+                          className={cn("pointer-events-auto")}
+                        />
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={() => setIsDatePickerOpen(false)} 
+                      className="w-full"
+                    >
+                      Filtrar
+                    </Button>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
 
             {/* Painel Central - Gráfico + Indicadores */}
             <Card className="fnb-card">
