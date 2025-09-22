@@ -191,7 +191,7 @@ const GoalsDashboard = () => {
                           <div className="flex items-center gap-4">
                             {/* Título do progresso mensal */}
                             <div className="w-48 flex-shrink-0">
-                              <p className="text-xs text-muted-foreground">Valor a arrecadar no período</p>
+                              <p className="text-xs text-muted-foreground">Valor a arrecadar este mês</p>
                             </div>
                             
                             {/* Barra de progresso mensal */}
