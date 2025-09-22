@@ -1,9 +1,9 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useCreditCardPurchases } from '@/hooks/useCreditCardPurchases';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { formatCurrency } from '@/utils/formatters';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
 interface ExpensesByCreditCardProps {
   selectedMonth: number;
@@ -42,21 +42,6 @@ export const ExpensesByCreditCard = ({ selectedMonth, selectedYear }: ExpensesBy
 
   const totalExpenses = chartData.reduce((sum, item) => sum + item.value, 0);
 
-  const CustomTooltip = ({ active, payload }: any) => {
-    if (active && payload && payload.length) {
-      const data = payload[0];
-      const percentage = totalExpenses > 0 ? (data.value / totalExpenses) * 100 : 0;
-      return (
-        <div className="bg-card border rounded-lg p-2 shadow-md">
-          <p className="text-card-foreground font-medium">{data.payload.name}</p>
-          <p className="text-primary font-semibold">{formatCurrency(data.value)}</p>
-          <p className="text-muted-foreground text-sm">{percentage.toFixed(1)}%</p>
-        </div>
-      );
-    }
-    return null;
-  };
-
   return (
     <Card className="h-full min-w-0">
       <CardHeader className="pb-3">
@@ -70,51 +55,30 @@ export const ExpensesByCreditCard = ({ selectedMonth, selectedYear }: ExpensesBy
             <p>Nenhum gasto no cartão neste período</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            <div className="h-48 w-full min-w-0">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={chartData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={40}
-                    outerRadius={70}
-                    paddingAngle={2}
-                    dataKey="value"
-                  >
-                    {chartData.map((_, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            
-            <div className="space-y-2 max-h-24 overflow-y-auto">
+          <ScrollArea className="h-48">
+            <div className="space-y-2 pr-2">
               {chartData.map((item, index) => {
                 const percentage = totalExpenses > 0 ? (item.value / totalExpenses) * 100 : 0;
                 return (
-                  <div key={item.name} className="flex items-center justify-between text-sm">
-                    <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <div key={item.name} className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div 
-                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        className="w-4 h-4 rounded-full flex-shrink-0"
                         style={{ backgroundColor: COLORS[index % COLORS.length] }}
                       />
-                      <span className="text-card-foreground truncate">{item.name}</span>
+                      <span className="text-card-foreground font-medium truncate">{item.name}</span>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span className="text-muted-foreground">{percentage.toFixed(0)}%</span>
-                      <span className="font-medium text-card-foreground">
+                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                      <span className="font-semibold text-card-foreground">
                         {formatCurrency(item.value)}
                       </span>
+                      <span className="text-xs text-muted-foreground">{percentage.toFixed(1)}%</span>
                     </div>
                   </div>
                 );
               })}
             </div>
-          </div>
+          </ScrollArea>
         )}
       </CardContent>
     </Card>
