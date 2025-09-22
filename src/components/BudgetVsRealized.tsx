@@ -1,11 +1,11 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { usePlannedIncome } from '@/hooks/usePlannedIncome';
 import { usePlannedExpenses } from '@/hooks/usePlannedExpenses';
 import { formatCurrency } from '@/utils/formatters';
-import { Target, TrendingUp, TrendingDown } from 'lucide-react';
+import { Target, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 
 interface BudgetVsRealizedProps {
   selectedMonth: number;
@@ -154,7 +154,7 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
       <CardContent>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={budgetData.chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+            <ComposedChart data={budgetData.chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--fnb-accent) / 0.1)" />
               <XAxis 
                 dataKey="category" 
@@ -169,7 +169,7 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
               <Tooltip 
                 formatter={(value, name) => [
                   formatCurrency(value as number), 
-                  name === 'planejado' ? 'Planejado' : name === 'realizado' ? 'Realizado' : 'Diferença'
+                  name === 'planejado' ? 'Planejado' : name === 'realizado' ? 'Realizado' : 'Meta Orçada'
                 ]}
                 labelFormatter={(label) => `${label}`}
                 contentStyle={{
@@ -180,9 +180,17 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
                 }}
               />
               <Legend />
-              <Bar dataKey="planejado" fill="#3b82f6" name="Planejado" />
               <Bar dataKey="realizado" fill="#10b981" name="Realizado" />
-            </BarChart>
+              <Line 
+                type="monotone" 
+                dataKey="planejado" 
+                stroke="#3b82f6" 
+                strokeWidth={3}
+                dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
+                name="Meta Orçada"
+              />
+              <ReferenceLine y={0} stroke="hsl(var(--fnb-ink) / 0.3)" strokeDasharray="2 2" />
+            </ComposedChart>
           </ResponsiveContainer>
         </div>
       </CardContent>
