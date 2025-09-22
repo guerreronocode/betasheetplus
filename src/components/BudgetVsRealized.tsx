@@ -1,8 +1,8 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { Progress } from '@/components/ui/progress';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { useFinancialData } from '@/hooks/useFinancialData';
-import { usePlannedIncome } from '@/hooks/usePlannedIncome';
 import { usePlannedExpenses } from '@/hooks/usePlannedExpenses';
 import { formatCurrency } from '@/utils/formatters';
 import { Target, TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
@@ -16,8 +16,7 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
   selectedMonth,
   selectedYear,
 }) => {
-  const { income, expenses, isLoading: financialLoading } = useFinancialData();
-  const { plannedIncome: plannedIncomeData, isLoading: plannedIncomeLoading } = usePlannedIncome();
+  const { expenses, isLoading: financialLoading } = useFinancialData();
   const { plannedExpenses: plannedExpensesData, isLoading: plannedExpensesLoading } = usePlannedExpenses();
 
   const budgetData = useMemo(() => {
@@ -25,39 +24,61 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
       return {
         plannedExpenses: 0,
         realizedExpenses: 0,
-        chartData: []
+        categoryData: []
       };
     }
 
-    // Calculate realized expenses
-    const realizedExpenses = expenses
+    // Group realized expenses by category
+    const realizedByCategory = expenses
       .filter(item => {
         const date = new Date(item.date);
         return date.getMonth() + 1 === selectedMonth && date.getFullYear() === selectedYear;
       })
-      .reduce((sum, item) => sum + item.amount, 0);
+      .reduce((acc, item) => {
+        acc[item.category] = (acc[item.category] || 0) + item.amount;
+        return acc;
+      }, {} as Record<string, number>);
 
-    // Calculate planned expenses (budget limit)
-    const plannedExpenses = plannedExpensesData
+    // Group planned expenses by category
+    const plannedByCategory = plannedExpensesData
       .filter(item => {
         const itemDate = new Date(item.month);
         return itemDate.getMonth() + 1 === selectedMonth && itemDate.getFullYear() === selectedYear;
       })
-      .reduce((sum, item) => sum + item.planned_amount, 0);
+      .reduce((acc, item) => {
+        acc[item.category] = (acc[item.category] || 0) + item.planned_amount;
+        return acc;
+      }, {} as Record<string, number>);
 
-    const chartData = [
-      {
-        category: 'Despesas',
-        orcado: plannedExpenses,
-        realizado: realizedExpenses,
-        diferenca: realizedExpenses - plannedExpenses,
-      },
-    ];
+    // Get all categories (planned or realized)
+    const allCategories = new Set([
+      ...Object.keys(plannedByCategory),
+      ...Object.keys(realizedByCategory)
+    ]);
+
+    // Create category data
+    const categoryData = Array.from(allCategories).map(category => {
+      const planned = plannedByCategory[category] || 0;
+      const realized = realizedByCategory[category] || 0;
+      const percentage = planned > 0 ? (realized / planned) * 100 : 0;
+      
+      return {
+        category,
+        planned,
+        realized,
+        percentage,
+        remaining: planned - realized,
+        overBudget: realized > planned
+      };
+    }).sort((a, b) => b.planned - a.planned);
+
+    const totalPlanned = Object.values(plannedByCategory).reduce((sum, val) => sum + val, 0);
+    const totalRealized = Object.values(realizedByCategory).reduce((sum, val) => sum + val, 0);
 
     return {
-      plannedExpenses,
-      realizedExpenses,
-      chartData
+      plannedExpenses: totalPlanned,
+      realizedExpenses: totalRealized,
+      categoryData
     };
   }, [expenses, plannedExpensesData, selectedMonth, selectedYear]);
 
@@ -73,7 +94,7 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="h-80 flex items-center justify-center">
+          <div className="h-64 flex items-center justify-center">
             <div className="animate-pulse text-fnb-ink/50">Carregando...</div>
           </div>
         </CardContent>
@@ -86,7 +107,6 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
     'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
   ];
 
-  const expenseVariance = budgetData.realizedExpenses - budgetData.plannedExpenses;
   const budgetRemaining = budgetData.plannedExpenses - budgetData.realizedExpenses;
   const overBudget = budgetData.realizedExpenses > budgetData.plannedExpenses;
 
@@ -119,47 +139,48 @@ export const BudgetVsRealized: React.FC<BudgetVsRealizedProps> = ({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="h-80">
-          <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={budgetData.chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--fnb-accent) / 0.1)" />
-              <XAxis 
-                dataKey="category" 
-                tick={{ fill: 'hsl(var(--fnb-ink) / 0.7)', fontSize: 12 }}
-                axisLine={{ stroke: 'hsl(var(--fnb-accent) / 0.2)' }}
-              />
-              <YAxis 
-                tick={{ fill: 'hsl(var(--fnb-ink) / 0.7)', fontSize: 12 }}
-                axisLine={{ stroke: 'hsl(var(--fnb-accent) / 0.2)' }}
-                tickFormatter={(value) => formatCurrency(value).replace('R$', '').trim()}
-              />
-              <Tooltip 
-                formatter={(value, name) => [
-                  formatCurrency(value as number), 
-                  name === 'orcado' ? 'Orçamento' : name === 'realizado' ? 'Gasto Real' : 'Limite Orçado'
-                ]}
-                labelFormatter={(label) => `${label}`}
-                contentStyle={{
-                  backgroundColor: 'hsl(var(--fnb-cream))',
-                  border: '1px solid hsl(var(--fnb-accent) / 0.2)',
-                  borderRadius: '8px',
-                  color: 'hsl(var(--fnb-ink))'
-                }}
-              />
-              <Legend />
-              <Bar dataKey="realizado" fill="#ef4444" name="Gasto Real" />
-              <Line 
-                type="monotone" 
-                dataKey="orcado" 
-                stroke="#3b82f6" 
-                strokeWidth={3}
-                dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6 }}
-                name="Limite Orçado"
-              />
-              <ReferenceLine y={0} stroke="hsl(var(--fnb-ink) / 0.3)" strokeDasharray="2 2" />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </div>
+        <ScrollArea className="h-64">
+          <div className="space-y-4">
+            {budgetData.categoryData.length === 0 ? (
+              <div className="text-center text-fnb-ink/50 py-8">
+                Nenhum dado de orçamento ou despesas encontrado para este período.
+              </div>
+            ) : (
+              budgetData.categoryData.map((item) => (
+                <div key={item.category} className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium text-fnb-ink">{item.category}</span>
+                    <div className="text-sm text-fnb-ink/70">
+                      {formatCurrency(item.realized)} / {formatCurrency(item.planned)}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Progress 
+                      value={Math.min(item.percentage, 100)} 
+                      className="flex-1"
+                    />
+                    <span className={`text-sm font-medium min-w-[50px] ${
+                      item.overBudget ? 'text-red-600' : 'text-green-600'
+                    }`}>
+                      {item.percentage.toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="text-xs text-fnb-ink/60">
+                    {item.overBudget ? (
+                      <span className="text-red-600">
+                        Excesso: {formatCurrency(Math.abs(item.remaining))}
+                      </span>
+                    ) : (
+                      <span className="text-green-600">
+                        Restante: {formatCurrency(item.remaining)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </ScrollArea>
       </CardContent>
     </Card>
   );
