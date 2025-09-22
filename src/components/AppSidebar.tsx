@@ -114,6 +114,7 @@ export function AppSidebar() {
         collapsed ? 'w-14 rounded-l-2xl' : 'w-56 rounded-l-2xl'
       }`}
       collapsible="icon"
+      variant="sidebar"
     >
       <SidebarHeader className={`border-b border-fnb-accent/10 ${collapsed ? 'p-1' : 'p-4'}`}>
         <div className={`flex items-center ${collapsed ? 'flex-col gap-2 items-center' : 'justify-between'}`}>
