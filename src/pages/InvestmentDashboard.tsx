@@ -146,11 +146,6 @@ const InvestmentDashboard = () => {
             <Card className="fnb-card">
               <CardHeader>
                 <div className="space-y-2">
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <p>Padrão: Últimos 12 meses</p>
-                    <p>+12 meses: Mostrar evolução por trimestre</p>
-                    <p>+3 anos: Mostrar evolução por ano</p>
-                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label htmlFor="start-date">Data inicial</Label>
