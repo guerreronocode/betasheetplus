@@ -49,15 +49,65 @@ const InvestmentDashboard = () => {
     direction: 'desc'
   });
 
-  // Dados mockados para o gráfico temporal (será substituído por dados reais)
-  const timelineData = [
-    { month: 'Jan', invested: 10000, value: 10200, independence: 5 },
-    { month: 'Fev', invested: 12000, value: 12500, independence: 6 },
-    { month: 'Mar', invested: 15000, value: 15800, independence: 8 },
-    { month: 'Abr', invested: 18000, value: 18200, independence: 10 },
-    { month: 'Mai', invested: 20000, value: 21000, independence: 12 },
-    { month: 'Jun', invested: 22000, value: 23500, independence: 15 },
-  ];
+  // Função para determinar a granularidade do gráfico baseada no período
+  const getChartGranularity = (start: Date, end: Date) => {
+    const diffInDays = Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+    const diffInMonths = diffInDays / 30.44; // Média de dias por mês
+    const diffInYears = diffInMonths / 12;
+
+    if (diffInMonths <= 12) return 'monthly';
+    if (diffInYears <= 3) return 'bimonthly';
+    return 'quarterly';
+  };
+
+  // Função para gerar dados do gráfico baseado na granularidade
+  const generateChartData = (start: Date, end: Date) => {
+    const granularity = getChartGranularity(start, end);
+    const data = [];
+    const current = new Date(start);
+    let totalInvested = 8000;
+    let totalValue = 8200;
+
+    while (current <= end) {
+      let label = '';
+      let increment = 0;
+
+      switch (granularity) {
+        case 'monthly':
+          label = format(current, 'MMM/yy');
+          current.setMonth(current.getMonth() + 1);
+          increment = 1;
+          break;
+        case 'bimonthly':
+          label = format(current, 'MMM/yy');
+          current.setMonth(current.getMonth() + 2);
+          increment = 2;
+          break;
+        case 'quarterly':
+          label = `T${Math.floor(current.getMonth() / 3) + 1}/${current.getFullYear()}`;
+          current.setMonth(current.getMonth() + 3);
+          increment = 3;
+          break;
+      }
+
+      totalInvested += 1500 * increment;
+      totalValue += (1500 * increment) + Math.random() * 500;
+
+      data.push({
+        month: label,
+        invested: totalInvested,
+        value: totalValue,
+        independence: Math.min((totalValue / 100000) * 100, 100)
+      });
+
+      if (data.length > 50) break; // Limite para evitar muitos pontos
+    }
+
+    return data;
+  };
+
+  // Dados para o gráfico temporal baseados no período selecionado
+  const timelineData = generateChartData(startDate, endDate);
 
   // Cores para o gráfico de pizza
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1'];
@@ -154,6 +204,66 @@ const InvestmentDashboard = () => {
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="end">
                   <div className="p-4 space-y-4">
+                    {/* Filtros Rápidos */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Filtros Rápidos</Label>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const today = new Date();
+                            const sixMonthsAgo = new Date(today);
+                            sixMonthsAgo.setMonth(today.getMonth() - 6);
+                            setStartDate(sixMonthsAgo);
+                            setEndDate(today);
+                          }}
+                        >
+                          6 meses
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const today = new Date();
+                            const oneYearAgo = new Date(today);
+                            oneYearAgo.setFullYear(today.getFullYear() - 1);
+                            setStartDate(oneYearAgo);
+                            setEndDate(today);
+                          }}
+                        >
+                          1 ano
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const today = new Date();
+                            const twoYearsAgo = new Date(today);
+                            twoYearsAgo.setFullYear(today.getFullYear() - 2);
+                            setStartDate(twoYearsAgo);
+                            setEndDate(today);
+                          }}
+                        >
+                          2 anos
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const today = new Date();
+                            const threeYearsAgo = new Date(today);
+                            threeYearsAgo.setFullYear(today.getFullYear() - 3);
+                            setStartDate(threeYearsAgo);
+                            setEndDate(today);
+                          }}
+                        >
+                          3 anos
+                        </Button>
+                      </div>
+                    </div>
+                    
+                    {/* Calendários Personalizados */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="start-date" className="text-sm font-medium mb-2 block">Data inicial</Label>
