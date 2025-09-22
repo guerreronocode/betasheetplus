@@ -4,6 +4,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { 
   Table, 
   TableBody, 
@@ -25,20 +27,23 @@ import {
   Cell,
   Legend
 } from 'recharts';
-import { TrendingUp, DollarSign, Percent, ArrowUpDown } from 'lucide-react';
+import { TrendingUp, DollarSign, Percent, ArrowUpDown, CalendarIcon } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { useInvestments } from '@/hooks/useInvestments';
 import { formatCurrency, formatPercentage } from '@/utils/formatters';
 import { getTodayForInput } from '@/utils/formatters';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const InvestmentDashboard = () => {
   const { investments, investmentsLoading } = useInvestments();
-  const [startDate, setStartDate] = useState(() => {
+  const [startDate, setStartDate] = useState<Date>(() => {
     const date = new Date();
     date.setMonth(date.getMonth() - 12);
-    return date.toISOString().split('T')[0];
+    return date;
   });
-  const [endDate, setEndDate] = useState(getTodayForInput());
+  const [endDate, setEndDate] = useState<Date>(new Date());
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [sortConfig, setSortConfig] = useState<{key: string, direction: 'asc' | 'desc'}>({
     key: 'returnValue',
     direction: 'desc'
@@ -142,30 +147,54 @@ const InvestmentDashboard = () => {
               <h1 className="text-xl font-bold text-foreground">Dashboard | Investimentos</h1>
             </div>
 
-            {/* Filtros de Data */}
+            {/* Filtro de Período */}
             <Card className="fnb-card">
               <CardHeader>
                 <div className="space-y-2">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="start-date">Data inicial</Label>
-                      <Input
-                        id="start-date"
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="end-date">Data final</Label>
-                      <Input
-                        id="end-date"
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                      />
-                    </div>
-                  </div>
+                  <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left font-normal">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {startDate && endDate ? (
+                          <>
+                            {format(startDate, "dd/MM/yyyy")} - {format(endDate, "dd/MM/yyyy")}
+                          </>
+                        ) : (
+                          <span>Selecionar período</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <div className="p-4 space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="start-date" className="text-sm font-medium mb-2 block">Data inicial</Label>
+                            <Calendar
+                              mode="single"
+                              selected={startDate}
+                              onSelect={setStartDate}
+                              className={cn("pointer-events-auto")}
+                            />
+                          </div>
+                          <div>
+                            <Label htmlFor="end-date" className="text-sm font-medium mb-2 block">Data final</Label>
+                            <Calendar
+                              mode="single"
+                              selected={endDate}
+                              onSelect={setEndDate}
+                              className={cn("pointer-events-auto")}
+                            />
+                          </div>
+                        </div>
+                        <Button 
+                          onClick={() => setIsDatePickerOpen(false)} 
+                          className="w-full"
+                        >
+                          Filtrar
+                        </Button>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </CardHeader>
             </Card>
@@ -173,7 +202,7 @@ const InvestmentDashboard = () => {
             {/* Painel Central - Gráfico + Indicadores */}
             <Card className="fnb-card">
               <CardHeader>
-                <CardTitle>Rendimento e saldo + grau de independência financeira | Visão temporal</CardTitle>
+                <CardTitle>Rendimentos</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
