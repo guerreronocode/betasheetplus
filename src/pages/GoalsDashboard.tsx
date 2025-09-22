@@ -40,20 +40,21 @@ const GoalsDashboard = () => {
   return (
     <Layout>
       <div className="bg-fnb-cream h-screen overflow-hidden">      
-        {/* Título fixo */}
-        <div className="px-4 pt-4 pb-2">
-          <h1 className="text-xl font-bold text-foreground">Dashboard de Metas</h1>
-        </div>
-        
-        {/* ScrollArea que engloba tudo exceto o título */}
-        <ScrollArea className="h-[calc(100vh-60px)] px-4">
+        {/* ScrollArea que engloba tudo */}
+        <ScrollArea className="h-screen px-4">
           <div className="space-y-6 pb-4">
+            {/* Título que desaparece no scroll */}
+            <div className="pt-4 pb-2">
+              <h1 className="text-xl font-bold text-foreground">Dashboard de Metas</h1>
+            </div>
+            
             {/* Descrição simples */}
             <p className="text-xs text-muted-foreground mb-4">Acompanhe o progresso dos seus objetivos financeiros</p>
             
-            {/* Estatísticas com parallax */}
-            <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg transform-gpu transition-transform duration-300 hover:scale-[1.02]">
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {/* Estatísticas com parallax - fica sticky no topo */}
+            <div className="sticky top-0 z-10 bg-fnb-cream pb-4">
+              <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg transform-gpu transition-transform duration-300 hover:scale-[1.02]">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 <div className="flex items-center gap-2">
                   <Target className="w-3 h-3 text-primary" />
                   <div>
@@ -100,6 +101,7 @@ const GoalsDashboard = () => {
                     <p className="text-xs text-muted-foreground">Restante</p>
                     <p className="text-xs font-semibold">{formatCurrency(Math.max(0, totalRemaining))}</p>
                   </div>
+                </div>
                 </div>
               </div>
             </div>
