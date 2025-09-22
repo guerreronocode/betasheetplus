@@ -58,23 +58,25 @@ export const ExpensesByAccount = ({ selectedMonth, selectedYear }: ExpensesByAcc
           </div>
         ) : (
           <ScrollArea className="h-48">
-            <div className="space-y-2 pr-2">
+            <div className="space-y-3">
               {chartData.map((item, index) => {
                 const percentage = totalExpenses > 0 ? (item.value / totalExpenses) * 100 : 0;
                 return (
-                  <div key={item.name} className="flex items-center justify-between p-3 rounded-lg border bg-card/50">
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div 
-                        className="w-4 h-4 rounded-full flex-shrink-0"
-                        style={{ backgroundColor: COLORS[index % COLORS.length] }}
-                      />
-                      <span className="text-card-foreground font-medium truncate">{item.name}</span>
-                    </div>
-                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                      <span className="font-semibold text-card-foreground">
+                  <div key={item.name} className="space-y-1.5">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div 
+                          className="w-3 h-3 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                        />
+                        <span className="font-medium text-card-foreground text-sm truncate">{item.name}</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
                         {formatCurrency(item.value)}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{percentage.toFixed(1)}%</span>
+                      </div>
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {percentage.toFixed(1)}% do total gasto
                     </div>
                   </div>
                 );
