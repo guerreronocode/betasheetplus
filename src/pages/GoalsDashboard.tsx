@@ -54,7 +54,7 @@ const GoalsDashboard = () => {
             <Target className="w-4 h-4 text-primary" />
             <div>
               <p className="text-xs text-muted-foreground">Total de Metas</p>
-              <p className="text-lg font-semibold">{totalGoals}</p>
+              <p className="text-sm font-semibold">{totalGoals}</p>
             </div>
           </div>
 
@@ -62,7 +62,7 @@ const GoalsDashboard = () => {
             <CheckCircle className="w-4 h-4 text-green-500" />
             <div>
               <p className="text-xs text-muted-foreground">Concluídas</p>
-              <p className="text-lg font-semibold">{completedGoals}</p>
+              <p className="text-sm font-semibold">{completedGoals}</p>
             </div>
           </div>
 
@@ -70,7 +70,7 @@ const GoalsDashboard = () => {
             <TrendingUp className="w-4 h-4 text-orange-500" />
             <div>
               <p className="text-xs text-muted-foreground">Progresso</p>
-              <p className="text-lg font-semibold">{totalProgress.toFixed(1)}%</p>
+              <p className="text-sm font-semibold">{totalProgress.toFixed(1)}%</p>
             </div>
           </div>
 
