@@ -143,12 +143,8 @@ const InvestmentDashboard = () => {
         <ScrollArea className="h-screen px-4">
           <div className="space-y-6 pb-4">
             {/* Cabeçalho */}
-            <div className="pt-4 pb-2">
+            <div className="pt-4 pb-2 flex justify-between items-center">
               <h1 className="text-xl font-bold text-foreground">Dashboard | Investimentos</h1>
-            </div>
-
-            {/* Filtro de Período */}
-            <div className="flex justify-end mb-4">
               <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className="shadow-lg">
