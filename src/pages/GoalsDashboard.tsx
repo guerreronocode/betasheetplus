@@ -39,209 +39,212 @@ const GoalsDashboard = () => {
 
   return (
     <Layout>
-      <div className="bg-fnb-cream">      
-        <main className="w-full px-4 py-4">
-          <div className="space-y-6">
-        {/* Header com estatísticas principais */}
-        <div>
-          <h1 className="text-xl font-bold text-foreground mb-1">Dashboard de Metas</h1>
-          <p className="text-xs text-muted-foreground mb-4">Acompanhe o progresso dos seus objetivos financeiros</p>
+      <div className="bg-fnb-cream h-screen overflow-hidden">      
+        {/* Título fixo */}
+        <div className="px-4 pt-4 pb-2">
+          <h1 className="text-xl font-bold text-foreground">Dashboard de Metas</h1>
         </div>
-
-        {/* Estatísticas em texto com ícones */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-          <div className="flex items-center gap-2">
-            <Target className="w-3 h-3 text-primary" />
-            <div>
-              <p className="text-xs text-muted-foreground">Total de Metas</p>
-              <p className="text-xs font-semibold">{totalGoals}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <CheckCircle className="w-3 h-3 text-green-500" />
-            <div>
-              <p className="text-xs text-muted-foreground">Concluídas</p>
-              <p className="text-xs font-semibold">{completedGoals}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <TrendingUp className="w-3 h-3 text-orange-500" />
-            <div>
-              <p className="text-xs text-muted-foreground">Progresso</p>
-              <p className="text-xs font-semibold">{totalProgress.toFixed(1)}%</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <DollarSign className="w-3 h-3 text-blue-500" />
-            <div>
-              <p className="text-xs text-muted-foreground">Valor Total</p>
-              <p className="text-xs font-semibold">{formatCurrency(totalTargetValue)}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Wallet className="w-3 h-3 text-purple-500" />
-            <div>
-              <p className="text-xs text-muted-foreground">Arrecadado</p>
-              <p className="text-xs font-semibold">{formatCurrency(totalCurrentValue)}</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <CalendarDays className="w-3 h-3 text-red-500" />
-            <div>
-              <p className="text-xs text-muted-foreground">Restante</p>
-              <p className="text-xs font-semibold">{formatCurrency(Math.max(0, totalRemaining))}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Lista de metas */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Target className="w-3 h-3" />
-              Suas Metas Financeiras
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {goals.length > 0 ? (
-              <ScrollArea className="h-[500px] pr-4">
-                <div className="space-y-4">
-                  {goals.map((goal) => {
-                    const progress = Math.min(((goal.current_amount || 0) / goal.target_amount) * 100, 100);
-                    const remaining = Math.max(goal.target_amount - (goal.current_amount || 0), 0);
-                    const remainingProgress = 100 - progress;
-
-                    // Cálculo para progresso mensal (assumindo distribuição linear)
-                    const deadline = goal.deadline ? new Date(goal.deadline) : null;
-                    const currentDate = new Date();
-                    const startDate = new Date(goal.created_at);
-                    
-                    let monthlyTarget = goal.target_amount;
-                    let expectedByNow = goal.current_amount || 0;
-                    
-                    if (deadline) {
-                      const totalMonths = Math.max(1, Math.ceil((deadline.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30)));
-                      monthlyTarget = goal.target_amount / totalMonths;
-                      const monthsElapsed = Math.max(1, Math.ceil((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30)));
-                      expectedByNow = Math.min(monthlyTarget * monthsElapsed, goal.target_amount);
-                    }
-                    
-                    const monthlyProgress = expectedByNow > 0 ? Math.min(((goal.current_amount || 0) / expectedByNow) * 100, 100) : 0;
-                    const monthlyRemaining = Math.max(expectedByNow - (goal.current_amount || 0), 0);
-                    const monthlyRemainingProgress = 100 - monthlyProgress;
-
-                    return (
-                      <div key={goal.id} className="p-3 border rounded-lg space-y-2">
-                        {/* Primeira linha - Meta total */}
-                        <div className="flex items-center gap-4">
-                          {/* Título da meta */}
-                          <div className="w-48 flex-shrink-0">
-                            <h3 className="font-medium text-sm">{goal.title}</h3>
-                          </div>
-                          
-                          {/* Barra de progresso total */}
-                          <div className="flex-1">
-                            <div className="flex rounded-lg overflow-hidden h-6 border">
-                              {/* Parte verde - Valor alcançado */}
-                              <div 
-                                className="bg-green-500 flex items-center justify-center text-xs font-medium text-white px-2"
-                                style={{ width: `${progress}%` }}
-                              >
-                                {progress > 0 && (
-                                  <span className="truncate">
-                                    {formatCurrency(goal.current_amount || 0)} ({progress.toFixed(0)}%)
-                                  </span>
-                                )}
-                              </div>
-                              
-                              {/* Parte vermelha - Valor restante */}
-                              <div 
-                                className="bg-red-500 flex items-center justify-center text-xs font-medium text-white px-2"
-                                style={{ width: `${remainingProgress}%` }}
-                              >
-                                {remainingProgress > 0 && (
-                                  <span className="truncate">
-                                    {formatCurrency(remaining)} ({remainingProgress.toFixed(0)}%)
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Valor total da meta */}
-                          <div className="w-32 flex-shrink-0 text-right">
-                            <span className="font-semibold text-sm">
-                              {formatCurrency(goal.target_amount)}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Segunda linha - Progresso mensal */}
-                        <div className="flex items-center gap-4">
-                          {/* Título do progresso mensal */}
-                          <div className="w-48 flex-shrink-0">
-                            <p className="text-xs text-muted-foreground">Valor a arrecadar no período</p>
-                          </div>
-                          
-                          {/* Barra de progresso mensal */}
-                          <div className="flex-1">
-                            <div className="flex rounded-lg overflow-hidden h-5 border">
-                              {/* Parte verde - Valor arrecadado no período */}
-                              <div 
-                                className="bg-green-400 flex items-center justify-center text-xs font-medium text-white px-2"
-                                style={{ width: `${monthlyProgress}%` }}
-                              >
-                                {monthlyProgress > 0 && (
-                                  <span className="truncate">
-                                    {formatCurrency(Math.min(goal.current_amount || 0, expectedByNow))} ({monthlyProgress.toFixed(0)}%)
-                                  </span>
-                                )}
-                              </div>
-                              
-                              {/* Parte vermelha - Valor restante no período */}
-                              <div 
-                                className="bg-red-400 flex items-center justify-center text-xs font-medium text-white px-2"
-                                style={{ width: `${monthlyRemainingProgress}%` }}
-                              >
-                                {monthlyRemainingProgress > 0 && (
-                                  <span className="truncate">
-                                    {formatCurrency(monthlyRemaining)} ({monthlyRemainingProgress.toFixed(0)}%)
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Valor total esperado no período */}
-                          <div className="w-32 flex-shrink-0 text-right">
-                            <span className="font-medium text-xs">
-                              {formatCurrency(expectedByNow)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+        
+        {/* ScrollArea que engloba tudo exceto o título */}
+        <ScrollArea className="h-[calc(100vh-60px)] px-4">
+          <div className="space-y-6 pb-4">
+            {/* Header com parallax */}
+            <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg transform-gpu transition-transform duration-300 hover:scale-[1.02]">
+              <p className="text-xs text-muted-foreground mb-4">Acompanhe o progresso dos seus objetivos financeiros</p>
+              
+              {/* Estatísticas em texto com ícones */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div className="flex items-center gap-2">
+                  <Target className="w-3 h-3 text-primary" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Total de Metas</p>
+                    <p className="text-xs font-semibold">{totalGoals}</p>
+                  </div>
                 </div>
-              </ScrollArea>
-            ) : (
-              <div className="text-center py-8">
-                <Target className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-                <h3 className="text-base font-medium mb-1">Nenhuma meta encontrada</h3>
-                <p className="text-sm text-muted-foreground">
-                  Crie sua primeira meta financeira para começar a acompanhar seus objetivos!
-                </p>
+
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-3 h-3 text-green-500" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Concluídas</p>
+                    <p className="text-xs font-semibold">{completedGoals}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-3 h-3 text-orange-500" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Progresso</p>
+                    <p className="text-xs font-semibold">{totalProgress.toFixed(1)}%</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <DollarSign className="w-3 h-3 text-blue-500" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Valor Total</p>
+                    <p className="text-xs font-semibold">{formatCurrency(totalTargetValue)}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Wallet className="w-3 h-3 text-purple-500" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Arrecadado</p>
+                    <p className="text-xs font-semibold">{formatCurrency(totalCurrentValue)}</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="w-3 h-3 text-red-500" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Restante</p>
+                    <p className="text-xs font-semibold">{formatCurrency(Math.max(0, totalRemaining))}</p>
+                  </div>
+                </div>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+
+            {/* Lista de metas */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Target className="w-3 h-3" />
+                  Suas Metas Financeiras
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {goals.length > 0 ? (
+                  <div className="space-y-4">
+                    {goals.map((goal) => {
+                      const progress = Math.min(((goal.current_amount || 0) / goal.target_amount) * 100, 100);
+                      const remaining = Math.max(goal.target_amount - (goal.current_amount || 0), 0);
+                      const remainingProgress = 100 - progress;
+
+                      // Cálculo para progresso mensal (assumindo distribuição linear)
+                      const deadline = goal.deadline ? new Date(goal.deadline) : null;
+                      const currentDate = new Date();
+                      const startDate = new Date(goal.created_at);
+                      
+                      let monthlyTarget = goal.target_amount;
+                      let expectedByNow = goal.current_amount || 0;
+                      
+                      if (deadline) {
+                        const totalMonths = Math.max(1, Math.ceil((deadline.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+                        monthlyTarget = goal.target_amount / totalMonths;
+                        const monthsElapsed = Math.max(1, Math.ceil((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+                        expectedByNow = Math.min(monthlyTarget * monthsElapsed, goal.target_amount);
+                      }
+                      
+                      const monthlyProgress = expectedByNow > 0 ? Math.min(((goal.current_amount || 0) / expectedByNow) * 100, 100) : 0;
+                      const monthlyRemaining = Math.max(expectedByNow - (goal.current_amount || 0), 0);
+                      const monthlyRemainingProgress = 100 - monthlyProgress;
+
+                      return (
+                        <div key={goal.id} className="p-3 border rounded-lg space-y-2">
+                          {/* Primeira linha - Meta total */}
+                          <div className="flex items-center gap-4">
+                            {/* Título da meta */}
+                            <div className="w-48 flex-shrink-0">
+                              <h3 className="font-medium text-sm">{goal.title}</h3>
+                            </div>
+                            
+                            {/* Barra de progresso total */}
+                            <div className="flex-1">
+                              <div className="flex rounded-lg overflow-hidden h-6 border">
+                                {/* Parte verde - Valor alcançado */}
+                                <div 
+                                  className="bg-green-500 flex items-center justify-center text-xs font-medium text-white px-2"
+                                  style={{ width: `${progress}%` }}
+                                >
+                                  {progress > 0 && (
+                                    <span className="truncate">
+                                      {formatCurrency(goal.current_amount || 0)} ({progress.toFixed(0)}%)
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                {/* Parte vermelha - Valor restante */}
+                                <div 
+                                  className="bg-red-500 flex items-center justify-center text-xs font-medium text-white px-2"
+                                  style={{ width: `${remainingProgress}%` }}
+                                >
+                                  {remainingProgress > 0 && (
+                                    <span className="truncate">
+                                      {formatCurrency(remaining)} ({remainingProgress.toFixed(0)}%)
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Valor total da meta */}
+                            <div className="w-32 flex-shrink-0 text-right">
+                              <span className="font-semibold text-sm">
+                                {formatCurrency(goal.target_amount)}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Segunda linha - Progresso mensal */}
+                          <div className="flex items-center gap-4">
+                            {/* Título do progresso mensal */}
+                            <div className="w-48 flex-shrink-0">
+                              <p className="text-xs text-muted-foreground">Valor a arrecadar no período</p>
+                            </div>
+                            
+                            {/* Barra de progresso mensal */}
+                            <div className="flex-1">
+                              <div className="flex rounded-lg overflow-hidden h-5 border">
+                                {/* Parte verde - Valor arrecadado no período */}
+                                <div 
+                                  className="bg-green-400 flex items-center justify-center text-xs font-medium text-white px-2"
+                                  style={{ width: `${monthlyProgress}%` }}
+                                >
+                                  {monthlyProgress > 0 && (
+                                    <span className="truncate">
+                                      {formatCurrency(Math.min(goal.current_amount || 0, expectedByNow))} ({monthlyProgress.toFixed(0)}%)
+                                    </span>
+                                  )}
+                                </div>
+                                
+                                {/* Parte vermelha - Valor restante no período */}
+                                <div 
+                                  className="bg-red-400 flex items-center justify-center text-xs font-medium text-white px-2"
+                                  style={{ width: `${monthlyRemainingProgress}%` }}
+                                >
+                                  {monthlyRemainingProgress > 0 && (
+                                    <span className="truncate">
+                                      {formatCurrency(monthlyRemaining)} ({monthlyRemainingProgress.toFixed(0)}%)
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Valor total esperado no período */}
+                            <div className="w-32 flex-shrink-0 text-right">
+                              <span className="font-medium text-xs">
+                                {formatCurrency(expectedByNow)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Target className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+                    <h3 className="text-base font-medium mb-1">Nenhuma meta encontrada</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Crie sua primeira meta financeira para começar a acompanhar seus objetivos!
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
-        </main>
+        </ScrollArea>
       </div>
     </Layout>
   );
