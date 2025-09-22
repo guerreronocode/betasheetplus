@@ -17,8 +17,6 @@ export function useCustomSidebar() {
     return () => window.removeEventListener('resize', checkOverlay)
   }, [])
   
-  const isOverlayOpen = shouldUseOverlay && (sidebarContext.isMobile ? sidebarContext.openMobile : sidebarContext.open)
-  
   const closeOverlay = () => {
     if (sidebarContext.isMobile) {
       sidebarContext.setOpenMobile(false)
@@ -30,7 +28,6 @@ export function useCustomSidebar() {
   return {
     ...sidebarContext,
     shouldUseOverlay,
-    isOverlayOpen,
     closeOverlay
   }
 }

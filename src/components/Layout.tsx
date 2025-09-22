@@ -8,7 +8,7 @@ interface LayoutProps {
 }
 
 function LayoutContent({ children }: LayoutProps) {
-  const { shouldUseOverlay, isOverlayOpen, closeOverlay } = useCustomSidebar()
+  const { shouldUseOverlay, closeOverlay } = useCustomSidebar()
   
   return (
     <div className="min-h-screen flex w-full bg-fnb-cream relative">
@@ -17,22 +17,13 @@ function LayoutContent({ children }: LayoutProps) {
       <SidebarInset className={`flex-1 transition-all duration-200 ${
         shouldUseOverlay ? 'relative' : ''
       }`}>
-        {/* Backdrop com blur apenas sobre o conteúdo quando sidebar está aberta */}
-        {isOverlayOpen && (
-          <div 
-            className="absolute inset-0 z-40 bg-black/20 backdrop-blur-sm"
-            onClick={closeOverlay}
-          />
-        )}
         {/* Trigger da sidebar - sempre visível no topo para telas na faixa de overlay */}
         {shouldUseOverlay && (
           <div className="sticky top-0 z-50 bg-fnb-cream/95 backdrop-blur-sm border-b border-fnb-accent/10 p-2">
             <SidebarTrigger />
           </div>
         )}
-        <div className={shouldUseOverlay ? 'relative z-10' : ''}>
-          {children}
-        </div>
+        {children}
       </SidebarInset>
     </div>
   )
