@@ -116,15 +116,35 @@ const GoalsDashboard = () => {
                     const remaining = Math.max(goal.target_amount - (goal.current_amount || 0), 0);
                     const remainingProgress = 100 - progress;
 
+                    // Cálculo para progresso mensal (assumindo distribuição linear)
+                    const deadline = goal.deadline ? new Date(goal.deadline) : null;
+                    const currentDate = new Date();
+                    const startDate = new Date(goal.created_at);
+                    
+                    let monthlyTarget = goal.target_amount;
+                    let expectedByNow = goal.current_amount || 0;
+                    
+                    if (deadline) {
+                      const totalMonths = Math.max(1, Math.ceil((deadline.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+                      monthlyTarget = goal.target_amount / totalMonths;
+                      const monthsElapsed = Math.max(1, Math.ceil((currentDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+                      expectedByNow = Math.min(monthlyTarget * monthsElapsed, goal.target_amount);
+                    }
+                    
+                    const monthlyProgress = expectedByNow > 0 ? Math.min(((goal.current_amount || 0) / expectedByNow) * 100, 100) : 0;
+                    const monthlyRemaining = Math.max(expectedByNow - (goal.current_amount || 0), 0);
+                    const monthlyRemainingProgress = 100 - monthlyProgress;
+
                     return (
-                      <div key={goal.id} className="p-4 border rounded-lg">
+                      <div key={goal.id} className="p-4 border rounded-lg space-y-3">
+                        {/* Primeira linha - Meta total */}
                         <div className="flex items-center gap-4">
                           {/* Título da meta */}
                           <div className="w-48 flex-shrink-0">
                             <h3 className="font-medium text-base">{goal.title}</h3>
                           </div>
                           
-                          {/* Barra de progresso */}
+                          {/* Barra de progresso total */}
                           <div className="flex-1">
                             <div className="flex rounded-lg overflow-hidden h-8 border">
                               {/* Parte verde - Valor alcançado */}
@@ -157,6 +177,50 @@ const GoalsDashboard = () => {
                           <div className="w-32 flex-shrink-0 text-right">
                             <span className="font-semibold text-base">
                               {formatCurrency(goal.target_amount)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Segunda linha - Progresso mensal */}
+                        <div className="flex items-center gap-4">
+                          {/* Título do progresso mensal */}
+                          <div className="w-48 flex-shrink-0">
+                            <p className="text-sm text-muted-foreground">Valor a arrecadar no período</p>
+                          </div>
+                          
+                          {/* Barra de progresso mensal */}
+                          <div className="flex-1">
+                            <div className="flex rounded-lg overflow-hidden h-6 border">
+                              {/* Parte verde - Valor arrecadado no período */}
+                              <div 
+                                className="bg-green-400 flex items-center justify-center text-xs font-medium text-white px-2"
+                                style={{ width: `${monthlyProgress}%` }}
+                              >
+                                {monthlyProgress > 0 && (
+                                  <span className="truncate">
+                                    {formatCurrency(Math.min(goal.current_amount || 0, expectedByNow))} ({monthlyProgress.toFixed(0)}%)
+                                  </span>
+                                )}
+                              </div>
+                              
+                              {/* Parte vermelha - Valor restante no período */}
+                              <div 
+                                className="bg-red-400 flex items-center justify-center text-xs font-medium text-white px-2"
+                                style={{ width: `${monthlyRemainingProgress}%` }}
+                              >
+                                {monthlyRemainingProgress > 0 && (
+                                  <span className="truncate">
+                                    {formatCurrency(monthlyRemaining)} ({monthlyRemainingProgress.toFixed(0)}%)
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {/* Valor total esperado no período */}
+                          <div className="w-32 flex-shrink-0 text-right">
+                            <span className="font-medium text-sm">
+                              {formatCurrency(expectedByNow)}
                             </span>
                           </div>
                         </div>
