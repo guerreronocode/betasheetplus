@@ -4,6 +4,8 @@ import { IncomeExpenseChart } from '@/components/IncomeExpenseChart';
 import { MonthlyProjection } from '@/components/MonthlyProjection';
 import { CategoryDashboard } from '@/components/CategoryDashboard';
 import { BudgetVsRealized } from '@/components/BudgetVsRealized';
+import { ExpensesByAccount } from '@/components/ExpensesByAccount';
+import { ExpensesByCreditCard } from '@/components/ExpensesByCreditCard';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const MonthlyBalance = () => {
@@ -98,6 +100,23 @@ const MonthlyBalance = () => {
               
               <div className="lg:col-span-2 min-w-0">
                 <BudgetVsRealized 
+                  selectedMonth={selectedMonth} 
+                  selectedYear={selectedYear} 
+                />
+              </div>
+            </div>
+
+            {/* Linha 3: Gastos por Conta e Gastos por Cartão - 1/2 e 1/2 */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 min-w-0">
+              <div className="min-w-0">
+                <ExpensesByAccount 
+                  selectedMonth={selectedMonth} 
+                  selectedYear={selectedYear} 
+                />
+              </div>
+              
+              <div className="min-w-0">
+                <ExpensesByCreditCard 
                   selectedMonth={selectedMonth} 
                   selectedYear={selectedYear} 
                 />
