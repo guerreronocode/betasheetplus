@@ -44,57 +44,57 @@ const GoalsDashboard = () => {
           <div className="space-y-6">
         {/* Header com estatísticas principais */}
         <div>
-          <h1 className="text-2xl font-bold text-foreground mb-1">Dashboard de Metas</h1>
-          <p className="text-sm text-muted-foreground mb-4">Acompanhe o progresso dos seus objetivos financeiros</p>
+          <h1 className="text-xl font-bold text-foreground mb-1">Dashboard de Metas</h1>
+          <p className="text-xs text-muted-foreground mb-4">Acompanhe o progresso dos seus objetivos financeiros</p>
         </div>
 
         {/* Estatísticas em texto com ícones */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
           <div className="flex items-center gap-2">
-            <Target className="w-4 h-4 text-primary" />
+            <Target className="w-3 h-3 text-primary" />
             <div>
               <p className="text-xs text-muted-foreground">Total de Metas</p>
-              <p className="text-sm font-semibold">{totalGoals}</p>
+              <p className="text-xs font-semibold">{totalGoals}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <CheckCircle className="w-4 h-4 text-green-500" />
+            <CheckCircle className="w-3 h-3 text-green-500" />
             <div>
               <p className="text-xs text-muted-foreground">Concluídas</p>
-              <p className="text-sm font-semibold">{completedGoals}</p>
+              <p className="text-xs font-semibold">{completedGoals}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-orange-500" />
+            <TrendingUp className="w-3 h-3 text-orange-500" />
             <div>
               <p className="text-xs text-muted-foreground">Progresso</p>
-              <p className="text-sm font-semibold">{totalProgress.toFixed(1)}%</p>
+              <p className="text-xs font-semibold">{totalProgress.toFixed(1)}%</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <DollarSign className="w-4 h-4 text-blue-500" />
+            <DollarSign className="w-3 h-3 text-blue-500" />
             <div>
               <p className="text-xs text-muted-foreground">Valor Total</p>
-              <p className="text-sm font-semibold">{formatCurrency(totalTargetValue)}</p>
+              <p className="text-xs font-semibold">{formatCurrency(totalTargetValue)}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <Wallet className="w-4 h-4 text-purple-500" />
+            <Wallet className="w-3 h-3 text-purple-500" />
             <div>
               <p className="text-xs text-muted-foreground">Arrecadado</p>
-              <p className="text-sm font-semibold">{formatCurrency(totalCurrentValue)}</p>
+              <p className="text-xs font-semibold">{formatCurrency(totalCurrentValue)}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
-            <CalendarDays className="w-4 h-4 text-red-500" />
+            <CalendarDays className="w-3 h-3 text-red-500" />
             <div>
               <p className="text-xs text-muted-foreground">Restante</p>
-              <p className="text-sm font-semibold">{formatCurrency(Math.max(0, totalRemaining))}</p>
+              <p className="text-xs font-semibold">{formatCurrency(Math.max(0, totalRemaining))}</p>
             </div>
           </div>
         </div>
@@ -102,8 +102,8 @@ const GoalsDashboard = () => {
         {/* Lista de metas */}
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <Target className="w-4 h-4" />
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Target className="w-3 h-3" />
               Suas Metas Financeiras
             </CardTitle>
           </CardHeader>
@@ -136,17 +136,17 @@ const GoalsDashboard = () => {
                     const monthlyRemainingProgress = 100 - monthlyProgress;
 
                     return (
-                      <div key={goal.id} className="p-4 border rounded-lg space-y-3">
+                      <div key={goal.id} className="p-3 border rounded-lg space-y-2">
                         {/* Primeira linha - Meta total */}
                         <div className="flex items-center gap-4">
                           {/* Título da meta */}
                           <div className="w-48 flex-shrink-0">
-                            <h3 className="font-medium text-base">{goal.title}</h3>
+                            <h3 className="font-medium text-sm">{goal.title}</h3>
                           </div>
                           
                           {/* Barra de progresso total */}
                           <div className="flex-1">
-                            <div className="flex rounded-lg overflow-hidden h-8 border">
+                            <div className="flex rounded-lg overflow-hidden h-6 border">
                               {/* Parte verde - Valor alcançado */}
                               <div 
                                 className="bg-green-500 flex items-center justify-center text-xs font-medium text-white px-2"
@@ -175,7 +175,7 @@ const GoalsDashboard = () => {
                           
                           {/* Valor total da meta */}
                           <div className="w-32 flex-shrink-0 text-right">
-                            <span className="font-semibold text-base">
+                            <span className="font-semibold text-sm">
                               {formatCurrency(goal.target_amount)}
                             </span>
                           </div>
@@ -185,12 +185,12 @@ const GoalsDashboard = () => {
                         <div className="flex items-center gap-4">
                           {/* Título do progresso mensal */}
                           <div className="w-48 flex-shrink-0">
-                            <p className="text-sm text-muted-foreground">Valor a arrecadar no período</p>
+                            <p className="text-xs text-muted-foreground">Valor a arrecadar no período</p>
                           </div>
                           
                           {/* Barra de progresso mensal */}
                           <div className="flex-1">
-                            <div className="flex rounded-lg overflow-hidden h-6 border">
+                            <div className="flex rounded-lg overflow-hidden h-5 border">
                               {/* Parte verde - Valor arrecadado no período */}
                               <div 
                                 className="bg-green-400 flex items-center justify-center text-xs font-medium text-white px-2"
@@ -219,7 +219,7 @@ const GoalsDashboard = () => {
                           
                           {/* Valor total esperado no período */}
                           <div className="w-32 flex-shrink-0 text-right">
-                            <span className="font-medium text-sm">
+                            <span className="font-medium text-xs">
                               {formatCurrency(expectedByNow)}
                             </span>
                           </div>
