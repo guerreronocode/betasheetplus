@@ -111,63 +111,63 @@ const GoalsDashboard = () => {
 
   return (
     <Layout>
-      <div className="bg-fnb-cream h-screen overflow-hidden">      
+      <div className="bg-fnb-cream min-h-screen w-full max-w-full overflow-x-hidden">      
         {/* ScrollArea que engloba tudo */}
-        <ScrollArea className="h-screen px-4">
-          <div className="space-y-4 pb-4">
+        <ScrollArea className="h-screen w-full">
+          <div className="space-y-4 pb-4 px-4 w-full max-w-full">
             {/* Título e descrição próximos */}
-            <div className="pt-3 pb-1">
+            <div className="pt-3 pb-1 w-full">
               <h1 className="text-xl font-bold text-foreground">Dashboard de Metas</h1>
               <p className="text-xs text-muted-foreground mt-1">Acompanhe o progresso dos seus objetivos financeiros</p>
             </div>
             
             {/* Estatísticas com parallax - fica sticky no topo */}
-            <div className="sticky top-0 z-10 bg-fnb-cream pb-3">
-              <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg transform-gpu transition-transform duration-300 hover:scale-[1.02]">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <div className="flex items-center gap-2">
-                  <Target className="w-3 h-3 text-primary" />
-                  <div>
+            <div className="sticky top-0 z-10 bg-fnb-cream pb-3 w-full">
+              <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg transform-gpu transition-transform duration-300 hover:scale-[1.02] w-full">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 w-full">
+                <div className="flex items-center gap-2 min-w-0">
+                  <Target className="w-3 h-3 text-primary flex-shrink-0" />
+                  <div className="min-w-0">
                     <p className="text-xs text-muted-foreground">Total de Metas</p>
                     <p className="text-xs font-semibold">{totalGoals}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-3 h-3 text-green-500" />
-                  <div>
+                <div className="flex items-center gap-2 min-w-0">
+                  <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                  <div className="min-w-0">
                     <p className="text-xs text-muted-foreground">Concluídas</p>
                     <p className="text-xs font-semibold">{completedGoals}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-3 h-3 text-orange-500" />
-                  <div>
+                <div className="flex items-center gap-2 min-w-0">
+                  <TrendingUp className="w-3 h-3 text-orange-500 flex-shrink-0" />
+                  <div className="min-w-0">
                     <p className="text-xs text-muted-foreground">Progresso</p>
                     <p className="text-xs font-semibold">{totalProgress.toFixed(1)}%</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <DollarSign className="w-3 h-3 text-blue-500" />
-                  <div>
+                <div className="flex items-center gap-2 min-w-0">
+                  <DollarSign className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                  <div className="min-w-0">
                     <p className="text-xs text-muted-foreground">Valor Total</p>
                     <p className="text-xs font-semibold">{formatCurrency(totalTargetValue)}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Wallet className="w-3 h-3 text-purple-500" />
-                  <div>
+                <div className="flex items-center gap-2 min-w-0">
+                  <Wallet className="w-3 h-3 text-purple-500 flex-shrink-0" />
+                  <div className="min-w-0">
                     <p className="text-xs text-muted-foreground">Arrecadado</p>
                     <p className="text-xs font-semibold">{formatCurrency(totalCurrentValue)}</p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <CalendarDays className="w-3 h-3 text-red-500" />
-                  <div>
+                <div className="flex items-center gap-2 min-w-0">
+                  <CalendarDays className="w-3 h-3 text-red-500 flex-shrink-0" />
+                  <div className="min-w-0">
                     <p className="text-xs text-muted-foreground">Restante</p>
                     <p className="text-xs font-semibold">{formatCurrency(Math.max(0, totalRemaining))}</p>
                   </div>
@@ -176,125 +176,121 @@ const GoalsDashboard = () => {
               </div>
             </div>
 
-            {/* Tabela de metas com fundo branco */}
-            <div className="bg-white rounded-lg border shadow-sm">
-              <div className="p-3 border-b">
-                <h2 className="text-sm font-semibold flex items-center gap-2">
-                  <Target className="w-3 h-3" />
-                  Suas Metas Financeiras
-                </h2>
-              </div>
+            {/* Tabela de metas com fundo branco e scroll horizontal interno */}
+            <div className="bg-white rounded-lg border shadow-sm w-full overflow-hidden">
               
               {sortedGoals.length > 0 ? (
-                <div className="max-h-[400px] overflow-auto">
-                  <Table>
-                    <TableHeader className="sticky top-0 bg-white z-10">
-                      <TableRow>
-                        <SortableHeader field="name">Meta</SortableHeader>
-                        <SortableHeader field="target_amount">Valor Total</SortableHeader>
-                        <SortableHeader field="current_amount">Arrecadado</SortableHeader>
-                        <SortableHeader field="remaining">Restante</SortableHeader>
-                        <SortableHeader field="progress">Progresso</SortableHeader>
-                        <TableHead className="text-center w-[100px] text-xs">Data Final</TableHead>
-                        <TableHead className="text-right w-[80px] text-xs">Meta Mensal</TableHead>
-                        <TableHead className="text-right w-[80px] text-xs">Este Mês</TableHead>
-                        <TableHead className="text-right w-[70px] text-xs">Falta</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {sortedGoals.map((goal) => {
-                        const progress = Math.min(((goal.current_amount || 0) / goal.target_amount) * 100, 100);
-                        const remaining = Math.max(goal.target_amount - (goal.current_amount || 0), 0);
+                <div className="w-full overflow-x-auto">
+                  <div className="max-h-[400px] overflow-y-auto">
+                    <Table className="min-w-[800px] w-full">
+                      <TableHeader className="sticky top-0 bg-white z-10">
+                        <TableRow>
+                          <SortableHeader field="name">Meta</SortableHeader>
+                          <SortableHeader field="target_amount">Valor Total</SortableHeader>
+                          <SortableHeader field="current_amount">Arrecadado</SortableHeader>
+                          <SortableHeader field="remaining">Restante</SortableHeader>
+                          <SortableHeader field="progress">Progresso</SortableHeader>
+                          <TableHead className="text-center w-[100px] text-xs">Data Final</TableHead>
+                          <TableHead className="text-right w-[80px] text-xs">Meta Mensal</TableHead>
+                          <TableHead className="text-right w-[80px] text-xs">Este Mês</TableHead>
+                          <TableHead className="text-right w-[70px] text-xs">Falta</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {sortedGoals.map((goal) => {
+                          const progress = Math.min(((goal.current_amount || 0) / goal.target_amount) * 100, 100);
+                          const remaining = Math.max(goal.target_amount - (goal.current_amount || 0), 0);
 
-                        // Cálculos mensais
-                        const calculateMonthlyValues = () => {
-                          if (!goal.deadline) {
+                          // Cálculos mensais
+                          const calculateMonthlyValues = () => {
+                            if (!goal.deadline) {
+                              return {
+                                monthlyTarget: 0,
+                                monthlyCollected: 0,
+                                monthlyRemaining: 0
+                              };
+                            }
+
+                            const today = new Date();
+                            const deadline = new Date(goal.deadline);
+                            const monthsRemaining = Math.max(1, Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+                            
+                            const monthlyTarget = remaining / monthsRemaining;
+                            const monthlyCollected = 0; // Placeholder - seria calculado com base em transações do mês atual
+                            const monthlyRemaining = monthlyTarget - monthlyCollected;
+
                             return {
-                              monthlyTarget: 0,
-                              monthlyCollected: 0,
-                              monthlyRemaining: 0
+                              monthlyTarget,
+                              monthlyCollected,
+                              monthlyRemaining
                             };
-                          }
-
-                          const today = new Date();
-                          const deadline = new Date(goal.deadline);
-                          const monthsRemaining = Math.max(1, Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)));
-                          
-                          const monthlyTarget = remaining / monthsRemaining;
-                          const monthlyCollected = 0; // Placeholder - seria calculado com base em transações do mês atual
-                          const monthlyRemaining = monthlyTarget - monthlyCollected;
-
-                          return {
-                            monthlyTarget,
-                            monthlyCollected,
-                            monthlyRemaining
                           };
-                        };
 
-                        const { monthlyTarget, monthlyCollected, monthlyRemaining } = calculateMonthlyValues();
+                          const { monthlyTarget, monthlyCollected, monthlyRemaining } = calculateMonthlyValues();
 
-                        return (
-                          <TableRow key={goal.id}>
-                            <TableCell className="py-2">
-                              <div className="flex items-center gap-1">
-                                <Target className="w-2.5 h-2.5 text-primary flex-shrink-0" />
-                                <span className="text-xs font-medium truncate">{goal.title}</span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right text-xs py-2">
-                              {formatCurrency(goal.target_amount)}
-                            </TableCell>
-                            <TableCell className="text-right text-xs text-green-600 py-2">
-                              {formatCurrency(goal.current_amount || 0)}
-                            </TableCell>
-                            <TableCell className="text-right text-xs text-orange-600 py-2">
-                              {formatCurrency(remaining)}
-                            </TableCell>
-                            <TableCell className="py-2">
-                              <div className="flex items-center gap-2">
-                                <Progress value={progress} className="h-1.5 flex-1" />
-                                <span className="text-xs text-muted-foreground w-8 text-right">
-                                  {progress.toFixed(0)}%
-                                </span>
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-center text-xs py-2">
-                              {goal.deadline ? (
-                                new Date(goal.deadline).toLocaleDateString('pt-BR', { 
-                                  day: '2-digit', 
-                                  month: '2-digit',
-                                  year: '2-digit'
-                                })
-                              ) : (
-                                <span className="text-muted-foreground italic">Sem data</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right text-xs py-2">
-                              {goal.deadline ? (
-                                formatCurrency(monthlyTarget)
-                              ) : (
-                                <span className="text-muted-foreground">-</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right text-xs text-green-600 py-2">
-                              {goal.deadline ? (
-                                formatCurrency(monthlyCollected)
-                              ) : (
-                                <span className="text-muted-foreground">-</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right text-xs text-orange-600 py-2">
-                              {goal.deadline ? (
-                                formatCurrency(monthlyRemaining)
-                              ) : (
-                                <span className="text-muted-foreground">-</span>
-                              )}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
+                          return (
+                            <TableRow key={goal.id}>
+                              <TableCell className="py-2">
+                                <div className="flex items-center gap-1">
+                                  <Target className="w-2.5 h-2.5 text-primary flex-shrink-0" />
+                                  <span className="text-xs font-medium truncate">{goal.title}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right text-xs py-2">
+                                {formatCurrency(goal.target_amount)}
+                              </TableCell>
+                              <TableCell className="text-right text-xs text-green-600 py-2">
+                                {formatCurrency(goal.current_amount || 0)}
+                              </TableCell>
+                              <TableCell className="text-right text-xs text-orange-600 py-2">
+                                {formatCurrency(remaining)}
+                              </TableCell>
+                              <TableCell className="py-2">
+                                <div className="flex items-center gap-2">
+                                  <Progress value={progress} className="h-1.5 flex-1" />
+                                  <span className="text-xs text-muted-foreground w-8 text-right">
+                                    {progress.toFixed(0)}%
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-center text-xs py-2">
+                                {goal.deadline ? (
+                                  new Date(goal.deadline).toLocaleDateString('pt-BR', { 
+                                    day: '2-digit', 
+                                    month: '2-digit',
+                                    year: '2-digit'
+                                  })
+                                ) : (
+                                  <span className="text-muted-foreground italic">Sem data final</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right text-xs py-2">
+                                {goal.deadline ? (
+                                  formatCurrency(monthlyTarget)
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right text-xs text-green-600 py-2">
+                                {goal.deadline ? (
+                                  formatCurrency(monthlyCollected)
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right text-xs text-orange-600 py-2">
+                                {goal.deadline ? (
+                                  formatCurrency(monthlyRemaining)
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               ) : (
                 <div className="text-center py-8">
