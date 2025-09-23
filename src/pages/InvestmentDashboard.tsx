@@ -35,7 +35,7 @@ import {
   Cell,
   Legend
 } from 'recharts';
-import { TrendingUp, DollarSign, Percent, ArrowUpDown, CalendarIcon } from 'lucide-react';
+import { TrendingUp, DollarSign, Percent, ArrowUpDown, CalendarIcon, ToggleLeft, ToggleRight } from 'lucide-react';
 import { Layout } from '@/components/Layout';
 import { useInvestments } from '@/hooks/useInvestments';
 import { formatCurrency, formatPercentage } from '@/utils/formatters';
@@ -57,6 +57,7 @@ const InvestmentDashboard = () => {
   });
   const [tempEndDate, setTempEndDate] = useState<Date>(new Date());
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [portfolioViewType, setPortfolioViewType] = useState<'individual' | 'category'>('individual');
   const [sortConfig, setSortConfig] = useState<{key: string, direction: 'asc' | 'desc'}>({
     key: 'returnValue',
     direction: 'desc'
@@ -65,6 +66,19 @@ const InvestmentDashboard = () => {
   const itemsPerPage = 6;
 
   const { investments, investmentsLoading } = useInvestments(appliedStartDate, appliedEndDate);
+  
+  // Hook separado para dados atuais do portfólio (sempre mês atual)
+  const { investments: currentInvestments } = useInvestments(new Date(), new Date());
+
+  // Função para classificar investimentos por renda fixa/variável
+  const classifyInvestmentAsset = (type: string) => {
+    const fixedIncomeTypes = ['bonds', 'savings', 'cdb', 'tesouro_direto', 'lci', 'lca', 'debentures'];
+    const variableIncomeTypes = ['stocks', 'crypto', 'funds', 'real_estate', 'fiis'];
+    
+    if (fixedIncomeTypes.includes(type)) return 'Renda Fixa';
+    if (variableIncomeTypes.includes(type)) return 'Renda Variável';
+    return 'Outros';
+  };
 
   // Função para determinar a granularidade do gráfico baseada no período
   const getChartGranularity = (start: Date, end: Date) => {
@@ -154,21 +168,49 @@ const InvestmentDashboard = () => {
   const totalReturn = totalValue - totalInvested;
   const returnPercentage = totalInvested > 0 ? (totalReturn / totalInvested) * 100 : 0;
 
-  // Dados para o gráfico de pizza (composição da carteira)
-  const portfolioComposition = investments.reduce((acc, inv) => {
-    const type = inv.type || 'Outros';
-    if (!acc[type]) {
-      acc[type] = 0;
+  // Dados para o gráfico de pizza (composição da carteira) - sempre dados atuais
+  const portfolioComposition = currentInvestments.reduce((acc, inv) => {
+    let key: string;
+    
+    if (portfolioViewType === 'category') {
+      key = classifyInvestmentAsset(inv.type || 'Outros');
+    } else {
+      key = inv.type || 'Outros';
     }
-    acc[type] += inv.current_value || inv.amount || 0;
+    
+    if (!acc[key]) {
+      acc[key] = 0;
+    }
+    acc[key] += inv.current_value || inv.amount || 0;
     return acc;
   }, {} as Record<string, number>);
+
+  const currentTotalValue = currentInvestments.reduce((sum, inv) => sum + (inv.current_value || inv.amount || 0), 0);
 
   const pieData = Object.entries(portfolioComposition).map(([name, value]) => ({
     name,
     value,
-    percentage: totalValue > 0 ? (value / totalValue) * 100 : 0
+    percentage: currentTotalValue > 0 ? (value / currentTotalValue) * 100 : 0
   }));
+
+  // Top 5 investimentos por retorno bruto - sempre dados atuais
+  const currentInvestmentRanking = currentInvestments.map(inv => {
+    const invested = inv.amount || 0;
+    const current = inv.current_value || invested;
+    const returnValue = current - invested;
+    
+    return {
+      id: inv.id,
+      name: inv.name || 'Investimento',
+      balance: current,
+      returnValue,
+      type: inv.type
+    };
+  }).sort((a, b) => b.returnValue - a.returnValue);
+
+  const top5Investments = currentInvestmentRanking.slice(0, 5);
+  const othersCount = currentInvestmentRanking.length - 5;
+  const othersReturn = currentInvestmentRanking.slice(5).reduce((sum, inv) => sum + inv.returnValue, 0);
 
   // Dados para a tabela de ranking com paginação
   const investmentRanking = investments.map(inv => {
@@ -400,28 +442,78 @@ const InvestmentDashboard = () => {
               {/* Gráfico de Pizza - Composição da Carteira */}
               <Card className="fnb-card">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Composição da carteira</CardTitle>
+                  <div className="flex justify-between items-center">
+                    <CardTitle className="text-sm">Composição da carteira</CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPortfolioViewType(portfolioViewType === 'individual' ? 'category' : 'individual')}
+                      className="h-auto p-1"
+                    >
+                      {portfolioViewType === 'individual' ? (
+                        <ToggleLeft className="h-4 w-4" />
+                      ) : (
+                        <ToggleRight className="h-4 w-4" />
+                      )}
+                      <span className="ml-1 text-xs">
+                        {portfolioViewType === 'individual' ? 'Por tipo' : 'Por categoria'}
+                      </span>
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <ResponsiveContainer width="100%" height={200}>
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, percentage }) => `${name}: ${percentage.toFixed(1)}%`}
-                        outerRadius={70}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <div className="flex gap-4">
+                    {/* Gráfico de Pizza - Menor */}
+                    <div className="flex-shrink-0">
+                      <ResponsiveContainer width={160} height={160}>
+                        <PieChart>
+                          <Pie
+                            data={pieData}
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={60}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {pieData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                    
+                    {/* Lista Top 5 Investimentos */}
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-xs font-medium mb-3 text-muted-foreground">
+                        Top 5 - Retorno Bruto
+                      </h4>
+                      <div className="space-y-2">
+                        {top5Investments.map((investment, index) => (
+                          <div key={investment.id} className="flex justify-between items-center text-xs">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <span className="text-muted-foreground">#{index + 1}</span>
+                              <span className="truncate font-medium">{investment.name}</span>
+                            </div>
+                            <span className={`font-medium ${investment.returnValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {formatCurrency(investment.returnValue)}
+                            </span>
+                          </div>
                         ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => formatCurrency(Number(value))} />
-                    </PieChart>
-                  </ResponsiveContainer>
+                        {othersCount > 0 && (
+                          <div className="flex justify-between items-center text-xs pt-2 border-t">
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground">Outros ({othersCount})</span>
+                            </div>
+                            <span className={`font-medium ${othersReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {formatCurrency(othersReturn)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
 
