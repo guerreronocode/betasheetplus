@@ -19,21 +19,30 @@ export interface Investment {
   maturity_date?: string;
 }
 
-export const useInvestments = () => {
+export const useInvestments = (startDate?: Date, endDate?: Date) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { getTotalReserved } = useBankAccountVaults();
 
   const { data: investments = [], isLoading: investmentsLoading } = useQuery({
-    queryKey: ['investments', user?.id],
+    queryKey: ['investments', user?.id, startDate, endDate],
     queryFn: async () => {
       if (!user) return [];
-      const { data, error } = await supabase
+      
+      let query = supabase
         .from('investments')
         .select('*')
-        .eq('user_id', user.id)
-        .order('purchase_date', { ascending: false });
+        .eq('user_id', user.id);
+
+      // Apply date filters if provided
+      if (startDate && endDate) {
+        query = query
+          .gte('purchase_date', startDate.toISOString().split('T')[0])
+          .lte('purchase_date', endDate.toISOString().split('T')[0]);
+      }
+
+      const { data, error } = await query.order('purchase_date', { ascending: false });
       
       if (error) throw error;
       

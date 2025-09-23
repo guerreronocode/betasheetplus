@@ -36,7 +36,6 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 const InvestmentDashboard = () => {
-  const { investments, investmentsLoading } = useInvestments();
   const [startDate, setStartDate] = useState<Date>(() => {
     const date = new Date();
     date.setMonth(date.getMonth() - 12);
@@ -48,6 +47,8 @@ const InvestmentDashboard = () => {
     key: 'returnValue',
     direction: 'desc'
   });
+
+  const { investments, investmentsLoading } = useInvestments(startDate, endDate);
 
   // Função para determinar a granularidade do gráfico baseada no período
   const getChartGranularity = (start: Date, end: Date) => {
@@ -193,15 +194,15 @@ const InvestmentDashboard = () => {
         <ScrollArea className="h-screen px-4">
           <div className="space-y-6 pb-4">
             {/* Cabeçalho */}
-            <div className="pt-4 pb-2 flex justify-between items-center">
-              <h1 className="text-xl font-bold text-foreground">Dashboard | Investimentos</h1>
+            <div className="pt-2 pb-1 flex justify-between items-center">
+              <h1 className="text-lg font-bold text-foreground">Dashboard | Investimentos</h1>
               <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="shadow-lg">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    Filtrar Data
-                  </Button>
-                </PopoverTrigger>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="shadow-sm">
+                      <CalendarIcon className="mr-1 h-3 w-3" />
+                      Filtrar Data
+                    </Button>
+                  </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="end">
                   <div className="p-4 space-y-4">
                     {/* Filtros Rápidos */}
@@ -297,14 +298,14 @@ const InvestmentDashboard = () => {
 
             {/* Painel Central - Gráfico + Indicadores */}
             <Card className="fnb-card">
-              <CardHeader>
-                <CardTitle>Rendimentos</CardTitle>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Rendimentos</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+              <CardContent className="pt-0">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                   {/* Gráfico */}
                   <div className="lg:col-span-3">
-                    <ResponsiveContainer width="100%" height={300}>
+                    <ResponsiveContainer width="100%" height={250}>
                       <LineChart data={timelineData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="month" />
@@ -329,35 +330,35 @@ const InvestmentDashboard = () => {
                   </div>
 
                   {/* Indicadores */}
-                  <div className="space-y-4">
+                  <div className="space-y-3">
                     <Card className="fnb-card">
-                      <CardContent className="p-4 text-center">
-                        <div className="flex items-center justify-center mb-2">
-                          <DollarSign className="h-5 w-5 text-fnb-accent" />
+                      <CardContent className="p-3 text-center">
+                        <div className="flex items-center justify-center mb-1">
+                          <DollarSign className="h-4 w-4 text-fnb-accent" />
                         </div>
-                        <p className="text-sm text-muted-foreground">Investido</p>
-                        <p className="text-lg font-bold">{formatCurrency(totalInvested)}</p>
+                        <p className="text-xs text-muted-foreground">Investido</p>
+                        <p className="text-sm font-bold">{formatCurrency(totalInvested)}</p>
                       </CardContent>
                     </Card>
 
                     <Card className="fnb-card">
-                      <CardContent className="p-4 text-center">
-                        <div className="flex items-center justify-center mb-2">
-                          <TrendingUp className="h-5 w-5 text-fnb-accent" />
+                      <CardContent className="p-3 text-center">
+                        <div className="flex items-center justify-center mb-1">
+                          <TrendingUp className="h-4 w-4 text-fnb-accent" />
                         </div>
-                        <p className="text-sm text-muted-foreground">Valor</p>
-                        <p className="text-lg font-bold">{formatCurrency(totalValue)}</p>
+                        <p className="text-xs text-muted-foreground">Valor</p>
+                        <p className="text-sm font-bold">{formatCurrency(totalValue)}</p>
                       </CardContent>
                     </Card>
 
                     <Card className="fnb-card">
-                      <CardContent className="p-4 text-center">
-                        <div className="flex items-center justify-center mb-2">
-                          <Percent className="h-5 w-5 text-fnb-accent" />
+                      <CardContent className="p-3 text-center">
+                        <div className="flex items-center justify-center mb-1">
+                          <Percent className="h-4 w-4 text-fnb-accent" />
                         </div>
-                        <p className="text-sm text-muted-foreground">Rendimento</p>
-                        <p className="text-lg font-bold">{formatCurrency(totalReturn)}</p>
-                        <p className={`text-sm ${totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        <p className="text-xs text-muted-foreground">Rendimento</p>
+                        <p className="text-sm font-bold">{formatCurrency(totalReturn)}</p>
+                        <p className={`text-xs ${totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {formatPercentage(returnPercentage)}
                         </p>
                       </CardContent>
@@ -368,14 +369,14 @@ const InvestmentDashboard = () => {
             </Card>
 
             {/* Seção Inferior - Gráfico de Pizza + Tabela */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Gráfico de Pizza - Composição da Carteira */}
               <Card className="fnb-card">
-                <CardHeader>
-                  <CardTitle>Composição da carteira (sempre atual)</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Composição da carteira</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
+                <CardContent className="pt-0">
+                  <ResponsiveContainer width="100%" height={250}>
                     <PieChart>
                       <Pie
                         data={pieData}
@@ -399,63 +400,63 @@ const InvestmentDashboard = () => {
 
               {/* Tabela de Ranking */}
               <Card className="fnb-card">
-                <CardHeader>
-                  <CardTitle>Ranking de investimentos</CardTitle>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Ranking de investimentos</CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Produto</TableHead>
-                        <TableHead>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleSort('balance')}
-                            className="h-auto p-0 font-semibold text-left justify-start"
-                          >
-                            Saldo
-                            <ArrowUpDown className="ml-1 h-3 w-3" />
-                          </Button>
-                        </TableHead>
-                        <TableHead>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleSort('returnValue')}
-                            className="h-auto p-0 font-semibold text-left justify-start"
-                          >
-                            Rendimento (R$)
-                            <ArrowUpDown className="ml-1 h-3 w-3" />
-                          </Button>
-                        </TableHead>
-                        <TableHead>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleSort('returnPercentage')}
-                            className="h-auto p-0 font-semibold text-left justify-start"
-                          >
-                            Rendimento (%)
-                            <ArrowUpDown className="ml-1 h-3 w-3" />
-                          </Button>
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {sortedInvestments.map((investment) => (
-                        <TableRow key={investment.id}>
-                          <TableCell className="font-medium">{investment.name}</TableCell>
-                          <TableCell>{formatCurrency(investment.balance)}</TableCell>
-                          <TableCell className={investment.returnValue >= 0 ? 'text-green-600' : 'text-red-600'}>
-                            {formatCurrency(investment.returnValue)}
-                          </TableCell>
-                          <TableCell className={investment.returnPercentage >= 0 ? 'text-green-600' : 'text-red-600'}>
-                            {formatPercentage(investment.returnPercentage)}
-                          </TableCell>
+                <CardContent className="pt-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="text-xs">
+                          <TableHead className="text-xs">Produto</TableHead>
+                          <TableHead className="text-xs">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleSort('balance')}
+                              className="h-auto p-0 font-medium text-left justify-start text-xs"
+                            >
+                              Saldo
+                              <ArrowUpDown className="ml-1 h-3 w-3" />
+                            </Button>
+                          </TableHead>
+                          <TableHead className="text-xs">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleSort('returnValue')}
+                              className="h-auto p-0 font-medium text-left justify-start text-xs"
+                            >
+                              Rendimento (R$)
+                              <ArrowUpDown className="ml-1 h-3 w-3" />
+                            </Button>
+                          </TableHead>
+                          <TableHead className="text-xs">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleSort('returnPercentage')}
+                              className="h-auto p-0 font-medium text-left justify-start text-xs"
+                            >
+                              Rendimento (%)
+                              <ArrowUpDown className="ml-1 h-3 w-3" />
+                            </Button>
+                          </TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
+                      </TableHeader>
+                      <TableBody>
+                        {sortedInvestments.map((investment) => (
+                          <TableRow key={investment.id} className="text-sm">
+                            <TableCell className="font-medium text-sm">{investment.name}</TableCell>
+                            <TableCell className="text-sm">{formatCurrency(investment.balance)}</TableCell>
+                            <TableCell className={`text-sm ${investment.returnValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {formatCurrency(investment.returnValue)}
+                            </TableCell>
+                            <TableCell className={`text-sm ${investment.returnPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                              {formatPercentage(investment.returnPercentage)}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
                   </Table>
 
                   {/* Saldo Consolidado */}
