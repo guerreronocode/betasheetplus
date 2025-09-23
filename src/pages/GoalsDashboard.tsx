@@ -177,27 +177,26 @@ const GoalsDashboard = () => {
             </div>
 
             {/* Tabela de metas com fundo branco e scroll horizontal interno */}
-            <div className="bg-white rounded-lg border shadow-sm w-full overflow-hidden">
+            <div className="bg-white rounded-lg border shadow-sm w-full">
               
               {sortedGoals.length > 0 ? (
-                <div className="w-full overflow-x-auto overflow-y-hidden">
-                  <div className="max-h-[calc(100vh-200px)] overflow-y-auto overflow-x-hidden">
-                    <Table className="w-full" style={{ minWidth: '800px' }}>
-                      <TableHeader className="sticky top-0 bg-white z-10">
-                        <TableRow>
-                          <SortableHeader field="name">Meta</SortableHeader>
-                          <SortableHeader field="target_amount">Valor Total</SortableHeader>
-                          <SortableHeader field="current_amount">Arrecadado</SortableHeader>
-                          <SortableHeader field="remaining">Restante</SortableHeader>
-                          <SortableHeader field="progress">Progresso</SortableHeader>
-                          <TableHead className="text-center w-[100px] text-xs">Data Final</TableHead>
-                          <TableHead className="text-right w-[80px] text-xs">Meta Mensal</TableHead>
-                          <TableHead className="text-right w-[80px] text-xs">Este Mês</TableHead>
-                          <TableHead className="text-right w-[70px] text-xs">Falta</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {sortedGoals.map((goal) => {
+                <div className="overflow-x-auto max-h-[calc(100vh-200px)] overflow-y-auto">
+                  <Table className="min-w-[900px] w-full">
+                    <TableHeader className="sticky top-0 bg-white z-10">
+                      <TableRow>
+                        <SortableHeader field="name">Meta</SortableHeader>
+                        <SortableHeader field="target_amount">Valor Total</SortableHeader>
+                        <SortableHeader field="current_amount">Arrecadado</SortableHeader>
+                        <SortableHeader field="remaining">Restante</SortableHeader>
+                        <SortableHeader field="progress">Progresso</SortableHeader>
+                        <TableHead className="text-center w-[100px] text-xs">Data Final</TableHead>
+                        <TableHead className="text-right w-[80px] text-xs">Meta Mensal</TableHead>
+                        <TableHead className="text-right w-[80px] text-xs">Este Mês</TableHead>
+                        <TableHead className="text-right w-[70px] text-xs">Falta</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {sortedGoals.map((goal) => {
                           const progress = Math.min(((goal.current_amount || 0) / goal.target_amount) * 100, 100);
                           const remaining = Math.max(goal.target_amount - (goal.current_amount || 0), 0);
 
@@ -291,7 +290,6 @@ const GoalsDashboard = () => {
                       </TableBody>
                     </Table>
                   </div>
-                </div>
               ) : (
                 <div className="text-center py-8">
                   <Target className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
