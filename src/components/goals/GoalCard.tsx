@@ -23,6 +23,33 @@ export const GoalCard = ({ goal }: GoalCardProps) => {
   const remaining = Math.max(goal.target_amount - (goal.current_amount || 0), 0);
   const isCompleted = goal.completed || (goal.current_amount || 0) >= goal.target_amount;
 
+  // Cálculos mensais
+  const calculateMonthlyValues = () => {
+    if (!goal.deadline || isCompleted) {
+      return {
+        monthlyTarget: 0,
+        monthlyCollected: 0,
+        monthlyRemaining: 0
+      };
+    }
+
+    const today = new Date();
+    const deadline = new Date(goal.deadline);
+    const monthsRemaining = Math.max(1, Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+    
+    const monthlyTarget = remaining / monthsRemaining;
+    const monthlyCollected = 0; // Placeholder - seria calculado com base em transações do mês atual
+    const monthlyRemaining = monthlyTarget - monthlyCollected;
+
+    return {
+      monthlyTarget,
+      monthlyCollected,
+      monthlyRemaining
+    };
+  };
+
+  const { monthlyTarget, monthlyCollected, monthlyRemaining } = calculateMonthlyValues();
+
   const handleToggleComplete = () => {
     updateGoal({
       id: goal.id,
@@ -83,45 +110,51 @@ export const GoalCard = ({ goal }: GoalCardProps) => {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Progresso */}
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Progresso</span>
-              <span className="font-medium">{progress.toFixed(1)}%</span>
+          {/* Valores Principais */}
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <p className="text-sm text-muted-foreground">Valor Total</p>
+              <p className="font-semibold">{formatCurrency(goal.target_amount)}</p>
             </div>
-            <div className="relative">
-              <Progress value={progress} className="h-3" />
-              <div 
-                className="absolute top-0 left-0 h-3 rounded-full transition-all duration-300"
-                style={{ width: `${progress}%`, backgroundColor: goal.color }}
-              />
+            <div>
+              <p className="text-sm text-muted-foreground">Arrecadado</p>
+              <p className="font-semibold text-green-600">{formatCurrency(goal.current_amount || 0)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-muted-foreground">Restante</p>
+              <p className="font-semibold text-orange-600">{formatCurrency(remaining)}</p>
             </div>
           </div>
 
-          {/* Valores */}
-          <div className="grid grid-cols-1 gap-3">
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Valor atual:</span>
-              <span className="font-medium">{formatCurrency(goal.current_amount || 0)}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Meta:</span>
-              <span className="font-medium">{formatCurrency(goal.target_amount)}</span>
-            </div>
-            {!isCompleted && (
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">Restante:</span>
-                <span className="font-medium text-orange-600">{formatCurrency(remaining)}</span>
-              </div>
-            )}
+          {/* Barra de Progresso Simples */}
+          <div className="w-full">
+            <Progress value={progress} className="h-2" />
           </div>
+
+          {/* Valores Mensais */}
+          {goal.deadline && !isCompleted && (
+            <div className="grid grid-cols-3 gap-4 text-center pt-2 border-t">
+              <div>
+                <p className="text-xs text-muted-foreground">Meta mensal</p>
+                <p className="text-sm font-medium">{formatCurrency(monthlyTarget)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Arrecadado este mês</p>
+                <p className="text-sm font-medium text-green-600">{formatCurrency(monthlyCollected)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Restante este mês</p>
+                <p className="text-sm font-medium text-orange-600">{formatCurrency(monthlyRemaining)}</p>
+              </div>
+            </div>
+          )}
 
           {/* Prazo */}
           {goal.deadline && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Calendar className="w-4 h-4" />
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-2">
+              <Calendar className="w-3 h-3" />
               <span>
-                Prazo: {format(new Date(goal.deadline), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                Prazo: {format(new Date(goal.deadline), "dd/MM/yyyy", { locale: ptBR })}
               </span>
             </div>
           )}
