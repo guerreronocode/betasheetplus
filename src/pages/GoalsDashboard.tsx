@@ -180,9 +180,9 @@ const GoalsDashboard = () => {
             <div className="bg-white rounded-lg border shadow-sm w-full overflow-hidden">
               
               {sortedGoals.length > 0 ? (
-                <div className="w-full overflow-x-auto">
-                  <div className="max-h-[400px] overflow-y-auto">
-                    <Table className="min-w-[800px] w-full">
+                <div className="w-full overflow-x-auto overflow-y-hidden">
+                  <div className="max-h-[calc(100vh-200px)] overflow-y-auto overflow-x-hidden">
+                    <Table className="w-full" style={{ minWidth: '800px' }}>
                       <TableHeader className="sticky top-0 bg-white z-10">
                         <TableRow>
                           <SortableHeader field="name">Meta</SortableHeader>
