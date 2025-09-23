@@ -108,132 +108,133 @@ const GoalsDashboard = () => {
             </div>
 
             {/* Tabela de metas */}
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <Target className="w-4 h-4" />
-                  Suas Metas Financeiras
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {goals.length > 0 ? (
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[200px]">Meta</TableHead>
-                          <TableHead className="text-right">Valor Total</TableHead>
-                          <TableHead className="text-right">Arrecadado</TableHead>
-                          <TableHead className="text-right">Restante</TableHead>
-                          <TableHead className="w-[120px]">Progresso</TableHead>
-                          <TableHead className="text-center">Data Final</TableHead>
-                          <TableHead className="text-right">Meta Mensal</TableHead>
-                          <TableHead className="text-right">Este Mês</TableHead>
-                          <TableHead className="text-right">Falta</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {goals.map((goal) => {
-                          const progress = Math.min(((goal.current_amount || 0) / goal.target_amount) * 100, 100);
-                          const remaining = Math.max(goal.target_amount - (goal.current_amount || 0), 0);
+            <div className="mb-4">
+              <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Target className="w-3 h-3" />
+                Suas Metas Financeiras
+              </h2>
+              
+              {goals.length > 0 ? (
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[180px] text-xs">Meta</TableHead>
+                        <TableHead className="text-right w-[90px] text-xs">Valor Total</TableHead>
+                        <TableHead className="text-right w-[90px] text-xs">Arrecadado</TableHead>
+                        <TableHead className="text-right w-[80px] text-xs">Restante</TableHead>
+                        <TableHead className="w-[140px] text-xs">Progresso</TableHead>
+                        <TableHead className="text-center w-[100px] text-xs">Data Final</TableHead>
+                        <TableHead className="text-right w-[80px] text-xs">Meta Mensal</TableHead>
+                        <TableHead className="text-right w-[80px] text-xs">Este Mês</TableHead>
+                        <TableHead className="text-right w-[70px] text-xs">Falta</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {goals.map((goal) => {
+                        const progress = Math.min(((goal.current_amount || 0) / goal.target_amount) * 100, 100);
+                        const remaining = Math.max(goal.target_amount - (goal.current_amount || 0), 0);
 
-                          // Cálculos mensais
-                          const calculateMonthlyValues = () => {
-                            if (!goal.deadline) {
-                              return {
-                                monthlyTarget: 0,
-                                monthlyCollected: 0,
-                                monthlyRemaining: 0
-                              };
-                            }
-
-                            const today = new Date();
-                            const deadline = new Date(goal.deadline);
-                            const monthsRemaining = Math.max(1, Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)));
-                            
-                            const monthlyTarget = remaining / monthsRemaining;
-                            const monthlyCollected = 0; // Placeholder - seria calculado com base em transações do mês atual
-                            const monthlyRemaining = monthlyTarget - monthlyCollected;
-
+                        // Cálculos mensais
+                        const calculateMonthlyValues = () => {
+                          if (!goal.deadline) {
                             return {
-                              monthlyTarget,
-                              monthlyCollected,
-                              monthlyRemaining
+                              monthlyTarget: 0,
+                              monthlyCollected: 0,
+                              monthlyRemaining: 0
                             };
+                          }
+
+                          const today = new Date();
+                          const deadline = new Date(goal.deadline);
+                          const monthsRemaining = Math.max(1, Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+                          
+                          const monthlyTarget = remaining / monthsRemaining;
+                          const monthlyCollected = 0; // Placeholder - seria calculado com base em transações do mês atual
+                          const monthlyRemaining = monthlyTarget - monthlyCollected;
+
+                          return {
+                            monthlyTarget,
+                            monthlyCollected,
+                            monthlyRemaining
                           };
+                        };
 
-                          const { monthlyTarget, monthlyCollected, monthlyRemaining } = calculateMonthlyValues();
+                        const { monthlyTarget, monthlyCollected, monthlyRemaining } = calculateMonthlyValues();
 
-                          return (
-                            <TableRow key={goal.id}>
-                              <TableCell className="font-medium">
-                                <div className="flex items-center gap-2">
-                                  <Target className="w-3 h-3 text-primary" />
-                                  <span className="text-sm">{goal.title}</span>
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-right text-sm">
-                                {formatCurrency(goal.target_amount)}
-                              </TableCell>
-                              <TableCell className="text-right text-sm text-green-600">
-                                {formatCurrency(goal.current_amount || 0)}
-                              </TableCell>
-                              <TableCell className="text-right text-sm text-orange-600">
-                                {formatCurrency(remaining)}
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <Progress value={progress} className="h-2 flex-1" />
-                                  <span className="text-xs text-muted-foreground w-10">
-                                    {progress.toFixed(0)}%
-                                  </span>
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-center text-sm">
-                                {goal.deadline ? (
-                                  new Date(goal.deadline).toLocaleDateString('pt-BR')
-                                ) : (
-                                  <span className="text-muted-foreground italic">Sem data final</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="text-right text-sm">
-                                {goal.deadline ? (
-                                  formatCurrency(monthlyTarget)
-                                ) : (
-                                  <span className="text-muted-foreground">-</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="text-right text-sm text-green-600">
-                                {goal.deadline ? (
-                                  formatCurrency(monthlyCollected)
-                                ) : (
-                                  <span className="text-muted-foreground">-</span>
-                                )}
-                              </TableCell>
-                              <TableCell className="text-right text-sm text-orange-600">
-                                {goal.deadline ? (
-                                  formatCurrency(monthlyRemaining)
-                                ) : (
-                                  <span className="text-muted-foreground">-</span>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Target className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-                    <h3 className="text-base font-medium mb-1">Nenhuma meta encontrada</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Crie sua primeira meta financeira para começar a acompanhar seus objetivos!
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                        return (
+                          <TableRow key={goal.id}>
+                            <TableCell className="py-2">
+                              <div className="flex items-center gap-1">
+                                <Target className="w-2.5 h-2.5 text-primary flex-shrink-0" />
+                                <span className="text-xs font-medium truncate">{goal.title}</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right text-xs py-2">
+                              {formatCurrency(goal.target_amount)}
+                            </TableCell>
+                            <TableCell className="text-right text-xs text-green-600 py-2">
+                              {formatCurrency(goal.current_amount || 0)}
+                            </TableCell>
+                            <TableCell className="text-right text-xs text-orange-600 py-2">
+                              {formatCurrency(remaining)}
+                            </TableCell>
+                            <TableCell className="py-2">
+                              <div className="flex items-center gap-2">
+                                <Progress value={progress} className="h-1.5 flex-1" />
+                                <span className="text-xs text-muted-foreground w-8 text-right">
+                                  {progress.toFixed(0)}%
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center text-xs py-2">
+                              {goal.deadline ? (
+                                new Date(goal.deadline).toLocaleDateString('pt-BR', { 
+                                  day: '2-digit', 
+                                  month: '2-digit',
+                                  year: '2-digit'
+                                })
+                              ) : (
+                                <span className="text-muted-foreground italic">Sem data</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right text-xs py-2">
+                              {goal.deadline ? (
+                                formatCurrency(monthlyTarget)
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right text-xs text-green-600 py-2">
+                              {goal.deadline ? (
+                                formatCurrency(monthlyCollected)
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right text-xs text-orange-600 py-2">
+                              {goal.deadline ? (
+                                formatCurrency(monthlyRemaining)
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-8 border rounded-lg">
+                  <Target className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                  <h3 className="text-sm font-medium mb-1">Nenhuma meta encontrada</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Crie sua primeira meta financeira para começar a acompanhar seus objetivos!
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         </ScrollArea>
       </div>
