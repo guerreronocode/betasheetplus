@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Target, TrendingUp, CheckCircle, DollarSign, Wallet, CalendarDays } from 'lucide-react';
 import { useGoals } from '@/hooks/useGoals';
 import { formatCurrency } from '@/utils/formatters';
@@ -106,112 +107,133 @@ const GoalsDashboard = () => {
               </div>
             </div>
 
-            {/* Grid de metas */}
-            <div className="mb-4">
-              <h2 className="text-base font-semibold mb-3 flex items-center gap-2">
-                <Target className="w-4 h-4" />
-                Suas Metas Financeiras
-              </h2>
-              
-              {goals.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {goals.map((goal) => {
-                    const progress = Math.min(((goal.current_amount || 0) / goal.target_amount) * 100, 100);
-                    const remaining = Math.max(goal.target_amount - (goal.current_amount || 0), 0);
+            {/* Tabela de metas */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Target className="w-4 h-4" />
+                  Suas Metas Financeiras
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {goals.length > 0 ? (
+                  <div className="rounded-md border">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[200px]">Meta</TableHead>
+                          <TableHead className="text-right">Valor Total</TableHead>
+                          <TableHead className="text-right">Arrecadado</TableHead>
+                          <TableHead className="text-right">Restante</TableHead>
+                          <TableHead className="w-[120px]">Progresso</TableHead>
+                          <TableHead className="text-center">Data Final</TableHead>
+                          <TableHead className="text-right">Meta Mensal</TableHead>
+                          <TableHead className="text-right">Este Mês</TableHead>
+                          <TableHead className="text-right">Falta</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {goals.map((goal) => {
+                          const progress = Math.min(((goal.current_amount || 0) / goal.target_amount) * 100, 100);
+                          const remaining = Math.max(goal.target_amount - (goal.current_amount || 0), 0);
 
-                    // Cálculos mensais
-                    const calculateMonthlyValues = () => {
-                      if (!goal.deadline) {
-                        return {
-                          monthlyTarget: 0,
-                          monthlyCollected: 0,
-                          monthlyRemaining: 0
-                        };
-                      }
+                          // Cálculos mensais
+                          const calculateMonthlyValues = () => {
+                            if (!goal.deadline) {
+                              return {
+                                monthlyTarget: 0,
+                                monthlyCollected: 0,
+                                monthlyRemaining: 0
+                              };
+                            }
 
-                      const today = new Date();
-                      const deadline = new Date(goal.deadline);
-                      const monthsRemaining = Math.max(1, Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)));
-                      
-                      const monthlyTarget = remaining / monthsRemaining;
-                      const monthlyCollected = 0; // Placeholder - seria calculado com base em transações do mês atual
-                      const monthlyRemaining = monthlyTarget - monthlyCollected;
+                            const today = new Date();
+                            const deadline = new Date(goal.deadline);
+                            const monthsRemaining = Math.max(1, Math.ceil((deadline.getTime() - today.getTime()) / (1000 * 60 * 60 * 24 * 30)));
+                            
+                            const monthlyTarget = remaining / monthsRemaining;
+                            const monthlyCollected = 0; // Placeholder - seria calculado com base em transações do mês atual
+                            const monthlyRemaining = monthlyTarget - monthlyCollected;
 
-                      return {
-                        monthlyTarget,
-                        monthlyCollected,
-                        monthlyRemaining
-                      };
-                    };
+                            return {
+                              monthlyTarget,
+                              monthlyCollected,
+                              monthlyRemaining
+                            };
+                          };
 
-                    const { monthlyTarget, monthlyCollected, monthlyRemaining } = calculateMonthlyValues();
+                          const { monthlyTarget, monthlyCollected, monthlyRemaining } = calculateMonthlyValues();
 
-                    return (
-                      <Card key={goal.id} className="p-3 space-y-3">
-                        {/* Nome da Meta */}
-                        <div className="flex items-center gap-2">
-                          <Target className="w-3 h-3 text-primary" />
-                          <h3 className="font-medium text-sm">{goal.title}</h3>
-                        </div>
-
-                        {/* Valores Principais */}
-                        <div className="grid grid-cols-1 gap-2">
-                          <div className="text-center">
-                            <p className="text-xs text-muted-foreground">Valor Total</p>
-                            <p className="font-medium text-sm">{formatCurrency(goal.target_amount)}</p>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div className="text-center">
-                              <p className="text-xs text-muted-foreground">Arrecadado</p>
-                              <p className="font-medium text-xs text-green-600">{formatCurrency(goal.current_amount || 0)}</p>
-                            </div>
-                            <div className="text-center">
-                              <p className="text-xs text-muted-foreground">Restante</p>
-                              <p className="font-medium text-xs text-orange-600">{formatCurrency(remaining)}</p>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Barra de Progresso Simples */}
-                        <div className="w-full">
-                          <Progress value={progress} className="h-1.5" />
-                        </div>
-
-                        {/* Valores Mensais */}
-                        {goal.deadline && (
-                          <div className="space-y-2 pt-2 border-t">
-                            <div className="text-center">
-                              <p className="text-xs text-muted-foreground">Meta mensal</p>
-                              <p className="text-xs font-medium">{formatCurrency(monthlyTarget)}</p>
-                            </div>
-                            <div className="grid grid-cols-2 gap-2">
-                              <div className="text-center">
-                                <p className="text-xs text-muted-foreground">Este mês</p>
-                                <p className="text-xs font-medium text-green-600">{formatCurrency(monthlyCollected)}</p>
-                              </div>
-                              <div className="text-center">
-                                <p className="text-xs text-muted-foreground">Faltam</p>
-                                <p className="text-xs font-medium text-orange-600">{formatCurrency(monthlyRemaining)}</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </Card>
-                    );
-                  })}
-                </div>
-              ) : (
-                <Card className="p-8">
-                  <div className="text-center">
+                          return (
+                            <TableRow key={goal.id}>
+                              <TableCell className="font-medium">
+                                <div className="flex items-center gap-2">
+                                  <Target className="w-3 h-3 text-primary" />
+                                  <span className="text-sm">{goal.title}</span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-right text-sm">
+                                {formatCurrency(goal.target_amount)}
+                              </TableCell>
+                              <TableCell className="text-right text-sm text-green-600">
+                                {formatCurrency(goal.current_amount || 0)}
+                              </TableCell>
+                              <TableCell className="text-right text-sm text-orange-600">
+                                {formatCurrency(remaining)}
+                              </TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-2">
+                                  <Progress value={progress} className="h-2 flex-1" />
+                                  <span className="text-xs text-muted-foreground w-10">
+                                    {progress.toFixed(0)}%
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-center text-sm">
+                                {goal.deadline ? (
+                                  new Date(goal.deadline).toLocaleDateString('pt-BR')
+                                ) : (
+                                  <span className="text-muted-foreground italic">Sem data final</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right text-sm">
+                                {goal.deadline ? (
+                                  formatCurrency(monthlyTarget)
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right text-sm text-green-600">
+                                {goal.deadline ? (
+                                  formatCurrency(monthlyCollected)
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-right text-sm text-orange-600">
+                                {goal.deadline ? (
+                                  formatCurrency(monthlyRemaining)
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
                     <Target className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
                     <h3 className="text-base font-medium mb-1">Nenhuma meta encontrada</h3>
                     <p className="text-sm text-muted-foreground">
                       Crie sua primeira meta financeira para começar a acompanhar seus objetivos!
                     </p>
                   </div>
-                </Card>
-              )}
-            </div>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </ScrollArea>
       </div>
