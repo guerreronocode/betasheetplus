@@ -15,6 +15,14 @@ import {
   TableRow 
 } from '@/components/ui/table';
 import { 
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious
+} from '@/components/ui/pagination';
+import { 
   LineChart, 
   Line, 
   XAxis, 
@@ -36,19 +44,27 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
 const InvestmentDashboard = () => {
-  const [startDate, setStartDate] = useState<Date>(() => {
+  const [appliedStartDate, setAppliedStartDate] = useState<Date>(() => {
     const date = new Date();
     date.setMonth(date.getMonth() - 12);
     return date;
   });
-  const [endDate, setEndDate] = useState<Date>(new Date());
+  const [appliedEndDate, setAppliedEndDate] = useState<Date>(new Date());
+  const [tempStartDate, setTempStartDate] = useState<Date>(() => {
+    const date = new Date();
+    date.setMonth(date.getMonth() - 12);
+    return date;
+  });
+  const [tempEndDate, setTempEndDate] = useState<Date>(new Date());
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [sortConfig, setSortConfig] = useState<{key: string, direction: 'asc' | 'desc'}>({
     key: 'returnValue',
     direction: 'desc'
   });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 6;
 
-  const { investments, investmentsLoading } = useInvestments(startDate, endDate);
+  const { investments, investmentsLoading } = useInvestments(appliedStartDate, appliedEndDate);
 
   // Função para determinar a granularidade do gráfico baseada no período
   const getChartGranularity = (start: Date, end: Date) => {
@@ -108,7 +124,7 @@ const InvestmentDashboard = () => {
   };
 
   // Dados para o gráfico temporal baseados no período selecionado
-  const timelineData = generateChartData(startDate, endDate);
+  const timelineData = generateChartData(appliedStartDate, appliedEndDate);
 
   // Cores para o gráfico de pizza
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1'];
@@ -154,7 +170,7 @@ const InvestmentDashboard = () => {
     percentage: totalValue > 0 ? (value / totalValue) * 100 : 0
   }));
 
-  // Dados para a tabela de ranking
+  // Dados para a tabela de ranking com paginação
   const investmentRanking = investments.map(inv => {
     const invested = inv.amount || 0;
     const current = inv.current_value || invested;
@@ -175,6 +191,7 @@ const InvestmentDashboard = () => {
       key,
       direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
     }));
+    setCurrentPage(1); // Reset to first page when sorting
   };
 
   const sortedInvestments = [...investmentRanking].sort((a, b) => {
@@ -188,17 +205,23 @@ const InvestmentDashboard = () => {
     }
   });
 
+  // Paginação
+  const totalPages = Math.ceil(sortedInvestments.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedInvestments = sortedInvestments.slice(startIndex, endIndex);
+
   return (
     <Layout>
       <div className="bg-fnb-cream h-screen overflow-hidden">
-        <ScrollArea className="h-screen px-4">
-          <div className="space-y-6 pb-4">
+        <ScrollArea className="h-screen px-6">
+          <div className="space-y-4 pb-4">
             {/* Cabeçalho */}
             <div className="pt-2 pb-1 flex justify-between items-center">
-              <h1 className="text-lg font-bold text-foreground">Dashboard | Investimentos</h1>
+              <h1 className="text-base font-bold text-foreground">Dashboard | Investimentos</h1>
               <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" size="sm" className="shadow-sm">
+                    <Button variant="outline" size="sm" className="shadow-sm text-xs">
                       <CalendarIcon className="mr-1 h-3 w-3" />
                       Filtrar Data
                     </Button>
@@ -216,8 +239,8 @@ const InvestmentDashboard = () => {
                             const today = new Date();
                             const sixMonthsAgo = new Date(today);
                             sixMonthsAgo.setMonth(today.getMonth() - 6);
-                            setStartDate(sixMonthsAgo);
-                            setEndDate(today);
+                            setTempStartDate(sixMonthsAgo);
+                            setTempEndDate(today);
                           }}
                         >
                           6 meses
@@ -229,8 +252,8 @@ const InvestmentDashboard = () => {
                             const today = new Date();
                             const oneYearAgo = new Date(today);
                             oneYearAgo.setFullYear(today.getFullYear() - 1);
-                            setStartDate(oneYearAgo);
-                            setEndDate(today);
+                            setTempStartDate(oneYearAgo);
+                            setTempEndDate(today);
                           }}
                         >
                           1 ano
@@ -242,8 +265,8 @@ const InvestmentDashboard = () => {
                             const today = new Date();
                             const twoYearsAgo = new Date(today);
                             twoYearsAgo.setFullYear(today.getFullYear() - 2);
-                            setStartDate(twoYearsAgo);
-                            setEndDate(today);
+                            setTempStartDate(twoYearsAgo);
+                            setTempEndDate(today);
                           }}
                         >
                           2 anos
@@ -255,8 +278,8 @@ const InvestmentDashboard = () => {
                             const today = new Date();
                             const threeYearsAgo = new Date(today);
                             threeYearsAgo.setFullYear(today.getFullYear() - 3);
-                            setStartDate(threeYearsAgo);
-                            setEndDate(today);
+                            setTempStartDate(threeYearsAgo);
+                            setTempEndDate(today);
                           }}
                         >
                           3 anos
@@ -267,26 +290,30 @@ const InvestmentDashboard = () => {
                     {/* Calendários Personalizados */}
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <Label htmlFor="start-date" className="text-sm font-medium mb-2 block">Data inicial</Label>
+                        <Label htmlFor="start-date" className="text-xs font-medium mb-2 block">Data inicial</Label>
                         <Calendar
                           mode="single"
-                          selected={startDate}
-                          onSelect={setStartDate}
+                          selected={tempStartDate}
+                          onSelect={setTempStartDate}
                           className={cn("pointer-events-auto")}
                         />
                       </div>
                       <div>
-                        <Label htmlFor="end-date" className="text-sm font-medium mb-2 block">Data final</Label>
+                        <Label htmlFor="end-date" className="text-xs font-medium mb-2 block">Data final</Label>
                         <Calendar
                           mode="single"
-                          selected={endDate}
-                          onSelect={setEndDate}
+                          selected={tempEndDate}
+                          onSelect={setTempEndDate}
                           className={cn("pointer-events-auto")}
                         />
                       </div>
                     </div>
                     <Button 
-                      onClick={() => setIsDatePickerOpen(false)} 
+                      onClick={() => {
+                        setAppliedStartDate(tempStartDate);
+                        setAppliedEndDate(tempEndDate);
+                        setIsDatePickerOpen(false);
+                      }} 
                       className="w-full"
                     >
                       Filtrar
@@ -298,66 +325,66 @@ const InvestmentDashboard = () => {
 
             {/* Painel Central - Gráfico + Indicadores */}
             <Card className="fnb-card">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-base">Rendimentos</CardTitle>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm">Rendimentos</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
                   {/* Gráfico */}
                   <div className="lg:col-span-3">
-                    <ResponsiveContainer width="100%" height={250}>
+                    <ResponsiveContainer width="100%" height={200}>
                       <LineChart data={timelineData}>
                         <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="month" />
-                        <YAxis />
+                        <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                        <YAxis tick={{ fontSize: 11 }} />
                         <Tooltip formatter={(value) => formatCurrency(Number(value))} />
                         <Line 
                           type="monotone" 
                           dataKey="invested" 
                           stroke="#8884d8" 
                           name="Investido"
-                          strokeWidth={2}
+                          strokeWidth={1.5}
                         />
                         <Line 
                           type="monotone" 
                           dataKey="value" 
                           stroke="#82ca9d" 
                           name="Valor Atual"
-                          strokeWidth={2}
+                          strokeWidth={1.5}
                         />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
 
                   {/* Indicadores */}
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     <Card className="fnb-card">
-                      <CardContent className="p-3 text-center">
+                      <CardContent className="p-2 text-center">
                         <div className="flex items-center justify-center mb-1">
-                          <DollarSign className="h-4 w-4 text-fnb-accent" />
+                          <DollarSign className="h-3 w-3 text-fnb-accent" />
                         </div>
                         <p className="text-xs text-muted-foreground">Investido</p>
-                        <p className="text-sm font-bold">{formatCurrency(totalInvested)}</p>
+                        <p className="text-xs font-bold">{formatCurrency(totalInvested)}</p>
                       </CardContent>
                     </Card>
 
                     <Card className="fnb-card">
-                      <CardContent className="p-3 text-center">
+                      <CardContent className="p-2 text-center">
                         <div className="flex items-center justify-center mb-1">
-                          <TrendingUp className="h-4 w-4 text-fnb-accent" />
+                          <TrendingUp className="h-3 w-3 text-fnb-accent" />
                         </div>
                         <p className="text-xs text-muted-foreground">Valor</p>
-                        <p className="text-sm font-bold">{formatCurrency(totalValue)}</p>
+                        <p className="text-xs font-bold">{formatCurrency(totalValue)}</p>
                       </CardContent>
                     </Card>
 
                     <Card className="fnb-card">
-                      <CardContent className="p-3 text-center">
+                      <CardContent className="p-2 text-center">
                         <div className="flex items-center justify-center mb-1">
-                          <Percent className="h-4 w-4 text-fnb-accent" />
+                          <Percent className="h-3 w-3 text-fnb-accent" />
                         </div>
                         <p className="text-xs text-muted-foreground">Rendimento</p>
-                        <p className="text-sm font-bold">{formatCurrency(totalReturn)}</p>
+                        <p className="text-xs font-bold">{formatCurrency(totalReturn)}</p>
                         <p className={`text-xs ${totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {formatPercentage(returnPercentage)}
                         </p>
@@ -369,14 +396,14 @@ const InvestmentDashboard = () => {
             </Card>
 
             {/* Seção Inferior - Gráfico de Pizza + Tabela */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               {/* Gráfico de Pizza - Composição da Carteira */}
               <Card className="fnb-card">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Composição da carteira</CardTitle>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Composição da carteira</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <ResponsiveContainer width="100%" height={250}>
+                  <ResponsiveContainer width="100%" height={200}>
                     <PieChart>
                       <Pie
                         data={pieData}
@@ -384,7 +411,7 @@ const InvestmentDashboard = () => {
                         cy="50%"
                         labelLine={false}
                         label={({ name, percentage }) => `${name}: ${percentage.toFixed(1)}%`}
-                        outerRadius={80}
+                        outerRadius={70}
                         fill="#8884d8"
                         dataKey="value"
                       >
@@ -400,15 +427,15 @@ const InvestmentDashboard = () => {
 
               {/* Tabela de Ranking */}
               <Card className="fnb-card">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base">Ranking de investimentos</CardTitle>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Ranking de investimentos</CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
                     <Table>
                       <TableHeader>
                         <TableRow className="text-xs">
-                          <TableHead className="text-xs">Produto</TableHead>
-                          <TableHead className="text-xs">
+                          <TableHead className="text-xs p-2">Produto</TableHead>
+                          <TableHead className="text-xs p-2">
                             <Button
                               variant="ghost"
                               size="sm"
@@ -419,7 +446,7 @@ const InvestmentDashboard = () => {
                               <ArrowUpDown className="ml-1 h-3 w-3" />
                             </Button>
                           </TableHead>
-                          <TableHead className="text-xs">
+                          <TableHead className="text-xs p-2">
                             <Button
                               variant="ghost"
                               size="sm"
@@ -430,7 +457,7 @@ const InvestmentDashboard = () => {
                               <ArrowUpDown className="ml-1 h-3 w-3" />
                             </Button>
                           </TableHead>
-                          <TableHead className="text-xs">
+                          <TableHead className="text-xs p-2">
                             <Button
                               variant="ghost"
                               size="sm"
@@ -444,14 +471,14 @@ const InvestmentDashboard = () => {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {sortedInvestments.map((investment) => (
-                          <TableRow key={investment.id} className="text-sm">
-                            <TableCell className="font-medium text-sm">{investment.name}</TableCell>
-                            <TableCell className="text-sm">{formatCurrency(investment.balance)}</TableCell>
-                            <TableCell className={`text-sm ${investment.returnValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {paginatedInvestments.map((investment) => (
+                          <TableRow key={investment.id} className="text-xs">
+                            <TableCell className="font-medium text-xs p-2">{investment.name}</TableCell>
+                            <TableCell className="text-xs p-2">{formatCurrency(investment.balance)}</TableCell>
+                            <TableCell className={`text-xs p-2 ${investment.returnValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                               {formatCurrency(investment.returnValue)}
                             </TableCell>
-                            <TableCell className={`text-sm ${investment.returnPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            <TableCell className={`text-xs p-2 ${investment.returnPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                               {formatPercentage(investment.returnPercentage)}
                             </TableCell>
                           </TableRow>
@@ -459,11 +486,44 @@ const InvestmentDashboard = () => {
                       </TableBody>
                   </Table>
 
+                  {/* Paginação */}
+                  {totalPages > 1 && (
+                    <div className="mt-4">
+                      <Pagination>
+                        <PaginationContent>
+                          <PaginationItem>
+                            <PaginationPrevious 
+                              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                              className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+                          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                            <PaginationItem key={page}>
+                              <PaginationLink
+                                onClick={() => setCurrentPage(page)}
+                                isActive={currentPage === page}
+                                className="cursor-pointer"
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          ))}
+                          <PaginationItem>
+                            <PaginationNext 
+                              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                              className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            />
+                          </PaginationItem>
+                        </PaginationContent>
+                      </Pagination>
+                    </div>
+                  )}
+
                   {/* Saldo Consolidado */}
-                  <div className="mt-4 pt-4 border-t">
-                    <div className="flex justify-between items-center font-semibold">
+                  <div className="mt-3 pt-3 border-t">
+                    <div className="flex justify-between items-center font-semibold text-xs">
                       <span>Total</span>
-                      <div className="flex gap-4">
+                      <div className="flex gap-3">
                         <span>{formatCurrency(totalValue)}</span>
                         <span className={totalReturn >= 0 ? 'text-green-600' : 'text-red-600'}>
                           {formatCurrency(totalReturn)}
