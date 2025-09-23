@@ -1,15 +1,86 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Target, TrendingUp, CheckCircle, DollarSign, Wallet, CalendarDays } from 'lucide-react';
+import { Target, TrendingUp, CheckCircle, DollarSign, Wallet, CalendarDays, ChevronUp, ChevronDown } from 'lucide-react';
 import { useGoals } from '@/hooks/useGoals';
 import { formatCurrency } from '@/utils/formatters';
 import { Layout } from '@/components/Layout';
 
 const GoalsDashboard = () => {
   const { goals, isLoading } = useGoals();
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedGoals = useMemo(() => {
+    if (!sortField) return goals;
+
+    return [...goals].sort((a, b) => {
+      let aValue: any, bValue: any;
+
+      switch (sortField) {
+        case 'name':
+          aValue = a.title.toLowerCase();
+          bValue = b.title.toLowerCase();
+          break;
+        case 'target_amount':
+          aValue = a.target_amount;
+          bValue = b.target_amount;
+          break;
+        case 'current_amount':
+          aValue = a.current_amount || 0;
+          bValue = b.current_amount || 0;
+          break;
+        case 'remaining':
+          aValue = a.target_amount - (a.current_amount || 0);
+          bValue = b.target_amount - (b.current_amount || 0);
+          break;
+        case 'progress':
+          aValue = ((a.current_amount || 0) / a.target_amount) * 100;
+          bValue = ((b.current_amount || 0) / b.target_amount) * 100;
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [goals, sortField, sortDirection]);
+
+  const SortableHeader = ({ field, children }: { field: string; children: React.ReactNode }) => (
+    <TableHead 
+      className={`cursor-pointer hover:bg-muted/50 select-none ${
+        field === 'name' ? 'w-[180px]' :
+        field === 'target_amount' ? 'text-right w-[90px]' :
+        field === 'current_amount' ? 'text-right w-[90px]' :
+        field === 'remaining' ? 'text-right w-[80px]' :
+        field === 'progress' ? 'w-[140px]' :
+        ''
+      } text-xs`}
+      onClick={() => handleSort(field)}
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        {sortField === field && (
+          sortDirection === 'asc' ? 
+            <ChevronUp className="w-3 h-3" /> : 
+            <ChevronDown className="w-3 h-3" />
+        )}
+      </div>
+    </TableHead>
+  );
 
   if (isLoading) {
     return (
@@ -43,17 +114,15 @@ const GoalsDashboard = () => {
       <div className="bg-fnb-cream h-screen overflow-hidden">      
         {/* ScrollArea que engloba tudo */}
         <ScrollArea className="h-screen px-4">
-          <div className="space-y-6 pb-4">
-            {/* Título que desaparece no scroll */}
-            <div className="pt-4 pb-2">
+          <div className="space-y-4 pb-4">
+            {/* Título e descrição próximos */}
+            <div className="pt-3 pb-1">
               <h1 className="text-xl font-bold text-foreground">Dashboard de Metas</h1>
+              <p className="text-xs text-muted-foreground mt-1">Acompanhe o progresso dos seus objetivos financeiros</p>
             </div>
             
-            {/* Descrição simples */}
-            <p className="text-xs text-muted-foreground mb-4">Acompanhe o progresso dos seus objetivos financeiros</p>
-            
             {/* Estatísticas com parallax - fica sticky no topo */}
-            <div className="sticky top-0 z-10 bg-fnb-cream pb-4">
+            <div className="sticky top-0 z-10 bg-fnb-cream pb-3">
               <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg transform-gpu transition-transform duration-300 hover:scale-[1.02]">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 <div className="flex items-center gap-2">
@@ -107,23 +176,25 @@ const GoalsDashboard = () => {
               </div>
             </div>
 
-            {/* Tabela de metas */}
-            <div className="mb-4">
-              <h2 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <Target className="w-3 h-3" />
-                Suas Metas Financeiras
-              </h2>
+            {/* Tabela de metas com fundo branco */}
+            <div className="bg-white rounded-lg border shadow-sm">
+              <div className="p-3 border-b">
+                <h2 className="text-sm font-semibold flex items-center gap-2">
+                  <Target className="w-3 h-3" />
+                  Suas Metas Financeiras
+                </h2>
+              </div>
               
-              {goals.length > 0 ? (
-                <div className="rounded-md border overflow-x-auto">
+              {sortedGoals.length > 0 ? (
+                <div className="max-h-[400px] overflow-auto">
                   <Table>
-                    <TableHeader>
+                    <TableHeader className="sticky top-0 bg-white z-10">
                       <TableRow>
-                        <TableHead className="w-[180px] text-xs">Meta</TableHead>
-                        <TableHead className="text-right w-[90px] text-xs">Valor Total</TableHead>
-                        <TableHead className="text-right w-[90px] text-xs">Arrecadado</TableHead>
-                        <TableHead className="text-right w-[80px] text-xs">Restante</TableHead>
-                        <TableHead className="w-[140px] text-xs">Progresso</TableHead>
+                        <SortableHeader field="name">Meta</SortableHeader>
+                        <SortableHeader field="target_amount">Valor Total</SortableHeader>
+                        <SortableHeader field="current_amount">Arrecadado</SortableHeader>
+                        <SortableHeader field="remaining">Restante</SortableHeader>
+                        <SortableHeader field="progress">Progresso</SortableHeader>
                         <TableHead className="text-center w-[100px] text-xs">Data Final</TableHead>
                         <TableHead className="text-right w-[80px] text-xs">Meta Mensal</TableHead>
                         <TableHead className="text-right w-[80px] text-xs">Este Mês</TableHead>
@@ -131,7 +202,7 @@ const GoalsDashboard = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {goals.map((goal) => {
+                      {sortedGoals.map((goal) => {
                         const progress = Math.min(((goal.current_amount || 0) / goal.target_amount) * 100, 100);
                         const remaining = Math.max(goal.target_amount - (goal.current_amount || 0), 0);
 
@@ -226,7 +297,7 @@ const GoalsDashboard = () => {
                   </Table>
                 </div>
               ) : (
-                <div className="text-center py-8 border rounded-lg">
+                <div className="text-center py-8">
                   <Target className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
                   <h3 className="text-sm font-medium mb-1">Nenhuma meta encontrada</h3>
                   <p className="text-xs text-muted-foreground">
