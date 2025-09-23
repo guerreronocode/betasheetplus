@@ -181,32 +181,31 @@ const GoalsDashboard = () => {
                   <div className="w-full overflow-hidden">
                     <div className="overflow-x-auto smooth-scroll" style={{
                       scrollbarWidth: 'thin',
-                      scrollbarColor: 'hsl(var(--primary) / 0.3) hsl(var(--muted))'
+                      scrollbarColor: 'hsl(var(--muted-foreground) / 0.2) transparent'
                     }}>
                       <style dangerouslySetInnerHTML={{
                         __html: `
                           .smooth-scroll::-webkit-scrollbar {
-                            height: 6px;
+                            height: 4px;
                           }
                           .smooth-scroll::-webkit-scrollbar-track {
-                            background: hsl(var(--muted));
-                            border-radius: 3px;
+                            background: transparent;
                           }
                           .smooth-scroll::-webkit-scrollbar-thumb {
-                            background: hsl(var(--primary) / 0.3);
-                            border-radius: 3px;
+                            background: hsl(var(--muted-foreground) / 0.2);
+                            border-radius: 2px;
                             transition: background 0.2s ease;
                           }
                           .smooth-scroll::-webkit-scrollbar-thumb:hover {
-                            background: hsl(var(--primary) / 0.5);
+                            background: hsl(var(--muted-foreground) / 0.3);
                           }
                         `
                       }} />
                       <Table className="w-full min-w-[900px]">
-                      <TableHeader>
+                      <TableHeader className="sticky top-0 z-20 bg-background shadow-sm">
                         <TableRow>
                           <TableHead 
-                            className="sticky left-0 bg-background z-10 border-r cursor-pointer hover:bg-muted/50"
+                            className="cursor-pointer hover:bg-muted/50 bg-background"
                             onClick={() => handleSort('title')}
                           >
                             <div className="flex items-center gap-1">
@@ -215,7 +214,7 @@ const GoalsDashboard = () => {
                             </div>
                           </TableHead>
                           <TableHead 
-                            className="cursor-pointer hover:bg-muted/50"
+                            className="cursor-pointer hover:bg-muted/50 bg-background"
                             onClick={() => handleSort('target_amount')}
                           >
                             <div className="flex items-center gap-1">
@@ -224,7 +223,7 @@ const GoalsDashboard = () => {
                             </div>
                           </TableHead>
                           <TableHead 
-                            className="cursor-pointer hover:bg-muted/50"
+                            className="cursor-pointer hover:bg-muted/50 bg-background"
                             onClick={() => handleSort('current_amount')}
                           >
                             <div className="flex items-center gap-1">
@@ -233,7 +232,7 @@ const GoalsDashboard = () => {
                             </div>
                           </TableHead>
                           <TableHead 
-                            className="cursor-pointer hover:bg-muted/50"
+                            className="cursor-pointer hover:bg-muted/50 bg-background"
                             onClick={() => handleSort('remaining')}
                           >
                             <div className="flex items-center gap-1">
@@ -242,7 +241,7 @@ const GoalsDashboard = () => {
                             </div>
                           </TableHead>
                           <TableHead 
-                            className="cursor-pointer hover:bg-muted/50"
+                            className="cursor-pointer hover:bg-muted/50 bg-background"
                             onClick={() => handleSort('progress')}
                           >
                             <div className="flex items-center gap-1">
@@ -250,9 +249,9 @@ const GoalsDashboard = () => {
                               {getSortIcon('progress')}
                             </div>
                           </TableHead>
-                          <TableHead>Meta Mensal</TableHead>
-                          <TableHead>Mensal Atual</TableHead>
-                          <TableHead>Mensal Restante</TableHead>
+                          <TableHead className="bg-background">Meta Mensal</TableHead>
+                          <TableHead className="bg-background">Mensal Atual</TableHead>
+                          <TableHead className="bg-background">Mensal Restante</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -289,7 +288,7 @@ const GoalsDashboard = () => {
 
                           return (
                             <TableRow key={goal.id}>
-                              <TableCell className="sticky left-0 bg-background z-10 border-r">
+                              <TableCell>
                                 <div className="flex items-center gap-2">
                                   <Target className="w-3 h-3 text-primary flex-shrink-0" />
                                   <span className="font-medium text-sm">{goal.title}</span>
