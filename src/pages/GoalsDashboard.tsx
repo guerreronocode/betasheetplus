@@ -54,55 +54,57 @@ const GoalsDashboard = () => {
             
             {/* Estatísticas com parallax - fica sticky no topo */}
             <div className="sticky top-0 z-10 bg-fnb-cream pb-4">
-              <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 p-4 rounded-lg transform-gpu transition-transform duration-300 hover:scale-[1.02]">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <div className="flex items-center gap-2">
-                  <Target className="w-3 h-3 text-primary" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Total de Metas</p>
-                    <p className="text-xs font-semibold">{totalGoals}</p>
-                  </div>
-                </div>
+              <div className="relative bg-gradient-to-r from-primary/10 to-primary/5 p-3 sm:p-4 rounded-lg transform-gpu transition-transform duration-300 hover:scale-[1.02]">
+                <div className="overflow-x-auto">
+                  <div className="flex gap-3 sm:gap-4 min-w-max sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+                    <div className="flex items-center gap-2 min-w-[120px] sm:min-w-0">
+                      <Target className="w-3 h-3 text-primary flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs text-muted-foreground whitespace-nowrap">Total de Metas</p>
+                        <p className="text-xs font-semibold">{totalGoals}</p>
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                  <CheckCircle className="w-3 h-3 text-green-500" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Concluídas</p>
-                    <p className="text-xs font-semibold">{completedGoals}</p>
-                  </div>
-                </div>
+                    <div className="flex items-center gap-2 min-w-[100px] sm:min-w-0">
+                      <CheckCircle className="w-3 h-3 text-green-500 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs text-muted-foreground whitespace-nowrap">Concluídas</p>
+                        <p className="text-xs font-semibold">{completedGoals}</p>
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                  <TrendingUp className="w-3 h-3 text-orange-500" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Progresso</p>
-                    <p className="text-xs font-semibold">{totalProgress.toFixed(1)}%</p>
-                  </div>
-                </div>
+                    <div className="flex items-center gap-2 min-w-[90px] sm:min-w-0">
+                      <TrendingUp className="w-3 h-3 text-orange-500 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs text-muted-foreground whitespace-nowrap">Progresso</p>
+                        <p className="text-xs font-semibold">{totalProgress.toFixed(1)}%</p>
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                  <DollarSign className="w-3 h-3 text-blue-500" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Valor Total</p>
-                    <p className="text-xs font-semibold">{formatCurrency(totalTargetValue)}</p>
-                  </div>
-                </div>
+                    <div className="flex items-center gap-2 min-w-[110px] sm:min-w-0">
+                      <DollarSign className="w-3 h-3 text-blue-500 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs text-muted-foreground whitespace-nowrap">Valor Total</p>
+                        <p className="text-xs font-semibold">{formatCurrency(totalTargetValue)}</p>
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                  <Wallet className="w-3 h-3 text-purple-500" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Arrecadado</p>
-                    <p className="text-xs font-semibold">{formatCurrency(totalCurrentValue)}</p>
-                  </div>
-                </div>
+                    <div className="flex items-center gap-2 min-w-[110px] sm:min-w-0">
+                      <Wallet className="w-3 h-3 text-purple-500 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs text-muted-foreground whitespace-nowrap">Arrecadado</p>
+                        <p className="text-xs font-semibold">{formatCurrency(totalCurrentValue)}</p>
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-2">
-                  <CalendarDays className="w-3 h-3 text-red-500" />
-                  <div>
-                    <p className="text-xs text-muted-foreground">Restante</p>
-                    <p className="text-xs font-semibold">{formatCurrency(Math.max(0, totalRemaining))}</p>
+                    <div className="flex items-center gap-2 min-w-[100px] sm:min-w-0">
+                      <CalendarDays className="w-3 h-3 text-red-500 flex-shrink-0" />
+                      <div className="min-w-0">
+                        <p className="text-xs text-muted-foreground whitespace-nowrap">Restante</p>
+                        <p className="text-xs font-semibold">{formatCurrency(Math.max(0, totalRemaining))}</p>
+                      </div>
+                    </div>
                   </div>
-                </div>
                 </div>
               </div>
             </div>
