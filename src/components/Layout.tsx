@@ -15,9 +15,9 @@ export function Layout({ children }: LayoutProps) {
         "--sidebar-width-icon": "3.5rem",
       } as React.CSSProperties}
     >
-      <div className="min-h-screen flex w-full bg-fnb-cream max-w-screen-2xl mx-auto">
+      <div className="min-h-screen flex w-full bg-fnb-cream">
         <AppSidebar />
-        <SidebarInset className="flex-1">
+        <SidebarInset className="flex-1 w-0 max-w-full">
           {children}
         </SidebarInset>
       </div>

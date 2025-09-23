@@ -42,8 +42,8 @@ const GoalsDashboard = () => {
     <Layout>
       <div className="bg-fnb-cream h-screen overflow-hidden">      
         {/* ScrollArea que engloba tudo */}
-        <ScrollArea className="h-screen px-4">
-          <div className="max-w-[calc(100vw-2rem)] mx-auto space-y-6 pb-4">
+        <ScrollArea className="h-screen">
+          <div className="container mx-auto px-4 max-w-7xl space-y-6 pb-4">
             {/* Título que desaparece no scroll */}
             <div className="pt-4 pb-2">
               <h1 className="text-xl font-bold text-foreground">Dashboard de Metas</h1>
