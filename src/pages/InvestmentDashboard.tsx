@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Input } from '@/components/ui/input';
@@ -92,53 +92,56 @@ const InvestmentDashboard = () => {
   };
 
   // Função para gerar dados do gráfico baseado na granularidade
-  const generateChartData = (start: Date, end: Date) => {
-    const granularity = getChartGranularity(start, end);
-    const data = [];
-    const current = new Date(start);
-    let totalInvested = 8000;
-    let totalValue = 8200;
+  const generateChartData = useMemo(() => {
+    return (start: Date, end: Date) => {
+      const granularity = getChartGranularity(start, end);
+      const data = [];
+      const current = new Date(start);
+      let totalInvested = 8000;
+      let totalValue = 8200;
 
-    while (current <= end) {
-      let label = '';
-      let increment = 0;
+      while (current <= end) {
+        let label = '';
+        let increment = 0;
 
-      switch (granularity) {
-        case 'monthly':
-          label = format(current, 'MMM/yy');
-          current.setMonth(current.getMonth() + 1);
-          increment = 1;
-          break;
-        case 'bimonthly':
-          label = format(current, 'MMM/yy');
-          current.setMonth(current.getMonth() + 2);
-          increment = 2;
-          break;
-        case 'quarterly':
-          label = `T${Math.floor(current.getMonth() / 3) + 1}/${current.getFullYear()}`;
-          current.setMonth(current.getMonth() + 3);
-          increment = 3;
-          break;
+        switch (granularity) {
+          case 'monthly':
+            label = format(current, 'MMM/yy');
+            current.setMonth(current.getMonth() + 1);
+            increment = 1;
+            break;
+          case 'bimonthly':
+            label = format(current, 'MMM/yy');
+            current.setMonth(current.getMonth() + 2);
+            increment = 2;
+            break;
+          case 'quarterly':
+            label = `T${Math.floor(current.getMonth() / 3) + 1}/${current.getFullYear()}`;
+            current.setMonth(current.getMonth() + 3);
+            increment = 3;
+            break;
+        }
+
+        totalInvested += 1500 * increment;
+        // Removido Math.random() para evitar re-renders constantes
+        totalValue += (1500 * increment) + (300 * increment);
+
+        data.push({
+          month: label,
+          invested: totalInvested,
+          value: totalValue,
+          independence: Math.min((totalValue / 100000) * 100, 100)
+        });
+
+        if (data.length > 50) break; // Limite para evitar muitos pontos
       }
 
-      totalInvested += 1500 * increment;
-      totalValue += (1500 * increment) + Math.random() * 500;
-
-      data.push({
-        month: label,
-        invested: totalInvested,
-        value: totalValue,
-        independence: Math.min((totalValue / 100000) * 100, 100)
-      });
-
-      if (data.length > 50) break; // Limite para evitar muitos pontos
-    }
-
-    return data;
-  };
+      return data;
+    };
+  }, []);
 
   // Dados para o gráfico temporal baseados no período selecionado
-  const timelineData = generateChartData(appliedStartDate, appliedEndDate);
+  const timelineData = useMemo(() => generateChartData(appliedStartDate, appliedEndDate), [appliedStartDate, appliedEndDate, generateChartData]);
 
   // Cores para o gráfico de pizza
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300', '#8dd1e1'];
@@ -187,12 +190,12 @@ const InvestmentDashboard = () => {
     return acc;
   }, {} as Record<string, number>);
 
-  const filteredTotalValue = filteredInvestments.reduce((sum, inv) => sum + (inv.current_value || inv.amount || 0), 0);
+  const currentTotalValue = currentInvestments.reduce((sum, inv) => sum + (inv.current_value || inv.amount || 0), 0);
 
   const pieData = Object.entries(portfolioComposition).map(([name, value]) => ({
     name,
     value,
-    percentage: filteredTotalValue > 0 ? (value / filteredTotalValue) * 100 : 0
+    percentage: currentTotalValue > 0 ? (value / currentTotalValue) * 100 : 0
   }));
 
   // Calcular valores por categoria de renda
@@ -464,46 +467,57 @@ const InvestmentDashboard = () => {
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <div className="flex gap-4">
-                    {/* Gráfico de Pizza - Centralizado */}
-                    <div className="flex-1 flex justify-center">
-                      <ResponsiveContainer width={200} height={200}>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Gráfico de Pizza */}
+                    <div className="lg:col-span-2">
+                      <ResponsiveContainer width="100%" height={280}>
                         <PieChart>
                           <Pie
                             data={pieData}
                             cx="50%"
                             cy="50%"
-                            outerRadius={80}
+                            outerRadius={100}
                             fill="#8884d8"
                             dataKey="value"
+                            label={({ name, percentage }) => 
+                              percentage > 5 ? `${name}: ${percentage.toFixed(1)}%` : ''
+                            }
+                            labelLine={false}
                           >
                             {pieData.map((entry, index) => (
                               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                             ))}
                           </Pie>
-                          <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                          <Tooltip 
+                            formatter={(value) => formatCurrency(Number(value))}
+                            labelFormatter={(label) => `${label}`}
+                          />
+                          <Legend />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
                     
-                    {/* Detalhamento de Valores */}
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-xs font-medium mb-3 text-muted-foreground">
-                        Detalhamento por categoria
-                      </h4>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                          <span className="text-xs font-medium">Renda Fixa</span>
-                          <span className="text-xs font-bold">{formatCurrency(fixedIncomeValue)}</span>
-                        </div>
-                        <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
-                          <span className="text-xs font-medium">Renda Variável</span>
-                          <span className="text-xs font-bold">{formatCurrency(variableIncomeValue)}</span>
-                        </div>
-                        <div className="flex justify-between items-center p-2 bg-primary/10 rounded border">
-                          <span className="text-xs font-medium">Total</span>
-                          <span className="text-xs font-bold">{formatCurrency(fixedIncomeValue + variableIncomeValue)}</span>
-                        </div>
+                    {/* Detalhamento Resumido */}
+                    <div className="space-y-4">
+                      <div className="text-center p-4 bg-muted/20 rounded-lg">
+                        <p className="text-xs text-muted-foreground mb-1">Renda Fixa</p>
+                        <p className="text-sm font-bold">{formatCurrency(fixedIncomeValue)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {currentTotalValue > 0 ? ((fixedIncomeValue / currentTotalValue) * 100).toFixed(1) : 0}%
+                        </p>
+                      </div>
+                      
+                      <div className="text-center p-4 bg-muted/20 rounded-lg">
+                        <p className="text-xs text-muted-foreground mb-1">Renda Variável</p>
+                        <p className="text-sm font-bold">{formatCurrency(variableIncomeValue)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {currentTotalValue > 0 ? ((variableIncomeValue / currentTotalValue) * 100).toFixed(1) : 0}%
+                        </p>
+                      </div>
+                      
+                      <div className="text-center p-4 bg-primary/10 rounded-lg border-2 border-primary/20">
+                        <p className="text-xs text-muted-foreground mb-1">Total Investido</p>
+                        <p className="text-base font-bold">{formatCurrency(fixedIncomeValue + variableIncomeValue)}</p>
                       </div>
                     </div>
                   </div>
