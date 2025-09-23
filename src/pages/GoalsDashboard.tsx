@@ -117,18 +117,18 @@ const GoalsDashboard = () => {
               </CardHeader>
               <CardContent className="p-0">
                 {goals.length > 0 ? (
-                  <div className="overflow-x-auto">
+                  <div className="w-full">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="min-w-[200px]">Meta</TableHead>
-                          <TableHead className="min-w-[120px]">Progresso</TableHead>
-                          <TableHead className="min-w-[130px]">Valor Total</TableHead>
-                          <TableHead className="min-w-[130px]">Arrecadado</TableHead>
-                          <TableHead className="min-w-[130px]">Restante</TableHead>
-                          <TableHead className="min-w-[130px]">Meta Mensal</TableHead>
-                          <TableHead className="min-w-[130px]">Mensal Atual</TableHead>
-                          <TableHead className="min-w-[130px]">Mensal Restante</TableHead>
+                          <TableHead>Meta</TableHead>
+                          <TableHead>Progresso</TableHead>
+                          <TableHead>Valor Total</TableHead>
+                          <TableHead>Arrecadado</TableHead>
+                          <TableHead>Restante</TableHead>
+                          <TableHead>Meta Mensal</TableHead>
+                          <TableHead>Mensal Atual</TableHead>
+                          <TableHead>Mensal Restante</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
