@@ -57,7 +57,7 @@ const InvestmentDashboard = () => {
   });
   const [tempEndDate, setTempEndDate] = useState<Date>(new Date());
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
-  const [portfolioViewType, setPortfolioViewType] = useState<'individual' | 'category'>('individual');
+  const [portfolioViewType, setPortfolioViewType] = useState<'all' | 'fixed' | 'variable'>('all');
   const [sortConfig, setSortConfig] = useState<{key: string, direction: 'asc' | 'desc'}>({
     key: 'returnValue',
     direction: 'desc'
@@ -168,15 +168,17 @@ const InvestmentDashboard = () => {
   const totalReturn = totalValue - totalInvested;
   const returnPercentage = totalInvested > 0 ? (totalReturn / totalInvested) * 100 : 0;
 
+  // Filtrar investimentos por tipo de renda para o gráfico de pizza
+  const filteredInvestments = currentInvestments.filter(inv => {
+    const asset = classifyInvestmentAsset(inv.type || 'Outros');
+    if (portfolioViewType === 'fixed') return asset === 'Renda Fixa';
+    if (portfolioViewType === 'variable') return asset === 'Renda Variável';
+    return true; // 'all' - mostrar todos
+  });
+
   // Dados para o gráfico de pizza (composição da carteira) - sempre dados atuais
-  const portfolioComposition = currentInvestments.reduce((acc, inv) => {
-    let key: string;
-    
-    if (portfolioViewType === 'category') {
-      key = classifyInvestmentAsset(inv.type || 'Outros');
-    } else {
-      key = inv.type || 'Outros';
-    }
+  const portfolioComposition = filteredInvestments.reduce((acc, inv) => {
+    const key = inv.type || 'Outros';
     
     if (!acc[key]) {
       acc[key] = 0;
@@ -185,32 +187,22 @@ const InvestmentDashboard = () => {
     return acc;
   }, {} as Record<string, number>);
 
-  const currentTotalValue = currentInvestments.reduce((sum, inv) => sum + (inv.current_value || inv.amount || 0), 0);
+  const filteredTotalValue = filteredInvestments.reduce((sum, inv) => sum + (inv.current_value || inv.amount || 0), 0);
 
   const pieData = Object.entries(portfolioComposition).map(([name, value]) => ({
     name,
     value,
-    percentage: currentTotalValue > 0 ? (value / currentTotalValue) * 100 : 0
+    percentage: filteredTotalValue > 0 ? (value / filteredTotalValue) * 100 : 0
   }));
 
-  // Top 5 investimentos por retorno bruto - sempre dados atuais
-  const currentInvestmentRanking = currentInvestments.map(inv => {
-    const invested = inv.amount || 0;
-    const current = inv.current_value || invested;
-    const returnValue = current - invested;
-    
-    return {
-      id: inv.id,
-      name: inv.name || 'Investimento',
-      balance: current,
-      returnValue,
-      type: inv.type
-    };
-  }).sort((a, b) => b.returnValue - a.returnValue);
-
-  const top5Investments = currentInvestmentRanking.slice(0, 5);
-  const othersCount = currentInvestmentRanking.length - 5;
-  const othersReturn = currentInvestmentRanking.slice(5).reduce((sum, inv) => sum + inv.returnValue, 0);
+  // Calcular valores por categoria de renda
+  const fixedIncomeValue = currentInvestments
+    .filter(inv => classifyInvestmentAsset(inv.type || 'Outros') === 'Renda Fixa')
+    .reduce((sum, inv) => sum + (inv.current_value || inv.amount || 0), 0);
+  
+  const variableIncomeValue = currentInvestments
+    .filter(inv => classifyInvestmentAsset(inv.type || 'Outros') === 'Renda Variável')
+    .reduce((sum, inv) => sum + (inv.current_value || inv.amount || 0), 0);
 
   // Dados para a tabela de ranking com paginação
   const investmentRanking = investments.map(inv => {
@@ -439,39 +431,49 @@ const InvestmentDashboard = () => {
 
             {/* Seção Inferior - Gráfico de Pizza + Tabela */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-              {/* Gráfico de Pizza - Composição da Carteira */}
               <Card className="fnb-card">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-center">
                     <CardTitle className="text-sm">Composição da carteira</CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setPortfolioViewType(portfolioViewType === 'individual' ? 'category' : 'individual')}
-                      className="h-auto p-1"
-                    >
-                      {portfolioViewType === 'individual' ? (
-                        <ToggleLeft className="h-4 w-4" />
-                      ) : (
-                        <ToggleRight className="h-4 w-4" />
-                      )}
-                      <span className="ml-1 text-xs">
-                        {portfolioViewType === 'individual' ? 'Por tipo' : 'Por categoria'}
-                      </span>
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        variant={portfolioViewType === 'all' ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setPortfolioViewType('all')}
+                        className="h-auto p-1 text-xs"
+                      >
+                        Todos
+                      </Button>
+                      <Button
+                        variant={portfolioViewType === 'fixed' ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setPortfolioViewType('fixed')}
+                        className="h-auto p-1 text-xs"
+                      >
+                        Renda Fixa
+                      </Button>
+                      <Button
+                        variant={portfolioViewType === 'variable' ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => setPortfolioViewType('variable')}
+                        className="h-auto p-1 text-xs"
+                      >
+                        Renda Variável
+                      </Button>
+                    </div>
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
                   <div className="flex gap-4">
-                    {/* Gráfico de Pizza - Menor */}
-                    <div className="flex-shrink-0">
-                      <ResponsiveContainer width={160} height={160}>
+                    {/* Gráfico de Pizza - Centralizado */}
+                    <div className="flex-1 flex justify-center">
+                      <ResponsiveContainer width={200} height={200}>
                         <PieChart>
                           <Pie
                             data={pieData}
                             cx="50%"
                             cy="50%"
-                            outerRadius={60}
+                            outerRadius={80}
                             fill="#8884d8"
                             dataKey="value"
                           >
@@ -484,33 +486,24 @@ const InvestmentDashboard = () => {
                       </ResponsiveContainer>
                     </div>
                     
-                    {/* Lista Top 5 Investimentos */}
+                    {/* Detalhamento de Valores */}
                     <div className="flex-1 min-w-0">
                       <h4 className="text-xs font-medium mb-3 text-muted-foreground">
-                        Top 5 - Retorno Bruto
+                        Detalhamento por categoria
                       </h4>
-                      <div className="space-y-2">
-                        {top5Investments.map((investment, index) => (
-                          <div key={investment.id} className="flex justify-between items-center text-xs">
-                            <div className="flex items-center gap-2 min-w-0 flex-1">
-                              <span className="text-muted-foreground">#{index + 1}</span>
-                              <span className="truncate font-medium">{investment.name}</span>
-                            </div>
-                            <span className={`font-medium ${investment.returnValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {formatCurrency(investment.returnValue)}
-                            </span>
-                          </div>
-                        ))}
-                        {othersCount > 0 && (
-                          <div className="flex justify-between items-center text-xs pt-2 border-t">
-                            <div className="flex items-center gap-2">
-                              <span className="text-muted-foreground">Outros ({othersCount})</span>
-                            </div>
-                            <span className={`font-medium ${othersReturn >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                              {formatCurrency(othersReturn)}
-                            </span>
-                          </div>
-                        )}
+                      <div className="space-y-3">
+                        <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                          <span className="text-xs font-medium">Renda Fixa</span>
+                          <span className="text-xs font-bold">{formatCurrency(fixedIncomeValue)}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-muted/30 rounded">
+                          <span className="text-xs font-medium">Renda Variável</span>
+                          <span className="text-xs font-bold">{formatCurrency(variableIncomeValue)}</span>
+                        </div>
+                        <div className="flex justify-between items-center p-2 bg-primary/10 rounded border">
+                          <span className="text-xs font-medium">Total</span>
+                          <span className="text-xs font-bold">{formatCurrency(fixedIncomeValue + variableIncomeValue)}</span>
+                        </div>
                       </div>
                     </div>
                   </div>
