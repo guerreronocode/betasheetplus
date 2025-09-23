@@ -43,7 +43,7 @@ const GoalsDashboard = () => {
       <div className="bg-fnb-cream h-screen overflow-hidden">      
         {/* ScrollArea que engloba tudo */}
         <ScrollArea className="h-screen px-4">
-          <div className="space-y-6 pb-4">
+          <div className="space-y-6 pb-4 min-w-0">
             {/* Título que desaparece no scroll */}
             <div className="pt-4 pb-2">
               <h1 className="text-xl font-bold text-foreground">Dashboard de Metas</h1>
@@ -115,23 +115,24 @@ const GoalsDashboard = () => {
                   Suas Metas Financeiras
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 {goals.length > 0 ? (
-                  <div className="rounded-md border">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-[200px]">Meta</TableHead>
-                          <TableHead className="text-right">Valor Total</TableHead>
-                          <TableHead className="text-right">Arrecadado</TableHead>
-                          <TableHead className="text-right">Restante</TableHead>
-                          <TableHead className="w-[120px]">Progresso</TableHead>
-                          <TableHead className="text-center">Data Final</TableHead>
-                          <TableHead className="text-right">Meta Mensal</TableHead>
-                          <TableHead className="text-right">Este Mês</TableHead>
-                          <TableHead className="text-right">Falta</TableHead>
-                        </TableRow>
-                      </TableHeader>
+                  <div className="overflow-x-auto">
+                    <div className="min-w-[800px]">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="min-w-[180px] px-4">Meta</TableHead>
+                            <TableHead className="text-right min-w-[100px]">Valor Total</TableHead>
+                            <TableHead className="text-right min-w-[100px]">Arrecadado</TableHead>
+                            <TableHead className="text-right min-w-[90px]">Restante</TableHead>
+                            <TableHead className="min-w-[120px]">Progresso</TableHead>
+                            <TableHead className="text-center min-w-[100px]">Data Final</TableHead>
+                            <TableHead className="text-right min-w-[100px]">Meta Mensal</TableHead>
+                            <TableHead className="text-right min-w-[90px]">Este Mês</TableHead>
+                            <TableHead className="text-right min-w-[80px] pr-4">Falta</TableHead>
+                          </TableRow>
+                        </TableHeader>
                       <TableBody>
                         {goals.map((goal) => {
                           const progress = Math.min(((goal.current_amount || 0) / goal.target_amount) * 100, 100);
@@ -166,7 +167,7 @@ const GoalsDashboard = () => {
 
                           return (
                             <TableRow key={goal.id}>
-                              <TableCell className="font-medium">
+                              <TableCell className="font-medium px-4">
                                 <div className="flex items-center gap-2">
                                   <Target className="w-3 h-3 text-primary" />
                                   <span className="text-sm">{goal.title}</span>
@@ -210,7 +211,7 @@ const GoalsDashboard = () => {
                                   <span className="text-muted-foreground">-</span>
                                 )}
                               </TableCell>
-                              <TableCell className="text-right text-sm text-orange-600">
+                              <TableCell className="text-right text-sm text-orange-600 pr-4">
                                 {goal.deadline ? (
                                   formatCurrency(monthlyRemaining)
                                 ) : (
@@ -221,7 +222,8 @@ const GoalsDashboard = () => {
                           );
                         })}
                       </TableBody>
-                    </Table>
+                      </Table>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-8">
