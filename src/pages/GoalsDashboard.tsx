@@ -111,8 +111,8 @@ const GoalsDashboard = () => {
 
   return (
     <Layout>
-      <div className="bg-fnb-cream h-screen w-full max-w-full overflow-x-hidden overflow-y-auto">      
-        <div className="space-y-4 pb-4 px-4 w-full max-w-full">
+      <div className="bg-fnb-cream h-screen w-full overflow-x-hidden overflow-y-auto">      
+        <div className="space-y-4 pb-4 px-4 w-full min-w-0">
             {/* Título e descrição próximos */}
             <div className="pt-3 pb-1 w-full">
               <h1 className="text-xl font-bold text-foreground">Dashboard de Metas</h1>
@@ -175,11 +175,10 @@ const GoalsDashboard = () => {
             </div>
 
             {/* Tabela de metas com fundo branco e scroll horizontal interno */}
-            <div className="bg-white rounded-lg border shadow-sm w-full">
-              
+            <div className="bg-white rounded-lg border shadow-sm w-full min-w-0">
               {sortedGoals.length > 0 ? (
-                <div className="overflow-x-auto max-h-[calc(100vh-200px)] overflow-y-auto">
-                  <Table className="min-w-[900px] w-full">
+                <div className="w-full overflow-x-auto max-h-[calc(100vh-200px)] overflow-y-auto">
+                  <Table className="min-w-[900px]">
                     <TableHeader className="sticky top-0 bg-white z-10">
                       <TableRow>
                         <SortableHeader field="name">Meta</SortableHeader>
