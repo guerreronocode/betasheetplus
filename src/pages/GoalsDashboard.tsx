@@ -43,7 +43,7 @@ const GoalsDashboard = () => {
       <div className="bg-fnb-cream h-screen overflow-hidden">      
         {/* ScrollArea que engloba tudo */}
         <ScrollArea className="h-screen px-4">
-          <div className="space-y-6 pb-4">
+          <div className="max-w-[calc(100vw-2rem)] mx-auto space-y-6 pb-4">
             {/* Título que desaparece no scroll */}
             <div className="pt-4 pb-2">
               <h1 className="text-xl font-bold text-foreground">Dashboard de Metas</h1>
@@ -117,8 +117,9 @@ const GoalsDashboard = () => {
               </CardHeader>
               <CardContent className="p-0">
                 {goals.length > 0 ? (
-                  <div className="w-full">
-                    <Table>
+                  <div className="w-full overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <Table className="w-full min-w-[800px]">
                       <TableHeader>
                         <TableRow>
                           <TableHead>Meta</TableHead>
@@ -211,7 +212,8 @@ const GoalsDashboard = () => {
                           );
                         })}
                       </TableBody>
-                    </Table>
+                      </Table>
+                    </div>
                   </div>
                 ) : (
                   <div className="text-center py-8 px-4">
