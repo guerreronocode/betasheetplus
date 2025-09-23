@@ -111,10 +111,8 @@ const GoalsDashboard = () => {
 
   return (
     <Layout>
-      <div className="bg-fnb-cream min-h-screen w-full max-w-full overflow-x-hidden">      
-        {/* ScrollArea que engloba tudo */}
-        <ScrollArea className="h-screen w-full">
-          <div className="space-y-4 pb-4 px-4 w-full max-w-full">
+      <div className="bg-fnb-cream h-screen w-full max-w-full overflow-x-hidden overflow-y-auto">      
+        <div className="space-y-4 pb-4 px-4 w-full max-w-full">
             {/* Título e descrição próximos */}
             <div className="pt-3 pb-1 w-full">
               <h1 className="text-xl font-bold text-foreground">Dashboard de Metas</h1>
@@ -300,8 +298,7 @@ const GoalsDashboard = () => {
                 </div>
               )}
             </div>
-          </div>
-        </ScrollArea>
+        </div>
       </div>
     </Layout>
   );
