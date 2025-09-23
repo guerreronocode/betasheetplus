@@ -149,48 +149,48 @@ const GoalsDashboard = () => {
                       const { monthlyTarget, monthlyCollected, monthlyRemaining } = calculateMonthlyValues();
 
                       return (
-                        <div key={goal.id} className="p-4 border rounded-lg space-y-4">
+                        <div key={goal.id} className="p-3 border rounded-lg space-y-3">
                           {/* Nome da Meta */}
                           <div className="flex items-center gap-2">
-                            <Target className="w-4 h-4 text-primary" />
-                            <h3 className="font-semibold text-base">{goal.title}</h3>
+                            <Target className="w-3 h-3 text-primary" />
+                            <h3 className="font-medium text-sm">{goal.title}</h3>
                           </div>
 
                           {/* Valores Principais */}
-                          <div className="grid grid-cols-3 gap-4">
+                          <div className="grid grid-cols-3 gap-3">
                             <div className="text-center">
-                              <p className="text-sm text-muted-foreground">Valor Total</p>
-                              <p className="font-semibold">{formatCurrency(goal.target_amount)}</p>
+                              <p className="text-xs text-muted-foreground">Valor Total</p>
+                              <p className="font-medium text-sm">{formatCurrency(goal.target_amount)}</p>
                             </div>
                             <div className="text-center">
-                              <p className="text-sm text-muted-foreground">Valor Arrecadado</p>
-                              <p className="font-semibold text-green-600">{formatCurrency(goal.current_amount || 0)}</p>
+                              <p className="text-xs text-muted-foreground">Valor Arrecadado</p>
+                              <p className="font-medium text-sm text-green-600">{formatCurrency(goal.current_amount || 0)}</p>
                             </div>
                             <div className="text-center">
-                              <p className="text-sm text-muted-foreground">Valor Restante</p>
-                              <p className="font-semibold text-orange-600">{formatCurrency(remaining)}</p>
+                              <p className="text-xs text-muted-foreground">Valor Restante</p>
+                              <p className="font-medium text-sm text-orange-600">{formatCurrency(remaining)}</p>
                             </div>
                           </div>
 
                           {/* Barra de Progresso Simples */}
                           <div className="w-full">
-                            <Progress value={progress} className="h-2" />
+                            <Progress value={progress} className="h-1.5" />
                           </div>
 
                           {/* Valores Mensais */}
                           {goal.deadline && (
-                            <div className="grid grid-cols-3 gap-4 pt-2 border-t">
+                            <div className="grid grid-cols-3 gap-3 pt-2 border-t">
                               <div className="text-center">
-                                <p className="text-xs text-muted-foreground">Valor a arrecadar este mês</p>
-                                <p className="text-sm font-medium">{formatCurrency(monthlyTarget)}</p>
+                                <p className="text-xs text-muted-foreground">Meta mensal</p>
+                                <p className="text-xs font-medium">{formatCurrency(monthlyTarget)}</p>
                               </div>
                               <div className="text-center">
-                                <p className="text-xs text-muted-foreground">Valor arrecadado este mês</p>
-                                <p className="text-sm font-medium text-green-600">{formatCurrency(monthlyCollected)}</p>
+                                <p className="text-xs text-muted-foreground">Arrecadado este mês</p>
+                                <p className="text-xs font-medium text-green-600">{formatCurrency(monthlyCollected)}</p>
                               </div>
                               <div className="text-center">
-                                <p className="text-xs text-muted-foreground">Valor restante a arrecadar este mês</p>
-                                <p className="text-sm font-medium text-orange-600">{formatCurrency(monthlyRemaining)}</p>
+                                <p className="text-xs text-muted-foreground">Restante este mês</p>
+                                <p className="text-xs font-medium text-orange-600">{formatCurrency(monthlyRemaining)}</p>
                               </div>
                             </div>
                           )}
