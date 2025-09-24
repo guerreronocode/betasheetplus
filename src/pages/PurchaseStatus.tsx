@@ -1,15 +1,15 @@
 import React from 'react';
 import { Layout } from '@/components/Layout';
-import { CreditCardManager } from '@/components/creditCard/CreditCardManager';
+import { PurchaseStatusPanel } from '@/components/creditCard/PurchaseStatusPanel';
 
-const CreditCards = () => {
+const PurchaseStatus = () => {
   return (
     <Layout>
       <div className="p-4 w-5/6 mx-auto">
-        <CreditCardManager />
+        <PurchaseStatusPanel />
       </div>
     </Layout>
   );
 };
 
-export default CreditCards;
+export default PurchaseStatus;

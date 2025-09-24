@@ -33,45 +33,37 @@ export const useCreditCardProjections = (creditCardId?: string) => {
       const currentMonth = new Date();
       currentMonth.setDate(1); // Primeiro dia do mês atual
 
+      // Buscar todas as faturas (bills) do cartão
+      const { data: bills, error: billsError } = await supabase
+        .from('credit_card_bills')
+        .select('*')
+        .eq('credit_card_id', creditCardId)
+        .order('bill_month', { ascending: true });
+
+      if (billsError) {
+        console.error('Error fetching bills for projections:', billsError);
+        throw billsError;
+      }
+
       // Calcular projeções para os próximos 12 meses
       for (let i = 0; i < 12; i++) {
         const projectionMonth = new Date(currentMonth);
         projectionMonth.setMonth(currentMonth.getMonth() + i);
-        const projectionMonthStr = projectionMonth.toISOString().split('T')[0].substring(0, 7) + '-01';
-
-        // Buscar todas as compras do cartão
-        const { data: purchases, error: purchasesError } = await supabase
-          .from('credit_card_purchases')
-          .select('id, amount')
-          .eq('credit_card_id', creditCardId);
-
-        if (purchasesError) {
-          console.error('Error fetching purchases for projection:', purchasesError);
-          continue;
-        }
+        const projectionMonthStr = projectionMonth.toISOString().split('T')[0].substring(0, 7);
 
         let projectedCommitted = 0;
 
-        // Para cada compra, calcular quanto estará comprometido no mês projetado
-        for (const purchase of purchases) {
-          const totalPurchaseValue = Number(purchase.amount);
+        // Para cada fatura, verificar se ela impacta o mês de projeção
+        for (const bill of bills) {
+          const billMonthStr = bill.bill_month.substring(0, 7);
           
-          // Buscar parcelas que estarão pagas até o mês projetado
-          const { data: paidInstallments, error: paidError } = await supabase
-            .from('credit_card_installments')
-            .select('amount')
-            .eq('purchase_id', purchase.id)
-            .or(`is_paid.eq.true,bill_month.lt.${projectionMonthStr}`);
-
-          if (paidError) {
-            console.error('Error fetching paid installments for projection:', paidError);
-            continue;
+          // Se a fatura for do mês atual ou futura, assumir que será paga
+          if (billMonthStr >= projectionMonthStr) {
+            // Se a fatura não está paga e é deste mês ou anterior, ela impacta o limite
+            if (!bill.is_paid && billMonthStr <= projectionMonthStr) {
+              projectedCommitted += Number(bill.total_amount);
+            }
           }
-
-          const totalPaidForThisPurchase = paidInstallments.reduce((sum, inst) => sum + Number(inst.amount), 0);
-          const stillCommittedForThisPurchase = totalPurchaseValue - totalPaidForThisPurchase;
-          
-          projectedCommitted += Math.max(0, stillCommittedForThisPurchase);
         }
 
         const projectedAvailable = Math.max(0, Number(card.credit_limit) - projectedCommitted);
