@@ -13,7 +13,7 @@ export const CreditCardManager: React.FC = () => {
   const [activeTab, setActiveTab] = useState("cards");
 
   return (
-    <div className="w-4/6 mx-auto space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <CreditCard className="w-5 h-5 text-primary" />
