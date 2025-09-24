@@ -51,7 +51,7 @@ const BankAccountList: React.FC<BankAccountListProps> = ({ bankAccounts }) => {
   };
 
   return (
-    <ScrollArea className="h-[600px]">
+    <ScrollArea className="h-full">
       <div className="space-y-3 pr-2">
         {bankAccounts.map((account, index) => {
           const totalReserved = getTotalReserved(account.id);

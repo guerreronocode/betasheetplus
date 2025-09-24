@@ -78,8 +78,8 @@ const BankAccountManager = () => {
   };
 
   return (
-    <Card className="p-4 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-4">
+    <Card className="p-4 h-[600px] flex flex-col">
+      <div className="flex items-center justify-between mb-4 flex-shrink-0">
         <div className="flex items-center space-x-2">
           <div className="p-1.5 bg-blue-100 rounded-md">
             <Building2 className="w-4 h-4 text-blue-600" />
@@ -94,7 +94,7 @@ const BankAccountManager = () => {
       </div>
 
       {isAddingNew && (
-        <div className="mb-4">
+        <div className="mb-4 flex-shrink-0">
           <BankAccountForm
             form={newAccount}
             onChange={setNewAccount}
@@ -105,7 +105,7 @@ const BankAccountManager = () => {
         </div>
       )}
 
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 overflow-hidden">
         <BankAccountList bankAccounts={bankAccounts} />
       </div>
     </Card>
