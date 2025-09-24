@@ -487,10 +487,6 @@ const InvestmentDashboard = () => {
                               outerRadius={45}
                               fill="#8884d8"
                               dataKey="value"
-                              label={({ name, percentage }) => 
-                                percentage > 8 ? `${name}: ${percentage.toFixed(1)}%` : ''
-                              }
-                              labelLine={false}
                             >
                               {finalPieData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
