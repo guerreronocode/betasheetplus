@@ -29,14 +29,24 @@ const VaultsList: React.FC<VaultsListProps> = ({
   return (
     <div className="space-y-2">
       {vaults.map((vault) => (
-        <Card key={vault.id} className="p-2 border-l-4" style={{ borderLeftColor: vault.color }}>
+        <Card key={vault.id} className="p-3 border border-gray-300 bg-white shadow-sm" style={{ borderLeftColor: vault.color, borderLeftWidth: '4px' }}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-3">
+              <div 
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: vault.color }}
+              />
               <div>
-                <h4 className="text-sm font-medium">{vault.name}</h4>
+                <h4 className="text-sm font-medium text-gray-800">{vault.name}</h4>
                 {vault.description && (
-                  <p className="text-xs text-muted-foreground">{vault.description}</p>
+                  <p className="text-xs text-gray-600">{vault.description}</p>
                 )}
+                <p className="text-sm font-semibold text-green-600 mt-1">
+                  {vault.reserved_amount.toLocaleString('pt-BR', { 
+                    style: 'currency', 
+                    currency: 'BRL' 
+                  })}
+                </p>
               </div>
             </div>
             
@@ -45,7 +55,7 @@ const VaultsList: React.FC<VaultsListProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onEdit(vault)}
-                className="h-6 w-6 p-0"
+                className="h-7 w-7 p-0"
               >
                 <Edit2 className="w-3 h-3" />
               </Button>
@@ -55,7 +65,7 @@ const VaultsList: React.FC<VaultsListProps> = ({
                 size="sm"
                 onClick={() => onDelete(vault)}
                 disabled={isDeleting}
-                className="h-6 w-6 p-0"
+                className="h-7 w-7 p-0"
               >
                 <Trash2 className="w-3 h-3" />
               </Button>
