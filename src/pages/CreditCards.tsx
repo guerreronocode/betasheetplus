@@ -1,11 +1,14 @@
 import React from 'react';
+import { Layout } from '@/components/Layout';
 import { CreditCardManager } from '@/components/creditCard/CreditCardManager';
 
 const CreditCards = () => {
   return (
-    <div className="container mx-auto p-6">
-      <CreditCardManager />
-    </div>
+    <Layout>
+      <div className="p-4 max-w-7xl mx-auto">
+        <CreditCardManager />
+      </div>
+    </Layout>
   );
 };
 
