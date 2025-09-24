@@ -72,12 +72,12 @@ const InvestmentDashboard = () => {
 
   // Função para classificar investimentos por renda fixa/variável
   const classifyInvestmentAsset = (type: string) => {
-    const fixedIncomeTypes = ['bonds', 'savings', 'cdb', 'tesouro_direto', 'lci', 'lca', 'debentures'];
-    const variableIncomeTypes = ['stocks', 'crypto', 'funds', 'real_estate', 'fiis'];
+    const fixedIncomeTypes = ['bonds', 'savings', 'cdb', 'tesouro_direto', 'lci', 'lca', 'debentures', 'treasury'];
+    const variableIncomeTypes = ['stocks', 'crypto', 'funds', 'real_estate', 'fiis', 'bitcoin', 'ethereum', 'acoes'];
     
-    if (fixedIncomeTypes.includes(type)) return 'Renda Fixa';
-    if (variableIncomeTypes.includes(type)) return 'Renda Variável';
-    return 'Outros';
+    if (fixedIncomeTypes.includes(type.toLowerCase())) return 'fixed';
+    if (variableIncomeTypes.includes(type.toLowerCase())) return 'variable';
+    return 'outros';
   };
 
   // Função para determinar a granularidade do gráfico baseada no período
@@ -173,9 +173,9 @@ const InvestmentDashboard = () => {
 
   // Filtrar investimentos por tipo de renda para o gráfico de pizza
   const filteredInvestments = currentInvestments.filter(inv => {
-    const asset = classifyInvestmentAsset(inv.type || 'Outros');
-    if (portfolioViewType === 'fixed') return asset === 'Renda Fixa';
-    if (portfolioViewType === 'variable') return asset === 'Renda Variável';
+    const asset = classifyInvestmentAsset(inv.type || '');
+    if (portfolioViewType === 'fixed') return asset === 'fixed';
+    if (portfolioViewType === 'variable') return asset === 'variable';
     return true; // 'all' - mostrar todos
   });
 
@@ -206,12 +206,12 @@ const InvestmentDashboard = () => {
   
   const fixedIncomeValue = portfolioViewType === 'variable' ? 0 : 
     currentInvestments
-      .filter(inv => classifyInvestmentAsset(inv.type || 'Outros') === 'Renda Fixa')
+      .filter(inv => classifyInvestmentAsset(inv.type || '') === 'fixed')
       .reduce((sum, inv) => sum + (inv.current_value || inv.amount || 0), 0);
   
   const variableIncomeValue = portfolioViewType === 'fixed' ? 0 :
     currentInvestments
-      .filter(inv => classifyInvestmentAsset(inv.type || 'Outros') === 'Renda Variável')
+      .filter(inv => classifyInvestmentAsset(inv.type || '') === 'variable')
       .reduce((sum, inv) => sum + (inv.current_value || inv.amount || 0), 0);
 
   // Dados para a tabela de ranking com paginação
@@ -478,17 +478,17 @@ const InvestmentDashboard = () => {
                     {/* Gráfico de Pizza */}
                     <div className="lg:col-span-2">
                       {finalPieData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={220}>
+                        <ResponsiveContainer width="100%" height={150}>
                           <PieChart>
                             <Pie
                               data={finalPieData}
                               cx="50%"
                               cy="50%"
-                              outerRadius={70}
+                              outerRadius={45}
                               fill="#8884d8"
                               dataKey="value"
                               label={({ name, percentage }) => 
-                                percentage > 5 ? `${name}: ${percentage.toFixed(1)}%` : ''
+                                percentage > 8 ? `${name}: ${percentage.toFixed(1)}%` : ''
                               }
                               labelLine={false}
                             >
@@ -504,7 +504,7 @@ const InvestmentDashboard = () => {
                           </PieChart>
                         </ResponsiveContainer>
                       ) : (
-                        <div className="flex items-center justify-center h-[220px] text-muted-foreground">
+                        <div className="flex items-center justify-center h-[150px] text-muted-foreground">
                           <p className="text-sm">
                             {portfolioViewType === 'fixed' && 'Nenhum investimento de renda fixa encontrado'}
                             {portfolioViewType === 'variable' && 'Nenhum investimento de renda variável encontrado'}
