@@ -77,23 +77,30 @@ const BankAccountList: React.FC<BankAccountListProps> = ({ bankAccounts }) => {
                   
                   <div className="flex items-center space-x-3">
                     <div className="text-right">
-                      <div className="flex items-center space-x-1 mb-0.5">
-                        <p className="text-xs text-gray-600">Saldo Total</p>
+                      <div className="space-y-0.5">
+                        <div className="flex items-center justify-end space-x-1">
+                          <span className="text-xs text-gray-600">Saldo total:</span>
+                          <span className={`font-bold text-sm ${account.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            {account.balance.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                          </span>
+                        </div>
                         {totalReserved > 0 && (
-                          <div className="flex items-center space-x-1">
-                            <Vault className="w-2.5 h-2.5 text-green-600" />
-                            <span className="text-xs text-green-600">{totalReserved.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
-                          </div>
+                          <>
+                            <div className="flex items-center justify-end space-x-1">
+                              <span className="text-xs text-gray-600">Reservado:</span>
+                              <span className="text-xs text-amber-600">
+                                {totalReserved.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                              </span>
+                            </div>
+                            <div className="flex items-center justify-end space-x-1">
+                              <span className="text-xs text-gray-600">Disponível:</span>
+                              <span className="text-xs text-blue-600">
+                                {availableAmount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                              </span>
+                            </div>
+                          </>
                         )}
                       </div>
-                      <p className={`font-semibold text-sm ${account.balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {account.balance.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                      </p>
-                      {totalReserved > 0 && (
-                        <p className="text-xs text-gray-500">
-                          Disponível: {availableAmount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                        </p>
-                      )}
                     </div>
                     
                     <Button
