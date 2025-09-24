@@ -29,19 +29,19 @@ const VaultsList: React.FC<VaultsListProps> = ({
   return (
     <div className="space-y-2">
       {vaults.map((vault) => (
-        <Card key={vault.id} className="p-3 border border-gray-300 bg-white shadow-sm" style={{ borderLeftColor: vault.color, borderLeftWidth: '4px' }}>
+        <Card key={vault.id} className="p-2 border border-gray-200 bg-white/80 shadow-none" style={{ borderLeftColor: vault.color, borderLeftWidth: '3px' }}>
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
               <div 
-                className="w-3 h-3 rounded-full"
+                className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: vault.color }}
               />
               <div>
-                <h4 className="text-sm font-medium text-gray-800">{vault.name}</h4>
+                <h4 className="text-xs font-medium text-gray-800">{vault.name}</h4>
                 {vault.description && (
-                  <p className="text-xs text-gray-600">{vault.description}</p>
+                  <p className="text-xs text-gray-600 truncate max-w-32">{vault.description}</p>
                 )}
-                <p className="text-sm font-semibold text-green-600 mt-1">
+                <p className="text-xs font-semibold text-green-600 mt-0.5">
                   {vault.reserved_amount.toLocaleString('pt-BR', { 
                     style: 'currency', 
                     currency: 'BRL' 
@@ -55,9 +55,9 @@ const VaultsList: React.FC<VaultsListProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => onEdit(vault)}
-                className="h-7 w-7 p-0"
+                className="h-6 w-6 p-0"
               >
-                <Edit2 className="w-3 h-3" />
+                <Edit2 className="w-2.5 h-2.5" />
               </Button>
               
               <Button
@@ -65,9 +65,9 @@ const VaultsList: React.FC<VaultsListProps> = ({
                 size="sm"
                 onClick={() => onDelete(vault)}
                 disabled={isDeleting}
-                className="h-7 w-7 p-0"
+                className="h-6 w-6 p-0"
               >
-                <Trash2 className="w-3 h-3" />
+                <Trash2 className="w-2.5 h-2.5" />
               </Button>
             </div>
           </div>

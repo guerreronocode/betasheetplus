@@ -73,11 +73,11 @@ const VaultsManager: React.FC<VaultsManagerProps> = ({
   }
 
   return (
-    <Card className="p-4 mt-3 bg-gray-50/50 border border-gray-200">
-      <div className="flex items-center justify-between mb-3">
+    <Card className="p-3 bg-gray-50/30 border border-gray-100">
+      <div className="flex items-center justify-between mb-2">
         <div className="flex items-center space-x-2">
           <div>
-            <h3 className="text-sm font-medium text-gray-700">Cofres - {bankAccountName}</h3>
+            <h3 className="text-xs font-medium text-gray-700">Cofres - {bankAccountName}</h3>
           </div>
         </div>
         
