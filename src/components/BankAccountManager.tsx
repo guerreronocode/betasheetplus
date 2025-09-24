@@ -78,34 +78,37 @@ const BankAccountManager = () => {
   };
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <Building2 className="w-6 h-6 text-blue-600" />
+    <Card className="p-4 h-full flex flex-col">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-2">
+          <div className="p-1.5 bg-blue-100 rounded-md">
+            <Building2 className="w-4 h-4 text-blue-600" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">Contas Bancárias</h3>
-            <p className="text-sm text-gray-600">Gerencie suas contas e saldos</p>
+            <h3 className="text-base font-semibold text-gray-900">Contas Bancárias</h3>
+            <p className="text-xs text-gray-600">Gerencie suas contas e saldos</p>
           </div>
         </div>
-        <Button onClick={() => setIsAddingNew(!isAddingNew)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Conta
+        <Button size="sm" onClick={() => setIsAddingNew(!isAddingNew)}>
+          <Plus className="w-4 h-4" />
         </Button>
       </div>
 
       {isAddingNew && (
-        <BankAccountForm
-          form={newAccount}
-          onChange={setNewAccount}
-          onSubmit={handleSubmit}
-          isSaving={isAddingBankAccount}
-          onCancel={() => setIsAddingNew(false)}
-        />
+        <div className="mb-4">
+          <BankAccountForm
+            form={newAccount}
+            onChange={setNewAccount}
+            onSubmit={handleSubmit}
+            isSaving={isAddingBankAccount}
+            onCancel={() => setIsAddingNew(false)}
+          />
+        </div>
       )}
 
-      <BankAccountList bankAccounts={bankAccounts} />
+      <div className="flex-1 min-h-0">
+        <BankAccountList bankAccounts={bankAccounts} />
+      </div>
     </Card>
   );
 };
