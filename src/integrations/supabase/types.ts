@@ -959,6 +959,7 @@ export type Database = {
           created_at: string
           current_value: number | null
           id: string
+          investment_type: number | null
           last_yield_update: string | null
           liquidity: string | null
           maturity_date: string | null
@@ -976,6 +977,7 @@ export type Database = {
           created_at?: string
           current_value?: number | null
           id?: string
+          investment_type?: number | null
           last_yield_update?: string | null
           liquidity?: string | null
           maturity_date?: string | null
@@ -993,6 +995,7 @@ export type Database = {
           created_at?: string
           current_value?: number | null
           id?: string
+          investment_type?: number | null
           last_yield_update?: string | null
           liquidity?: string | null
           maturity_date?: string | null

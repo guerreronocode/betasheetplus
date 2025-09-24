@@ -477,17 +477,18 @@ const InvestmentDashboard = () => {
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Gráfico de Pizza */}
                     <div className="lg:col-span-2">
-                      {finalPieData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={150}>
-                          <PieChart>
-                            <Pie
-                              data={finalPieData}
-                              cx="50%"
-                              cy="50%"
-                              outerRadius={45}
-                              fill="#8884d8"
-                              dataKey="value"
-                            >
+                       {finalPieData.length > 0 ? (
+                         <div className="max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg mx-auto">
+                           <ResponsiveContainer width="100%" height={300}>
+                             <PieChart>
+                               <Pie
+                                 data={finalPieData}
+                                 cx="50%"
+                                 cy="50%"
+                                 outerRadius={100}
+                                 fill="#8884d8"
+                                 dataKey="value"
+                               >
                               {finalPieData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                               ))}
@@ -517,9 +518,10 @@ const InvestmentDashboard = () => {
                               wrapperStyle={{ fontSize: '10px' }}
                               iconType="circle"
                             />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      ) : (
+                           </PieChart>
+                         </ResponsiveContainer>
+                       </div>
+                       ) : (
                         <div className="flex items-center justify-center h-[150px] text-muted-foreground">
                           <p className="text-sm">
                             {portfolioViewType === 'fixed' && 'Nenhum investimento de renda fixa encontrado'}
