@@ -50,7 +50,7 @@ const dashboardItems = [
 ]
 
 const controleItems = [
-  { title: "Contas", icon: Banknote, path: "/" },
+  { title: "Contas", icon: Banknote, path: "/bank-accounts" },
   { title: "Cartões", icon: CreditCard, path: "/" },
   { title: "Lançamentos", icon: Plus, path: "/" },
 ]

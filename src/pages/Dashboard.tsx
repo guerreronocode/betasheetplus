@@ -5,7 +5,6 @@ import UpdatedQuickStats from '@/components/UpdatedQuickStats';
 import QuickFinancialCards from '@/components/QuickFinancialCards';
 import TransactionsList from '@/components/TransactionsList';
 import AdvancedInvestmentManager from '@/components/AdvancedInvestmentManager';
-import BankAccountManager from '@/components/BankAccountManager';
 import UnifiedTransactionForm from '@/components/UnifiedTransactionForm';
 import ImprovedYieldRatesDisplay from '@/components/ImprovedYieldRatesDisplay';
 import ImprovedPatrimonyManager from '@/components/ImprovedPatrimonyManager';
@@ -34,7 +33,6 @@ const Dashboard = () => {
         <Tabs defaultValue="planning" className="w-full">
           <TabsList className="flex flex-wrap gap-1 h-auto p-1 fnb-card">
             <TabsTrigger value="planning" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Planejamento</TabsTrigger>
-            <TabsTrigger value="accounts" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Contas</TabsTrigger>
             <TabsTrigger value="transactions" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Transações</TabsTrigger>
             <TabsTrigger value="investments" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Investimentos</TabsTrigger>
             <TabsTrigger value="goals" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Metas</TabsTrigger>
@@ -53,10 +51,6 @@ const Dashboard = () => {
               
               <RefactoredPlanningPanel />
             </div>
-          </TabsContent>
-
-          <TabsContent value="accounts">
-            <BankAccountManager />
           </TabsContent>
 
           <TabsContent value="transactions">
