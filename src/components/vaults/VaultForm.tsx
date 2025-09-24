@@ -72,37 +72,38 @@ const VaultForm: React.FC<VaultFormProps> = ({
   };
 
   return (
-    <Card className="p-4 mb-4 border-l-4" style={{ borderLeftColor: form.color }}>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex items-center justify-between mb-4">
-          <h4 className="font-medium">
+    <Card className="p-3 mb-3 border-l-4" style={{ borderLeftColor: form.color }}>
+      <form onSubmit={handleSubmit} className="space-y-3">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-medium">
             {initialData ? 'Editar Cofre' : 'Novo Cofre'}
           </h4>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs text-muted-foreground">
             Disponível: {availableAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           </div>
         </div>
 
         {error && (
-          <div className="text-sm text-red-600 bg-red-50 p-2 rounded">
+          <div className="text-xs text-red-600 bg-red-50 p-2 rounded">
             {error}
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="name">Nome do Cofre</Label>
+            <Label htmlFor="name" className="text-xs">Nome do Cofre</Label>
             <Input
               id="name"
               value={form.name}
               onChange={(e) => setForm(prev => ({ ...prev, name: e.target.value }))}
               placeholder="Ex: Viagem, Emergência..."
               required
+              className="h-8 text-sm"
             />
           </div>
 
           <div>
-            <Label htmlFor="amount">Valor Reservado</Label>
+            <Label htmlFor="amount" className="text-xs">Valor Reservado</Label>
             <CurrencyInput
               value={form.reserved_amount}
               onChange={(e) => setForm(prev => ({ ...prev, reserved_amount: e.target.value }))}
@@ -113,32 +114,33 @@ const VaultForm: React.FC<VaultFormProps> = ({
         </div>
 
         <div>
-          <Label htmlFor="description">Descrição (opcional)</Label>
+          <Label htmlFor="description" className="text-xs">Descrição (opcional)</Label>
           <Textarea
             id="description"
             value={form.description}
             onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
             placeholder="Para que é esse cofre?"
             rows={2}
+            className="text-sm"
           />
         </div>
 
         <div>
-          <Label htmlFor="color">Cor</Label>
+          <Label htmlFor="color" className="text-xs">Cor</Label>
           <Input
             id="color"
             type="color"
             value={form.color}
             onChange={(e) => setForm(prev => ({ ...prev, color: e.target.value }))}
-            className="w-20 h-10"
+            className="w-16 h-8"
           />
         </div>
 
         <div className="flex gap-2 pt-2">
-          <Button type="submit" disabled={isSaving} className="flex-1">
-            {isSaving ? 'Salvando...' : initialData ? 'Atualizar' : 'Criar Cofre'}
+          <Button type="submit" disabled={isSaving} className="flex-1 h-8 text-xs">
+            {isSaving ? 'Salvando...' : initialData ? 'Atualizar' : 'Criar'}
           </Button>
-          <Button type="button" variant="outline" onClick={onCancel}>
+          <Button type="button" variant="outline" onClick={onCancel} className="h-8 text-xs">
             Cancelar
           </Button>
         </div>

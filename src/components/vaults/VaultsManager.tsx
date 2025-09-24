@@ -66,15 +66,15 @@ const VaultsManager: React.FC<VaultsManagerProps> = ({
   }
 
   return (
-    <Card className="p-6 mt-4">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 bg-green-100 rounded-lg">
-            <Vault className="w-6 h-6 text-green-600" />
+    <Card className="p-3 mt-2">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center space-x-2">
+          <div className="p-1 bg-green-100 rounded-md">
+            <Vault className="w-3 h-3 text-green-600" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold">Cofres - {bankAccountName}</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="text-sm font-medium">Cofres - {bankAccountName}</h3>
+            <p className="text-xs text-muted-foreground">
               Disponível: {availableAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} • 
               Reservado: {totalReserved.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
             </p>
@@ -82,11 +82,13 @@ const VaultsManager: React.FC<VaultsManagerProps> = ({
         </div>
         
         <Button 
+          size="sm"
           onClick={() => setIsAddingNew(!isAddingNew)} 
           disabled={availableAmount <= 0}
+          className="h-6 px-2"
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Cofre
+          <Plus className="w-3 h-3 mr-1" />
+          <span className="text-xs">Novo</span>
         </Button>
       </div>
 

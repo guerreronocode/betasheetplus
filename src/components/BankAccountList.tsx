@@ -107,9 +107,8 @@ const BankAccountList: React.FC<BankAccountListProps> = ({ bankAccounts }) => {
                       variant="outline"
                       size="sm"
                       onClick={() => toggleAccountExpansion(account.id)}
-                      className="h-7 px-2"
+                      className="h-6 px-2"
                     >
-                      <Vault className="w-3 h-3 mr-1" />
                       <span className="text-xs">Cofres</span>
                       {isExpanded ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDown className="w-3 h-3 ml-1" />}
                     </Button>
