@@ -6,29 +6,39 @@ import { EnhancedCreditCardList } from './EnhancedCreditCardList';
 import { PurchaseStatusPanel } from './PurchaseStatusPanel';
 import { CreditCardSelector } from './CreditCardSelector';
 import { CreditCardFormModal } from './CreditCardFormModal';
-import { Plus, CreditCard } from 'lucide-react';
+import { Plus, CreditCard, ShoppingCart } from 'lucide-react';
 
 export const CreditCardManager: React.FC = () => {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("cards");
 
   return (
-    <div className="space-y-4">
+    <div className="w-4/6 mx-auto space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <CreditCard className="w-5 h-5 text-primary" />
           <h1 className="text-xl font-bold">Cartões de Crédito</h1>
         </div>
-        <Button
-          onClick={() => setIsFormModalOpen(true)}
-          size="sm"
-          className="h-8 px-3"
-        >
-          <Plus className="w-4 h-4 mr-1" />
-          Novo Cartão
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setActiveTab("status")}
+            variant="outline"
+            size="sm"
+            className="h-8 w-8 p-0"
+          >
+            <ShoppingCart className="w-4 h-4" />
+          </Button>
+          <Button
+            onClick={() => setIsFormModalOpen(true)}
+            size="sm"
+            className="h-8 w-8 p-0"
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
-      <Tabs defaultValue="cards" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 h-8">
           <TabsTrigger value="cards" className="text-xs">Cartões</TabsTrigger>
           <TabsTrigger value="status" className="text-xs">Status das Compras</TabsTrigger>

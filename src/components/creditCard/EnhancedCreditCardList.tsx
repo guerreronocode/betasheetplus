@@ -4,10 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { CreditCard, Trash2, Edit, ChevronDown, ChevronUp, TrendingDown, TrendingUp, Info } from 'lucide-react';
+import { CreditCard, Trash2, Edit, Receipt, TrendingUp, FileText, BarChart3, TrendingDown } from 'lucide-react';
 import { useCreditCards } from '@/hooks/useCreditCards';
+import { useCreditCardBillsByCard } from '@/hooks/useCreditCardBillsByCard';
 import { formatCurrency } from '@/utils/formatters';
 import { EditCreditCardDialog } from './EditCreditCardDialog';
+import { CreditLimitProjectionCard } from './CreditLimitProjectionCard';
+import { CreditCardBillsView } from './CreditCardBillsView';
 import { CreditCard as CreditCardType } from '@/types/creditCard';
 
 export const EnhancedCreditCardList: React.FC = () => {
@@ -15,20 +18,27 @@ export const EnhancedCreditCardList: React.FC = () => {
   const [selectedCard, setSelectedCard] = useState<CreditCardType | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
+  const [cardViewType, setCardViewType] = useState<{[key: string]: 'bills' | 'projection'}>({});
 
   const handleEditCard = (card: CreditCardType) => {
     setSelectedCard(card);
     setIsEditDialogOpen(true);
   };
 
-  const toggleCardExpansion = (cardId: string) => {
+  const toggleCardExpansion = (cardId: string, viewType: 'bills' | 'projection') => {
     const newExpanded = new Set(expandedCards);
-    if (newExpanded.has(cardId)) {
+    const newViewType = { ...cardViewType };
+    
+    if (newExpanded.has(cardId) && cardViewType[cardId] === viewType) {
       newExpanded.delete(cardId);
+      delete newViewType[cardId];
     } else {
       newExpanded.add(cardId);
+      newViewType[cardId] = viewType;
     }
+    
     setExpandedCards(newExpanded);
+    setCardViewType(newViewType);
   };
 
   if (isLoading) {
@@ -185,59 +195,40 @@ export const EnhancedCreditCardList: React.FC = () => {
                   )}
                 </div>
                 
-                <Collapsible open={isExpanded} onOpenChange={() => toggleCardExpansion(card.id)}>
-                  <CollapsibleTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 px-2">
-                      <span className="text-xs mr-1">Ver detalhes</span>
-                      {isExpanded ? (
-                        <ChevronUp className="h-3 w-3" />
-                      ) : (
-                        <ChevronDown className="h-3 w-3" />
-                      )}
-                    </Button>
-                  </CollapsibleTrigger>
-                  
-                  <CollapsibleContent className="mt-3">
-                    <div className="border-t pt-3 space-y-2">
-                      <div className="p-2 bg-blue-50 rounded-lg">
-                        <div className="flex items-start gap-2">
-                          <Info className="h-3 w-3 text-blue-600 mt-0.5" />
-                          <div className="text-xs text-blue-800">
-                            <p className="font-medium mb-1">Integração com Patrimônio</p>
-                            <p className="text-xs">
-                              {card.include_in_patrimony 
-                                ? "As dívidas das compras neste cartão são automaticamente incluídas como passivos no seu patrimônio."
-                                : "Este cartão não afeta o cálculo do seu patrimônio líquido."
-                              }
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {cardBalance && (
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div className="p-2 border rounded">
-                            <p className="text-muted-foreground">Limite Total</p>
-                            <p className="font-semibold text-sm">{formatCurrency(cardBalance.credit_limit)}</p>
-                          </div>
-                          <div className="p-2 border rounded">
-                            <p className="text-muted-foreground">Comprometido</p>
-                            <p className="font-semibold text-sm text-orange-600">{formatCurrency(cardBalance.total_committed)}</p>
-                          </div>
-                          <div className="p-2 border rounded">
-                            <p className="text-muted-foreground">Disponível</p>
-                            <p className="font-semibold text-sm text-green-600">{formatCurrency(cardBalance.available_limit)}</p>
-                          </div>
-                          <div className="p-2 border rounded">
-                            <p className="text-muted-foreground">Uso do Limite</p>
-                            <p className="font-semibold text-sm">{cardUsagePercentage.toFixed(1)}%</p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
+                <div className="flex gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 px-2"
+                    onClick={() => toggleCardExpansion(card.id, 'bills')}
+                  >
+                    <Receipt className="h-3 w-3 mr-1" />
+                    <span className="text-xs">Ver faturas</span>
+                  </Button>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 px-2"
+                    onClick={() => toggleCardExpansion(card.id, 'projection')}
+                  >
+                    <BarChart3 className="h-3 w-3 mr-1" />
+                    <span className="text-xs">Projeção</span>
+                  </Button>
+                </div>
               </div>
+              
+              <Collapsible open={isExpanded}>
+                <CollapsibleContent className="mt-3">
+                  <div className="border-t pt-3">
+                    {cardViewType[card.id] === 'bills' && (
+                      <CreditCardBillsView creditCardId={card.id} />
+                    )}
+                    {cardViewType[card.id] === 'projection' && (
+                      <CreditLimitProjectionCard creditCardId={card.id} />
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
             </Card>
           );
         })}
