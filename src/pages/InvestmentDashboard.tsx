@@ -479,13 +479,13 @@ const InvestmentDashboard = () => {
                     {/* Gráfico de Pizza */}
                     <div className="lg:col-span-2">
                       {finalPieData.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={280}>
+                        <ResponsiveContainer width="100%" height={220}>
                           <PieChart>
                             <Pie
                               data={finalPieData}
                               cx="50%"
                               cy="50%"
-                              outerRadius={100}
+                              outerRadius={70}
                               fill="#8884d8"
                               dataKey="value"
                               label={({ name, percentage }) => 
@@ -505,7 +505,7 @@ const InvestmentDashboard = () => {
                           </PieChart>
                         </ResponsiveContainer>
                       ) : (
-                        <div className="flex items-center justify-center h-[280px] text-muted-foreground">
+                        <div className="flex items-center justify-center h-[220px] text-muted-foreground">
                           <p>Sem dados para exibir</p>
                         </div>
                       )}
