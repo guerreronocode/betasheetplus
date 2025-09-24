@@ -493,10 +493,30 @@ const InvestmentDashboard = () => {
                               ))}
                             </Pie>
                             <Tooltip 
-                              formatter={(value) => formatCurrency(Number(value))}
-                              labelFormatter={(label) => `${label}`}
+                              content={({ active, payload }) => {
+                                if (active && payload && payload.length > 0) {
+                                  const data = payload[0].payload;
+                                  return (
+                                    <div style={{ 
+                                      fontSize: '11px',
+                                      padding: '6px 8px',
+                                      backgroundColor: 'hsl(var(--background))',
+                                      border: '1px solid hsl(var(--border))',
+                                      borderRadius: '6px'
+                                    }}>
+                                      <p style={{ margin: 0, fontWeight: 'bold' }}>{data.name}</p>
+                                      <p style={{ margin: 0 }}>Valor: R$ {data.value.toFixed(2)}</p>
+                                      <p style={{ margin: 0 }}>Participação: {data.percentage.toFixed(1)}%</p>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              }}
                             />
-                            <Legend />
+                            <Legend 
+                              wrapperStyle={{ fontSize: '10px' }}
+                              iconType="circle"
+                            />
                           </PieChart>
                         </ResponsiveContainer>
                       ) : (
