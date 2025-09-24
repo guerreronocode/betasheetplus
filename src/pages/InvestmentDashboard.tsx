@@ -67,8 +67,8 @@ const InvestmentDashboard = () => {
 
   const { investments, investmentsLoading } = useInvestments(appliedStartDate, appliedEndDate);
   
-  // Hook separado para dados atuais do portfólio (sempre mês atual)
-  const { investments: currentInvestments } = useInvestments(new Date(), new Date());
+  // Hook separado para dados atuais do portfólio (sem filtro de data)
+  const { investments: currentInvestments } = useInvestments();
 
   // Função para classificar investimentos por renda fixa/variável
   const classifyInvestmentAsset = (type: string) => {
