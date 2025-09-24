@@ -11,7 +11,6 @@ import ImprovedPatrimonyManager from '@/components/ImprovedPatrimonyManager';
 import TransferBetweenAccounts from '@/components/TransferBetweenAccounts';
 import RecurringTransactions from '@/components/RecurringTransactions';
 import DebtManager from "@/components/debts/DebtManager";
-import { CreditCardManager } from '@/components/creditCard/CreditCardManager';
 import CategoryRanking from '@/components/CategoryRanking';
 import { RefactoredPlanningPanel } from '@/components/budget/RefactoredPlanningPanel';
 import { GoalsManager } from '@/components/goals/GoalsManager';
@@ -37,7 +36,6 @@ const Dashboard = () => {
             <TabsTrigger value="investments" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Investimentos</TabsTrigger>
             <TabsTrigger value="goals" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Metas</TabsTrigger>
             <TabsTrigger value="patrimony" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Patrimônio</TabsTrigger>
-            <TabsTrigger value="credit-cards" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Cartões</TabsTrigger>
             <TabsTrigger value="debts" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Dívidas</TabsTrigger>
           </TabsList>
 
@@ -100,10 +98,6 @@ const Dashboard = () => {
 
           <TabsContent value="patrimony">
             <ImprovedPatrimonyManager />
-          </TabsContent>
-
-          <TabsContent value="credit-cards">
-            <CreditCardManager />
           </TabsContent>
 
           <TabsContent value="debts">

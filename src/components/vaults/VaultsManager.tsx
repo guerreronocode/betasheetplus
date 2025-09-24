@@ -76,15 +76,8 @@ const VaultsManager: React.FC<VaultsManagerProps> = ({
     <Card className="p-3 mt-2">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2">
-          <div className="p-1 bg-green-100 rounded-md">
-            <Vault className="w-3 h-3 text-green-600" />
-          </div>
           <div>
             <h3 className="text-sm font-medium">Cofres - {bankAccountName}</h3>
-            <p className="text-xs text-muted-foreground">
-              Disponível: {availableAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} • 
-              Reservado: {totalReserved.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-            </p>
           </div>
         </div>
         
