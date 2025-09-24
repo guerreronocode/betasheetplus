@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { useBankAccountVaults, BankAccountVault } from '@/hooks/useBankAccountVaults';
 import VaultForm from './VaultForm';
 import VaultsList from './VaultsList';
+import VaultDeleteDialog from './VaultDeleteDialog';
 
 interface VaultsManagerProps {
   bankAccountId: string;
@@ -31,6 +32,7 @@ const VaultsManager: React.FC<VaultsManagerProps> = ({
 
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editingVault, setEditingVault] = useState<BankAccountVault | null>(null);
+  const [deletingVault, setDeletingVault] = useState<BankAccountVault | null>(null);
 
   const totalReserved = getTotalReserved(bankAccountId);
   const availableAmount = bankAccountBalance - totalReserved;
@@ -50,9 +52,14 @@ const VaultsManager: React.FC<VaultsManagerProps> = ({
     setIsAddingNew(false);
   };
 
-  const handleDeleteVault = (id: string) => {
-    if (confirm('Tem certeza que deseja excluir este cofre?')) {
-      deleteVault(id);
+  const handleDeleteVault = (vault: BankAccountVault) => {
+    setDeletingVault(vault);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deletingVault) {
+      deleteVault(deletingVault.id);
+      setDeletingVault(null);
     }
   };
 
@@ -119,6 +126,14 @@ const VaultsManager: React.FC<VaultsManagerProps> = ({
         vaults={vaults}
         onEdit={handleEditVault}
         onDelete={handleDeleteVault}
+        isDeleting={isDeletingVault}
+      />
+
+      <VaultDeleteDialog
+        open={!!deletingVault}
+        onOpenChange={(open) => !open && setDeletingVault(null)}
+        vault={deletingVault}
+        onConfirm={handleConfirmDelete}
         isDeleting={isDeletingVault}
       />
     </Card>
