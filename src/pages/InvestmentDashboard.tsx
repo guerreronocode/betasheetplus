@@ -198,22 +198,21 @@ const InvestmentDashboard = () => {
     percentage: currentTotalValue > 0 ? (value / currentTotalValue) * 100 : 0
   })).filter(item => item.value > 0); // Filtrar itens com valor zero
   
-  // Se não há dados reais, criar dados de exemplo
-  const finalPieData = pieData.length > 0 ? pieData : [
-    { name: 'Tesouro Direto', value: 15000, percentage: 40 },
-    { name: 'CDB', value: 10000, percentage: 26.7 },
-    { name: 'Ações', value: 8000, percentage: 21.3 },
-    { name: 'Fundos', value: 4500, percentage: 12 }
-  ];
+  // Dados finais para o gráfico - usando dados filtrados apenas
+  const finalPieData = pieData;
 
-  // Calcular valores por categoria de renda
-  const fixedIncomeValue = currentInvestments
-    .filter(inv => classifyInvestmentAsset(inv.type || 'Outros') === 'Renda Fixa')
-    .reduce((sum, inv) => sum + (inv.current_value || inv.amount || 0), 0);
+  // Calcular valores baseado no filtro ativo
+  const filteredTotalValue = filteredInvestments.reduce((sum, inv) => sum + (inv.current_value || inv.amount || 0), 0);
   
-  const variableIncomeValue = currentInvestments
-    .filter(inv => classifyInvestmentAsset(inv.type || 'Outros') === 'Renda Variável')
-    .reduce((sum, inv) => sum + (inv.current_value || inv.amount || 0), 0);
+  const fixedIncomeValue = portfolioViewType === 'variable' ? 0 : 
+    currentInvestments
+      .filter(inv => classifyInvestmentAsset(inv.type || 'Outros') === 'Renda Fixa')
+      .reduce((sum, inv) => sum + (inv.current_value || inv.amount || 0), 0);
+  
+  const variableIncomeValue = portfolioViewType === 'fixed' ? 0 :
+    currentInvestments
+      .filter(inv => classifyInvestmentAsset(inv.type || 'Outros') === 'Renda Variável')
+      .reduce((sum, inv) => sum + (inv.current_value || inv.amount || 0), 0);
 
   // Dados para a tabela de ranking com paginação
   const investmentRanking = investments.map(inv => {
@@ -506,32 +505,40 @@ const InvestmentDashboard = () => {
                         </ResponsiveContainer>
                       ) : (
                         <div className="flex items-center justify-center h-[220px] text-muted-foreground">
-                          <p>Sem dados para exibir</p>
+                          <p className="text-sm">
+                            {portfolioViewType === 'fixed' && 'Nenhum investimento de renda fixa encontrado'}
+                            {portfolioViewType === 'variable' && 'Nenhum investimento de renda variável encontrado'}
+                            {portfolioViewType === 'all' && 'Nenhum investimento encontrado'}
+                          </p>
                         </div>
                       )}
                     </div>
                     
                     {/* Detalhamento Resumido */}
-                    <div className="space-y-4">
-                      <div className="text-center p-4 bg-muted/20 rounded-lg">
-                        <p className="text-xs text-muted-foreground mb-1">Renda Fixa</p>
-                        <p className="text-sm font-bold">{formatCurrency(fixedIncomeValue)}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {currentTotalValue > 0 ? ((fixedIncomeValue / currentTotalValue) * 100).toFixed(1) : 0}%
-                        </p>
-                      </div>
+                    <div className="space-y-2">
+                      {portfolioViewType !== 'variable' && (
+                        <div className="text-center p-2 bg-muted/20 rounded-lg">
+                          <p className="text-[10px] text-muted-foreground mb-0.5">Renda Fixa</p>
+                          <p className="text-xs font-bold">{formatCurrency(fixedIncomeValue)}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {currentTotalValue > 0 ? ((fixedIncomeValue / currentTotalValue) * 100).toFixed(1) : 0}%
+                          </p>
+                        </div>
+                      )}
                       
-                      <div className="text-center p-4 bg-muted/20 rounded-lg">
-                        <p className="text-xs text-muted-foreground mb-1">Renda Variável</p>
-                        <p className="text-sm font-bold">{formatCurrency(variableIncomeValue)}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {currentTotalValue > 0 ? ((variableIncomeValue / currentTotalValue) * 100).toFixed(1) : 0}%
-                        </p>
-                      </div>
+                      {portfolioViewType !== 'fixed' && (
+                        <div className="text-center p-2 bg-muted/20 rounded-lg">
+                          <p className="text-[10px] text-muted-foreground mb-0.5">Renda Variável</p>
+                          <p className="text-xs font-bold">{formatCurrency(variableIncomeValue)}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {currentTotalValue > 0 ? ((variableIncomeValue / currentTotalValue) * 100).toFixed(1) : 0}%
+                          </p>
+                        </div>
+                      )}
                       
-                      <div className="text-center p-4 bg-primary/10 rounded-lg border-2 border-primary/20">
-                        <p className="text-xs text-muted-foreground mb-1">Total Investido</p>
-                        <p className="text-base font-bold">{formatCurrency(fixedIncomeValue + variableIncomeValue)}</p>
+                      <div className="text-center p-2 bg-primary/10 rounded-lg border border-primary/20">
+                        <p className="text-[10px] text-muted-foreground mb-0.5">Total Investido</p>
+                        <p className="text-sm font-bold">{formatCurrency(fixedIncomeValue + variableIncomeValue)}</p>
                       </div>
                     </div>
                   </div>
