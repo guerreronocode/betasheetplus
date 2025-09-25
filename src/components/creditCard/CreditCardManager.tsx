@@ -35,13 +35,15 @@ export const CreditCardManager: React.FC = () => {
           </h1>
         </div>
         <div className="flex gap-2">
-          <Button
-            onClick={() => setIsFormModalOpen(true)}
-            size="sm"
-            className="h-8 w-8 p-0"
-          >
-            <Plus className="w-4 h-4" />
-          </Button>
+          {isCardsView && (
+            <Button
+              onClick={() => setIsFormModalOpen(true)}
+              size="sm"
+              className="h-8 w-8 p-0"
+            >
+              <Plus className="w-4 h-4" />
+            </Button>
+          )}
           {isCardsView && (
             <Button
               onClick={() => navigate('/credit-cards/purchase-status')}
