@@ -72,7 +72,7 @@ const App: React.FC = () => {
                   <BankAccountsPage />
                 </ProtectedRoute>
               } />
-              <Route path="/credit-cards" element={
+              <Route path="/credit-cards/*" element={
                 <ProtectedRoute>
                   <CreditCards />
                 </ProtectedRoute>

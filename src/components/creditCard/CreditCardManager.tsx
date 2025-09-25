@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EnhancedCreditCardList } from './EnhancedCreditCardList';
 import { CreditCardFormModal } from './CreditCardFormModal';
 import { PurchaseStatusPanel } from './PurchaseStatusPanel';
@@ -9,6 +9,11 @@ import { Plus, CreditCard, ShoppingBag } from 'lucide-react';
 
 export const CreditCardManager: React.FC = () => {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  const isCardsView = location.pathname === '/credit-cards/cards';
+  const isPurchaseStatusView = location.pathname === '/credit-cards/purchase-status';
 
   return (
     <div className="space-y-4">
@@ -17,35 +22,50 @@ export const CreditCardManager: React.FC = () => {
           <CreditCard className="w-5 h-5 text-primary" />
           <h1 className="text-xl font-bold">Cartões de Crédito</h1>
         </div>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setIsFormModalOpen(true)}
+            size="sm"
+            className="h-8 w-8 p-0"
+          >
+            <Plus className="w-4 h-4" />
+          </Button>
+          <Button
+            onClick={() => navigate('/credit-cards/purchase-status')}
+            variant={isPurchaseStatusView ? "default" : "outline"}
+            size="sm"
+            className="h-8 w-8 p-0"
+          >
+            <ShoppingBag className="w-4 h-4" />
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex gap-2 mb-4">
         <Button
-          onClick={() => setIsFormModalOpen(true)}
+          onClick={() => navigate('/credit-cards/cards')}
+          variant={isCardsView ? "default" : "outline"}
           size="sm"
-          className="h-8 w-8 p-0"
+          className="flex items-center gap-2"
         >
-          <Plus className="w-4 h-4" />
+          <CreditCard className="w-4 h-4" />
+          Cartões
+        </Button>
+        <Button
+          onClick={() => navigate('/credit-cards/purchase-status')}
+          variant={isPurchaseStatusView ? "default" : "outline"}
+          size="sm"
+          className="flex items-center gap-2"
+        >
+          <ShoppingBag className="w-4 h-4" />
+          Status das Compras
         </Button>
       </div>
 
-      <Tabs defaultValue="cartoes" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="cartoes" className="flex items-center gap-2">
-            <CreditCard className="w-4 h-4" />
-            Cartões
-          </TabsTrigger>
-          <TabsTrigger value="compras" className="flex items-center gap-2">
-            <ShoppingBag className="w-4 h-4" />
-            Status das Compras
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="cartoes" className="mt-4">
-          <EnhancedCreditCardList />
-        </TabsContent>
-        
-        <TabsContent value="compras" className="mt-4">
-          <PurchaseStatusPanel />
-        </TabsContent>
-      </Tabs>
+      <div className="mt-4">
+        {isCardsView && <EnhancedCreditCardList />}
+        {isPurchaseStatusView && <PurchaseStatusPanel />}
+      </div>
 
       <CreditCardFormModal
         open={isFormModalOpen}
