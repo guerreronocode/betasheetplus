@@ -30,7 +30,7 @@ export const EnhancedCreditCardList: React.FC = () => {
       setExpandedCards(new Set([creditCards[0].id]));
       setCardViewType({ [creditCards[0].id]: 'bills' });
     }
-  }, [creditCards]);
+  }, [creditCards.length]);
 
   const handleEditCard = (card: CreditCardType) => {
     setSelectedCard(card);
@@ -163,87 +163,87 @@ export const EnhancedCreditCardList: React.FC = () => {
               const isHighUsage = cardUsagePercentage > 80;
 
               return (
-                <div key={card.id} className="border rounded-lg overflow-hidden bg-background">
-                  {/* Linha de Resumo do Cartão */}
-                  <div className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <CollapsibleTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => toggleCardExpansion(card.id, cardViewType[card.id] || 'bills')}
-                          className="h-8 w-8 p-0"
-                        >
-                          {isExpanded ? (
-                            <ChevronDown className="h-4 w-4" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4" />
-                          )}
-                        </Button>
-                      </CollapsibleTrigger>
-                      
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold">{card.name}</h4>
-                          <Badge variant="secondary" className="text-xs">Ativo</Badge>
-                          {card.include_in_patrimony && (
-                            <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
-                              Patrimônio
-                            </Badge>
-                          )}
-                        </div>
+                <Collapsible key={card.id} open={isExpanded}>
+                  <div className="border rounded-lg overflow-hidden bg-background">
+                    {/* Linha de Resumo do Cartão */}
+                    <div className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <CollapsibleTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleCardExpansion(card.id, cardViewType[card.id] || 'bills')}
+                            className="h-8 w-8 p-0"
+                          >
+                            {isExpanded ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </CollapsibleTrigger>
                         
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                          <span>Limite: {formatCurrency(card.credit_limit)}</span>
-                          <span>Fechamento: Dia {card.closing_day}</span>
-                          <span>Vencimento: Dia {card.due_day}</span>
-                          {cardBalance && (
-                            <>
-                              <span className={`font-medium ${isHighUsage ? 'text-red-600' : 'text-green-600'}`}>
-                                {formatCurrency(cardBalance.available_limit)} disponível
-                              </span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      {cardBalance && (
-                        <div className="text-right">
-                          <div className="text-xs text-muted-foreground">
-                            Uso: {cardUsagePercentage.toFixed(1)}%
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold">{card.name}</h4>
+                            <Badge variant="secondary" className="text-xs">Ativo</Badge>
+                            {card.include_in_patrimony && (
+                              <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
+                                Patrimônio
+                              </Badge>
+                            )}
                           </div>
-                          <Progress 
-                            value={cardUsagePercentage} 
-                            className="h-1 w-20" 
-                          />
+                          
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                            <span>Limite: {formatCurrency(card.credit_limit)}</span>
+                            <span>Fechamento: Dia {card.closing_day}</span>
+                            <span>Vencimento: Dia {card.due_day}</span>
+                            {cardBalance && (
+                              <>
+                                <span className={`font-medium ${isHighUsage ? 'text-red-600' : 'text-green-600'}`}>
+                                  {formatCurrency(cardBalance.available_limit)} disponível
+                                </span>
+                              </>
+                            )}
+                          </div>
                         </div>
-                      )}
-                      
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditCard(card)}
-                          className="h-7 w-7 p-0"
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteCard(card)}
-                          className="h-7 w-7 p-0"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {cardBalance && (
+                          <div className="text-right">
+                            <div className="text-xs text-muted-foreground">
+                              Uso: {cardUsagePercentage.toFixed(1)}%
+                            </div>
+                            <Progress 
+                              value={cardUsagePercentage} 
+                              className="h-1 w-20" 
+                            />
+                          </div>
+                        )}
+                        
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleEditCard(card)}
+                            className="h-7 w-7 p-0"
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteCard(card)}
+                            className="h-7 w-7 p-0"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Conteúdo Expandido */}
-                  <Collapsible open={isExpanded}>
+                    {/* Conteúdo Expandido */}
                     <CollapsibleContent>
                       <div className="border-t bg-muted/20 p-4">
                         {/* Status detalhado do limite */}
@@ -307,8 +307,8 @@ export const EnhancedCreditCardList: React.FC = () => {
                         </div>
                       </div>
                     </CollapsibleContent>
-                  </Collapsible>
-                </div>
+                  </div>
+                </Collapsible>
               );
             })}
           </div>
