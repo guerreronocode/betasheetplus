@@ -9,6 +9,7 @@ import { useCreditCards } from '@/hooks/useCreditCards';
 import { useCreditCardBillsByCard } from '@/hooks/useCreditCardBillsByCard';
 import { formatCurrency } from '@/utils/formatters';
 import { EditCreditCardDialog } from './EditCreditCardDialog';
+import { DeleteCreditCardDialog } from './DeleteCreditCardDialog';
 import { CreditLimitProjectionCard } from './CreditLimitProjectionCard';
 import { CreditCardBillsView } from './CreditCardBillsView';
 import { CreditCard as CreditCardType } from '@/types/creditCard';
@@ -17,12 +18,35 @@ export const EnhancedCreditCardList: React.FC = () => {
   const { creditCards, isLoading, deleteCreditCard, creditCardBalances, isLoadingBalances } = useCreditCards();
   const [selectedCard, setSelectedCard] = useState<CreditCardType | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [cardToDelete, setCardToDelete] = useState<CreditCardType | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [cardViewType, setCardViewType] = useState<{[key: string]: 'bills' | 'projection'}>({});
 
   const handleEditCard = (card: CreditCardType) => {
     setSelectedCard(card);
     setIsEditDialogOpen(true);
+  };
+
+  const handleDeleteCard = (card: CreditCardType) => {
+    setCardToDelete(card);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteCard = async () => {
+    if (!cardToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteCreditCard(cardToDelete.id);
+      setIsDeleteDialogOpen(false);
+      setCardToDelete(null);
+    } catch (error) {
+      console.error('Erro ao excluir cartão:', error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const toggleCardExpansion = (cardId: string, viewType: 'bills' | 'projection') => {
@@ -136,7 +160,7 @@ export const EnhancedCreditCardList: React.FC = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => deleteCreditCard(card.id)}
+                    onClick={() => handleDeleteCard(card)}
                     className="h-7 w-7 p-0"
                   >
                     <Trash2 className="h-3 w-3" />
@@ -241,6 +265,17 @@ export const EnhancedCreditCardList: React.FC = () => {
           setIsEditDialogOpen(false);
           setSelectedCard(null);
         }}
+      />
+
+      <DeleteCreditCardDialog
+        card={cardToDelete}
+        isOpen={isDeleteDialogOpen}
+        onClose={() => {
+          setIsDeleteDialogOpen(false);
+          setCardToDelete(null);
+        }}
+        onConfirm={confirmDeleteCard}
+        isDeleting={isDeleting}
       />
     </>
   );
