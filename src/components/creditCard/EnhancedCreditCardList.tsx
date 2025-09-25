@@ -24,13 +24,10 @@ export const EnhancedCreditCardList: React.FC = () => {
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [cardViewType, setCardViewType] = useState<{[key: string]: 'bills' | 'projection'}>({});
 
-  // Inicializar o primeiro cartão como aberto
+  // Não inicializar nenhum cartão como aberto por padrão
   useEffect(() => {
-    if (creditCards.length > 0 && expandedCards.size === 0) {
-      setExpandedCards(new Set([creditCards[0].id]));
-      setCardViewType({ [creditCards[0].id]: 'bills' });
-    }
-  }, [creditCards.length]);
+    // Removido: não queremos cartões abertos por padrão
+  }, []);
 
   const handleEditCard = (card: CreditCardType) => {
     setSelectedCard(card);
@@ -180,12 +177,12 @@ export const EnhancedCreditCardList: React.FC = () => {
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-medium text-sm">{card.name}</h4>
                             {cardBalance && (
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-1 max-w-32">
                                 <Progress 
                                   value={cardUsagePercentage} 
-                                  className="h-1.5 w-16" 
+                                  className="h-2 flex-1" 
                                 />
-                                <span className="text-xs text-muted-foreground">
+                                <span className="text-xs text-muted-foreground whitespace-nowrap">
                                   {cardUsagePercentage.toFixed(1)}%
                                 </span>
                               </div>
@@ -196,11 +193,6 @@ export const EnhancedCreditCardList: React.FC = () => {
                             <span>Limite: {formatCurrency(card.credit_limit)}</span>
                             <span>Fech: {card.closing_day}</span>
                             <span>Venc: {card.due_day}</span>
-                            {cardBalance && (
-                              <span className={`font-medium ${isHighUsage ? 'text-red-600' : 'text-green-600'}`}>
-                                {formatCurrency(cardBalance.available_limit)} disponível
-                              </span>
-                            )}
                           </div>
                         </div>
                       </div>
@@ -238,7 +230,7 @@ export const EnhancedCreditCardList: React.FC = () => {
                                 <h5 className="font-medium text-sm">Status Detalhado do Limite</h5>
                                 {card.include_in_patrimony && (
                                   <Badge variant="outline" className="text-green-600 border-green-600 text-xs py-0 px-1">
-                                    Patrimônio
+                                    Incluso no Patrimônio
                                   </Badge>
                                 )}
                               </div>
@@ -283,7 +275,7 @@ export const EnhancedCreditCardList: React.FC = () => {
                             className="flex items-center gap-1 text-xs h-7"
                           >
                             <BarChart3 className="h-3 w-3" />
-                            Projeção
+                            Projeção de Limite
                           </Button>
                         </div>
 
@@ -293,7 +285,12 @@ export const EnhancedCreditCardList: React.FC = () => {
                             <CreditCardBillsView creditCardId={card.id} />
                           )}
                           {cardViewType[card.id] === 'projection' && (
-                            <CreditLimitProjectionCard creditCardId={card.id} />
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-3">
+                                Este gráfico mostra como será a projeção do seu limite disponível para os próximos 12 meses
+                              </p>
+                              <CreditLimitProjectionCard creditCardId={card.id} />
+                            </div>
                           )}
                         </div>
                       </div>
