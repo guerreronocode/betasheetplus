@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { CreditCard, Trash2, Edit, Receipt, TrendingUp, FileText, BarChart3, TrendingDown } from 'lucide-react';
+import { CreditCard, Trash2, Edit, Receipt, TrendingUp, FileText, BarChart3, TrendingDown, ChevronDown, ChevronRight } from 'lucide-react';
 import { useCreditCards } from '@/hooks/useCreditCards';
 import { useCreditCardBillsByCard } from '@/hooks/useCreditCardBillsByCard';
 import { formatCurrency } from '@/utils/formatters';
@@ -23,6 +23,14 @@ export const EnhancedCreditCardList: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [expandedCards, setExpandedCards] = useState<Set<string>>(new Set());
   const [cardViewType, setCardViewType] = useState<{[key: string]: 'bills' | 'projection'}>({});
+
+  // Inicializar o primeiro cartão como aberto
+  useEffect(() => {
+    if (creditCards.length > 0 && expandedCards.size === 0) {
+      setExpandedCards(new Set([creditCards[0].id]));
+      setCardViewType({ [creditCards[0].id]: 'bills' });
+    }
+  }, [creditCards]);
 
   const handleEditCard = (card: CreditCardType) => {
     setSelectedCard(card);
@@ -89,174 +97,223 @@ export const EnhancedCreditCardList: React.FC = () => {
   const usagePercentage = totalLimit > 0 ? (totalCommitted / totalLimit) * 100 : 0;
 
   return (
-    <>
-      {/* Resumo Geral */}
-      {!isLoadingBalances && creditCardBalances.length > 0 && (
-        <Card className="mb-4">
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <CreditCard className="h-4 w-4" />
-              Resumo dos Limites
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-2">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
-              <div className="p-2 bg-green-50 rounded-lg">
-                <p className="text-xs text-muted-foreground">Limite Disponível</p>
-                <p className="text-base font-bold text-green-600">
+    <Card>
+      <CardHeader className="pb-4">
+        <CardTitle className="flex items-center gap-2">
+          <CreditCard className="h-5 w-5" />
+          Cartões de Crédito
+        </CardTitle>
+      </CardHeader>
+
+      <CardContent className="space-y-6">
+        {/* Resumo Geral */}
+        {!isLoadingBalances && creditCardBalances.length > 0 && (
+          <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+            <h3 className="font-medium text-sm text-muted-foreground">Resumo dos Limites</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="p-3 bg-background rounded-md border">
+                <p className="text-xs text-muted-foreground mb-1">Limite Disponível</p>
+                <p className="text-lg font-bold text-green-600">
                   {formatCurrency(totalAvailable)}
                 </p>
               </div>
-              <div className="p-2 bg-orange-50 rounded-lg">
-                <p className="text-xs text-muted-foreground">Valor Comprometido</p>
-                <p className="text-base font-bold text-orange-600">
+              <div className="p-3 bg-background rounded-md border">
+                <p className="text-xs text-muted-foreground mb-1">Valor Comprometido</p>
+                <p className="text-lg font-bold text-orange-600">
                   {formatCurrency(totalCommitted)}
                 </p>
               </div>
-              <div className="p-2 bg-blue-50 rounded-lg">
-                <p className="text-xs text-muted-foreground">Limite Total</p>
-                <p className="text-base font-bold text-blue-600">
+              <div className="p-3 bg-background rounded-md border">
+                <p className="text-xs text-muted-foreground mb-1">Limite Total</p>
+                <p className="text-lg font-bold text-blue-600">
                   {formatCurrency(totalLimit)}
                 </p>
               </div>
             </div>
-            <div>
-              <div className="flex justify-between text-xs mb-1">
+
+            <div className="pt-2">
+              <div className="flex justify-between text-xs text-muted-foreground mb-1">
                 <span>Uso geral dos limites</span>
                 <span>{usagePercentage.toFixed(1)}%</span>
               </div>
-              <Progress value={usagePercentage} className="h-1.5" />
+              <Progress value={usagePercentage} className="h-2" />
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        )}
 
-      {/* Lista de Cartões */}
-      <div className="grid gap-3">
-        {creditCards.map((card) => {
-          const isExpanded = expandedCards.has(card.id);
-          const cardBalance = creditCardBalances.find(b => b.card_id === card.id);
-          const cardUsagePercentage = cardBalance && cardBalance.credit_limit > 0 
-            ? (cardBalance.total_committed / cardBalance.credit_limit) * 100 
-            : 0;
-          const isHighUsage = cardUsagePercentage > 80;
+        {/* Lista de Cartões */}
+        {creditCards.length === 0 ? (
+          <div className="text-center py-8">
+            <CreditCard className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <p className="text-muted-foreground">
+              Nenhum cartão de crédito cadastrado ainda.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-1">
+            <h3 className="font-medium text-sm text-muted-foreground mb-3">Meus Cartões</h3>
+            
+            {creditCards.map((card, index) => {
+              const isExpanded = expandedCards.has(card.id);
+              const cardBalance = creditCardBalances.find(b => b.card_id === card.id);
+              const cardUsagePercentage = cardBalance && cardBalance.credit_limit > 0 
+                ? (cardBalance.total_committed / cardBalance.credit_limit) * 100 
+                : 0;
+              const isHighUsage = cardUsagePercentage > 80;
 
-          return (
-            <Card key={card.id} className="p-3">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-base font-semibold">{card.name}</h3>
-                  <Badge variant="secondary" className="text-xs py-0 px-2">Ativo</Badge>
-                </div>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEditCard(card)}
-                    className="h-7 w-7 p-0"
-                  >
-                    <Edit className="h-3 w-3" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteCard(card)}
-                    className="h-7 w-7 p-0"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-3 text-xs mb-3">
-                <div>
-                  <p className="text-muted-foreground">Limite</p>
-                  <p className="font-semibold text-sm">{formatCurrency(card.credit_limit)}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Fechamento</p>
-                  <p className="font-semibold text-sm">Dia {card.closing_day}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Vencimento</p>
-                  <p className="font-semibold text-sm">Dia {card.due_day}</p>
-                </div>
-              </div>
+              return (
+                <div key={card.id} className="border rounded-lg overflow-hidden bg-background">
+                  {/* Linha de Resumo do Cartão */}
+                  <div className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <CollapsibleTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleCardExpansion(card.id, cardViewType[card.id] || 'bills')}
+                          className="h-8 w-8 p-0"
+                        >
+                          {isExpanded ? (
+                            <ChevronDown className="h-4 w-4" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </CollapsibleTrigger>
+                      
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold">{card.name}</h4>
+                          <Badge variant="secondary" className="text-xs">Ativo</Badge>
+                          {card.include_in_patrimony && (
+                            <Badge variant="outline" className="text-green-600 border-green-600 text-xs">
+                              Patrimônio
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                          <span>Limite: {formatCurrency(card.credit_limit)}</span>
+                          <span>Fechamento: Dia {card.closing_day}</span>
+                          <span>Vencimento: Dia {card.due_day}</span>
+                          {cardBalance && (
+                            <>
+                              <span className={`font-medium ${isHighUsage ? 'text-red-600' : 'text-green-600'}`}>
+                                {formatCurrency(cardBalance.available_limit)} disponível
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
 
-              {/* Status atual do limite */}
-              {cardBalance && (
-                <div className="mb-3 p-2 bg-muted/50 rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium">Status do Limite</span>
-                    <div className="flex items-center gap-1">
-                      {isHighUsage ? (
-                        <TrendingDown className="h-3 w-3 text-red-500" />
-                      ) : (
-                        <TrendingUp className="h-3 w-3 text-green-500" />
+                    <div className="flex items-center gap-2">
+                      {cardBalance && (
+                        <div className="text-right">
+                          <div className="text-xs text-muted-foreground">
+                            Uso: {cardUsagePercentage.toFixed(1)}%
+                          </div>
+                          <Progress 
+                            value={cardUsagePercentage} 
+                            className="h-1 w-20" 
+                          />
+                        </div>
                       )}
-                      <span className={`text-xs font-medium ${isHighUsage ? 'text-red-600' : 'text-green-600'}`}>
-                        {formatCurrency(cardBalance.available_limit)} disponível
-                      </span>
+                      
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditCard(card)}
+                          className="h-7 w-7 p-0"
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteCard(card)}
+                          className="h-7 w-7 p-0"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                    <span>Uso: {cardUsagePercentage.toFixed(1)}%</span>
-                    <span>Comprometido: {formatCurrency(cardBalance.total_committed)}</span>
-                  </div>
-                  <Progress 
-                    value={cardUsagePercentage} 
-                    className={`h-1.5 ${isHighUsage ? 'text-red-500' : 'text-green-500'}`} 
-                  />
-                </div>
-              )}
 
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  {card.include_in_patrimony && (
-                    <Badge variant="outline" className="text-green-600 border-green-600 text-xs py-0 px-2">
-                      Incluso no patrimônio
-                    </Badge>
-                  )}
+                  {/* Conteúdo Expandido */}
+                  <Collapsible open={isExpanded}>
+                    <CollapsibleContent>
+                      <div className="border-t bg-muted/20 p-4">
+                        {/* Status detalhado do limite */}
+                        {cardBalance && (
+                          <div className="bg-background rounded-lg p-3 mb-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <h5 className="font-medium text-sm">Status Detalhado do Limite</h5>
+                              <div className="flex items-center gap-1">
+                                {isHighUsage ? (
+                                  <TrendingDown className="h-4 w-4 text-red-500" />
+                                ) : (
+                                  <TrendingUp className="h-4 w-4 text-green-500" />
+                                )}
+                                <span className={`text-sm font-medium ${isHighUsage ? 'text-red-600' : 'text-green-600'}`}>
+                                  {formatCurrency(cardBalance.available_limit)} disponível
+                                </span>
+                              </div>
+                            </div>
+                            
+                            <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                              <span>Uso: {cardUsagePercentage.toFixed(1)}%</span>
+                              <span>Comprometido: {formatCurrency(cardBalance.total_committed)}</span>
+                            </div>
+                            <Progress 
+                              value={cardUsagePercentage} 
+                              className="h-2" 
+                            />
+                          </div>
+                        )}
+
+                        {/* Opções de visualização */}
+                        <div className="flex gap-2 mb-4">
+                          <Button 
+                            variant={cardViewType[card.id] === 'bills' ? "default" : "outline"}
+                            size="sm" 
+                            onClick={() => toggleCardExpansion(card.id, 'bills')}
+                            className="flex items-center gap-2"
+                          >
+                            <Receipt className="h-3 w-3" />
+                            Ver Faturas
+                          </Button>
+                          <Button 
+                            variant={cardViewType[card.id] === 'projection' ? "default" : "outline"}
+                            size="sm" 
+                            onClick={() => toggleCardExpansion(card.id, 'projection')}
+                            className="flex items-center gap-2"
+                          >
+                            <BarChart3 className="h-3 w-3" />
+                            Projeção
+                          </Button>
+                        </div>
+
+                        {/* Conteúdo específico */}
+                        <div className="bg-background rounded-lg p-3">
+                          {cardViewType[card.id] === 'bills' && (
+                            <CreditCardBillsView creditCardId={card.id} />
+                          )}
+                          {cardViewType[card.id] === 'projection' && (
+                            <CreditLimitProjectionCard creditCardId={card.id} />
+                          )}
+                        </div>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
                 </div>
-                
-                <div className="flex gap-1">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-7 px-2"
-                    onClick={() => toggleCardExpansion(card.id, 'bills')}
-                  >
-                    <Receipt className="h-3 w-3 mr-1" />
-                    <span className="text-xs">Ver faturas</span>
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-7 px-2"
-                    onClick={() => toggleCardExpansion(card.id, 'projection')}
-                  >
-                    <BarChart3 className="h-3 w-3 mr-1" />
-                    <span className="text-xs">Projeção</span>
-                  </Button>
-                </div>
-              </div>
-              
-              <Collapsible open={isExpanded}>
-                <CollapsibleContent className="mt-3">
-                  <div className="border-t pt-3">
-                    {cardViewType[card.id] === 'bills' && (
-                      <CreditCardBillsView creditCardId={card.id} />
-                    )}
-                    {cardViewType[card.id] === 'projection' && (
-                      <CreditLimitProjectionCard creditCardId={card.id} />
-                    )}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
-            </Card>
-          );
-        })}
-      </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
 
       <EditCreditCardDialog
         card={selectedCard}
@@ -277,6 +334,6 @@ export const EnhancedCreditCardList: React.FC = () => {
         onConfirm={confirmDeleteCard}
         isDeleting={isDeleting}
       />
-    </>
+    </Card>
   );
 };
