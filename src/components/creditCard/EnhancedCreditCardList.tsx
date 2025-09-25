@@ -54,20 +54,24 @@ export const EnhancedCreditCardList: React.FC = () => {
     }
   };
 
-  const toggleCardExpansion = (cardId: string, viewType: 'bills' | 'projection') => {
+  const toggleCardExpansion = (cardId: string) => {
     const newExpanded = new Set(expandedCards);
-    const newViewType = { ...cardViewType };
     
-    if (newExpanded.has(cardId) && cardViewType[cardId] === viewType) {
+    if (newExpanded.has(cardId)) {
       newExpanded.delete(cardId);
+      // Remove viewType quando fecha o card
+      const newViewType = { ...cardViewType };
       delete newViewType[cardId];
+      setCardViewType(newViewType);
     } else {
       newExpanded.add(cardId);
-      newViewType[cardId] = viewType;
     }
     
     setExpandedCards(newExpanded);
-    setCardViewType(newViewType);
+  };
+
+  const setViewType = (cardId: string, viewType: 'bills' | 'projection') => {
+    setCardViewType(prev => ({ ...prev, [cardId]: viewType }));
   };
 
   if (isLoading) {
@@ -162,7 +166,7 @@ export const EnhancedCreditCardList: React.FC = () => {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => toggleCardExpansion(card.id, cardViewType[card.id] || 'bills')}
+                            onClick={() => toggleCardExpansion(card.id)}
                             className="h-6 w-6 p-0"
                           >
                             {isExpanded ? (
@@ -177,10 +181,10 @@ export const EnhancedCreditCardList: React.FC = () => {
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-medium text-sm">{card.name}</h4>
                             {cardBalance && (
-                              <div className="flex items-center gap-2 flex-1 max-w-32">
+                              <div className="flex items-center gap-2 flex-1 max-w-40">
                                 <Progress 
                                   value={cardUsagePercentage} 
-                                  className="h-2 flex-1" 
+                                  className="h-3 flex-1" 
                                 />
                                 <span className="text-xs text-muted-foreground whitespace-nowrap">
                                   {cardUsagePercentage.toFixed(1)}%
@@ -226,14 +230,7 @@ export const EnhancedCreditCardList: React.FC = () => {
                         {cardBalance && (
                           <div className="bg-background rounded-md p-3 mb-3">
                             <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <h5 className="font-medium text-sm">Status Detalhado do Limite</h5>
-                                {card.include_in_patrimony && (
-                                  <Badge variant="outline" className="text-green-600 border-green-600 text-xs py-0 px-1">
-                                    Incluso no Patrimônio
-                                  </Badge>
-                                )}
-                              </div>
+                              <h5 className="font-medium text-sm">Status Detalhado do Limite</h5>
                               <div className="flex items-center gap-1">
                                 {isHighUsage ? (
                                   <TrendingDown className="h-3 w-3 text-red-500" />
@@ -262,7 +259,7 @@ export const EnhancedCreditCardList: React.FC = () => {
                           <Button 
                             variant={cardViewType[card.id] === 'bills' ? "default" : "outline"}
                             size="sm" 
-                            onClick={() => toggleCardExpansion(card.id, 'bills')}
+                            onClick={() => setViewType(card.id, 'bills')}
                             className="flex items-center gap-1 text-xs h-7"
                           >
                             <Receipt className="h-3 w-3" />
@@ -271,7 +268,7 @@ export const EnhancedCreditCardList: React.FC = () => {
                           <Button 
                             variant={cardViewType[card.id] === 'projection' ? "default" : "outline"}
                             size="sm" 
-                            onClick={() => toggleCardExpansion(card.id, 'projection')}
+                            onClick={() => setViewType(card.id, 'projection')}
                             className="flex items-center gap-1 text-xs h-7"
                           >
                             <BarChart3 className="h-3 w-3" />
@@ -279,20 +276,22 @@ export const EnhancedCreditCardList: React.FC = () => {
                           </Button>
                         </div>
 
-                        {/* Conteúdo específico */}
-                        <div className="bg-background rounded-md p-2">
-                          {cardViewType[card.id] === 'bills' && (
-                            <CreditCardBillsView creditCardId={card.id} />
-                          )}
-                          {cardViewType[card.id] === 'projection' && (
-                            <div>
-                              <p className="text-xs text-muted-foreground mb-3">
-                                Este gráfico mostra como será a projeção do seu limite disponível para os próximos 12 meses
-                              </p>
-                              <CreditLimitProjectionCard creditCardId={card.id} />
-                            </div>
-                          )}
-                        </div>
+                        {/* Conteúdo específico - só mostra se tiver um viewType selecionado */}
+                        {cardViewType[card.id] && (
+                          <div className="bg-background rounded-md p-2">
+                            {cardViewType[card.id] === 'bills' && (
+                              <CreditCardBillsView creditCardId={card.id} />
+                            )}
+                            {cardViewType[card.id] === 'projection' && (
+                              <div>
+                                <p className="text-xs text-muted-foreground mb-3">
+                                  Este gráfico mostra como será a projeção do seu limite disponível para os próximos 12 meses
+                                </p>
+                                <CreditLimitProjectionCard creditCardId={card.id} />
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </CollapsibleContent>
                   </div>
