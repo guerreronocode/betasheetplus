@@ -176,14 +176,19 @@ export const EnhancedCreditCardList: React.FC = () => {
                           </Button>
                         </CollapsibleTrigger>
                         
-                        <div>
-                          <div className="flex items-center gap-2">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-medium text-sm">{card.name}</h4>
-                            <Badge variant="secondary" className="text-xs py-0 px-1">Ativo</Badge>
-                            {card.include_in_patrimony && (
-                              <Badge variant="outline" className="text-green-600 border-green-600 text-xs py-0 px-1">
-                                Patrimônio
-                              </Badge>
+                            {cardBalance && (
+                              <div className="flex items-center gap-2">
+                                <Progress 
+                                  value={cardUsagePercentage} 
+                                  className="h-1.5 w-16" 
+                                />
+                                <span className="text-xs text-muted-foreground">
+                                  {cardUsagePercentage.toFixed(1)}%
+                                </span>
+                              </div>
                             )}
                           </div>
                           
@@ -201,18 +206,6 @@ export const EnhancedCreditCardList: React.FC = () => {
                       </div>
 
                       <div className="flex items-center gap-2">
-                        {cardBalance && (
-                          <div className="text-right">
-                            <div className="text-xs text-muted-foreground">
-                              {cardUsagePercentage.toFixed(1)}%
-                            </div>
-                            <Progress 
-                              value={cardUsagePercentage} 
-                              className="h-1 w-16" 
-                            />
-                          </div>
-                        )}
-                        
                         <div className="flex gap-1">
                           <Button
                             variant="ghost"
@@ -241,7 +234,14 @@ export const EnhancedCreditCardList: React.FC = () => {
                         {cardBalance && (
                           <div className="bg-background rounded-md p-3 mb-3">
                             <div className="flex items-center justify-between mb-2">
-                              <h5 className="font-medium text-sm">Status Detalhado do Limite</h5>
+                              <div className="flex items-center gap-2">
+                                <h5 className="font-medium text-sm">Status Detalhado do Limite</h5>
+                                {card.include_in_patrimony && (
+                                  <Badge variant="outline" className="text-green-600 border-green-600 text-xs py-0 px-1">
+                                    Patrimônio
+                                  </Badge>
+                                )}
+                              </div>
                               <div className="flex items-center gap-1">
                                 {isHighUsage ? (
                                   <TrendingDown className="h-3 w-3 text-red-500" />
