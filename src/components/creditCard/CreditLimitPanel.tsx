@@ -60,129 +60,98 @@ export const CreditLimitPanel: React.FC = () => {
   const usagePercentage = totalLimit > 0 ? (totalCommitted / totalLimit) * 100 : 0;
 
   return (
-    <div className="space-y-6">
-      {/* Explicação da Lógica Correta */}
-      <Card className="border-green-200 bg-green-50">
-        <CardContent className="p-4">
-          <div className="flex items-start gap-3">
-            <Info className="h-5 w-5 text-green-600 mt-0.5" />
-            <div className="text-sm text-green-800">
-              <p className="font-medium mb-1">✅ Integração Correta com Patrimônio</p>
-              <p className="text-xs mb-2">
-                <strong>Limite de crédito NÃO é patrimônio.</strong> Apenas as dívidas das compras
-                (parcelas não pagas) são automaticamente registradas como passivos no patrimônio.
-              </p>
-              <p className="text-xs font-medium text-green-700">
-                ⚡ Automático: Cada compra gera uma dívida no patrimônio que diminui conforme você paga as faturas.
-              </p>
-            </div>
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <CreditCard className="h-4 w-4" />
+          Controle de Limite de Crédito
+        </CardTitle>
+        
+        {/* Aviso informativo integrado */}
+        <div className="flex items-start gap-2 p-2 bg-green-50 border border-green-200 rounded text-xs">
+          <Info className="h-3 w-3 text-green-600 mt-0.5 flex-shrink-0" />
+          <div className="text-green-800">
+            <span className="font-medium">Integração Automática:</span> Apenas dívidas das compras são registradas no patrimônio, não o limite de crédito.
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Resumo Atual dos Limites */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
-            Controle de Limite de Crédito
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Resumo Geral */}
-          <div className="p-4 bg-muted rounded-lg">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Limite Disponível</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {formatCurrency(totalAvailable)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Para novas compras
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Valor Comprometido</p>
-                <p className="text-2xl font-bold text-orange-600">
-                  {formatCurrency(totalCommitted)}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Compras não quitadas
-                </p>
-              </div>
-            </div>
-            <div className="mt-3">
-              <div className="flex justify-between text-sm mb-1">
-                <span>Uso do limite total</span>
-                <span>{usagePercentage.toFixed(1)}%</span>
-              </div>
-              <Progress value={usagePercentage} className="h-2" />
-            </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="space-y-4">
+        {/* Resumo Geral Compacto */}
+        <div className="grid grid-cols-3 gap-3 p-3 bg-muted/50 rounded-lg">
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground">Disponível</p>
+            <p className="text-lg font-bold text-green-600">
+              {formatCurrency(totalAvailable)}
+            </p>
           </div>
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground">Comprometido</p>
+            <p className="text-lg font-bold text-orange-600">
+              {formatCurrency(totalCommitted)}
+            </p>
+          </div>
+          <div className="text-center">
+            <p className="text-xs text-muted-foreground">Uso Total</p>
+            <p className="text-lg font-bold">
+              {usagePercentage.toFixed(1)}%
+            </p>
+          </div>
+        </div>
 
-          {/* Detalhes por Cartão */}
-          <div className="space-y-3">
-            {creditCardBalances.map((card) => {
-              const cardUsagePercentage = card.credit_limit > 0 ? (card.total_committed / card.credit_limit) * 100 : 0;
-              const isHighUsage = cardUsagePercentage > 80;
-              
-              return (
-                <div key={card.card_id} className="p-3 border rounded-lg">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium">{card.card_name}</h4>
-                    <div className="flex items-center gap-1 text-sm">
-                      {isHighUsage ? (
-                        <TrendingDown className="h-4 w-4 text-red-500" />
-                      ) : (
-                        <TrendingUp className="h-4 w-4 text-green-500" />
-                      )}
-                      <span className={isHighUsage ? 'text-red-600' : 'text-green-600'}>
-                        {formatCurrency(card.available_limit)}
-                      </span>
-                    </div>
+        <Progress value={usagePercentage} className="h-1.5" />
+
+        {/* Detalhes por Cartão - Mais Compacto */}
+        <div className="space-y-2">
+          <h4 className="text-sm font-medium text-muted-foreground">Detalhes por Cartão</h4>
+          {creditCardBalances.map((card) => {
+            const cardUsagePercentage = card.credit_limit > 0 ? (card.total_committed / card.credit_limit) * 100 : 0;
+            const isHighUsage = cardUsagePercentage > 80;
+            
+            return (
+              <div key={card.card_id} className="p-2 border rounded bg-card/50">
+                <div className="flex items-center justify-between mb-1">
+                  <h5 className="text-sm font-medium">{card.card_name}</h5>
+                  <div className="flex items-center gap-1">
+                    {isHighUsage ? (
+                      <TrendingDown className="h-3 w-3 text-red-500" />
+                    ) : (
+                      <TrendingUp className="h-3 w-3 text-green-500" />
+                    )}
+                    <span className={`text-xs font-medium ${isHighUsage ? 'text-red-600' : 'text-green-600'}`}>
+                      {formatCurrency(card.available_limit)}
+                    </span>
                   </div>
-                  
-                  <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground mb-2">
-                    <div>
-                      <span>Limite Total:</span>
-                      <p className="font-medium text-foreground">
-                        {formatCurrency(card.credit_limit)}
-                      </p>
-                    </div>
-                    <div>
-                      <span>Comprometido:</span>
-                      <p className="font-medium text-orange-600">
-                        {formatCurrency(card.total_committed)}
-                      </p>
-                      <p className="text-xs">Dívida no patrimônio</p>
-                    </div>
-                    <div>
-                      <span>Uso:</span>
-                      <p className="font-medium text-foreground">
-                        {cardUsagePercentage.toFixed(1)}%
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <Progress 
-                    value={cardUsagePercentage} 
-                    className={`h-1 ${isHighUsage ? 'text-red-500' : 'text-green-500'}`} 
-                  />
                 </div>
-              );
-            })}
-          </div>
-        </CardContent>
-      </Card>
+                
+                <div className="grid grid-cols-3 gap-2 text-xs mb-1">
+                  <div>
+                    <span className="text-muted-foreground">Limite:</span>
+                    <p className="font-medium">{formatCurrency(card.credit_limit)}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Usado:</span>
+                    <p className="font-medium text-orange-600">{formatCurrency(card.total_committed)}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">%:</span>
+                    <p className="font-medium">{cardUsagePercentage.toFixed(1)}%</p>
+                  </div>
+                </div>
+                
+                <Progress value={cardUsagePercentage} className="h-1" />
+              </div>
+            );
+          })}
+        </div>
 
-      {/* Projeção de Limite */}
-      <Card>
-        <CardHeader>
+        {/* Projeção de Limite */}
+        <div className="space-y-2 border-t pt-3">
           <div className="flex items-center justify-between">
-            <CardTitle>Projeção de Limite - Próximos Meses</CardTitle>
+            <h4 className="text-sm font-medium text-muted-foreground">Projeção - Próximos Meses</h4>
             <Select value={selectedProjectionCard} onValueChange={setSelectedProjectionCard}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Selecione um cartão" />
+              <SelectTrigger className="w-36 h-7 text-xs">
+                <SelectValue placeholder="Cartão" />
               </SelectTrigger>
               <SelectContent>
                 {creditCards.map((card) => (
@@ -193,16 +162,15 @@ export const CreditLimitPanel: React.FC = () => {
               </SelectContent>
             </Select>
           </div>
-        </CardHeader>
-        <CardContent>
+          
           {isLoadingProjections ? (
-            <div className="animate-pulse space-y-3">
+            <div className="animate-pulse space-y-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-12 bg-gray-200 rounded"></div>
+                <div key={i} className="h-8 bg-gray-200 rounded"></div>
               ))}
             </div>
           ) : projections.length > 0 ? (
-            <div className="space-y-3 max-h-80 overflow-y-auto">
+            <div className="space-y-1 max-h-48 overflow-y-auto">
               {projections.slice(0, 6).map((projection, index) => {
                 const monthDate = new Date(projection.month);
                 const availableLimit = Number(projection.projected_available_limit);
@@ -210,17 +178,17 @@ export const CreditLimitPanel: React.FC = () => {
                 const usagePercent = selectedCard ? ((selectedCard.credit_limit - availableLimit) / selectedCard.credit_limit) * 100 : 0;
                 
                 return (
-                  <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-2 border rounded text-xs">
                     <div>
-                      <p className="font-medium">
-                        {format(monthDate, 'MMMM yyyy', { locale: ptBR })}
+                      <p className="font-medium text-xs">
+                        {format(monthDate, 'MMM/yy', { locale: ptBR })}
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        Uso projetado: {usagePercent.toFixed(1)}%
+                      <p className="text-xs text-muted-foreground">
+                        {usagePercent.toFixed(0)}% uso
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-green-600">
+                      <p className="font-medium text-green-600 text-xs">
                         {formatCurrency(availableLimit)}
                       </p>
                       <p className="text-xs text-muted-foreground">
@@ -232,13 +200,13 @@ export const CreditLimitPanel: React.FC = () => {
               })}
             </div>
           ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <CreditCard className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p>Nenhuma projeção disponível para este cartão.</p>
+            <div className="text-center py-4 text-muted-foreground">
+              <CreditCard className="mx-auto h-8 w-8 mb-2 opacity-50" />
+              <p className="text-xs">Nenhuma projeção disponível</p>
             </div>
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
