@@ -129,57 +129,21 @@ const TransactionsTable = () => {
   };
 
   const handleResize = (column: keyof typeof columnWidths, newWidth: number) => {
-    const minWidth = 50;
-    const maxWidth = 400;
-    const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+    const minWidths = {
+      type: 60,
+      description: 100,
+      category: 100,
+      date: 80,
+      amount: 100,
+      actions: 70 // Tamanho mínimo baseado no texto "Ações"
+    };
     
-    setColumnWidths(prev => {
-      const columns = Object.keys(prev) as Array<keyof typeof prev>;
-      const currentIndex = columns.indexOf(column);
-      const widthDiff = constrainedWidth - prev[column];
-      
-      // Se não há diferença significativa, não fazer nada
-      if (Math.abs(widthDiff) < 5) return prev;
-      
-      // Encontrar a próxima coluna redimensionável (não é a coluna de ações)
-      let nextColumn: keyof typeof prev | null = null;
-      for (let i = currentIndex + 1; i < columns.length; i++) {
-        if (columns[i] !== 'actions') {
-          nextColumn = columns[i];
-          break;
-        }
-      }
-      
-      // Se não encontrou próxima coluna, tentar a anterior
-      if (!nextColumn) {
-        for (let i = currentIndex - 1; i >= 0; i--) {
-          if (columns[i] !== 'actions') {
-            nextColumn = columns[i];
-            break;
-          }
-        }
-      }
-      
-      if (!nextColumn) return prev;
-      
-      const newNextWidth = prev[nextColumn] - widthDiff;
-      
-      // Verificar se a próxima coluna pode ser reduzida
-      if (newNextWidth < minWidth) {
-        const availableReduction = prev[nextColumn] - minWidth;
-        return {
-          ...prev,
-          [column]: prev[column] + availableReduction,
-          [nextColumn]: minWidth
-        };
-      }
-      
-      return {
-        ...prev,
-        [column]: constrainedWidth,
-        [nextColumn]: newNextWidth
-      };
-    });
+    const constrainedWidth = Math.max(minWidths[column], newWidth);
+    
+    setColumnWidths(prev => ({
+      ...prev,
+      [column]: constrainedWidth
+    }));
   };
 
   const ResizableHeader = ({ 
