@@ -143,86 +143,89 @@ const TransactionsTable = () => {
 
   return (
     <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] rounded-xl overflow-hidden">
-      {/* Cabeçalho fixo com parallax */}
-      <div className="bg-white border-b z-10 shadow-sm">
-        <table className="w-full">
-          <thead>
-            <tr className="h-10 border-b">
-              <SortableHeader field="type" className="w-[60px]">
-                <span className="text-left text-sm font-medium">Tipo</span>
-              </SortableHeader>
-              <SortableHeader field="description" className="min-w-[200px]">
-                <span className="text-left text-sm font-medium">Descrição</span>
-              </SortableHeader>
-              <SortableHeader field="category" className="min-w-[150px]">
-                <span className="text-left text-sm font-medium">Categoria</span>
-              </SortableHeader>
-              <SortableHeader field="date" className="w-[100px]">
-                <span className="text-left text-sm font-medium">Data</span>
-              </SortableHeader>
-              <SortableHeader field="amount" className="w-[120px]">
-                <span className="text-right text-sm font-medium">Valor</span>
-              </SortableHeader>
-              <th className="text-center px-3 py-2 w-[70px] text-sm font-medium">Ações</th>
-            </tr>
-          </thead>
-        </table>
-      </div>
-
-      {/* Corpo scrollável */}
+      {/* Container com scrollbar horizontal */}
       <div className="flex-1 overflow-auto fnb-scrollbar">
-        <table className="w-full">
-          <tbody>
-            {paginatedTransactions.length === 0 ? (
-              <tr>
-                <td colSpan={6} className="text-center py-6 text-fnb-ink/70">
-                  <div>
-                    <p className="text-sm">Nenhuma transação encontrada</p>
-                    <p className="text-xs">Adicione sua primeira receita ou despesa!</p>
-                  </div>
-                </td>
-              </tr>
-            ) : (
-              paginatedTransactions.map((transaction) => (
-                <tr key={`${transaction.type}-${transaction.id}`} className="h-12 border-b hover:bg-gray-50/50">
-                  <td className="px-3 py-2 w-[60px]">
-                    <div className="w-fit">
-                      {transaction.type === 'income' ? (
-                        <ArrowUpCircle className="w-4 h-4 text-green-600" />
-                      ) : (
-                        <ArrowDownCircle className="w-4 h-4 text-red-600" />
-                      )}
+        <div className="min-w-[800px]"> {/* Largura mínima para forçar scroll horizontal se necessário */}
+          {/* Cabeçalho fixo com parallax */}
+          <div className="bg-white border-b z-10 shadow-sm sticky top-0">
+            <table className="w-full table-fixed">
+              <thead>
+                <tr className="h-10 border-b">
+                  <SortableHeader field="type" className="w-[60px]">
+                    <span className="text-left text-sm font-medium">Tipo</span>
+                  </SortableHeader>
+                  <SortableHeader field="description" className="w-[250px]">
+                    <span className="text-left text-sm font-medium">Descrição</span>
+                  </SortableHeader>
+                  <SortableHeader field="category" className="w-[180px]">
+                    <span className="text-left text-sm font-medium">Categoria</span>
+                  </SortableHeader>
+                  <SortableHeader field="date" className="w-[100px]">
+                    <span className="text-left text-sm font-medium">Data</span>
+                  </SortableHeader>
+                  <SortableHeader field="amount" className="w-[140px]">
+                    <span className="text-right text-sm font-medium">Valor</span>
+                  </SortableHeader>
+                  <th className="text-center px-3 py-2 w-[70px] text-sm font-medium">Ações</th>
+                </tr>
+              </thead>
+            </table>
+          </div>
+
+          {/* Corpo da tabela */}
+          <table className="w-full table-fixed">
+            <tbody>
+              {paginatedTransactions.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-6 text-fnb-ink/70">
+                    <div>
+                      <p className="text-sm">Nenhuma transação encontrada</p>
+                      <p className="text-xs">Adicione sua primeira receita ou despesa!</p>
                     </div>
                   </td>
-                  <td className="font-medium text-fnb-ink text-sm px-3 py-2 min-w-[200px]">
-                    {transaction.description}
-                  </td>
-                  <td className="text-fnb-ink/70 text-sm px-3 py-2 min-w-[150px]">
-                    {transaction.category}
-                  </td>
-                  <td className="text-fnb-ink/70 text-sm px-3 py-2 w-[100px]">
-                    {formatDateForDisplay(transaction.date)}
-                  </td>
-                  <td className={`text-right font-semibold text-sm px-3 py-2 w-[120px] ${
-                    transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                  </td>
-                  <td className="px-3 py-2 w-[70px] text-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(transaction)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                paginatedTransactions.map((transaction) => (
+                  <tr key={`${transaction.type}-${transaction.id}`} className="h-12 border-b hover:bg-gray-50/50">
+                    <td className="px-3 py-2 w-[60px]">
+                      <div className="w-fit">
+                        {transaction.type === 'income' ? (
+                          <ArrowUpCircle className="w-4 h-4 text-green-600" />
+                        ) : (
+                          <ArrowDownCircle className="w-4 h-4 text-red-600" />
+                        )}
+                      </div>
+                    </td>
+                    <td className="font-medium text-fnb-ink text-sm px-3 py-2 w-[250px] truncate" title={transaction.description}>
+                      {transaction.description}
+                    </td>
+                    <td className="text-fnb-ink/70 text-sm px-3 py-2 w-[180px] truncate" title={transaction.category}>
+                      {transaction.category}
+                    </td>
+                    <td className="text-fnb-ink/70 text-sm px-3 py-2 w-[100px]">
+                      {formatDateForDisplay(transaction.date)}
+                    </td>
+                    <td className={`text-right font-semibold text-sm px-3 py-2 w-[140px] truncate ${
+                      transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                    }`} title={`${transaction.type === 'income' ? '+' : '-'}${formatCurrency(transaction.amount)}`}>
+                      {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                    </td>
+                    <td className="px-3 py-2 w-[70px] text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(transaction)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
       
       {/* Pagination Controls - Always visible */}
