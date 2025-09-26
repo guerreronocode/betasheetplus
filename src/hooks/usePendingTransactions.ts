@@ -37,6 +37,7 @@ export const usePendingTransactions = () => {
   const { data: pendingTransactions = [], isLoading } = useQuery({
     queryKey: ['pending_transactions', user?.id, recurringTransactions, plannedIncome, plannedExpenses, upcomingBills, overdueBills],
     queryFn: async (): Promise<PendingTransaction[]> => {
+      console.log('Query function executing with user:', !!user);
       if (!user) return [];
 
       const pending: PendingTransaction[] = [];
@@ -45,80 +46,92 @@ export const usePendingTransactions = () => {
 
       // 1. Transações recorrentes (sempre aparecem primeiro)
       console.log('Processing recurring transactions:', recurringTransactions);
-      recurringTransactions
-        .filter(t => t.is_active)
-        .forEach(transaction => {
-          console.log('Processing transaction:', transaction);
-          // Calcular próxima data baseada na frequência
-          const nextDate = calculateNextRecurringDate(transaction);
-          console.log('Next date calculated:', nextDate);
-          
-          const pendingItem: PendingTransaction = {
-            id: `recurring-${transaction.id}`,
-            type: 'recurring' as const,
-            date: nextDate,
-            category: transaction.category,
-            account: getBankAccountName(transaction.bank_account_id) || 'Conta não informada',
-            description: transaction.description,
-            value: transaction.type === 'income' ? transaction.amount : -transaction.amount,
-            status: 'pending' as const,
-            original: transaction
-          };
-          
-          console.log('Adding pending item:', pendingItem);
-          pending.push(pendingItem);
-        });
+      if (recurringTransactions && Array.isArray(recurringTransactions)) {
+        recurringTransactions
+          .filter(t => t.is_active)
+          .forEach(transaction => {
+            console.log('Processing transaction:', transaction);
+            // Calcular próxima data baseada na frequência
+            const nextDate = calculateNextRecurringDate(transaction);
+            console.log('Next date calculated:', nextDate);
+            
+            const pendingItem: PendingTransaction = {
+              id: `recurring-${transaction.id}`,
+              type: 'recurring' as const,
+              date: nextDate,
+              category: transaction.category,
+              account: getBankAccountName(transaction.bank_account_id) || 'Conta não informada',
+              description: transaction.description,
+              value: transaction.type === 'income' ? transaction.amount : -transaction.amount,
+              status: 'pending' as const,
+              original: transaction
+            };
+            
+            console.log('Adding pending item:', pendingItem);
+            pending.push(pendingItem);
+          });
+      }
 
       // 2. Receitas planejadas
-      plannedIncome.forEach(income => {
-        const incomeDate = new Date(income.month);
-        if (incomeDate >= today) {
-          pending.push({
-            id: `income-${income.id}`,
-            type: 'planned_income',
-            date: incomeDate,
-            category: income.category,
-            account: 'A definir',
-            description: income.description || 'Receita planejada',
-            value: income.planned_amount,
-            status: incomeDate < today ? 'overdue' : 'upcoming',
-            original: income
-          });
-        }
-      });
+      if (plannedIncome && Array.isArray(plannedIncome)) {
+        plannedIncome.forEach(income => {
+          const incomeDate = new Date(income.month);
+          if (incomeDate >= today) {
+            const status = incomeDate < today ? 'overdue' : 'upcoming';
+            pending.push({
+              id: `income-${income.id}`,
+              type: 'planned_income' as const,
+              date: incomeDate,
+              category: income.category,
+              account: 'A definir',
+              description: income.description || 'Receita planejada',
+              value: income.planned_amount,
+              status: status as 'overdue' | 'upcoming',
+              original: income
+            });
+          }
+        });
+      }
 
       // 3. Despesas planejadas
-      plannedExpenses.forEach(expense => {
-        const expenseDate = new Date(expense.month);
-        if (expenseDate >= today) {
-          pending.push({
-            id: `expense-${expense.id}`,
-            type: 'planned_expense',
-            date: expenseDate,
-            category: expense.category,
-            account: 'A definir',
-            description: expense.description || 'Despesa planejada',
-            value: -expense.planned_amount,
-            status: expenseDate < today ? 'overdue' : 'upcoming',
-            original: expense
-          });
-        }
-      });
+      if (plannedExpenses && Array.isArray(plannedExpenses)) {
+        plannedExpenses.forEach(expense => {
+          const expenseDate = new Date(expense.month);
+          if (expenseDate >= today) {
+            const status = expenseDate < today ? 'overdue' : 'upcoming';
+            pending.push({
+              id: `expense-${expense.id}`,
+              type: 'planned_expense' as const,
+              date: expenseDate,
+              category: expense.category,
+              account: 'A definir',
+              description: expense.description || 'Despesa planejada',
+              value: -expense.planned_amount,
+              status: status as 'overdue' | 'upcoming',
+              original: expense
+            });
+          }
+        });
+      }
 
       // 4. Faturas de cartão
-      [...upcomingBills, ...overdueBills].forEach(bill => {
-        pending.push({
-          id: `bill-${bill.id}`,
-          type: 'credit_bill',
-          date: new Date(bill.due_date),
-          category: 'Cartão de Crédito',
-          account: 'A pagar',
-          description: `Fatura - Cartão`,
-          value: -bill.total_amount,
-          status: new Date(bill.due_date) < today ? 'overdue' : 'upcoming',
-          original: bill
+      if (upcomingBills && Array.isArray(upcomingBills) || overdueBills && Array.isArray(overdueBills)) {
+        [...(upcomingBills || []), ...(overdueBills || [])].forEach(bill => {
+          const billDate = new Date(bill.due_date);
+          const status = billDate < today ? 'overdue' : 'upcoming';
+          pending.push({
+            id: `bill-${bill.id}`,
+            type: 'credit_bill' as const,
+            date: billDate,
+            category: 'Cartão de Crédito',
+            account: 'A pagar',
+            description: `Fatura - Cartão`,
+            value: -bill.total_amount,
+            status: status as 'overdue' | 'upcoming',
+            original: bill
+          });
         });
-      });
+      }
 
       // Ordenar: recorrentes primeiro, depois por data
       const sorted = pending.sort((a, b) => {
@@ -130,11 +143,11 @@ export const usePendingTransactions = () => {
       console.log('Final pending transactions:', sorted);
       return sorted;
     },
-    enabled: !!user,
+    enabled: !!user && (recurringTransactions !== undefined || plannedIncome !== undefined || plannedExpenses !== undefined || upcomingBills !== undefined || overdueBills !== undefined),
   });
 
   return {
-    pendingTransactions,
+    pendingTransactions: pendingTransactions || [],
     isLoading
   };
 };

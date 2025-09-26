@@ -37,6 +37,14 @@ interface PendingTransactionsTableProps {
 
 const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTableProps) => {
   const { pendingTransactions, isLoading } = usePendingTransactions();
+  
+  console.log('PendingTransactionsTable - Debug:', {
+    pendingTransactions: pendingTransactions?.length || 0,
+    isLoading,
+    startDate,
+    endDate,
+    rawData: pendingTransactions
+  });
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -84,14 +92,27 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
   }, [containerWidth]);
 
   const filteredTransactions = useMemo(() => {
-    if (!pendingTransactions.length) return [];
+    console.log('filteredTransactions - Input:', { 
+      pendingTransactions, 
+      hasLength: pendingTransactions?.length, 
+      startDate, 
+      endDate 
+    });
     
-    return pendingTransactions.filter(transaction => {
+    if (!pendingTransactions || !Array.isArray(pendingTransactions) || pendingTransactions.length === 0) {
+      console.log('filteredTransactions - Empty array returned');
+      return [];
+    }
+    
+    const filtered = pendingTransactions.filter(transaction => {
       if (!startDate || !endDate) return true;
       
       const transactionDate = new Date(transaction.date);
       return transactionDate >= startDate && transactionDate <= endDate;
     });
+    
+    console.log('filteredTransactions - Output:', filtered);
+    return filtered;
   }, [pendingTransactions, startDate, endDate]);
 
   const sortedTransactions = useMemo(() => {
