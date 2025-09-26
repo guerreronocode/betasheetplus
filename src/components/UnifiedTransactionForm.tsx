@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Plus, DollarSign, Tag, Calendar, Building } from 'lucide-react';
-import { Card } from '@/components/ui/card';
+import { DollarSign, Tag, Calendar, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -102,18 +101,7 @@ const UnifiedTransactionForm = () => {
 
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="p-2 bg-green-100 rounded-lg">
-          <Plus className="w-6 h-6 text-green-600" />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Adicionar Transação</h3>
-          <p className="text-sm text-gray-600">Registre suas receitas e despesas</p>
-        </div>
-      </div>
-
-      <Tabs defaultValue="income" className="w-full">
+    <Tabs defaultValue="income" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="income" className="text-green-600">Receita</TabsTrigger>
           <TabsTrigger value="expense" className="text-red-600">Despesa</TabsTrigger>
@@ -316,7 +304,6 @@ const UnifiedTransactionForm = () => {
           </form>
         </TabsContent>
       </Tabs>
-    </Card>
   );
 };
 

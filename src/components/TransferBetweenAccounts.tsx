@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { ArrowRightLeft, DollarSign, Calendar } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -166,18 +165,7 @@ const TransferBetweenAccounts = () => {
   };
 
   return (
-    <Card className="p-6">
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="p-2 bg-blue-100 rounded-lg">
-          <ArrowRightLeft className="w-6 h-6 text-blue-600" />
-        </div>
-        <div>
-          <h3 className="text-lg font-semibold text-gray-900">Transferência entre Contas</h3>
-          <p className="text-sm text-gray-600">Transfira dinheiro entre suas contas</p>
-        </div>
-      </div>
-
-      <form onSubmit={handleTransfer} className="space-y-3">
+    <form onSubmit={handleTransfer} className="space-y-3">
         <div>
           <Label htmlFor="from-account" className="text-xs">Conta de Origem</Label>
           <Select
@@ -289,7 +277,6 @@ const TransferBetweenAccounts = () => {
           </p>
         )}
       </form>
-    </Card>
   );
 };
 
