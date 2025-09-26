@@ -14,7 +14,7 @@ const AddTransactionModal = ({ open, onOpenChange }: AddTransactionModalProps) =
         <DialogHeader className="pb-1">
           <DialogTitle className="text-base">Adicionar Transação</DialogTitle>
         </DialogHeader>
-        <div className="[&_.fnb-card]:p-3 [&_label]:text-xs [&_input]:h-7 [&_button]:h-7 [&_.space-y-4]:space-y-2 [&_.space-y-3]:space-y-2">
+        <div className="[&_.fnb-card]:p-3 [&_label]:text-xs [&_input]:h-7 [&_button]:h-7 [&_.space-y-4]:space-y-3 [&_.space-y-3]:space-y-3 space-y-4">
           <UnifiedTransactionForm />
         </div>
       </DialogContent>

@@ -197,7 +197,7 @@ const UnifiedTransactionForm = () => {
             </div>
             <Button
               type="submit"
-              className="w-full bg-green-600 hover:bg-green-700 h-8"
+              className="w-full bg-green-600 hover:bg-green-700 h-8 mt-4"
               disabled={isAddingIncome || isIncomeSubmitting || bankAccounts.length === 0}
             >
               {(isAddingIncome || isIncomeSubmitting) ? "Adicionando..." : "Adicionar Receita"}
@@ -296,7 +296,7 @@ const UnifiedTransactionForm = () => {
             
             <Button
               type="submit"
-              className="w-full bg-red-600 hover:bg-red-700 h-8"
+              className="w-full bg-red-600 hover:bg-red-700 h-8 mt-4"
               disabled={isAddingExpense || isExpenseSubmitting || bankAccounts.length === 0}
             >
               {(isAddingExpense || isExpenseSubmitting) ? "Adicionando..." : "Adicionar Despesa"}

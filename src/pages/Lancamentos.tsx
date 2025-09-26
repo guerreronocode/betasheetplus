@@ -50,8 +50,8 @@ const Lancamentos = () => {
 
         <div className="space-y-4">
           {/* Header with buttons */}
-          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-sm">
-            <div className="flex justify-between items-center py-3 px-1">
+          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-lg rounded-lg mx-1 mb-2">
+            <div className="flex justify-between items-center py-3 px-4">
               <div className="flex gap-2">
                 <Button 
                   onClick={() => {

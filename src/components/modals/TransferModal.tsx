@@ -14,7 +14,7 @@ const TransferModal = ({ open, onOpenChange }: TransferModalProps) => {
         <DialogHeader className="pb-1">
           <DialogTitle className="text-base">Transferência entre Contas</DialogTitle>
         </DialogHeader>
-        <div className="[&_label]:text-xs [&_input]:h-7 [&_button]:h-7 [&_.space-y-4]:space-y-2 [&_.space-y-3]:space-y-2">
+        <div className="[&_label]:text-xs [&_input]:h-7 [&_button]:h-7 [&_.space-y-4]:space-y-3 [&_.space-y-3]:space-y-3 space-y-4">
           <TransferBetweenAccounts />
         </div>
       </DialogContent>

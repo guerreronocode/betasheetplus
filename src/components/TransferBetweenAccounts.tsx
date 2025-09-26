@@ -265,7 +265,7 @@ const TransferBetweenAccounts = () => {
 
         <Button 
           type="submit" 
-          className="w-full bg-blue-600 hover:bg-blue-700 h-8" 
+          className="w-full bg-blue-600 hover:bg-blue-700 h-8 mt-4" 
           disabled={isTransferring || bankAccounts.length < 2}
         >
           {isTransferring ? 'Transferindo...' : 'Realizar Transferência'}
