@@ -12,24 +12,26 @@ interface BankStatementModalProps {
 const BankStatementModal = ({ open, onOpenChange }: BankStatementModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl">
-        <DialogHeader>
-          <DialogTitle>Extrato Bancário</DialogTitle>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="text-lg">Extrato Bancário</DialogTitle>
         </DialogHeader>
-        <Tabs defaultValue="upload" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="upload">Upload de Extrato</TabsTrigger>
-            <TabsTrigger value="history">Histórico de Uploads</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="upload" className="mt-4">
-            <BankStatementUpload />
-          </TabsContent>
-          
-          <TabsContent value="history" className="mt-4">
-            <BankStatementHistory />
-          </TabsContent>
-        </Tabs>
+        <div className="[&_label]:text-xs [&_input]:h-8 [&_button]:h-8 [&_.space-y-4]:space-y-3">
+          <Tabs defaultValue="upload" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 h-8">
+              <TabsTrigger value="upload" className="text-xs">Upload</TabsTrigger>
+              <TabsTrigger value="history" className="text-xs">Histórico</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="upload" className="mt-3">
+              <BankStatementUpload />
+            </TabsContent>
+            
+            <TabsContent value="history" className="mt-3">
+              <BankStatementHistory />
+            </TabsContent>
+          </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
   );

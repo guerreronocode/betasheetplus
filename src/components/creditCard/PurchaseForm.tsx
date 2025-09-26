@@ -96,54 +96,47 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
   };
 
   return (
-    <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Nova Compra</CardTitle>
-        <Button variant="ghost" size="sm" onClick={onClose}>
-          <X className="h-4 w-4" />
-        </Button>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="purchase_date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Data da Compra</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+    <div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+          <FormField
+            control={form.control}
+            name="purchase_date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs">Data da Compra</FormLabel>
+                <FormControl>
+                  <Input type="date" className="h-8" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-            <FormField
-              control={form.control}
-              name="credit_card_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cartão de Crédito</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o cartão" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {creditCards.map((card) => (
-                        <SelectItem key={card.id} value={card.id}>
-                          {card.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <FormField
+            control={form.control}
+            name="credit_card_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-xs">Cartão de Crédito</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger className="h-8">
+                      <SelectValue placeholder="Selecione o cartão" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {creditCards.map((card) => (
+                      <SelectItem key={card.id} value={card.id}>
+                        {card.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
             <FormField
               control={form.control}
@@ -245,10 +238,10 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
               )}
             />
 
-            {/* Resumo dos valores */}
-            {installments > 0 && installmentValue > 0 && (
-              <div className="border rounded-lg p-4 bg-gray-50 space-y-2">
-                <h4 className="font-medium text-sm mb-2">Resumo da Compra</h4>
+          {/* Resumo dos valores */}
+          {installments > 0 && installmentValue > 0 && (
+            <div className="border rounded-lg p-3 bg-gray-50 space-y-1">
+              <h4 className="font-medium text-xs mb-1">Resumo da Compra</h4>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Valor da compra:</span>
                   <span className="font-medium">R$ {amount.toFixed(2)}</span>
@@ -286,17 +279,16 @@ export const PurchaseForm: React.FC<PurchaseFormProps> = ({ onClose }) => {
               </div>
             )}
 
-            <div className="flex gap-2 pt-4">
-              <Button type="submit" disabled={isCreating}>
-                {isCreating ? 'Registrando...' : 'Registrar Compra'}
-              </Button>
-              <Button type="button" variant="outline" onClick={onClose}>
-                Cancelar
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          <div className="flex gap-2 pt-3">
+            <Button type="submit" disabled={isCreating} className="h-8">
+              {isCreating ? 'Registrando...' : 'Registrar Compra'}
+            </Button>
+            <Button type="button" variant="outline" onClick={onClose} className="h-8">
+              Cancelar
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 };

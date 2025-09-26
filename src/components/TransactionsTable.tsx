@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -9,15 +9,20 @@ import {
 } from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2, ArrowUpCircle, ArrowDownCircle } from 'lucide-react';
+import { Pencil, ArrowUpCircle, ArrowDownCircle, ChevronUp, ChevronDown } from 'lucide-react';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { formatDateForDisplay, formatCurrency } from '@/utils/formatters';
 import EditTransactionModal from './EditTransactionModal';
+
+type SortField = 'description' | 'category' | 'date' | 'amount' | 'type';
+type SortOrder = 'asc' | 'desc';
 
 const TransactionsTable = () => {
   const { income, expenses, isLoading } = useFinancialData();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [sortField, setSortField] = useState<SortField>('date');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
   if (isLoading) {
     return (
@@ -35,10 +40,63 @@ const TransactionsTable = () => {
   }
 
   // Combine and sort all transactions
-  const allTransactions = [
-    ...income.map(item => ({ ...item, type: 'income' as const })),
-    ...expenses.map(item => ({ ...item, type: 'expense' as const }))
-  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const allTransactions = useMemo(() => {
+    const combined = [
+      ...income.map(item => ({ ...item, type: 'income' as const })),
+      ...expenses.map(item => ({ ...item, type: 'expense' as const }))
+    ];
+
+    return combined.sort((a, b) => {
+      let aValue: any = a[sortField];
+      let bValue: any = b[sortField];
+
+      // Special handling for different field types
+      if (sortField === 'date') {
+        aValue = new Date(a.date).getTime();
+        bValue = new Date(b.date).getTime();
+      } else if (sortField === 'amount') {
+        aValue = Number(a.amount);
+        bValue = Number(b.amount);
+      } else if (sortField === 'type') {
+        aValue = a.type;
+        bValue = b.type;
+      } else {
+        aValue = String(aValue).toLowerCase();
+        bValue = String(bValue).toLowerCase();
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+      } else {
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
+      }
+    });
+  }, [income, expenses, sortField, sortOrder]);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortOrder('asc');
+    }
+  };
+
+  const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
+    <TableHead 
+      className="cursor-pointer hover:bg-muted/50 text-xs h-8 px-2"
+      onClick={() => handleSort(field)}
+    >
+      <div className="flex items-center gap-1">
+        {children}
+        {sortField === field && (
+          sortOrder === 'asc' ? 
+            <ChevronUp className="w-3 h-3" /> : 
+            <ChevronDown className="w-3 h-3" />
+        )}
+      </div>
+    </TableHead>
+  );
 
   const handleEdit = (transaction: any) => {
     setSelectedTransaction(transaction);
@@ -54,62 +112,62 @@ const TransactionsTable = () => {
     <Card className="fnb-card">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead className="w-[40px] text-xs">Tipo</TableHead>
-            <TableHead className="text-xs">Descrição</TableHead>
-            <TableHead className="text-xs">Categoria</TableHead>
-            <TableHead className="text-xs">Data</TableHead>
-            <TableHead className="text-right text-xs">Valor</TableHead>
-            <TableHead className="w-[80px] text-xs">Ações</TableHead>
+          <TableRow className="h-8">
+            <SortableHeader field="type">Tipo</SortableHeader>
+            <SortableHeader field="description">Descrição</SortableHeader>
+            <SortableHeader field="category">Categoria</SortableHeader>
+            <SortableHeader field="date">Data</SortableHeader>
+            <SortableHeader field="amount">
+              <div className="text-right">Valor</div>
+            </SortableHeader>
+            <TableHead className="w-[60px] text-xs h-8 px-2">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {allTransactions.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-fnb-ink/70">
+              <TableCell colSpan={6} className="text-center py-6 text-fnb-ink/70">
                 <div>
-                  <p>Nenhuma transação encontrada</p>
-                  <p className="text-sm">Adicione sua primeira receita ou despesa!</p>
+                  <p className="text-sm">Nenhuma transação encontrada</p>
+                  <p className="text-xs">Adicione sua primeira receita ou despesa!</p>
                 </div>
               </TableCell>
             </TableRow>
           ) : (
             allTransactions.map((transaction) => (
-              <TableRow key={`${transaction.type}-${transaction.id}`}>
-                <TableCell>
+              <TableRow key={`${transaction.type}-${transaction.id}`} className="h-10">
+                <TableCell className="px-2 py-1">
                   <div className="w-fit">
                     {transaction.type === 'income' ? (
-                      <ArrowUpCircle className="w-4 h-4 text-green-500" />
+                      <ArrowUpCircle className="w-3 h-3 text-green-600" />
                     ) : (
-                      <ArrowDownCircle className="w-4 h-4 text-red-500" />
+                      <ArrowDownCircle className="w-3 h-3 text-red-600" />
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="font-medium text-fnb-ink text-sm">
+                <TableCell className="font-medium text-fnb-ink text-xs px-2 py-1">
                   {transaction.description}
                 </TableCell>
-                <TableCell className="text-fnb-ink/70 text-sm">
+                <TableCell className="text-fnb-ink/70 text-xs px-2 py-1">
                   {transaction.category}
                 </TableCell>
-                <TableCell className="text-fnb-ink/70 text-sm">
+                <TableCell className="text-fnb-ink/70 text-xs px-2 py-1">
                   {formatDateForDisplay(transaction.date)}
                 </TableCell>
-                <TableCell className={`text-right font-semibold text-sm ${
+                <TableCell className={`text-right font-semibold text-xs px-2 py-1 ${
                   transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                 </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(transaction)}
-                      className="p-1 h-8 w-8"
-                    >
-                      <Pencil className="w-3 h-3" />
-                    </Button>
-                  </div>
+                <TableCell className="px-2 py-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleEdit(transaction)}
+                    className="h-6 w-6 p-0"
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))
