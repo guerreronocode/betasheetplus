@@ -143,20 +143,35 @@ const TransactionsTable = () => {
 
   return (
     <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] overflow-hidden rounded-xl">
-      <div className="flex-1 overflow-auto fnb-scrollbar">
+      {/* Cabeçalho fixo */}
+      <div className="bg-white border-b">
         <Table>
-          <TableHeader className="sticky top-0 bg-white z-10 rounded-t-xl">
-            <TableRow className="h-10 border-b">
-              <SortableHeader field="type">Tipo</SortableHeader>
-              <SortableHeader field="description">Descrição</SortableHeader>
-              <SortableHeader field="category">Categoria</SortableHeader>
-              <SortableHeader field="date">Data</SortableHeader>
+          <TableHeader>
+            <TableRow className="h-10">
+              <SortableHeader field="type">
+                <div className="w-[60px]">Tipo</div>
+              </SortableHeader>
+              <SortableHeader field="description">
+                <div className="min-w-[200px]">Descrição</div>
+              </SortableHeader>
+              <SortableHeader field="category">
+                <div className="min-w-[150px]">Categoria</div>
+              </SortableHeader>
+              <SortableHeader field="date">
+                <div className="w-[100px]">Data</div>
+              </SortableHeader>
               <SortableHeader field="amount">
-                <div className="text-right">Valor</div>
+                <div className="w-[120px] text-right">Valor</div>
               </SortableHeader>
               <TableHead className="w-[70px] text-sm h-10 px-3 text-center">Ações</TableHead>
             </TableRow>
           </TableHeader>
+        </Table>
+      </div>
+      
+      {/* Corpo scrollável */}
+      <div className="flex-1 overflow-auto fnb-scrollbar">
+        <Table>
           <TableBody>
             {paginatedTransactions.length === 0 ? (
               <TableRow>
@@ -170,7 +185,7 @@ const TransactionsTable = () => {
             ) : (
               paginatedTransactions.map((transaction) => (
                 <TableRow key={`${transaction.type}-${transaction.id}`} className="h-12">
-                  <TableCell className="px-3 py-2">
+                  <TableCell className="px-3 py-2 w-[60px]">
                     <div className="w-fit">
                       {transaction.type === 'income' ? (
                         <ArrowUpCircle className="w-4 h-4 text-green-600" />
@@ -179,16 +194,16 @@ const TransactionsTable = () => {
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="font-medium text-fnb-ink text-sm px-3 py-2">
+                  <TableCell className="font-medium text-fnb-ink text-sm px-3 py-2 min-w-[200px]">
                     {transaction.description}
                   </TableCell>
-                  <TableCell className="text-fnb-ink/70 text-sm px-3 py-2">
+                  <TableCell className="text-fnb-ink/70 text-sm px-3 py-2 min-w-[150px]">
                     {transaction.category}
                   </TableCell>
-                  <TableCell className="text-fnb-ink/70 text-sm px-3 py-2">
+                  <TableCell className="text-fnb-ink/70 text-sm px-3 py-2 w-[100px]">
                     {formatDateForDisplay(transaction.date)}
                   </TableCell>
-                  <TableCell className={`text-right font-semibold text-sm px-3 py-2 ${
+                  <TableCell className={`text-right font-semibold text-sm px-3 py-2 w-[120px] ${
                     transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                   }`}>
                     {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
