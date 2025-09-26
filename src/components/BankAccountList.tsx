@@ -88,7 +88,7 @@ const BankAccountList: React.FC<BankAccountListProps> = ({ bankAccounts }) => {
                           <>
                             <div className="flex items-center justify-end space-x-1">
                               <span className="text-xs text-gray-600">Reservado:</span>
-                              <span className="text-xs text-red-600 font-medium">
+                              <span className="text-xs text-blue-600 font-medium">
                                 {totalReserved.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
                               </span>
                             </div>

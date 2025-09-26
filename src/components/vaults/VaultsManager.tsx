@@ -103,23 +103,23 @@ const VaultsManager: React.FC<VaultsManagerProps> = ({
         />
       )}
 
-      {editingVault && (
-        <VaultForm
-          bankAccountId={bankAccountId}
-          bankAccountBalance={bankAccountBalance}
-          totalReserved={totalReserved}
-          onSubmit={handleUpdateVault}
-          onCancel={handleCancel}
-          isSaving={isUpdatingVault}
-          initialData={editingVault}
-        />
-      )}
-
       <VaultsList
         vaults={vaults}
         onEdit={handleEditVault}
         onDelete={handleDeleteVault}
         isDeleting={isDeletingVault}
+        editingVault={editingVault}
+        editForm={editingVault ? (
+          <VaultForm
+            bankAccountId={bankAccountId}
+            bankAccountBalance={bankAccountBalance}
+            totalReserved={totalReserved}
+            onSubmit={handleUpdateVault}
+            onCancel={handleCancel}
+            isSaving={isUpdatingVault}
+            initialData={editingVault}
+          />
+        ) : undefined}
       />
 
       <VaultDeleteDialog
