@@ -225,14 +225,14 @@ const TransactionsTable = () => {
     <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] rounded-xl overflow-hidden">
       {/* Header fixo */}
       <div className="border-b bg-white/95 backdrop-blur-sm">
-        <table className="w-full table-fixed" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
+        <table className="w-full" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
           <colgroup>
-            <col style={{ width: columnWidths.type }} />
-            <col style={{ width: columnWidths.description }} />
-            <col style={{ width: columnWidths.category }} />
-            <col style={{ width: columnWidths.date }} />
-            <col style={{ width: columnWidths.amount }} />
-            <col style={{ width: columnWidths.actions }} />
+            <col style={{ width: `${columnWidths.type}px` }} />
+            <col style={{ width: `${columnWidths.description}px` }} />
+            <col style={{ width: `${columnWidths.category}px` }} />
+            <col style={{ width: `${columnWidths.date}px` }} />
+            <col style={{ width: `${columnWidths.amount}px` }} />
+            <col style={{ width: `${columnWidths.actions}px` }} />
           </colgroup>
           <thead>
             <tr className="h-10 border-b">
@@ -263,14 +263,14 @@ const TransactionsTable = () => {
 
       {/* Corpo da tabela com scroll customizado */}
       <div className="flex-1 overflow-auto fnb-scrollbar-custom" ref={tableRef}>
-        <table className="w-full table-fixed" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
+        <table className="w-full" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
           <colgroup>
-            <col style={{ width: columnWidths.type }} />
-            <col style={{ width: columnWidths.description }} />
-            <col style={{ width: columnWidths.category }} />
-            <col style={{ width: columnWidths.date }} />
-            <col style={{ width: columnWidths.amount }} />
-            <col style={{ width: columnWidths.actions }} />
+            <col style={{ width: `${columnWidths.type}px` }} />
+            <col style={{ width: `${columnWidths.description}px` }} />
+            <col style={{ width: `${columnWidths.category}px` }} />
+            <col style={{ width: `${columnWidths.date}px` }} />
+            <col style={{ width: `${columnWidths.amount}px` }} />
+            <col style={{ width: `${columnWidths.actions}px` }} />
           </colgroup>
           <tbody>
             {paginatedTransactions.length === 0 ? (
