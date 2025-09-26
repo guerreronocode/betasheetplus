@@ -177,7 +177,6 @@ const TransactionsTable = () => {
         className={`relative cursor-pointer hover:bg-muted/50 text-sm h-10 px-3 border-r border-border/50 ${
           align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left'
         }`}
-        style={{ width: columnWidths[column] }}
         onClick={() => handleSort(field)}
       >
         <div className="flex items-center gap-1 pr-2">
@@ -212,7 +211,15 @@ const TransactionsTable = () => {
     <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] rounded-xl overflow-hidden">
       {/* Header fixo */}
       <div className="border-b bg-white/95 backdrop-blur-sm">
-        <table className="w-full" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
+        <table className="w-full table-fixed" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
+          <colgroup>
+            <col style={{ width: columnWidths.type }} />
+            <col style={{ width: columnWidths.description }} />
+            <col style={{ width: columnWidths.category }} />
+            <col style={{ width: columnWidths.date }} />
+            <col style={{ width: columnWidths.amount }} />
+            <col style={{ width: columnWidths.actions }} />
+          </colgroup>
           <thead>
             <tr className="h-10 border-b">
               <ResizableHeader field="type" column="type" align="center">
@@ -232,7 +239,6 @@ const TransactionsTable = () => {
               </ResizableHeader>
               <th 
                 className="text-center px-3 py-2 text-sm font-medium border-r border-border/50"
-                style={{ width: columnWidths.actions }}
               >
                 Ações
               </th>
@@ -243,14 +249,21 @@ const TransactionsTable = () => {
 
       {/* Corpo da tabela com scroll customizado */}
       <div className="flex-1 overflow-auto fnb-scrollbar-custom" ref={tableRef}>
-        <table className="w-full" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
+        <table className="w-full table-fixed" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
+          <colgroup>
+            <col style={{ width: columnWidths.type }} />
+            <col style={{ width: columnWidths.description }} />
+            <col style={{ width: columnWidths.category }} />
+            <col style={{ width: columnWidths.date }} />
+            <col style={{ width: columnWidths.amount }} />
+            <col style={{ width: columnWidths.actions }} />
+          </colgroup>
           <tbody>
             {paginatedTransactions.length === 0 ? (
               <tr>
                 <td 
                   colSpan={6} 
                   className="text-center py-6 text-fnb-ink/70"
-                  style={{ width: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}
                 >
                   <div>
                     <p className="text-sm">Nenhuma transação encontrada</p>
@@ -261,10 +274,7 @@ const TransactionsTable = () => {
             ) : (
               paginatedTransactions.map((transaction) => (
                 <tr key={`${transaction.type}-${transaction.id}`} className="h-12 border-b hover:bg-gray-50/50">
-                  <td 
-                    className="px-3 py-2 border-r border-border/20"
-                    style={{ width: columnWidths.type }}
-                  >
+                  <td className="px-3 py-2 border-r border-border/20">
                     <div className="flex justify-center">
                       {transaction.type === 'income' ? (
                         <ArrowUpCircle className="w-4 h-4 text-green-600" />
@@ -275,39 +285,30 @@ const TransactionsTable = () => {
                   </td>
                   <td 
                     className="font-medium text-fnb-ink text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
-                    style={{ width: columnWidths.description }}
                     title={transaction.description}
                   >
                     <div className="truncate">{transaction.description}</div>
                   </td>
                   <td 
                     className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
-                    style={{ width: columnWidths.category }}
                     title={transaction.category}
                   >
                     <div className="truncate">{transaction.category}</div>
                   </td>
-                  <td 
-                    className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
-                    style={{ width: columnWidths.date }}
-                  >
+                  <td className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden">
                     <div className="truncate">{formatDateForDisplay(transaction.date)}</div>
                   </td>
                   <td 
                     className={`text-right font-semibold text-sm px-3 py-2 border-r border-border/20 overflow-hidden ${
                       transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                     }`}
-                    style={{ width: columnWidths.amount }}
                     title={`${transaction.type === 'income' ? '+' : '-'}${formatCurrency(transaction.amount)}`}
                   >
                     <div className="truncate">
                       {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                     </div>
                   </td>
-                  <td 
-                    className="px-3 py-2 text-center"
-                    style={{ width: columnWidths.actions }}
-                  >
+                  <td className="px-3 py-2 text-center">
                     <Button
                       variant="ghost"
                       size="sm"
