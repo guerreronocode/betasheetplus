@@ -4,6 +4,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Layout } from '@/components/Layout';
 import { Plus, ArrowRightLeft, Upload, CalendarIcon, Clock, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -40,7 +41,7 @@ const Lancamentos = () => {
   console.log('Lancamentos - About to render...');
 
   return (
-    <div className="min-h-screen bg-background">
+    <Layout>
       <div className="container mx-auto px-4 py-6">
         <div className="mb-4">
           <h1 className="text-2xl font-bold text-fnb-ink mb-1">Lançamentos</h1>
@@ -58,11 +59,10 @@ const Lancamentos = () => {
                     setAddTransactionOpen(true);
                   }}
                   size="sm"
-                  className="h-8 px-3"
+                  className="h-8 w-8 p-0"
                   title="Adicionar Transação"
                 >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Transação
+                  <Plus className="w-4 h-4" />
                 </Button>
                 
                 <Button 
@@ -72,44 +72,40 @@ const Lancamentos = () => {
                   }}
                   size="sm"
                   variant="outline"
-                  className="h-8 px-3"
+                  className="h-8 w-8 p-0"
                   title="Compra no Cartão"
                 >
-                  <CreditCard className="w-3 h-3 mr-1" />
-                  Cartão
+                  <CreditCard className="w-4 h-4" />
                 </Button>
                 
                 <Button 
                   variant="outline"
                   onClick={() => setTransferOpen(true)}
                   size="sm"
-                  className="h-8 px-3"
+                  className="h-8 w-8 p-0"
                   title="Transferência"
                 >
-                  <ArrowRightLeft className="w-3 h-3 mr-1" />
-                  Transferir
+                  <ArrowRightLeft className="w-4 h-4" />
                 </Button>
                 
                 <Button 
                   variant="outline"
                   onClick={() => setBankStatementOpen(true)}
                   size="sm"
-                  className="h-8 px-3"
+                  className="h-8 w-8 p-0"
                   title="Extrato Bancário"
                 >
-                  <Upload className="w-3 h-3 mr-1" />
-                  Extrato
+                  <Upload className="w-4 h-4" />
                 </Button>
                 
                 <Button 
                   variant="outline"
                   onClick={() => navigate('/lancamentos/pendencias')}
                   size="sm"
-                  className="h-8 px-3"
+                  className="h-8 w-8 p-0"
                   title="Pendências"
                 >
-                  <Clock className="w-3 h-3 mr-1" />
-                  Pendências
+                  <Clock className="w-4 h-4" />
                 </Button>
               </div>
 
@@ -258,7 +254,7 @@ const Lancamentos = () => {
           </Dialog>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 
