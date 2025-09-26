@@ -225,7 +225,7 @@ const TransactionsTable = () => {
     <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] rounded-xl overflow-hidden">
       {/* Header fixo */}
       <div className="border-b bg-white/95 backdrop-blur-sm">
-        <table className="w-full" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
+        <table className="w-full table-fixed" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
           <colgroup>
             <col style={{ width: `${columnWidths.type}px` }} />
             <col style={{ width: `${columnWidths.description}px` }} />
@@ -263,7 +263,7 @@ const TransactionsTable = () => {
 
       {/* Corpo da tabela com scroll customizado */}
       <div className="flex-1 overflow-auto fnb-scrollbar-custom" ref={tableRef}>
-        <table className="w-full" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
+        <table className="w-full table-fixed" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
           <colgroup>
             <col style={{ width: `${columnWidths.type}px` }} />
             <col style={{ width: `${columnWidths.description}px` }} />
