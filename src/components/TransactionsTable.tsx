@@ -143,7 +143,7 @@ const TransactionsTable = () => {
 
   return (
     <Card className="fnb-card flex flex-col h-[calc(100vh-200px)]">
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto fnb-scrollbar">
         <Table>
           <TableHeader>
             <TableRow className="h-10">
@@ -211,66 +211,65 @@ const TransactionsTable = () => {
       </div>
       
       {/* Pagination Controls - Always visible */}
-      <div className="flex items-center justify-between px-4 py-3 border-t bg-background">
+      <div className="flex items-center justify-between px-3 py-2 border-t text-xs">
         <div className="flex items-center gap-2">
-          <p className="text-sm text-fnb-ink/70">
+          <p className="text-fnb-ink/70">
             {allTransactions.length > 0 ? (
-              <>Mostrando {startIndex + 1} a {Math.min(endIndex, allTransactions.length)} de {allTransactions.length} transações</>
+              <>Mostrando {startIndex + 1} a {Math.min(endIndex, allTransactions.length)} de {allTransactions.length}</>
             ) : (
-              <>0 transações encontradas</>
+              <>0 transações</>
             )}
           </p>
         </div>
-        {totalPages > 1 && (
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            
-            <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNumber;
-                if (totalPages <= 5) {
-                  pageNumber = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNumber = i + 1;
-                } else if (currentPage >= totalPages - 2) {
-                  pageNumber = totalPages - 4 + i;
-                } else {
-                  pageNumber = currentPage - 2 + i;
-                }
-                
-                return (
-                  <Button
-                    key={pageNumber}
-                    variant={currentPage === pageNumber ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setCurrentPage(pageNumber)}
-                    className="h-8 w-8 p-0 text-xs"
-                  >
-                    {pageNumber}
-                  </Button>
-                );
-              })}
-            </div>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="h-8 w-8 p-0"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1 || allTransactions.length === 0}
+            className="h-7 w-7 p-0"
+          >
+            <ChevronLeft className="w-3 h-3" />
+          </Button>
+          
+          <div className="flex items-center gap-1">
+            {Array.from({ length: Math.max(1, Math.min(5, totalPages)) }, (_, i) => {
+              let pageNumber;
+              if (totalPages <= 5) {
+                pageNumber = i + 1;
+              } else if (currentPage <= 3) {
+                pageNumber = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNumber = totalPages - 4 + i;
+              } else {
+                pageNumber = currentPage - 2 + i;
+              }
+              
+              return (
+                <Button
+                  key={pageNumber}
+                  variant={currentPage === pageNumber ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCurrentPage(pageNumber)}
+                  disabled={allTransactions.length === 0}
+                  className="h-7 w-7 p-0 text-xs"
+                >
+                  {pageNumber}
+                </Button>
+              );
+            })}
           </div>
-        )}
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages || allTransactions.length === 0}
+            className="h-7 w-7 p-0"
+          >
+            <ChevronRight className="w-3 h-3" />
+          </Button>
+        </div>
       </div>
       
       <EditTransactionModal

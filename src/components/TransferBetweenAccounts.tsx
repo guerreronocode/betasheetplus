@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
-import { ArrowRightLeft, DollarSign, Calendar } from 'lucide-react';
+import { ArrowRightLeft, DollarSign, Calendar, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -21,7 +22,8 @@ const TransferBetweenAccounts = () => {
     toAccountId: '',
     amount: '',
     description: '',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    isRecurring: false
   });
 
   const handleTransfer = async (e: React.FormEvent) => {
@@ -146,7 +148,8 @@ const TransferBetweenAccounts = () => {
         toAccountId: '',
         amount: '',
         description: '',
-        date: new Date().toISOString().split('T')[0]
+        date: new Date().toISOString().split('T')[0],
+        isRecurring: false
       });
 
       // Recarregar dados
@@ -246,6 +249,22 @@ const TransferBetweenAccounts = () => {
             placeholder="Ex: Depósito na corretora"
             className="h-8"
           />
+        </div>
+
+        <div>
+          <Label htmlFor="transfer-recurring" className="text-xs">Opções</Label>
+          <div className="flex items-center space-x-2 py-2">
+            <Checkbox 
+              id="transfer-recurring"
+              checked={transferForm.isRecurring}
+              onCheckedChange={(checked) => setTransferForm(prev => ({ ...prev, isRecurring: !!checked }))}
+              className="fnb-checkbox-circular"
+            />
+            <Label htmlFor="transfer-recurring" className="text-xs flex items-center gap-1">
+              <RefreshCw className="w-3 h-3" />
+              Transferência recorrente
+            </Label>
+          </div>
         </div>
 
         <div>

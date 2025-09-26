@@ -155,6 +155,7 @@ const UnifiedTransactionForm = () => {
                   id="income-recurring"
                   checked={incomeForm.isRecurring}
                   onCheckedChange={(checked) => handleIncomeChange({ isRecurring: !!checked })}
+                  className="fnb-checkbox-circular"
                 />
                 <Label htmlFor="income-recurring" className="text-xs flex items-center gap-1">
                   <RefreshCw className="w-3 h-3" />
@@ -266,6 +267,7 @@ const UnifiedTransactionForm = () => {
                   id="expense-recurring"
                   checked={expenseForm.isRecurring}
                   onCheckedChange={(checked) => handleExpenseChange({ isRecurring: !!checked })}
+                  className="fnb-checkbox-circular"
                 />
                 <Label htmlFor="expense-recurring" className="text-xs flex items-center gap-1">
                   <RefreshCw className="w-3 h-3" />

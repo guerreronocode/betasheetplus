@@ -178,4 +178,29 @@
   .fnb-cream {
     background-color: hsl(var(--fnb-cream));
   }
+
+  /* Scrollbar customizada */
+  .fnb-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .fnb-scrollbar::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+  
+  .fnb-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+  
+  .fnb-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+
+  /* Checkbox circular para recorrência */
+  .fnb-checkbox-circular {
+    border-radius: 50%;
+  }
 }
