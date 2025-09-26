@@ -131,7 +131,7 @@ const TransactionsTable = () => {
   const handleResize = (column: keyof typeof columnWidths, newWidth: number) => {
     // Tamanhos mínimos baseados no conteúdo dos títulos das colunas
     const minWidths = {
-      type: 60,      // "Tipo"
+      type: 60,      // "Tipo"  
       description: 100, // "Descrição"
       category: 100,    // "Categoria"
       date: 80,         // "Data"
@@ -139,11 +139,12 @@ const TransactionsTable = () => {
       actions: 70       // "Ações"
     };
     
-    const constrainedWidth = Math.max(minWidths[column], newWidth);
+    // Aplica apenas o width mínimo, cada coluna é independente
+    const finalWidth = Math.max(minWidths[column], newWidth);
     
     setColumnWidths(prev => ({
       ...prev,
-      [column]: constrainedWidth
+      [column]: finalWidth
     }));
   };
 
