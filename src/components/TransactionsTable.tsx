@@ -192,6 +192,7 @@ const TransactionsTable = () => {
           align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left'
         }`}
         onClick={() => handleSort(field)}
+        style={{ width: `${columnWidths[column]}px` }}
       >
         <div className="flex items-center gap-1 pr-2">
           {children}
@@ -221,11 +222,19 @@ const TransactionsTable = () => {
     setSelectedTransaction(null);
   };
 
+  const totalWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
+
   return (
     <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] rounded-xl overflow-hidden">
-      {/* Header fixo */}
-      <div className="border-b bg-white/95 backdrop-blur-sm">
-        <table className="w-full table-fixed" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
+      {/* Container com scroll horizontal */}
+      <div className="flex-1 overflow-auto fnb-scrollbar-custom" ref={tableRef}>
+        <table 
+          className="table-fixed border-collapse"
+          style={{ 
+            width: `${totalWidth}px`,
+            minWidth: `${totalWidth}px`
+          }}
+        >
           <colgroup>
             <col style={{ width: `${columnWidths.type}px` }} />
             <col style={{ width: `${columnWidths.description}px` }} />
@@ -234,7 +243,9 @@ const TransactionsTable = () => {
             <col style={{ width: `${columnWidths.amount}px` }} />
             <col style={{ width: `${columnWidths.actions}px` }} />
           </colgroup>
-          <thead>
+          
+          {/* Header */}
+          <thead className="sticky top-0 bg-white/95 backdrop-blur-sm border-b z-10">
             <tr className="h-10 border-b">
               <ResizableHeader field="type" column="type" align="center">
                 <span className="text-sm font-medium">Tipo</span>
@@ -253,31 +264,21 @@ const TransactionsTable = () => {
               </ResizableHeader>
               <th 
                 className="text-center px-3 py-2 text-sm font-medium border-r border-border/50"
+                style={{ width: `${columnWidths.actions}px` }}
               >
                 Ações
               </th>
             </tr>
           </thead>
-        </table>
-      </div>
 
-      {/* Corpo da tabela com scroll customizado */}
-      <div className="flex-1 overflow-auto fnb-scrollbar-custom" ref={tableRef}>
-        <table className="w-full table-fixed" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
-          <colgroup>
-            <col style={{ width: `${columnWidths.type}px` }} />
-            <col style={{ width: `${columnWidths.description}px` }} />
-            <col style={{ width: `${columnWidths.category}px` }} />
-            <col style={{ width: `${columnWidths.date}px` }} />
-            <col style={{ width: `${columnWidths.amount}px` }} />
-            <col style={{ width: `${columnWidths.actions}px` }} />
-          </colgroup>
+          {/* Body */}
           <tbody>
             {paginatedTransactions.length === 0 ? (
               <tr>
                 <td 
                   colSpan={6} 
                   className="text-center py-6 text-fnb-ink/70"
+                  style={{ width: `${totalWidth}px` }}
                 >
                   <div>
                     <p className="text-sm">Nenhuma transação encontrada</p>
@@ -288,7 +289,10 @@ const TransactionsTable = () => {
             ) : (
               paginatedTransactions.map((transaction) => (
                 <tr key={`${transaction.type}-${transaction.id}`} className="h-12 border-b hover:bg-gray-50/50">
-                  <td className="px-3 py-2 border-r border-border/20">
+                  <td 
+                    className="px-3 py-2 border-r border-border/20"
+                    style={{ width: `${columnWidths.type}px` }}
+                  >
                     <div className="flex justify-center">
                       {transaction.type === 'income' ? (
                         <ArrowUpCircle className="w-4 h-4 text-green-600" />
@@ -300,16 +304,21 @@ const TransactionsTable = () => {
                   <td 
                     className="font-medium text-fnb-ink text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
                     title={transaction.description}
+                    style={{ width: `${columnWidths.description}px` }}
                   >
                     <div className="truncate">{transaction.description}</div>
                   </td>
                   <td 
                     className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
                     title={transaction.category}
+                    style={{ width: `${columnWidths.category}px` }}
                   >
                     <div className="truncate">{transaction.category}</div>
                   </td>
-                  <td className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden">
+                  <td 
+                    className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
+                    style={{ width: `${columnWidths.date}px` }}
+                  >
                     <div className="truncate">{formatDateForDisplay(transaction.date)}</div>
                   </td>
                   <td 
@@ -317,12 +326,16 @@ const TransactionsTable = () => {
                       transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                     }`}
                     title={`${transaction.type === 'income' ? '+' : '-'}${formatCurrency(transaction.amount)}`}
+                    style={{ width: `${columnWidths.amount}px` }}
                   >
                     <div className="truncate">
                       {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                     </div>
                   </td>
-                  <td className="px-3 py-2 text-center">
+                  <td 
+                    className="px-3 py-2 text-center"
+                    style={{ width: `${columnWidths.actions}px` }}
+                  >
                     <Button
                       variant="ghost"
                       size="sm"
