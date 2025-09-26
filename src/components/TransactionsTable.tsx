@@ -115,9 +115,9 @@ const TransactionsTable = () => {
     }
   };
 
-  const SortableHeader = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
-    <TableHead 
-      className="cursor-pointer hover:bg-muted/50 text-sm h-10 px-3"
+  const SortableHeader = ({ field, children, className = "" }: { field: SortField; children: React.ReactNode; className?: string }) => (
+    <th 
+      className={`cursor-pointer hover:bg-muted/50 text-sm h-10 px-3 ${className}`}
       onClick={() => handleSort(field)}
     >
       <div className="flex items-center gap-1">
@@ -128,7 +128,7 @@ const TransactionsTable = () => {
             <ChevronDown className="w-4 h-4" />
         )}
       </div>
-    </TableHead>
+    </th>
   );
 
   const handleEdit = (transaction: any) => {
@@ -142,35 +142,50 @@ const TransactionsTable = () => {
   };
 
   return (
-    <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] rounded-xl">
-      <div className="flex-1 overflow-auto fnb-scrollbar">
-        <Table>
-          <TableHeader className="sticky top-0 bg-white z-10">
-            <TableRow className="h-10 border-b">
-              <SortableHeader field="type">Tipo</SortableHeader>
-              <SortableHeader field="description">Descrição</SortableHeader>
-              <SortableHeader field="category">Categoria</SortableHeader>
-              <SortableHeader field="date">Data</SortableHeader>
-              <SortableHeader field="amount">
-                <div className="text-right">Valor</div>
+    <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] rounded-xl overflow-hidden">
+      {/* Cabeçalho fixo com parallax */}
+      <div className="bg-white border-b z-10 shadow-sm">
+        <table className="w-full">
+          <thead>
+            <tr className="h-10 border-b">
+              <SortableHeader field="type" className="w-[60px]">
+                <span className="text-left text-sm font-medium">Tipo</span>
               </SortableHeader>
-              <TableHead className="w-[70px] text-sm h-10 px-3 text-center">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+              <SortableHeader field="description" className="min-w-[200px]">
+                <span className="text-left text-sm font-medium">Descrição</span>
+              </SortableHeader>
+              <SortableHeader field="category" className="min-w-[150px]">
+                <span className="text-left text-sm font-medium">Categoria</span>
+              </SortableHeader>
+              <SortableHeader field="date" className="w-[100px]">
+                <span className="text-left text-sm font-medium">Data</span>
+              </SortableHeader>
+              <SortableHeader field="amount" className="w-[120px]">
+                <span className="text-right text-sm font-medium">Valor</span>
+              </SortableHeader>
+              <th className="text-center px-3 py-2 w-[70px] text-sm font-medium">Ações</th>
+            </tr>
+          </thead>
+        </table>
+      </div>
+
+      {/* Corpo scrollável */}
+      <div className="flex-1 overflow-auto fnb-scrollbar">
+        <table className="w-full">
+          <tbody>
             {paginatedTransactions.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-6 text-fnb-ink/70">
+              <tr>
+                <td colSpan={6} className="text-center py-6 text-fnb-ink/70">
                   <div>
                     <p className="text-sm">Nenhuma transação encontrada</p>
                     <p className="text-xs">Adicione sua primeira receita ou despesa!</p>
                   </div>
-                </TableCell>
-              </TableRow>
+                </td>
+              </tr>
             ) : (
               paginatedTransactions.map((transaction) => (
-                <TableRow key={`${transaction.type}-${transaction.id}`} className="h-12">
-                  <TableCell className="px-3 py-2">
+                <tr key={`${transaction.type}-${transaction.id}`} className="h-12 border-b hover:bg-gray-50/50">
+                  <td className="px-3 py-2 w-[60px]">
                     <div className="w-fit">
                       {transaction.type === 'income' ? (
                         <ArrowUpCircle className="w-4 h-4 text-green-600" />
@@ -178,22 +193,22 @@ const TransactionsTable = () => {
                         <ArrowDownCircle className="w-4 h-4 text-red-600" />
                       )}
                     </div>
-                  </TableCell>
-                  <TableCell className="font-medium text-fnb-ink text-sm px-3 py-2">
+                  </td>
+                  <td className="font-medium text-fnb-ink text-sm px-3 py-2 min-w-[200px]">
                     {transaction.description}
-                  </TableCell>
-                  <TableCell className="text-fnb-ink/70 text-sm px-3 py-2">
+                  </td>
+                  <td className="text-fnb-ink/70 text-sm px-3 py-2 min-w-[150px]">
                     {transaction.category}
-                  </TableCell>
-                  <TableCell className="text-fnb-ink/70 text-sm px-3 py-2">
+                  </td>
+                  <td className="text-fnb-ink/70 text-sm px-3 py-2 w-[100px]">
                     {formatDateForDisplay(transaction.date)}
-                  </TableCell>
-                  <TableCell className={`text-right font-semibold text-sm px-3 py-2 ${
+                  </td>
+                  <td className={`text-right font-semibold text-sm px-3 py-2 w-[120px] ${
                     transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                   }`}>
                     {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                  </TableCell>
-                  <TableCell className="px-3 py-2 w-[70px] text-center">
+                  </td>
+                  <td className="px-3 py-2 w-[70px] text-center">
                     <Button
                       variant="ghost"
                       size="sm"
@@ -202,12 +217,12 @@ const TransactionsTable = () => {
                     >
                       <Pencil className="w-4 h-4" />
                     </Button>
-                  </TableCell>
-                </TableRow>
+                  </td>
+                </tr>
               ))
             )}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
       </div>
       
       {/* Pagination Controls - Always visible */}
