@@ -27,8 +27,6 @@ export const EditCreditCardDialog: React.FC<EditCreditCardDialogProps> = ({
     register,
     handleSubmit,
     reset,
-    setValue,
-    watch,
     formState: { errors }
   } = useForm<CreditCardFormData>({
     resolver: zodResolver(creditCardSchema),
@@ -37,11 +35,8 @@ export const EditCreditCardDialog: React.FC<EditCreditCardDialogProps> = ({
       credit_limit: card.credit_limit,
       closing_day: card.closing_day,
       due_day: card.due_day,
-      include_in_patrimony: card.include_in_patrimony,
     } : undefined,
   });
-
-  const includeInPatrimony = watch('include_in_patrimony');
 
   const onSubmit = (data: CreditCardFormData) => {
     if (!card) return;
@@ -118,16 +113,6 @@ export const EditCreditCardDialog: React.FC<EditCreditCardDialogProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="edit-include_in_patrimony"
-              checked={includeInPatrimony}
-              onCheckedChange={(checked) => setValue('include_in_patrimony', checked as boolean)}
-            />
-            <Label htmlFor="edit-include_in_patrimony" className="text-sm font-normal">
-              Incluir no cálculo do patrimônio
-            </Label>
-          </div>
 
           <div className="flex gap-2 pt-4">
             <Button type="submit" disabled={isUpdating}>

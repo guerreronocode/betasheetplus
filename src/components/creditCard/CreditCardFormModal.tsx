@@ -29,17 +29,10 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
     register,
     handleSubmit,
     reset,
-    setValue,
-    watch,
     formState: { errors }
   } = useForm<CreditCardFormData>({
-    resolver: zodResolver(creditCardSchema),
-    defaultValues: {
-      include_in_patrimony: false
-    }
+    resolver: zodResolver(creditCardSchema)
   });
-
-  const includeInPatrimony = watch('include_in_patrimony');
 
   const onSubmit = (data: CreditCardFormData) => {
     createCreditCard(data);
@@ -117,21 +110,6 @@ export const CreditCardFormModal: React.FC<CreditCardFormModalProps> = ({
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="include_in_patrimony"
-              checked={includeInPatrimony}
-              onCheckedChange={(checked) => setValue('include_in_patrimony', checked as boolean)}
-            />
-            <Label htmlFor="include_in_patrimony" className="text-xs font-normal">
-              Incluir no cálculo do patrimônio
-            </Label>
-          </div>
-          {includeInPatrimony && (
-            <p className="text-xs text-muted-foreground ml-6">
-              O limite disponível será considerado como ativo no seu patrimônio líquido.
-            </p>
-          )}
 
           <div className="flex gap-2 pt-2">
             <Button

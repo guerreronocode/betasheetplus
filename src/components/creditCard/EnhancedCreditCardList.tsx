@@ -71,7 +71,17 @@ export const EnhancedCreditCardList: React.FC = () => {
   };
 
   const setViewType = (cardId: string, viewType: 'bills' | 'projection') => {
-    setCardViewType(prev => ({ ...prev, [cardId]: viewType }));
+    setCardViewType(prev => {
+      const current = prev[cardId];
+      // Se clicou no mesmo tipo que já está ativo, remove (fecha)
+      if (current === viewType) {
+        const newViewType = { ...prev };
+        delete newViewType[cardId];
+        return newViewType;
+      }
+      // Senão, define o novo tipo
+      return { ...prev, [cardId]: viewType };
+    });
   };
 
   if (isLoading) {
