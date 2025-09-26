@@ -17,6 +17,7 @@ import GoalsDashboard from "./pages/GoalsDashboard";
 import InvestmentDashboard from "./pages/InvestmentDashboard";
 import BankAccountsPage from "./pages/BankAccountsPage";
 import CreditCards from "./pages/CreditCards";
+import Lancamentos from "./pages/Lancamentos";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -75,6 +76,11 @@ const App: React.FC = () => {
               <Route path="/credit-cards/*" element={
                 <ProtectedRoute>
                   <CreditCards />
+                </ProtectedRoute>
+              } />
+              <Route path="/lancamentos" element={
+                <ProtectedRoute>
+                  <Lancamentos />
                 </ProtectedRoute>
               } />
               <Route path="/style-guide" element={<StyleGuide />} />

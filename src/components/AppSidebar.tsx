@@ -52,7 +52,7 @@ const dashboardItems = [
 const controleItems = [
   { title: "Contas", icon: Banknote, path: "/bank-accounts" },
   { title: "Cartões", icon: CreditCard, path: "/credit-cards" },
-  { title: "Lançamentos", icon: Plus, path: "/" },
+  { title: "Lançamentos", icon: Plus, path: "/lancamentos" },
 ]
 
 const patrimonioItems = [
