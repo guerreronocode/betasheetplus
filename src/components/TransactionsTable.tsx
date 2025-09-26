@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Pencil, ArrowUpCircle, ArrowDownCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Pencil, ArrowUpCircle, ArrowDownCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { formatDateForDisplay, formatCurrency } from '@/utils/formatters';
 import EditTransactionModal from './EditTransactionModal';
@@ -19,6 +19,16 @@ type SortOrder = 'asc' | 'desc';
 
 const ITEMS_PER_PAGE = 15;
 
+// Default column widths
+const DEFAULT_COLUMN_WIDTHS = {
+  type: 60,
+  description: 250, 
+  category: 180,
+  date: 100,
+  amount: 140,
+  actions: 70
+};
+
 const TransactionsTable = () => {
   const { income, expenses, isLoading } = useFinancialData();
   const [editModalOpen, setEditModalOpen] = useState(false);
@@ -26,6 +36,9 @@ const TransactionsTable = () => {
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [currentPage, setCurrentPage] = useState(1);
+  const [columnWidths, setColumnWidths] = useState(DEFAULT_COLUMN_WIDTHS);
+  const [resizing, setResizing] = useState<string | null>(null);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   // Debug logs
   console.log('TransactionsTable - Debug:', {
@@ -115,21 +128,71 @@ const TransactionsTable = () => {
     }
   };
 
-  const SortableHeader = ({ field, children, className = "" }: { field: SortField; children: React.ReactNode; className?: string }) => (
-    <th 
-      className={`cursor-pointer hover:bg-muted/50 text-sm h-10 px-3 ${className}`}
-      onClick={() => handleSort(field)}
-    >
-      <div className="flex items-center gap-1">
-        {children}
-        {sortField === field && (
-          sortOrder === 'asc' ? 
-            <ChevronUp className="w-4 h-4" /> : 
-            <ChevronDown className="w-4 h-4" />
-        )}
-      </div>
-    </th>
-  );
+  const handleResize = (column: keyof typeof columnWidths, newWidth: number) => {
+    setColumnWidths(prev => ({
+      ...prev,
+      [column]: Math.max(50, newWidth) // Minimum 50px width
+    }));
+  };
+
+  const ResizableHeader = ({ 
+    field, 
+    column, 
+    children, 
+    align = 'left' 
+  }: { 
+    field: SortField; 
+    column: keyof typeof columnWidths;
+    children: React.ReactNode; 
+    align?: 'left' | 'right' | 'center';
+  }) => {
+    const handleMouseDown = (e: React.MouseEvent) => {
+      e.preventDefault();
+      setResizing(column);
+      
+      const startX = e.clientX;
+      const startWidth = columnWidths[column];
+      
+      const handleMouseMove = (e: MouseEvent) => {
+        const newWidth = startWidth + (e.clientX - startX);
+        handleResize(column, newWidth);
+      };
+      
+      const handleMouseUp = () => {
+        setResizing(null);
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+      
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+    };
+
+    return (
+      <th 
+        className={`relative cursor-pointer hover:bg-muted/50 text-sm h-10 px-3 border-r border-border/50 ${
+          align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left'
+        }`}
+        style={{ width: columnWidths[column] }}
+        onClick={() => handleSort(field)}
+      >
+        <div className="flex items-center gap-1 pr-2">
+          {children}
+          {sortField === field && (
+            sortOrder === 'asc' ? 
+              <ChevronUp className="w-4 h-4" /> : 
+              <ChevronDown className="w-4 h-4" />
+          )}
+        </div>
+        <div
+          className="absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-primary/20 flex items-center justify-center group"
+          onMouseDown={handleMouseDown}
+        >
+          <GripVertical className="w-3 h-3 text-muted-foreground group-hover:text-primary" />
+        </div>
+      </th>
+    );
+  };
 
   const handleEdit = (transaction: any) => {
     setSelectedTransaction(transaction);
@@ -143,41 +206,51 @@ const TransactionsTable = () => {
 
   return (
     <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] rounded-xl overflow-hidden">
-      {/* Container com scrollbar horizontal */}
-      <div className="flex-1 overflow-auto fnb-scrollbar">
-        <div className="min-w-[800px]"> {/* Largura mínima para forçar scroll horizontal se necessário */}
-          {/* Cabeçalho fixo com parallax */}
-          <div className="bg-white border-b z-10 shadow-sm sticky top-0">
-            <table className="w-full table-fixed">
-              <thead>
-                <tr className="h-10 border-b">
-                  <SortableHeader field="type" className="w-[60px]">
-                    <span className="text-left text-sm font-medium">Tipo</span>
-                  </SortableHeader>
-                  <SortableHeader field="description" className="w-[250px]">
-                    <span className="text-left text-sm font-medium">Descrição</span>
-                  </SortableHeader>
-                  <SortableHeader field="category" className="w-[180px]">
-                    <span className="text-left text-sm font-medium">Categoria</span>
-                  </SortableHeader>
-                  <SortableHeader field="date" className="w-[100px]">
-                    <span className="text-left text-sm font-medium">Data</span>
-                  </SortableHeader>
-                  <SortableHeader field="amount" className="w-[140px]">
-                    <span className="text-right text-sm font-medium">Valor</span>
-                  </SortableHeader>
-                  <th className="text-center px-3 py-2 w-[70px] text-sm font-medium">Ações</th>
-                </tr>
-              </thead>
-            </table>
-          </div>
+      {/* Header fixo */}
+      <div className="border-b bg-white/95 backdrop-blur-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
+            <thead>
+              <tr className="h-10 border-b">
+                <ResizableHeader field="type" column="type" align="center">
+                  <span className="text-sm font-medium">Tipo</span>
+                </ResizableHeader>
+                <ResizableHeader field="description" column="description">
+                  <span className="text-sm font-medium">Descrição</span>
+                </ResizableHeader>
+                <ResizableHeader field="category" column="category">
+                  <span className="text-sm font-medium">Categoria</span>
+                </ResizableHeader>
+                <ResizableHeader field="date" column="date">
+                  <span className="text-sm font-medium">Data</span>
+                </ResizableHeader>
+                <ResizableHeader field="amount" column="amount" align="right">
+                  <span className="text-sm font-medium">Valor</span>
+                </ResizableHeader>
+                <th 
+                  className="text-center px-3 py-2 text-sm font-medium border-r border-border/50"
+                  style={{ width: columnWidths.actions }}
+                >
+                  Ações
+                </th>
+              </tr>
+            </thead>
+          </table>
+        </div>
+      </div>
 
-          {/* Corpo da tabela */}
-          <table className="w-full table-fixed">
+      {/* Corpo da tabela com scroll */}
+      <div className="flex-1 overflow-auto" ref={tableRef}>
+        <div className="overflow-x-auto">
+          <table className="w-full" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
             <tbody>
               {paginatedTransactions.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-6 text-fnb-ink/70">
+                  <td 
+                    colSpan={6} 
+                    className="text-center py-6 text-fnb-ink/70"
+                    style={{ width: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}
+                  >
                     <div>
                       <p className="text-sm">Nenhuma transação encontrada</p>
                       <p className="text-xs">Adicione sua primeira receita ou despesa!</p>
@@ -187,8 +260,11 @@ const TransactionsTable = () => {
               ) : (
                 paginatedTransactions.map((transaction) => (
                   <tr key={`${transaction.type}-${transaction.id}`} className="h-12 border-b hover:bg-gray-50/50">
-                    <td className="px-3 py-2 w-[60px]">
-                      <div className="w-fit">
+                    <td 
+                      className="px-3 py-2 border-r border-border/20"
+                      style={{ width: columnWidths.type }}
+                    >
+                      <div className="flex justify-center">
                         {transaction.type === 'income' ? (
                           <ArrowUpCircle className="w-4 h-4 text-green-600" />
                         ) : (
@@ -196,21 +272,41 @@ const TransactionsTable = () => {
                         )}
                       </div>
                     </td>
-                    <td className="font-medium text-fnb-ink text-sm px-3 py-2 w-[250px] truncate" title={transaction.description}>
-                      {transaction.description}
+                    <td 
+                      className="font-medium text-fnb-ink text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
+                      style={{ width: columnWidths.description }}
+                      title={transaction.description}
+                    >
+                      <div className="truncate">{transaction.description}</div>
                     </td>
-                    <td className="text-fnb-ink/70 text-sm px-3 py-2 w-[180px] truncate" title={transaction.category}>
-                      {transaction.category}
+                    <td 
+                      className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
+                      style={{ width: columnWidths.category }}
+                      title={transaction.category}
+                    >
+                      <div className="truncate">{transaction.category}</div>
                     </td>
-                    <td className="text-fnb-ink/70 text-sm px-3 py-2 w-[100px]">
-                      {formatDateForDisplay(transaction.date)}
+                    <td 
+                      className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
+                      style={{ width: columnWidths.date }}
+                    >
+                      <div className="truncate">{formatDateForDisplay(transaction.date)}</div>
                     </td>
-                    <td className={`text-right font-semibold text-sm px-3 py-2 w-[140px] truncate ${
-                      transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                    }`} title={`${transaction.type === 'income' ? '+' : '-'}${formatCurrency(transaction.amount)}`}>
-                      {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                    <td 
+                      className={`text-right font-semibold text-sm px-3 py-2 border-r border-border/20 overflow-hidden ${
+                        transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                      }`}
+                      style={{ width: columnWidths.amount }}
+                      title={`${transaction.type === 'income' ? '+' : '-'}${formatCurrency(transaction.amount)}`}
+                    >
+                      <div className="truncate">
+                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                      </div>
                     </td>
-                    <td className="px-3 py-2 w-[70px] text-center">
+                    <td 
+                      className="px-3 py-2 text-center"
+                      style={{ width: columnWidths.actions }}
+                    >
                       <Button
                         variant="ghost"
                         size="sm"
@@ -229,7 +325,7 @@ const TransactionsTable = () => {
       </div>
       
       {/* Pagination Controls - Always visible */}
-      <div className="flex items-center justify-between px-3 py-2 border-t text-xs">
+      <div className="flex items-center justify-between px-3 py-2 border-t text-xs bg-white/95">
         <div className="flex items-center gap-2">
           <p className="text-fnb-ink/70">
             {allTransactions.length > 0 ? (
