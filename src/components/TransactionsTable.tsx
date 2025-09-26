@@ -55,12 +55,12 @@ const TransactionsTable = () => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[50px]">Tipo</TableHead>
-            <TableHead>Descrição</TableHead>
-            <TableHead>Categoria</TableHead>
-            <TableHead>Data</TableHead>
-            <TableHead className="text-right">Valor</TableHead>
-            <TableHead className="w-[100px]">Ações</TableHead>
+            <TableHead className="w-[40px] text-xs">Tipo</TableHead>
+            <TableHead className="text-xs">Descrição</TableHead>
+            <TableHead className="text-xs">Categoria</TableHead>
+            <TableHead className="text-xs">Data</TableHead>
+            <TableHead className="text-right text-xs">Valor</TableHead>
+            <TableHead className="w-[80px] text-xs">Ações</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -77,40 +77,37 @@ const TransactionsTable = () => {
             allTransactions.map((transaction) => (
               <TableRow key={`${transaction.type}-${transaction.id}`}>
                 <TableCell>
-                  <div className={`p-2 rounded-lg w-fit ${
-                    transaction.type === 'income'
-                      ? 'bg-fnb-secondary-green/20 text-fnb-secondary-green'
-                      : 'bg-fnb-secondary-red/20 text-fnb-secondary-red'
-                  }`}>
+                  <div className="w-fit">
                     {transaction.type === 'income' ? (
-                      <ArrowUpCircle className="w-4 h-4" />
+                      <ArrowUpCircle className="w-4 h-4 text-green-500" />
                     ) : (
-                      <ArrowDownCircle className="w-4 h-4" />
+                      <ArrowDownCircle className="w-4 h-4 text-red-500" />
                     )}
                   </div>
                 </TableCell>
-                <TableCell className="font-medium text-fnb-ink">
+                <TableCell className="font-medium text-fnb-ink text-sm">
                   {transaction.description}
                 </TableCell>
-                <TableCell className="text-fnb-ink/70">
+                <TableCell className="text-fnb-ink/70 text-sm">
                   {transaction.category}
                 </TableCell>
-                <TableCell className="text-fnb-ink/70">
+                <TableCell className="text-fnb-ink/70 text-sm">
                   {formatDateForDisplay(transaction.date)}
                 </TableCell>
-                <TableCell className={`text-right font-semibold ${
-                  transaction.type === 'income' ? 'text-fnb-secondary-green' : 'text-fnb-secondary-red'
+                <TableCell className={`text-right font-semibold text-sm ${
+                  transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                 }`}>
                   {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                 </TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleEdit(transaction)}
+                      className="p-1 h-8 w-8"
                     >
-                      <Pencil className="w-4 h-4" />
+                      <Pencil className="w-3 h-3" />
                     </Button>
                   </div>
                 </TableCell>

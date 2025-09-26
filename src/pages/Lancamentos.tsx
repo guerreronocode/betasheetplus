@@ -4,7 +4,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { Layout } from '@/components/Layout';
-import { Plus, ArrowRightLeft, Upload, CalendarIcon, Clock } from 'lucide-react';
+import { Plus, ArrowRightLeft, Upload, CalendarIcon, Clock, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import TransactionsTable from '@/components/TransactionsTable';
@@ -37,48 +37,62 @@ const Lancamentos = () => {
   return (
     <Layout>
       <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-fnb-ink mb-2">Lançamentos</h1>
-          <p className="text-fnb-ink/70">Gerencie suas transações financeiras</p>
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-fnb-ink mb-1">Lançamentos</h1>
+          <p className="text-fnb-ink/70 text-sm">Gerencie suas transações financeiras</p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Header with action buttons */}
           <div className="flex justify-between items-center">
-            <div className="flex gap-3">
+            <div className="flex gap-2">
               <Button 
                 onClick={() => setAddTransactionOpen(true)}
-                className="flex items-center gap-2"
+                size="sm"
+                className="p-2"
+                title="Adicionar Transação"
               >
                 <Plus className="w-4 h-4" />
-                Adicionar Transação
               </Button>
               
               <Button 
                 variant="outline"
                 onClick={() => setTransferOpen(true)}
-                className="flex items-center gap-2"
+                size="sm"
+                className="p-2"
+                title="Transferência"
               >
                 <ArrowRightLeft className="w-4 h-4" />
-                Transferência
               </Button>
               
               <Button 
                 variant="outline"
                 onClick={() => setBankStatementOpen(true)}
-                className="flex items-center gap-2"
+                size="sm"
+                className="p-2"
+                title="Extrato Bancário"
               >
                 <Upload className="w-4 h-4" />
-                Extrato Bancário
               </Button>
               
               <Button 
                 variant="outline"
                 onClick={() => navigate('/lancamentos/pendencias')}
-                className="flex items-center gap-2"
+                size="sm"
+                className="p-2"
+                title="Pendências"
               >
                 <Clock className="w-4 h-4" />
-                Pendências
+              </Button>
+              
+              <Button 
+                variant="outline"
+                onClick={() => navigate('/credit-cards')}
+                size="sm"
+                className="p-2"
+                title="Compras no Cartão"
+              >
+                <CreditCard className="w-4 h-4" />
               </Button>
             </div>
 
