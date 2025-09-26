@@ -19,6 +19,7 @@ import BankAccountsPage from "./pages/BankAccountsPage";
 import CreditCards from "./pages/CreditCards";
 import Lancamentos from "./pages/Lancamentos";
 import LancamentosPendencias from "./pages/LancamentosPendencias";
+import LancamentosSimple from "./pages/LancamentosSimple";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -77,6 +78,11 @@ const App: React.FC = () => {
               <Route path="/credit-cards/*" element={
                 <ProtectedRoute>
                   <CreditCards />
+                </ProtectedRoute>
+              } />
+              <Route path="/lancamentos-simple" element={
+                <ProtectedRoute>
+                  <LancamentosSimple />
                 </ProtectedRoute>
               } />
               <Route path="/lancamentos" element={

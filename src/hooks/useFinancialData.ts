@@ -42,6 +42,17 @@ export const useFinancialData = () => {
     isAddingExpense 
   } = useExpenses();
 
+  // Debug logs
+  console.log('useFinancialData - Data status:', {
+    income: income?.length ?? 'undefined',
+    expenses: expenses?.length ?? 'undefined',
+    incomeLoading,
+    expensesLoading,
+    isLoading: incomeLoading || expensesLoading,
+    hasIncome: Array.isArray(income),
+    hasExpenses: Array.isArray(expenses)
+  });
+
   const { 
     investments, 
     investmentsLoading, 

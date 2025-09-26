@@ -24,7 +24,15 @@ const TransactionsTable = () => {
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
 
+  // Debug logs
+  console.log('TransactionsTable - Debug:', {
+    income: income ? income.length : 'null/undefined',
+    expenses: expenses ? expenses.length : 'null/undefined',
+    isLoading,
+  });
+
   if (isLoading) {
+    console.log('TransactionsTable - Showing loading state');
     return (
       <Card className="p-6">
         <div className="animate-pulse space-y-4">
@@ -41,10 +49,23 @@ const TransactionsTable = () => {
 
   // Combine and sort all transactions
   const allTransactions = useMemo(() => {
+    console.log('TransactionsTable - Creating allTransactions', {
+      incomeArray: Array.isArray(income) ? income : 'not array',
+      expensesArray: Array.isArray(expenses) ? expenses : 'not array',
+      incomeLength: income?.length ?? 0,
+      expensesLength: expenses?.length ?? 0
+    });
+    
+    // Garantir que income e expenses são arrays válidos
+    const safeIncome = Array.isArray(income) ? income : [];
+    const safeExpenses = Array.isArray(expenses) ? expenses : [];
+    
     const combined = [
-      ...income.map(item => ({ ...item, type: 'income' as const })),
-      ...expenses.map(item => ({ ...item, type: 'expense' as const }))
+      ...safeIncome.map(item => ({ ...item, type: 'income' as const })),
+      ...safeExpenses.map(item => ({ ...item, type: 'expense' as const }))
     ];
+
+    console.log('TransactionsTable - Combined transactions:', combined.length);
 
     return combined.sort((a, b) => {
       let aValue: any = a[sortField];
