@@ -222,8 +222,8 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
   const totalTableWidth = Object.values(columnWidths).reduce((sum, width) => sum + width, 0);
 
   return (
-    <Card className="w-full">
-      <div className="p-4">
+    <Card className="w-full h-full flex flex-col">
+      <div className="p-4 flex-shrink-0">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-base font-semibold">Transações Pendentes</h3>
@@ -233,7 +233,7 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
           </div>
         </div>
 
-        <div ref={containerRef} className="overflow-x-auto">
+        <div className="overflow-x-auto flex-1">
           <div ref={tableRef} style={{ minWidth: `${totalTableWidth}px` }}>
             <Table style={{ tableLayout: 'fixed', width: `${totalTableWidth}px` }}>
               <colgroup>
@@ -417,7 +417,7 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
         </div>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-3">
+          <div className="flex items-center justify-between mt-3 flex-shrink-0">
             <div className="text-xs text-muted-foreground">
               Página {currentPage} de {totalPages} ({sortedTransactions.length} registros)
             </div>

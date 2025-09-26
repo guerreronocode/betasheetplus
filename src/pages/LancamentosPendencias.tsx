@@ -46,128 +46,127 @@ const LancamentosPendencias = () => {
           <p className="text-fnb-ink/70 text-sm">Receitas e despesas programadas, faturas de cartão e transações recorrentes</p>
         </div>
 
-        <div className="flex flex-col flex-1 space-y-4">
-          {/* Header with date filter */}
-          <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-lg rounded-lg mx-1 mb-2">
-            <div className="flex justify-end items-center py-3 px-4">
-              {/* Date Filter */}
-              <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 px-3">
-                    <CalendarIcon className="mr-1 h-3 w-3" />
-                    Filtrar
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <div className="p-3 space-y-3">
-                    {/* Quick Filters */}
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Filtros Rápidos</Label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs"
-                          onClick={() => {
-                            const today = new Date();
-                            const oneMonthAgo = new Date(today);
-                            oneMonthAgo.setMonth(today.getMonth() - 1);
-                            setTempStartDate(oneMonthAgo);
-                            setTempEndDate(today);
-                          }}
-                        >
-                          1 mês
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs"
-                          onClick={() => {
-                            const today = new Date();
-                            const threeMonthsAgo = new Date(today);
-                            threeMonthsAgo.setMonth(today.getMonth() - 3);
-                            setTempStartDate(threeMonthsAgo);
-                            setTempEndDate(today);
-                          }}
-                        >
-                          3 meses
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs"
-                          onClick={() => {
-                            const today = new Date();
-                            const sixMonthsAgo = new Date(today);
-                            sixMonthsAgo.setMonth(today.getMonth() - 6);
-                            setTempStartDate(sixMonthsAgo);
-                            setTempEndDate(today);
-                          }}
-                        >
-                          6 meses
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-7 text-xs"
-                          onClick={() => {
-                            const today = new Date();
-                            const oneYearAgo = new Date(today);
-                            oneYearAgo.setFullYear(today.getFullYear() - 1);
-                            setTempStartDate(oneYearAgo);
-                            setTempEndDate(today);
-                          }}
-                        >
-                          1 ano
-                        </Button>
-                      </div>
-                    </div>
-                    
-                    {/* Custom Calendars */}
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label htmlFor="start-date" className="text-xs font-medium mb-2 block">Data inicial</Label>
-                        <Calendar
-                          mode="single"
-                          selected={tempStartDate}
-                          onSelect={setTempStartDate}
-                          className={cn("pointer-events-auto text-xs")}
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="end-date" className="text-xs font-medium mb-2 block">Data final</Label>
-                        <Calendar
-                          mode="single"
-                          selected={tempEndDate}
-                          onSelect={setTempEndDate}
-                          className={cn("pointer-events-auto text-xs")}
-                        />
-                      </div>
-                    </div>
-                    <Button 
-                      onClick={() => {
-                        setAppliedStartDate(tempStartDate);
-                        setAppliedEndDate(tempEndDate);
-                        setIsDatePickerOpen(false);
-                      }} 
-                      className="w-full h-8"
+        {/* Date Filter Button - Isolated */}
+        <div className="mb-4 flex justify-end">
+          <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="h-8 px-3 shadow-md hover:shadow-lg transition-shadow bg-background border border-border"
+              >
+                <CalendarIcon className="mr-1 h-3 w-3" />
+                Filtrar
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <div className="p-3 space-y-3">
+                {/* Quick Filters */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Filtros Rápidos</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      variant="outline"
                       size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        const today = new Date();
+                        const oneMonthAgo = new Date(today);
+                        oneMonthAgo.setMonth(today.getMonth() - 1);
+                        setTempStartDate(oneMonthAgo);
+                        setTempEndDate(today);
+                      }}
                     >
-                      Filtrar
+                      1 mês
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        const today = new Date();
+                        const threeMonthsAgo = new Date(today);
+                        threeMonthsAgo.setMonth(today.getMonth() - 3);
+                        setTempStartDate(threeMonthsAgo);
+                        setTempEndDate(today);
+                      }}
+                    >
+                      3 meses
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        const today = new Date();
+                        const sixMonthsAgo = new Date(today);
+                        sixMonthsAgo.setMonth(today.getMonth() - 6);
+                        setTempStartDate(sixMonthsAgo);
+                        setTempEndDate(today);
+                      }}
+                    >
+                      6 meses
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs"
+                      onClick={() => {
+                        const today = new Date();
+                        const oneYearAgo = new Date(today);
+                        oneYearAgo.setFullYear(today.getFullYear() - 1);
+                        setTempStartDate(oneYearAgo);
+                        setTempEndDate(today);
+                      }}
+                    >
+                      1 ano
                     </Button>
                   </div>
-                </PopoverContent>
-              </Popover>
-            </div>
-          </div>
-          
-          {/* Pending Transactions Table - Full width */}
-          <div className="flex-1">
-            <PendingTransactionsTable 
-              startDate={appliedStartDate}
-              endDate={appliedEndDate}
-            />
-          </div>
+                </div>
+                
+                {/* Custom Calendars */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <Label htmlFor="start-date" className="text-xs font-medium mb-2 block">Data inicial</Label>
+                    <Calendar
+                      mode="single"
+                      selected={tempStartDate}
+                      onSelect={setTempStartDate}
+                      className={cn("pointer-events-auto text-xs")}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="end-date" className="text-xs font-medium mb-2 block">Data final</Label>
+                    <Calendar
+                      mode="single"
+                      selected={tempEndDate}
+                      onSelect={setTempEndDate}
+                      className={cn("pointer-events-auto text-xs")}
+                    />
+                  </div>
+                </div>
+                <Button 
+                  onClick={() => {
+                    setAppliedStartDate(tempStartDate);
+                    setAppliedEndDate(tempEndDate);
+                    setIsDatePickerOpen(false);
+                  }} 
+                  className="w-full h-8"
+                  size="sm"
+                >
+                  Filtrar
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+        
+        {/* Pending Transactions Table - Full height */}
+        <div className="flex-1 min-h-0">
+          <PendingTransactionsTable 
+            startDate={appliedStartDate}
+            endDate={appliedEndDate}
+          />
         </div>
       </div>
     </Layout>

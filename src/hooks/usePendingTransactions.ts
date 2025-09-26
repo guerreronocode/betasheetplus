@@ -25,6 +25,15 @@ export const usePendingTransactions = () => {
   const { plannedExpenses } = usePlannedExpenses();
   const { upcomingBills, overdueBills } = useCreditCardBills();
 
+  console.log('usePendingTransactions - Data:', {
+    user: !!user,
+    recurringTransactions: recurringTransactions?.length || 0,
+    plannedIncome: plannedIncome?.length || 0,
+    plannedExpenses: plannedExpenses?.length || 0,
+    upcomingBills: upcomingBills?.length || 0,
+    overdueBills: overdueBills?.length || 0
+  });
+
   const { data: pendingTransactions = [], isLoading } = useQuery({
     queryKey: ['pending_transactions', user?.id, recurringTransactions, plannedIncome, plannedExpenses, upcomingBills, overdueBills],
     queryFn: async (): Promise<PendingTransaction[]> => {
