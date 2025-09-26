@@ -49,12 +49,10 @@ const TransactionsTable = () => {
 
   // Combine and sort all transactions
   const allTransactions = useMemo(() => {
-    console.log('TransactionsTable - Creating allTransactions', {
-      incomeArray: Array.isArray(income) ? income : 'not array',
-      expensesArray: Array.isArray(expenses) ? expenses : 'not array',
-      incomeLength: income?.length ?? 0,
-      expensesLength: expenses?.length ?? 0
-    });
+    console.log('TransactionsTable - Creating allTransactions');
+    
+    // Early return if loading or no data
+    if (isLoading) return [];
     
     // Garantir que income e expenses são arrays válidos
     const safeIncome = Array.isArray(income) ? income : [];
@@ -65,25 +63,23 @@ const TransactionsTable = () => {
       ...safeExpenses.map(item => ({ ...item, type: 'expense' as const }))
     ];
 
-    console.log('TransactionsTable - Combined transactions:', combined.length);
-
     return combined.sort((a, b) => {
       let aValue: any = a[sortField];
       let bValue: any = b[sortField];
 
       // Special handling for different field types
       if (sortField === 'date') {
-        aValue = new Date(a.date).getTime();
-        bValue = new Date(b.date).getTime();
+        aValue = new Date(a.date || 0).getTime();
+        bValue = new Date(b.date || 0).getTime();
       } else if (sortField === 'amount') {
-        aValue = Number(a.amount);
-        bValue = Number(b.amount);
+        aValue = Number(a.amount || 0);
+        bValue = Number(b.amount || 0);
       } else if (sortField === 'type') {
-        aValue = a.type;
-        bValue = b.type;
+        aValue = a.type || '';
+        bValue = b.type || '';
       } else {
-        aValue = String(aValue).toLowerCase();
-        bValue = String(bValue).toLowerCase();
+        aValue = String(aValue || '').toLowerCase();
+        bValue = String(bValue || '').toLowerCase();
       }
 
       if (sortOrder === 'asc') {
@@ -92,7 +88,7 @@ const TransactionsTable = () => {
         return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
       }
     });
-  }, [income, expenses, sortField, sortOrder]);
+  }, [income?.length, expenses?.length, sortField, sortOrder, isLoading]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
