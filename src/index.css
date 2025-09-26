@@ -201,6 +201,12 @@
 
   /* Checkbox circular para recorrência */
   .fnb-checkbox-circular {
-    border-radius: 50%;
+    border-radius: 50% !important;
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  .fnb-checkbox-circular[data-state="checked"] {
+    border-radius: 50% !important;
   }
 }
