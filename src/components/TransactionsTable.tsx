@@ -143,10 +143,10 @@ const TransactionsTable = () => {
 
   return (
     <Card className="fnb-card flex flex-col h-[calc(100vh-200px)]">
-      <div className="flex-1 overflow-auto fnb-scrollbar">
+      <div className="border-b bg-white">
         <Table>
-          <TableHeader className="sticky top-0 bg-background z-10">
-            <TableRow className="h-10">
+          <TableHeader>
+            <TableRow className="h-10 bg-white">
               <SortableHeader field="type">Tipo</SortableHeader>
               <SortableHeader field="description">Descrição</SortableHeader>
               <SortableHeader field="category">Categoria</SortableHeader>
@@ -157,6 +157,11 @@ const TransactionsTable = () => {
               <TableHead className="w-[70px] text-sm h-10 px-3">Ações</TableHead>
             </TableRow>
           </TableHeader>
+        </Table>
+      </div>
+      
+      <div className="flex-1 overflow-auto fnb-scrollbar">
+        <Table>
           <TableBody>
             {paginatedTransactions.length === 0 ? (
               <TableRow>
