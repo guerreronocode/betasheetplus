@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Pencil, ArrowUpCircle, ArrowDownCircle, ChevronUp, ChevronDown } from 'lucide-react';
+import { Pencil, ArrowUpCircle, ArrowDownCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { formatDateForDisplay, formatCurrency } from '@/utils/formatters';
 import EditTransactionModal from './EditTransactionModal';
@@ -17,12 +17,15 @@ import EditTransactionModal from './EditTransactionModal';
 type SortField = 'description' | 'category' | 'date' | 'amount' | 'type';
 type SortOrder = 'asc' | 'desc';
 
+const ITEMS_PER_PAGE = 10;
+
 const TransactionsTable = () => {
   const { income, expenses, isLoading } = useFinancialData();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Debug logs
   console.log('TransactionsTable - Debug:', {
@@ -90,6 +93,19 @@ const TransactionsTable = () => {
     });
   }, [income, expenses, sortField, sortOrder, isLoading]);
 
+  // Pagination logic
+  const totalPages = Math.ceil(allTransactions.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedTransactions = allTransactions.slice(startIndex, endIndex);
+
+  // Reset page when transactions change
+  useMemo(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
@@ -141,7 +157,7 @@ const TransactionsTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {allTransactions.length === 0 ? (
+          {paginatedTransactions.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-center py-6 text-fnb-ink/70">
                 <div>
@@ -151,7 +167,7 @@ const TransactionsTable = () => {
               </TableCell>
             </TableRow>
           ) : (
-            allTransactions.map((transaction) => (
+            paginatedTransactions.map((transaction) => (
               <TableRow key={`${transaction.type}-${transaction.id}`} className="h-12">
                 <TableCell className="px-3 py-2">
                   <div className="w-fit">
@@ -191,6 +207,65 @@ const TransactionsTable = () => {
           )}
         </TableBody>
       </Table>
+      
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-4 py-3 border-t">
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-fnb-ink/70">
+              Mostrando {startIndex + 1} a {Math.min(endIndex, allTransactions.length)} de {allTransactions.length} transações
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            
+            <div className="flex items-center gap-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNumber;
+                if (totalPages <= 5) {
+                  pageNumber = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNumber = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNumber = totalPages - 4 + i;
+                } else {
+                  pageNumber = currentPage - 2 + i;
+                }
+                
+                return (
+                  <Button
+                    key={pageNumber}
+                    variant={currentPage === pageNumber ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentPage(pageNumber)}
+                    className="h-8 w-8 p-0 text-xs"
+                  >
+                    {pageNumber}
+                  </Button>
+                );
+              })}
+            </div>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="h-8 w-8 p-0"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
       
       <EditTransactionModal
         open={editModalOpen}
