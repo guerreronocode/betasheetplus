@@ -44,23 +44,29 @@ export const usePendingTransactions = () => {
       today.setHours(0, 0, 0, 0);
 
       // 1. Transações recorrentes (sempre aparecem primeiro)
+      console.log('Processing recurring transactions:', recurringTransactions);
       recurringTransactions
         .filter(t => t.is_active)
         .forEach(transaction => {
+          console.log('Processing transaction:', transaction);
           // Calcular próxima data baseada na frequência
           const nextDate = calculateNextRecurringDate(transaction);
+          console.log('Next date calculated:', nextDate);
           
-          pending.push({
+          const pendingItem: PendingTransaction = {
             id: `recurring-${transaction.id}`,
-            type: 'recurring',
+            type: 'recurring' as const,
             date: nextDate,
             category: transaction.category,
             account: getBankAccountName(transaction.bank_account_id) || 'Conta não informada',
             description: transaction.description,
             value: transaction.type === 'income' ? transaction.amount : -transaction.amount,
-            status: 'pending',
+            status: 'pending' as const,
             original: transaction
-          });
+          };
+          
+          console.log('Adding pending item:', pendingItem);
+          pending.push(pendingItem);
         });
 
       // 2. Receitas planejadas
@@ -115,11 +121,14 @@ export const usePendingTransactions = () => {
       });
 
       // Ordenar: recorrentes primeiro, depois por data
-      return pending.sort((a, b) => {
+      const sorted = pending.sort((a, b) => {
         if (a.type === 'recurring' && b.type !== 'recurring') return -1;
         if (a.type !== 'recurring' && b.type === 'recurring') return 1;
         return a.date.getTime() - b.date.getTime();
       });
+      
+      console.log('Final pending transactions:', sorted);
+      return sorted;
     },
     enabled: !!user,
   });
