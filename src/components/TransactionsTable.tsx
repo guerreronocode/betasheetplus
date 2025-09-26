@@ -154,7 +154,7 @@ const TransactionsTable = () => {
               <SortableHeader field="amount">
                 <div className="text-right">Valor</div>
               </SortableHeader>
-              <TableHead className="w-[70px] text-sm h-10 px-3 text-center">Ações</TableHead>
+              <TableHead className="w-[70px] text-sm h-10 px-3">Ações</TableHead>
             </TableRow>
           </TableHeader>
         </Table>
@@ -198,15 +198,17 @@ const TransactionsTable = () => {
                   }`}>
                     {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                   </TableCell>
-                  <TableCell className="px-3 py-2 text-center">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEdit(transaction)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </Button>
+                  <TableCell className="px-3 py-2">
+                    <div className="flex justify-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(transaction)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
