@@ -142,11 +142,11 @@ const TransactionsTable = () => {
   };
 
   return (
-    <Card className="fnb-card flex flex-col h-[calc(100vh-200px)]">
-      <div className="border-b bg-white">
+    <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] overflow-hidden rounded-xl">
+      <div className="flex-1 overflow-auto fnb-scrollbar">
         <Table>
-          <TableHeader>
-            <TableRow className="h-10 bg-white">
+          <TableHeader className="sticky top-0 bg-white z-10 rounded-t-xl">
+            <TableRow className="h-10 border-b">
               <SortableHeader field="type">Tipo</SortableHeader>
               <SortableHeader field="description">Descrição</SortableHeader>
               <SortableHeader field="category">Categoria</SortableHeader>
@@ -154,14 +154,9 @@ const TransactionsTable = () => {
               <SortableHeader field="amount">
                 <div className="text-right">Valor</div>
               </SortableHeader>
-              <TableHead className="w-[70px] text-sm h-10 px-3">Ações</TableHead>
+              <TableHead className="w-[70px] text-sm h-10 px-3 text-center">Ações</TableHead>
             </TableRow>
           </TableHeader>
-        </Table>
-      </div>
-      
-      <div className="flex-1 overflow-auto fnb-scrollbar">
-        <Table>
           <TableBody>
             {paginatedTransactions.length === 0 ? (
               <TableRow>
@@ -198,17 +193,15 @@ const TransactionsTable = () => {
                   }`}>
                     {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                   </TableCell>
-                  <TableCell className="px-3 py-2 w-[70px]">
-                    <div className="flex justify-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(transaction)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                    </div>
+                  <TableCell className="px-3 py-2 w-[70px] text-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(transaction)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
