@@ -42,6 +42,9 @@ const TransactionsTable = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
+  // Só mostra loading se estiver carregando E não tiver dados ainda
+  const shouldShowLoading = isLoading && (!income?.length && !expenses?.length);
+
   // Monitora mudanças no tamanho do container
   React.useEffect(() => {
     const updateContainerWidth = () => {
@@ -75,10 +78,11 @@ const TransactionsTable = () => {
   console.log('TransactionsTable - Debug:', {
     income: income ? income.length : 'null/undefined',
     expenses: expenses ? expenses.length : 'null/undefined',
-    isLoading,
+    shouldShowLoading,
+    isLoading
   });
 
-  if (isLoading) {
+  if (shouldShowLoading) {
     console.log('TransactionsTable - Showing loading state');
     return (
       <Card className="p-6">
@@ -100,11 +104,7 @@ const TransactionsTable = () => {
     const safeIncome = Array.isArray(income) ? income : [];
     const safeExpenses = Array.isArray(expenses) ? expenses : [];
     
-    // Return empty array if loading
-    if (isLoading) {
-      return [];
-    }
-    
+    // Não depender do isLoading global - usar os dados se estiverem disponíveis
     const combined = [
       ...safeIncome.map(item => ({ ...item, type: 'income' as const })),
       ...safeExpenses.map(item => ({ ...item, type: 'expense' as const }))
@@ -135,7 +135,7 @@ const TransactionsTable = () => {
         return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
       }
     });
-  }, [income, expenses, sortField, sortOrder, isLoading]);
+  }, [income, expenses, sortField, sortOrder]);
 
   // Pagination logic
   const totalPages = Math.ceil(allTransactions.length / ITEMS_PER_PAGE);
