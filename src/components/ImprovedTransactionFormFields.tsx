@@ -13,13 +13,15 @@ const ImprovedTransactionFormFields: React.FC<TransactionFormFieldsProps> = ({
   handleChange
 }) => {
   return (
-    <HierarchicalCategorySelector
-      value={form.category}
-      onChange={(value) => handleChange({ category: value })}
-      placeholder={`Escolha uma categoria de ${type === 'expense' ? 'despesa' : 'receita'}`}
-      categoryType={type === 'expense' ? 'expense' : 'income'}
-      required
-    />
+    <div className="[&_.h-8]:h-8">
+      <HierarchicalCategorySelector
+        value={form.category}
+        onChange={(value) => handleChange({ category: value })}
+        placeholder={`Escolha uma categoria de ${type === 'expense' ? 'despesa' : 'receita'}`}
+        categoryType={type === 'expense' ? 'expense' : 'income'}
+        required
+      />
+    </div>
   );
 };
 

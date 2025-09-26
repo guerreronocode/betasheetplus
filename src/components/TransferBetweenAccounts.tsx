@@ -177,14 +177,14 @@ const TransferBetweenAccounts = () => {
         </div>
       </div>
 
-      <form onSubmit={handleTransfer} className="space-y-4">
+      <form onSubmit={handleTransfer} className="space-y-3">
         <div>
-          <Label htmlFor="from-account">Conta de Origem</Label>
+          <Label htmlFor="from-account" className="text-xs">Conta de Origem</Label>
           <Select
             value={transferForm.fromAccountId}
             onValueChange={(value) => setTransferForm(prev => ({ ...prev, fromAccountId: value }))}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-8">
               <SelectValue placeholder="Selecione a conta de origem" />
             </SelectTrigger>
             <SelectContent>
@@ -207,12 +207,12 @@ const TransferBetweenAccounts = () => {
         </div>
 
         <div>
-          <Label htmlFor="to-account">Conta de Destino</Label>
+          <Label htmlFor="to-account" className="text-xs">Conta de Destino</Label>
           <Select
             value={transferForm.toAccountId}
             onValueChange={(value) => setTransferForm(prev => ({ ...prev, toAccountId: value }))}
           >
-            <SelectTrigger>
+            <SelectTrigger className="h-8">
               <SelectValue placeholder="Selecione a conta de destino" />
             </SelectTrigger>
             <SelectContent>
@@ -232,9 +232,9 @@ const TransferBetweenAccounts = () => {
         </div>
 
         <div>
-          <Label htmlFor="transfer-amount">Valor da Transferência</Label>
+          <Label htmlFor="transfer-amount" className="text-xs">Valor da Transferência</Label>
           <div className="relative">
-            <DollarSign className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <DollarSign className="absolute left-3 top-2 h-4 w-4 text-gray-400" />
             <Input
               id="transfer-amount"
               type="number"
@@ -243,32 +243,33 @@ const TransferBetweenAccounts = () => {
               value={transferForm.amount}
               onChange={(e) => setTransferForm(prev => ({ ...prev, amount: e.target.value }))}
               placeholder="0.00"
-              className="pl-10"
+              className="pl-10 h-8"
               required
             />
           </div>
         </div>
 
         <div>
-          <Label htmlFor="transfer-description">Descrição (Opcional)</Label>
+          <Label htmlFor="transfer-description" className="text-xs">Descrição (Opcional)</Label>
           <Input
             id="transfer-description"
             value={transferForm.description}
             onChange={(e) => setTransferForm(prev => ({ ...prev, description: e.target.value }))}
             placeholder="Ex: Depósito na corretora"
+            className="h-8"
           />
         </div>
 
         <div>
-          <Label htmlFor="transfer-date">Data</Label>
+          <Label htmlFor="transfer-date" className="text-xs">Data</Label>
           <div className="relative">
-            <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <Calendar className="absolute left-3 top-2 h-4 w-4 text-gray-400" />
             <Input
               id="transfer-date"
               type="date"
               value={transferForm.date}
               onChange={(e) => setTransferForm(prev => ({ ...prev, date: e.target.value }))}
-              className="pl-10"
+              className="pl-10 h-8"
               required
             />
           </div>
@@ -276,7 +277,7 @@ const TransferBetweenAccounts = () => {
 
         <Button 
           type="submit" 
-          className="w-full bg-blue-600 hover:bg-blue-700" 
+          className="w-full bg-blue-600 hover:bg-blue-700 h-8" 
           disabled={isTransferring || bankAccounts.length < 2}
         >
           {isTransferring ? 'Transferindo...' : 'Realizar Transferência'}
