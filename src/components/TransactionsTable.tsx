@@ -39,6 +39,37 @@ const TransactionsTable = () => {
   const [columnWidths, setColumnWidths] = useState(DEFAULT_COLUMN_WIDTHS);
   const [resizing, setResizing] = useState<string | null>(null);
   const tableRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  // Monitora mudanças no tamanho do container
+  React.useEffect(() => {
+    const updateContainerWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.clientWidth);
+      }
+    };
+
+    // Atualiza imediatamente
+    updateContainerWidth();
+    
+    // Observer para mudanças no tamanho do container
+    const resizeObserver = new ResizeObserver(() => {
+      updateContainerWidth();
+    });
+    
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+    
+    // Fallback para resize da janela
+    window.addEventListener('resize', updateContainerWidth);
+    
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateContainerWidth);
+    };
+  }, []);
 
   // Debug logs
   console.log('TransactionsTable - Debug:', {
@@ -192,7 +223,7 @@ const TransactionsTable = () => {
           align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left'
         }`}
         onClick={() => handleSort(field)}
-        style={{ width: `${columnWidths[column]}px` }}
+        style={{ width: `${calculateTableWidths[column]}px` }}
       >
         <div className="flex items-center gap-1 pr-2">
           {children}
@@ -222,26 +253,46 @@ const TransactionsTable = () => {
     setSelectedTransaction(null);
   };
 
-  const totalWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
+  // Calcula larguras dinâmicas baseadas no container disponível
+  const calculateTableWidths = useMemo(() => {
+    const minTotalWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
+    
+    // Se a largura mínima é menor que o container, expande proporcionalmente
+    if (minTotalWidth < containerWidth && containerWidth > 0) {
+      const scale = containerWidth / minTotalWidth;
+      return {
+        type: Math.floor(columnWidths.type * scale),
+        description: Math.floor(columnWidths.description * scale),
+        category: Math.floor(columnWidths.category * scale),
+        date: Math.floor(columnWidths.date * scale),
+        amount: Math.floor(columnWidths.amount * scale),
+        actions: Math.floor(columnWidths.actions * scale)
+      };
+    }
+    
+    // Senão, usa as larguras definidas
+    return columnWidths;
+  }, [columnWidths, containerWidth]);
+
+  const totalWidth = Object.values(calculateTableWidths).reduce((a, b) => a + b, 0);
 
   return (
-    <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] rounded-xl overflow-hidden">
+    <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] rounded-xl overflow-hidden" ref={containerRef}>
       {/* Container com scroll horizontal */}
       <div className="flex-1 overflow-auto fnb-scrollbar-custom" ref={tableRef}>
         <table 
-          className="table-fixed border-collapse"
+          className="w-full table-fixed border-collapse"
           style={{ 
-            width: `${totalWidth}px`,
             minWidth: `${totalWidth}px`
           }}
         >
           <colgroup>
-            <col style={{ width: `${columnWidths.type}px` }} />
-            <col style={{ width: `${columnWidths.description}px` }} />
-            <col style={{ width: `${columnWidths.category}px` }} />
-            <col style={{ width: `${columnWidths.date}px` }} />
-            <col style={{ width: `${columnWidths.amount}px` }} />
-            <col style={{ width: `${columnWidths.actions}px` }} />
+            <col style={{ width: `${calculateTableWidths.type}px` }} />
+            <col style={{ width: `${calculateTableWidths.description}px` }} />
+            <col style={{ width: `${calculateTableWidths.category}px` }} />
+            <col style={{ width: `${calculateTableWidths.date}px` }} />
+            <col style={{ width: `${calculateTableWidths.amount}px` }} />
+            <col style={{ width: `${calculateTableWidths.actions}px` }} />
           </colgroup>
           
           {/* Header */}
@@ -264,7 +315,7 @@ const TransactionsTable = () => {
               </ResizableHeader>
               <th 
                 className="text-center px-3 py-2 text-sm font-medium border-r border-border/50"
-                style={{ width: `${columnWidths.actions}px` }}
+                style={{ width: `${calculateTableWidths.actions}px` }}
               >
                 Ações
               </th>
@@ -291,7 +342,7 @@ const TransactionsTable = () => {
                 <tr key={`${transaction.type}-${transaction.id}`} className="h-12 border-b hover:bg-gray-50/50">
                   <td 
                     className="px-3 py-2 border-r border-border/20"
-                    style={{ width: `${columnWidths.type}px` }}
+                    style={{ width: `${calculateTableWidths.type}px` }}
                   >
                     <div className="flex justify-center">
                       {transaction.type === 'income' ? (
@@ -304,20 +355,20 @@ const TransactionsTable = () => {
                   <td 
                     className="font-medium text-fnb-ink text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
                     title={transaction.description}
-                    style={{ width: `${columnWidths.description}px` }}
+                    style={{ width: `${calculateTableWidths.description}px` }}
                   >
                     <div className="truncate">{transaction.description}</div>
                   </td>
                   <td 
                     className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
                     title={transaction.category}
-                    style={{ width: `${columnWidths.category}px` }}
+                    style={{ width: `${calculateTableWidths.category}px` }}
                   >
                     <div className="truncate">{transaction.category}</div>
                   </td>
                   <td 
                     className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
-                    style={{ width: `${columnWidths.date}px` }}
+                    style={{ width: `${calculateTableWidths.date}px` }}
                   >
                     <div className="truncate">{formatDateForDisplay(transaction.date)}</div>
                   </td>
@@ -326,7 +377,7 @@ const TransactionsTable = () => {
                       transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                     }`}
                     title={`${transaction.type === 'income' ? '+' : '-'}${formatCurrency(transaction.amount)}`}
-                    style={{ width: `${columnWidths.amount}px` }}
+                    style={{ width: `${calculateTableWidths.amount}px` }}
                   >
                     <div className="truncate">
                       {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
@@ -334,7 +385,7 @@ const TransactionsTable = () => {
                   </td>
                   <td 
                     className="px-3 py-2 text-center"
-                    style={{ width: `${columnWidths.actions}px` }}
+                    style={{ width: `${calculateTableWidths.actions}px` }}
                   >
                     <Button
                       variant="ghost"
