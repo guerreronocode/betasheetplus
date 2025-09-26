@@ -14,7 +14,7 @@ export interface IncomeEntry {
 }
 
 export const useIncome = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -31,7 +31,7 @@ export const useIncome = () => {
       if (error) throw error;
       return data as IncomeEntry[];
     },
-    enabled: !!user,
+    enabled: !!user && !authLoading,
   });
 
   const addIncomeMutation = useMutation({
@@ -83,7 +83,7 @@ export const useIncome = () => {
 
   return {
     income,
-    incomeLoading,
+    incomeLoading: incomeLoading || authLoading,
     addIncome: addIncomeMutation.mutate,
     isAddingIncome: addIncomeMutation.isPending,
   };

@@ -15,7 +15,7 @@ export interface BankAccount {
 }
 
 export const useBankAccounts = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -33,7 +33,7 @@ export const useBankAccounts = () => {
       if (error) throw error;
       return data as BankAccount[];
     },
-    enabled: !!user,
+    enabled: !!user && !authLoading,
   });
 
   const addBankAccountMutation = useMutation({
@@ -70,7 +70,7 @@ export const useBankAccounts = () => {
 
   return {
     bankAccounts,
-    bankAccountsLoading,
+    bankAccountsLoading: bankAccountsLoading || authLoading,
     addBankAccount: addBankAccountMutation.mutate,
     isAddingBankAccount: addBankAccountMutation.isPending,
   };

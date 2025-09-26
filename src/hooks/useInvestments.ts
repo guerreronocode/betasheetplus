@@ -20,7 +20,7 @@ export interface Investment {
 }
 
 export const useInvestments = (startDate?: Date, endDate?: Date) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { getTotalReserved } = useBankAccountVaults();
@@ -61,7 +61,7 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
         maturity_date: (item as any).maturity_date || "",
       })) as Investment[];
     },
-    enabled: !!user,
+    enabled: !!user && !authLoading,
   });
 
   const addInvestmentMutation = useMutation({
@@ -324,7 +324,7 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
 
   return {
     investments,
-    investmentsLoading,
+    investmentsLoading: investmentsLoading || authLoading,
     addInvestment: addInvestmentMutation.mutate,
     updateInvestment: updateInvestmentMutation.mutate,
     deleteInvestment: deleteInvestmentMutation.mutate,

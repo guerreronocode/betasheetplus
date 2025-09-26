@@ -14,7 +14,7 @@ export interface ExpenseEntry {
 }
 
 export const useExpenses = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -31,7 +31,7 @@ export const useExpenses = () => {
       if (error) throw error;
       return data as ExpenseEntry[];
     },
-    enabled: !!user,
+    enabled: !!user && !authLoading,
   });
 
   const addExpenseMutation = useMutation({
@@ -112,7 +112,7 @@ export const useExpenses = () => {
 
   return {
     expenses,
-    expensesLoading,
+    expensesLoading: expensesLoading || authLoading,
     addExpense: addExpenseMutation.mutate,
     isAddingExpense: addExpenseMutation.isPending,
   };
