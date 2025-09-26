@@ -30,7 +30,12 @@ const DEFAULT_COLUMN_WIDTHS = {
   status: 100
 };
 
-const PendingTransactionsTable = () => {
+interface PendingTransactionsTableProps {
+  startDate?: Date;
+  endDate?: Date;
+}
+
+const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTableProps) => {
   const { pendingTransactions, isLoading } = usePendingTransactions();
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
@@ -78,10 +83,21 @@ const PendingTransactionsTable = () => {
     }
   }, [containerWidth]);
 
-  const sortedTransactions = useMemo(() => {
+  const filteredTransactions = useMemo(() => {
     if (!pendingTransactions.length) return [];
+    
+    return pendingTransactions.filter(transaction => {
+      if (!startDate || !endDate) return true;
+      
+      const transactionDate = new Date(transaction.date);
+      return transactionDate >= startDate && transactionDate <= endDate;
+    });
+  }, [pendingTransactions, startDate, endDate]);
 
-    return [...pendingTransactions].sort((a, b) => {
+  const sortedTransactions = useMemo(() => {
+    if (!filteredTransactions.length) return [];
+
+    return [...filteredTransactions].sort((a, b) => {
       let aValue: any = a[sortField];
       let bValue: any = b[sortField];
 
@@ -100,7 +116,7 @@ const PendingTransactionsTable = () => {
       if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [pendingTransactions, sortField, sortOrder]);
+  }, [filteredTransactions, sortField, sortOrder]);
 
   const paginatedTransactions = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -207,11 +223,11 @@ const PendingTransactionsTable = () => {
 
   return (
     <Card className="w-full">
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-lg font-semibold">Transações Pendentes</h3>
-            <p className="text-sm text-muted-foreground">
+            <h3 className="text-base font-semibold">Transações Pendentes</h3>
+            <p className="text-xs text-muted-foreground">
               {sortedTransactions.length} transações pendentes
             </p>
           </div>
@@ -401,8 +417,8 @@ const PendingTransactionsTable = () => {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-4">
-            <div className="text-sm text-muted-foreground">
+          <div className="flex items-center justify-between mt-3">
+            <div className="text-xs text-muted-foreground">
               Página {currentPage} de {totalPages} ({sortedTransactions.length} registros)
             </div>
             <div className="flex items-center space-x-2">
@@ -411,16 +427,18 @@ const PendingTransactionsTable = () => {
                 size="sm"
                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                 disabled={currentPage === 1}
+                className="h-7"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="w-3 h-3" />
               </Button>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                 disabled={currentPage === totalPages}
+                className="h-7"
               >
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="w-3 h-3" />
               </Button>
             </div>
           </div>
