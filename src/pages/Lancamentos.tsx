@@ -42,15 +42,15 @@ const Lancamentos = () => {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 flex flex-col h-[calc(100vh-2rem)]">
         <div className="mb-4">
           <h1 className="text-2xl font-bold text-fnb-ink mb-1">Lançamentos</h1>
           <p className="text-fnb-ink/70 text-sm">Gerencie suas transações financeiras</p>
         </div>
 
-        <div className="space-y-4">
+        <div className="flex flex-col flex-1 space-y-4">
           {/* Header with buttons */}
-          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-lg rounded-lg mx-1 mb-2">
+          <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-lg rounded-lg mx-1 mb-2">
             <div className="flex justify-between items-center py-3 px-4">
               <div className="flex gap-2">
                 <Button 

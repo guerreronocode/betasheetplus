@@ -166,8 +166,8 @@ const TransferBetweenAccounts = () => {
 
   return (
     <form onSubmit={handleTransfer} className="space-y-3">
-        <div>
-          <Label htmlFor="from-account" className="text-xs">Conta de Origem</Label>
+      <div>
+        <Label htmlFor="from-account" className="text-xs">Instituição de Origem *</Label>
           <Select
             value={transferForm.fromAccountId}
             onValueChange={(value) => setTransferForm(prev => ({ ...prev, fromAccountId: value }))}
@@ -195,7 +195,7 @@ const TransferBetweenAccounts = () => {
         </div>
 
         <div>
-          <Label htmlFor="to-account" className="text-xs">Conta de Destino</Label>
+          <Label htmlFor="to-account" className="text-xs">Instituição de Destino *</Label>
           <Select
             value={transferForm.toAccountId}
             onValueChange={(value) => setTransferForm(prev => ({ ...prev, toAccountId: value }))}

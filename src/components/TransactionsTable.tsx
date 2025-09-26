@@ -17,7 +17,7 @@ import EditTransactionModal from './EditTransactionModal';
 type SortField = 'description' | 'category' | 'date' | 'amount' | 'type';
 type SortOrder = 'asc' | 'desc';
 
-const ITEMS_PER_PAGE = 10;
+const ITEMS_PER_PAGE = 15;
 
 const TransactionsTable = () => {
   const { income, expenses, isLoading } = useFinancialData();
@@ -142,80 +142,86 @@ const TransactionsTable = () => {
   };
 
   return (
-    <Card className="fnb-card">
-      <Table>
-        <TableHeader>
-          <TableRow className="h-10">
-            <SortableHeader field="type">Tipo</SortableHeader>
-            <SortableHeader field="description">Descrição</SortableHeader>
-            <SortableHeader field="category">Categoria</SortableHeader>
-            <SortableHeader field="date">Data</SortableHeader>
-            <SortableHeader field="amount">
-              <div className="text-right">Valor</div>
-            </SortableHeader>
-            <TableHead className="w-[70px] text-sm h-10 px-3">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {paginatedTransactions.length === 0 ? (
-            <TableRow>
-              <TableCell colSpan={6} className="text-center py-6 text-fnb-ink/70">
-                <div>
-                  <p className="text-sm">Nenhuma transação encontrada</p>
-                  <p className="text-xs">Adicione sua primeira receita ou despesa!</p>
-                </div>
-              </TableCell>
+    <Card className="fnb-card flex flex-col h-[calc(100vh-200px)]">
+      <div className="flex-1 overflow-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="h-10">
+              <SortableHeader field="type">Tipo</SortableHeader>
+              <SortableHeader field="description">Descrição</SortableHeader>
+              <SortableHeader field="category">Categoria</SortableHeader>
+              <SortableHeader field="date">Data</SortableHeader>
+              <SortableHeader field="amount">
+                <div className="text-right">Valor</div>
+              </SortableHeader>
+              <TableHead className="w-[70px] text-sm h-10 px-3">Ações</TableHead>
             </TableRow>
-          ) : (
-            paginatedTransactions.map((transaction) => (
-              <TableRow key={`${transaction.type}-${transaction.id}`} className="h-12">
-                <TableCell className="px-3 py-2">
-                  <div className="w-fit">
-                    {transaction.type === 'income' ? (
-                      <ArrowUpCircle className="w-4 h-4 text-green-600" />
-                    ) : (
-                      <ArrowDownCircle className="w-4 h-4 text-red-600" />
-                    )}
+          </TableHeader>
+          <TableBody>
+            {paginatedTransactions.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-6 text-fnb-ink/70">
+                  <div>
+                    <p className="text-sm">Nenhuma transação encontrada</p>
+                    <p className="text-xs">Adicione sua primeira receita ou despesa!</p>
                   </div>
                 </TableCell>
-                <TableCell className="font-medium text-fnb-ink text-sm px-3 py-2">
-                  {transaction.description}
-                </TableCell>
-                <TableCell className="text-fnb-ink/70 text-sm px-3 py-2">
-                  {transaction.category}
-                </TableCell>
-                <TableCell className="text-fnb-ink/70 text-sm px-3 py-2">
-                  {formatDateForDisplay(transaction.date)}
-                </TableCell>
-                <TableCell className={`text-right font-semibold text-sm px-3 py-2 ${
-                  transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                }`}>
-                  {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                </TableCell>
-                <TableCell className="px-3 py-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEdit(transaction)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                </TableCell>
               </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+            ) : (
+              paginatedTransactions.map((transaction) => (
+                <TableRow key={`${transaction.type}-${transaction.id}`} className="h-12">
+                  <TableCell className="px-3 py-2">
+                    <div className="w-fit">
+                      {transaction.type === 'income' ? (
+                        <ArrowUpCircle className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <ArrowDownCircle className="w-4 h-4 text-red-600" />
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="font-medium text-fnb-ink text-sm px-3 py-2">
+                    {transaction.description}
+                  </TableCell>
+                  <TableCell className="text-fnb-ink/70 text-sm px-3 py-2">
+                    {transaction.category}
+                  </TableCell>
+                  <TableCell className="text-fnb-ink/70 text-sm px-3 py-2">
+                    {formatDateForDisplay(transaction.date)}
+                  </TableCell>
+                  <TableCell className={`text-right font-semibold text-sm px-3 py-2 ${
+                    transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                  </TableCell>
+                  <TableCell className="px-3 py-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(transaction)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
       
-      {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3 border-t">
-          <div className="flex items-center gap-2">
-            <p className="text-sm text-fnb-ink/70">
-              Mostrando {startIndex + 1} a {Math.min(endIndex, allTransactions.length)} de {allTransactions.length} transações
-            </p>
-          </div>
+      {/* Pagination Controls - Always visible */}
+      <div className="flex items-center justify-between px-4 py-3 border-t bg-background">
+        <div className="flex items-center gap-2">
+          <p className="text-sm text-fnb-ink/70">
+            {allTransactions.length > 0 ? (
+              <>Mostrando {startIndex + 1} a {Math.min(endIndex, allTransactions.length)} de {allTransactions.length} transações</>
+            ) : (
+              <>0 transações encontradas</>
+            )}
+          </p>
+        </div>
+        {totalPages > 1 && (
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -264,8 +270,8 @@ const TransactionsTable = () => {
               <ChevronRight className="w-4 h-4" />
             </Button>
           </div>
-        </div>
-      )}
+        )}
+      </div>
       
       <EditTransactionModal
         open={editModalOpen}

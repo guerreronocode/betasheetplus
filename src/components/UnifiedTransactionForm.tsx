@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { DollarSign, Tag, Calendar, Building } from 'lucide-react';
+import { DollarSign, Tag, Calendar, Building, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCustomCategories } from "@/hooks/useCustomCategories";
 import { useTransactionForm } from "@/hooks/useTransactionForm";
@@ -39,7 +40,8 @@ const UnifiedTransactionForm = () => {
     amount: '',
     category: '',
     date: getTodayForInput(),
-    bank_account_id: ''
+    bank_account_id: '',
+    isRecurring: false
   };
 
   const initialExpenseForm = {
@@ -47,7 +49,8 @@ const UnifiedTransactionForm = () => {
     amount: '',
     category: '',
     date: getTodayForInput(),
-    bank_account_id: ''
+    bank_account_id: '',
+    isRecurring: false
   };
 
   const {
@@ -146,7 +149,21 @@ const UnifiedTransactionForm = () => {
               />
             </div>
             <div>
-              <Label htmlFor="income-bank-account" className="text-xs">Conta Bancária *</Label>
+              <Label htmlFor="income-recurring" className="text-xs">Opções</Label>
+              <div className="flex items-center space-x-2 py-2">
+                <Checkbox 
+                  id="income-recurring"
+                  checked={incomeForm.isRecurring}
+                  onCheckedChange={(checked) => handleIncomeChange({ isRecurring: !!checked })}
+                />
+                <Label htmlFor="income-recurring" className="text-xs flex items-center gap-1">
+                  <RefreshCw className="w-3 h-3" />
+                  Receita recorrente
+                </Label>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="income-bank-account" className="text-xs">Instituição Financeira *</Label>
               <Select
                 value={incomeForm.bank_account_id}
                 onValueChange={(value) => handleIncomeChange({ bank_account_id: value })}
@@ -243,7 +260,21 @@ const UnifiedTransactionForm = () => {
               />
             </div>
             <div>
-              <Label htmlFor="expense-bank-account" className="text-xs">Conta Bancária *</Label>
+              <Label htmlFor="expense-recurring" className="text-xs">Opções</Label>
+              <div className="flex items-center space-x-2 py-2">
+                <Checkbox 
+                  id="expense-recurring"
+                  checked={expenseForm.isRecurring}
+                  onCheckedChange={(checked) => handleExpenseChange({ isRecurring: !!checked })}
+                />
+                <Label htmlFor="expense-recurring" className="text-xs flex items-center gap-1">
+                  <RefreshCw className="w-3 h-3" />
+                  Despesa recorrente
+                </Label>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="expense-bank-account" className="text-xs">Instituição Financeira *</Label>
               <Select
                 value={expenseForm.bank_account_id}
                 onValueChange={(value) => handleExpenseChange({ bank_account_id: value })}
