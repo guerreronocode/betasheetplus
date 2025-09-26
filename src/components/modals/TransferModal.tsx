@@ -10,11 +10,11 @@ interface TransferModalProps {
 const TransferModal = ({ open, onOpenChange }: TransferModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader className="pb-2">
-          <DialogTitle className="text-lg">Transferência entre Contas</DialogTitle>
+      <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
+        <DialogHeader className="pb-1">
+          <DialogTitle className="text-base">Transferência entre Contas</DialogTitle>
         </DialogHeader>
-        <div className="[&_label]:text-xs [&_input]:h-8 [&_button]:h-8 [&_.space-y-4]:space-y-3">
+        <div className="[&_label]:text-xs [&_input]:h-7 [&_button]:h-7 [&_.space-y-4]:space-y-2 [&_.space-y-3]:space-y-2">
           <TransferBetweenAccounts />
         </div>
       </DialogContent>
