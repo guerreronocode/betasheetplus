@@ -129,10 +129,57 @@ const TransactionsTable = () => {
   };
 
   const handleResize = (column: keyof typeof columnWidths, newWidth: number) => {
-    setColumnWidths(prev => ({
-      ...prev,
-      [column]: Math.max(50, newWidth) // Minimum 50px width
-    }));
+    const minWidth = 50;
+    const maxWidth = 400;
+    const constrainedWidth = Math.max(minWidth, Math.min(maxWidth, newWidth));
+    
+    setColumnWidths(prev => {
+      const columns = Object.keys(prev) as Array<keyof typeof prev>;
+      const currentIndex = columns.indexOf(column);
+      const widthDiff = constrainedWidth - prev[column];
+      
+      // Se não há diferença significativa, não fazer nada
+      if (Math.abs(widthDiff) < 5) return prev;
+      
+      // Encontrar a próxima coluna redimensionável (não é a coluna de ações)
+      let nextColumn: keyof typeof prev | null = null;
+      for (let i = currentIndex + 1; i < columns.length; i++) {
+        if (columns[i] !== 'actions') {
+          nextColumn = columns[i];
+          break;
+        }
+      }
+      
+      // Se não encontrou próxima coluna, tentar a anterior
+      if (!nextColumn) {
+        for (let i = currentIndex - 1; i >= 0; i--) {
+          if (columns[i] !== 'actions') {
+            nextColumn = columns[i];
+            break;
+          }
+        }
+      }
+      
+      if (!nextColumn) return prev;
+      
+      const newNextWidth = prev[nextColumn] - widthDiff;
+      
+      // Verificar se a próxima coluna pode ser reduzida
+      if (newNextWidth < minWidth) {
+        const availableReduction = prev[nextColumn] - minWidth;
+        return {
+          ...prev,
+          [column]: prev[column] + availableReduction,
+          [nextColumn]: minWidth
+        };
+      }
+      
+      return {
+        ...prev,
+        [column]: constrainedWidth,
+        [nextColumn]: newNextWidth
+      };
+    });
   };
 
   const ResizableHeader = ({ 
