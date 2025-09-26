@@ -199,6 +199,27 @@
     background: hsl(var(--muted-foreground));
   }
 
+  /* Scrollbar customizada para tabela - Verde escura e suavizada */
+  .fnb-scrollbar-custom::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  
+  .fnb-scrollbar-custom::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 2px;
+  }
+  
+  .fnb-scrollbar-custom::-webkit-scrollbar-thumb {
+    background: hsl(131 40% 30%);
+    border-radius: 2px;
+    transition: all 0.3s ease;
+  }
+  
+  .fnb-scrollbar-custom::-webkit-scrollbar-thumb:hover {
+    background: hsl(131 50% 25%);
+  }
+
   /* Checkbox circular para recorrência */
   .fnb-checkbox-circular {
     border-radius: 50% !important;

@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Pencil, ArrowUpCircle, ArrowDownCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, GripVertical } from 'lucide-react';
+import { Pencil, ArrowUpCircle, ArrowDownCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { formatDateForDisplay, formatCurrency } from '@/utils/formatters';
 import EditTransactionModal from './EditTransactionModal';
@@ -139,15 +139,19 @@ const TransactionsTable = () => {
     field, 
     column, 
     children, 
-    align = 'left' 
+    align = 'left',
+    resizable = true
   }: { 
     field: SortField; 
     column: keyof typeof columnWidths;
     children: React.ReactNode; 
     align?: 'left' | 'right' | 'center';
+    resizable?: boolean;
   }) => {
     const handleMouseDown = (e: React.MouseEvent) => {
+      if (!resizable) return;
       e.preventDefault();
+      e.stopPropagation();
       setResizing(column);
       
       const startX = e.clientX;
@@ -184,12 +188,12 @@ const TransactionsTable = () => {
               <ChevronDown className="w-4 h-4" />
           )}
         </div>
-        <div
-          className="absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-primary/20 flex items-center justify-center group"
-          onMouseDown={handleMouseDown}
-        >
-          <GripVertical className="w-3 h-3 text-muted-foreground group-hover:text-primary" />
-        </div>
+        {resizable && (
+          <div
+            className="absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-primary/10"
+            onMouseDown={handleMouseDown}
+          />
+        )}
       </th>
     );
   };
@@ -208,120 +212,116 @@ const TransactionsTable = () => {
     <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] rounded-xl overflow-hidden">
       {/* Header fixo */}
       <div className="border-b bg-white/95 backdrop-blur-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
-            <thead>
-              <tr className="h-10 border-b">
-                <ResizableHeader field="type" column="type" align="center">
-                  <span className="text-sm font-medium">Tipo</span>
-                </ResizableHeader>
-                <ResizableHeader field="description" column="description">
-                  <span className="text-sm font-medium">Descrição</span>
-                </ResizableHeader>
-                <ResizableHeader field="category" column="category">
-                  <span className="text-sm font-medium">Categoria</span>
-                </ResizableHeader>
-                <ResizableHeader field="date" column="date">
-                  <span className="text-sm font-medium">Data</span>
-                </ResizableHeader>
-                <ResizableHeader field="amount" column="amount" align="right">
-                  <span className="text-sm font-medium">Valor</span>
-                </ResizableHeader>
-                <th 
-                  className="text-center px-3 py-2 text-sm font-medium border-r border-border/50"
-                  style={{ width: columnWidths.actions }}
-                >
-                  Ações
-                </th>
-              </tr>
-            </thead>
-          </table>
-        </div>
+        <table className="w-full" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
+          <thead>
+            <tr className="h-10 border-b">
+              <ResizableHeader field="type" column="type" align="center">
+                <span className="text-sm font-medium">Tipo</span>
+              </ResizableHeader>
+              <ResizableHeader field="description" column="description">
+                <span className="text-sm font-medium">Descrição</span>
+              </ResizableHeader>
+              <ResizableHeader field="category" column="category">
+                <span className="text-sm font-medium">Categoria</span>
+              </ResizableHeader>
+              <ResizableHeader field="date" column="date">
+                <span className="text-sm font-medium">Data</span>
+              </ResizableHeader>
+              <ResizableHeader field="amount" column="amount" align="right">
+                <span className="text-sm font-medium">Valor</span>
+              </ResizableHeader>
+              <th 
+                className="text-center px-3 py-2 text-sm font-medium border-r border-border/50"
+                style={{ width: columnWidths.actions }}
+              >
+                Ações
+              </th>
+            </tr>
+          </thead>
+        </table>
       </div>
 
-      {/* Corpo da tabela com scroll */}
-      <div className="flex-1 overflow-auto" ref={tableRef}>
-        <div className="overflow-x-auto">
-          <table className="w-full" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
-            <tbody>
-              {paginatedTransactions.length === 0 ? (
-                <tr>
+      {/* Corpo da tabela com scroll customizado */}
+      <div className="flex-1 overflow-auto fnb-scrollbar-custom" ref={tableRef}>
+        <table className="w-full" style={{ minWidth: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}>
+          <tbody>
+            {paginatedTransactions.length === 0 ? (
+              <tr>
+                <td 
+                  colSpan={6} 
+                  className="text-center py-6 text-fnb-ink/70"
+                  style={{ width: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}
+                >
+                  <div>
+                    <p className="text-sm">Nenhuma transação encontrada</p>
+                    <p className="text-xs">Adicione sua primeira receita ou despesa!</p>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              paginatedTransactions.map((transaction) => (
+                <tr key={`${transaction.type}-${transaction.id}`} className="h-12 border-b hover:bg-gray-50/50">
                   <td 
-                    colSpan={6} 
-                    className="text-center py-6 text-fnb-ink/70"
-                    style={{ width: Object.values(columnWidths).reduce((a, b) => a + b, 0) }}
+                    className="px-3 py-2 border-r border-border/20"
+                    style={{ width: columnWidths.type }}
                   >
-                    <div>
-                      <p className="text-sm">Nenhuma transação encontrada</p>
-                      <p className="text-xs">Adicione sua primeira receita ou despesa!</p>
+                    <div className="flex justify-center">
+                      {transaction.type === 'income' ? (
+                        <ArrowUpCircle className="w-4 h-4 text-green-600" />
+                      ) : (
+                        <ArrowDownCircle className="w-4 h-4 text-red-600" />
+                      )}
                     </div>
                   </td>
+                  <td 
+                    className="font-medium text-fnb-ink text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
+                    style={{ width: columnWidths.description }}
+                    title={transaction.description}
+                  >
+                    <div className="truncate">{transaction.description}</div>
+                  </td>
+                  <td 
+                    className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
+                    style={{ width: columnWidths.category }}
+                    title={transaction.category}
+                  >
+                    <div className="truncate">{transaction.category}</div>
+                  </td>
+                  <td 
+                    className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
+                    style={{ width: columnWidths.date }}
+                  >
+                    <div className="truncate">{formatDateForDisplay(transaction.date)}</div>
+                  </td>
+                  <td 
+                    className={`text-right font-semibold text-sm px-3 py-2 border-r border-border/20 overflow-hidden ${
+                      transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                    }`}
+                    style={{ width: columnWidths.amount }}
+                    title={`${transaction.type === 'income' ? '+' : '-'}${formatCurrency(transaction.amount)}`}
+                  >
+                    <div className="truncate">
+                      {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
+                    </div>
+                  </td>
+                  <td 
+                    className="px-3 py-2 text-center"
+                    style={{ width: columnWidths.actions }}
+                  >
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(transaction)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                  </td>
                 </tr>
-              ) : (
-                paginatedTransactions.map((transaction) => (
-                  <tr key={`${transaction.type}-${transaction.id}`} className="h-12 border-b hover:bg-gray-50/50">
-                    <td 
-                      className="px-3 py-2 border-r border-border/20"
-                      style={{ width: columnWidths.type }}
-                    >
-                      <div className="flex justify-center">
-                        {transaction.type === 'income' ? (
-                          <ArrowUpCircle className="w-4 h-4 text-green-600" />
-                        ) : (
-                          <ArrowDownCircle className="w-4 h-4 text-red-600" />
-                        )}
-                      </div>
-                    </td>
-                    <td 
-                      className="font-medium text-fnb-ink text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
-                      style={{ width: columnWidths.description }}
-                      title={transaction.description}
-                    >
-                      <div className="truncate">{transaction.description}</div>
-                    </td>
-                    <td 
-                      className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
-                      style={{ width: columnWidths.category }}
-                      title={transaction.category}
-                    >
-                      <div className="truncate">{transaction.category}</div>
-                    </td>
-                    <td 
-                      className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
-                      style={{ width: columnWidths.date }}
-                    >
-                      <div className="truncate">{formatDateForDisplay(transaction.date)}</div>
-                    </td>
-                    <td 
-                      className={`text-right font-semibold text-sm px-3 py-2 border-r border-border/20 overflow-hidden ${
-                        transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                      }`}
-                      style={{ width: columnWidths.amount }}
-                      title={`${transaction.type === 'income' ? '+' : '-'}${formatCurrency(transaction.amount)}`}
-                    >
-                      <div className="truncate">
-                        {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                      </div>
-                    </td>
-                    <td 
-                      className="px-3 py-2 text-center"
-                      style={{ width: columnWidths.actions }}
-                    >
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEdit(transaction)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
       
       {/* Pagination Controls - Always visible */}
