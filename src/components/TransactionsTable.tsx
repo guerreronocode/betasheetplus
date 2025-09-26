@@ -49,14 +49,14 @@ const TransactionsTable = () => {
 
   // Combine and sort all transactions
   const allTransactions = useMemo(() => {
-    console.log('TransactionsTable - Creating allTransactions');
-    
-    // Early return if loading or no data
-    if (isLoading) return [];
-    
     // Garantir que income e expenses são arrays válidos
     const safeIncome = Array.isArray(income) ? income : [];
     const safeExpenses = Array.isArray(expenses) ? expenses : [];
+    
+    // Return empty array if loading
+    if (isLoading) {
+      return [];
+    }
     
     const combined = [
       ...safeIncome.map(item => ({ ...item, type: 'income' as const })),
@@ -88,7 +88,7 @@ const TransactionsTable = () => {
         return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
       }
     });
-  }, [income?.length, expenses?.length, sortField, sortOrder, isLoading]);
+  }, [income, expenses, sortField, sortOrder, isLoading]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
