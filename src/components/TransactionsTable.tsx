@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   Table, 
   TableBody, 
@@ -144,7 +144,7 @@ const TransactionsTable = () => {
   const paginatedTransactions = allTransactions.slice(startIndex, endIndex);
 
   // Reset page when transactions change
-  useMemo(() => {
+  useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
     }
