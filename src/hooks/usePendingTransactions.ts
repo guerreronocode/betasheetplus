@@ -24,6 +24,11 @@ export const usePendingTransactions = () => {
   const { plannedIncome } = usePlannedIncome();
   const { plannedExpenses } = usePlannedExpenses();
   const { upcomingBills, overdueBills } = useCreditCardBills();
+  
+  console.log('🚀 [usePendingTransactions] Hook called', {
+    user: !!user,
+    userId: user?.id
+  });
 
   console.log('usePendingTransactions - Data:', {
     user: !!user,
@@ -37,8 +42,18 @@ export const usePendingTransactions = () => {
   const { data: pendingTransactions = [], isLoading } = useQuery({
     queryKey: ['pending_transactions', user?.id, recurringTransactions, plannedIncome, plannedExpenses, upcomingBills, overdueBills],
     queryFn: async (): Promise<PendingTransaction[]> => {
-      console.log('Query function executing with user:', !!user);
-      if (!user) return [];
+      console.log('🔍 [usePendingTransactions] Query function executing');
+      console.log('🔍 [usePendingTransactions] User exists:', !!user);
+      console.log('🔍 [usePendingTransactions] recurringTransactions:', recurringTransactions);
+      console.log('🔍 [usePendingTransactions] plannedIncome:', plannedIncome);
+      console.log('🔍 [usePendingTransactions] plannedExpenses:', plannedExpenses);
+      console.log('🔍 [usePendingTransactions] upcomingBills:', upcomingBills);
+      console.log('🔍 [usePendingTransactions] overdueBills:', overdueBills);
+      
+      if (!user) {
+        console.log('🚫 [usePendingTransactions] No user, returning empty array');
+        return [];
+      }
 
       const pending: PendingTransaction[] = [];
       const today = new Date();
@@ -140,7 +155,8 @@ export const usePendingTransactions = () => {
         return a.date.getTime() - b.date.getTime();
       });
       
-      console.log('Final pending transactions:', sorted);
+      console.log('✅ [usePendingTransactions] Final pending transactions:', sorted);
+      console.log('✅ [usePendingTransactions] Total items found:', sorted.length);
       return sorted;
     },
     enabled: !!user,

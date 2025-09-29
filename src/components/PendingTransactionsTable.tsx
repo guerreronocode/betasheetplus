@@ -38,12 +38,12 @@ interface PendingTransactionsTableProps {
 const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTableProps) => {
   const { pendingTransactions, isLoading } = usePendingTransactions();
   
-  console.log('PendingTransactionsTable - Debug:', {
-    pendingTransactions: pendingTransactions?.length || 0,
-    isLoading,
+  console.log('🎯 [PendingTransactionsTable] Received data:', {
+    pendingTransactions,
+    pendingLoading: isLoading,
+    length: pendingTransactions?.length || 0,
     startDate,
-    endDate,
-    rawData: pendingTransactions
+    endDate
   });
   
   const [sortField, setSortField] = useState<SortField>('date');
@@ -226,7 +226,10 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
     );
   };
 
-  if (isLoading) {
+  console.log('🔍 [PendingTransactionsTable] isLoading:', isLoading, 'pendingTransactions:', pendingTransactions?.length);
+  
+  // Só mostrar loading se estiver carregando E não tiver dados
+  if (isLoading && (!pendingTransactions || pendingTransactions.length === 0)) {
     return (
       <Card className="p-6">
         <div className="animate-pulse space-y-4">
