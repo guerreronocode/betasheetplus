@@ -1494,21 +1494,7 @@ export type Database = {
       }
     }
     Views: {
-      financial_evolution_data: {
-        Row: {
-          category: string | null
-          created_at: string | null
-          liquid_reserves: number | null
-          month_date: string | null
-          net_worth: number | null
-          total_assets: number | null
-          total_liabilities: number | null
-          type: string | null
-          user_id: string | null
-          value: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       award_achievement: {
@@ -1546,6 +1532,19 @@ export type Database = {
       create_default_categories_for_user: {
         Args: { target_user_id: string }
         Returns: undefined
+      }
+      get_user_financial_evolution: {
+        Args: { p_user_id: string }
+        Returns: {
+          category: string
+          liquid_reserves: number
+          month_date: string
+          net_worth: number
+          total_assets: number
+          total_liabilities: number
+          type: string
+          value: number
+        }[]
       }
       mark_bill_as_paid: {
         Args: { p_bill_id: string; p_payment_account_id?: string }

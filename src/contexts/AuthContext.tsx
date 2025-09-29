@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { isStrongPassword } from '@/utils/validations';
 
 interface AuthContextType {
   user: User | null;
@@ -49,8 +50,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: { message: 'Email e senha são obrigatórios' } };
       }
       
-      if (password.length < 8) {
-        return { error: { message: 'A senha deve ter pelo menos 8 caracteres' } };
+      if (!isStrongPassword(password)) {
+        return { error: { message: 'A senha deve ter no mínimo 8 caracteres, incluindo maiúsculas, minúsculas, números e caracteres especiais' } };
       }
       
       const { error } = await supabase.auth.signUp({

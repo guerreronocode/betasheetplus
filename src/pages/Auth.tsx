@@ -7,7 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from '@/hooks/use-toast';
-import { Mail, Eye, EyeOff } from 'lucide-react';
+import { Mail, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { isStrongPassword } from '@/utils/validations';
+import { isRateLimited } from '@/utils/security';
 
 const Auth = () => {
   const [email, setEmail] = useState('');
@@ -28,6 +30,17 @@ const Auth = () => {
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Security: Rate limiting
+    if (isRateLimited(email, 5, 15 * 60 * 1000)) {
+      toast({
+        title: "Muitas tentativas",
+        description: "Aguarde 15 minutos antes de tentar novamente.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setLoading(true);
 
     const { error } = await signIn(email, password);
@@ -50,6 +63,17 @@ const Auth = () => {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Security: Validate strong password
+    if (!isStrongPassword(password)) {
+      toast({
+        title: "Senha fraca",
+        description: "A senha deve ter no mínimo 8 caracteres, incluindo maiúsculas, minúsculas, números e caracteres especiais.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     setLoading(true);
 
     const { error } = await signUp(email, password, fullName);
@@ -161,22 +185,28 @@ const Auth = () => {
                 />
               </div>
               
-              <div className="relative">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Senha (mínimo 6 caracteres)"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  minLength={6}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-                >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
+              <div>
+                <div className="relative">
+                  <Input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Senha"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    minLength={8}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                  >
+                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                  </button>
+                </div>
+                <div className="flex items-start gap-2 mt-2 text-xs text-muted-foreground">
+                  <AlertCircle className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                  <p>Mínimo 8 caracteres com maiúsculas, minúsculas, números e caracteres especiais</p>
+                </div>
               </div>
               
               <Button 

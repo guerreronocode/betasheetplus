@@ -177,30 +177,12 @@ const GoalsDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                {sortedGoals.length > 0 ? (
+                  {sortedGoals.length > 0 ? (
                   <div className="w-full overflow-hidden">
-                    <div className="overflow-x-auto smooth-scroll" style={{
+                    <div className="overflow-x-auto goals-table-scroll" style={{
                       scrollbarWidth: 'thin',
                       scrollbarColor: 'hsl(var(--muted-foreground) / 0.2) transparent'
                     }}>
-                      <style dangerouslySetInnerHTML={{
-                        __html: `
-                          .smooth-scroll::-webkit-scrollbar {
-                            height: 4px;
-                          }
-                          .smooth-scroll::-webkit-scrollbar-track {
-                            background: transparent;
-                          }
-                          .smooth-scroll::-webkit-scrollbar-thumb {
-                            background: hsl(var(--muted-foreground) / 0.2);
-                            border-radius: 2px;
-                            transition: background 0.2s ease;
-                          }
-                          .smooth-scroll::-webkit-scrollbar-thumb:hover {
-                            background: hsl(var(--muted-foreground) / 0.3);
-                          }
-                        `
-                      }} />
                       <Table className="w-full min-w-[900px]">
                       <TableHeader className="sticky top-0 z-20 bg-background shadow-sm">
                         <TableRow>
