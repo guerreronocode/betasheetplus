@@ -13,19 +13,19 @@ const LancamentosPendencias = () => {
   const navigate = useNavigate();
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   
-  // Date filter states
-  const [appliedStartDate, setAppliedStartDate] = useState<Date>(() => {
+  // Date filter states - para pendências, o padrão é de hoje para frente
+  const [appliedStartDate, setAppliedStartDate] = useState<Date>(new Date());
+  const [appliedEndDate, setAppliedEndDate] = useState<Date>(() => {
     const date = new Date();
-    date.setMonth(date.getMonth() - 3);
+    date.setMonth(date.getMonth() + 3);
     return date;
   });
-  const [appliedEndDate, setAppliedEndDate] = useState<Date>(new Date());
-  const [tempStartDate, setTempStartDate] = useState<Date>(() => {
+  const [tempStartDate, setTempStartDate] = useState<Date>(new Date());
+  const [tempEndDate, setTempEndDate] = useState<Date>(() => {
     const date = new Date();
-    date.setMonth(date.getMonth() - 3);
+    date.setMonth(date.getMonth() + 3);
     return date;
   });
-  const [tempEndDate, setTempEndDate] = useState<Date>(new Date());
 
   return (
     <Layout>
@@ -71,13 +71,13 @@ const LancamentosPendencias = () => {
                       className="h-7 text-xs"
                       onClick={() => {
                         const today = new Date();
-                        const oneMonthAgo = new Date(today);
-                        oneMonthAgo.setMonth(today.getMonth() - 1);
-                        setTempStartDate(oneMonthAgo);
-                        setTempEndDate(today);
+                        const oneMonthForward = new Date(today);
+                        oneMonthForward.setMonth(today.getMonth() + 1);
+                        setTempStartDate(today);
+                        setTempEndDate(oneMonthForward);
                       }}
                     >
-                      1 mês
+                      Próximo mês
                     </Button>
                     <Button
                       variant="outline"
@@ -85,13 +85,13 @@ const LancamentosPendencias = () => {
                       className="h-7 text-xs"
                       onClick={() => {
                         const today = new Date();
-                        const threeMonthsAgo = new Date(today);
-                        threeMonthsAgo.setMonth(today.getMonth() - 3);
-                        setTempStartDate(threeMonthsAgo);
-                        setTempEndDate(today);
+                        const threeMonthsForward = new Date(today);
+                        threeMonthsForward.setMonth(today.getMonth() + 3);
+                        setTempStartDate(today);
+                        setTempEndDate(threeMonthsForward);
                       }}
                     >
-                      3 meses
+                      Próximos 3 meses
                     </Button>
                     <Button
                       variant="outline"
@@ -99,13 +99,13 @@ const LancamentosPendencias = () => {
                       className="h-7 text-xs"
                       onClick={() => {
                         const today = new Date();
-                        const sixMonthsAgo = new Date(today);
-                        sixMonthsAgo.setMonth(today.getMonth() - 6);
-                        setTempStartDate(sixMonthsAgo);
-                        setTempEndDate(today);
+                        const sixMonthsForward = new Date(today);
+                        sixMonthsForward.setMonth(today.getMonth() + 6);
+                        setTempStartDate(today);
+                        setTempEndDate(sixMonthsForward);
                       }}
                     >
-                      6 meses
+                      Próximos 6 meses
                     </Button>
                     <Button
                       variant="outline"
@@ -113,13 +113,13 @@ const LancamentosPendencias = () => {
                       className="h-7 text-xs"
                       onClick={() => {
                         const today = new Date();
-                        const oneYearAgo = new Date(today);
-                        oneYearAgo.setFullYear(today.getFullYear() - 1);
-                        setTempStartDate(oneYearAgo);
-                        setTempEndDate(today);
+                        const oneYearForward = new Date(today);
+                        oneYearForward.setFullYear(today.getFullYear() + 1);
+                        setTempStartDate(today);
+                        setTempEndDate(oneYearForward);
                       }}
                     >
-                      1 ano
+                      Próximo ano
                     </Button>
                   </div>
                 </div>

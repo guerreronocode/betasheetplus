@@ -93,26 +93,45 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
   }, [containerWidth]);
 
   const filteredTransactions = useMemo(() => {
-    console.log('filteredTransactions - Input:', { 
-      pendingTransactions, 
-      hasLength: pendingTransactions?.length, 
-      startDate, 
-      endDate 
+    console.log('📅 [PendingTransactionsTable] Filtering transactions:', {
+      totalTransactions: pendingTransactions?.length || 0,
+      startDate: startDate?.toLocaleDateString(),
+      endDate: endDate?.toLocaleDateString()
     });
     
     if (!pendingTransactions || !Array.isArray(pendingTransactions) || pendingTransactions.length === 0) {
-      console.log('filteredTransactions - Empty array returned');
+      console.log('📅 [PendingTransactionsTable] No transactions to filter');
       return [];
     }
     
     const filtered = pendingTransactions.filter(transaction => {
+      // Transações recorrentes SEMPRE aparecem, independente do filtro de data
+      if (transaction.type === 'recurring') {
+        console.log('♻️ [PendingTransactionsTable] Including recurring transaction:', transaction.description);
+        return true;
+      }
+      
+      // Para outras transações, aplicar filtro de data
       if (!startDate || !endDate) return true;
       
       const transactionDate = new Date(transaction.date);
-      return transactionDate >= startDate && transactionDate <= endDate;
+      const isInRange = transactionDate >= startDate && transactionDate <= endDate;
+      
+      console.log('🔍 [PendingTransactionsTable] Checking transaction:', {
+        description: transaction.description,
+        type: transaction.type,
+        date: transactionDate.toLocaleDateString(),
+        isInRange
+      });
+      
+      return isInRange;
     });
     
-    console.log('filteredTransactions - Output:', filtered);
+    console.log('✅ [PendingTransactionsTable] Filtered transactions:', {
+      total: filtered.length,
+      recurring: filtered.filter(t => t.type === 'recurring').length,
+      others: filtered.filter(t => t.type !== 'recurring').length
+    });
     return filtered;
   }, [pendingTransactions, startDate, endDate]);
 
@@ -120,6 +139,10 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
     if (!filteredTransactions.length) return [];
 
     return [...filteredTransactions].sort((a, b) => {
+      // SEMPRE priorizar transações recorrentes no topo
+      if (a.type === 'recurring' && b.type !== 'recurring') return -1;
+      if (b.type === 'recurring' && a.type !== 'recurring') return 1;
+      
       let aValue: any = a[sortField];
       let bValue: any = b[sortField];
 
