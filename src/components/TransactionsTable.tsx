@@ -42,9 +42,8 @@ const TransactionsTable = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
-  // Só mostra loading se estiver carregando E não tiver dados ainda
-  const shouldShowLoading = isLoading && (!income?.length && !expenses?.length);
-
+  // ======= TODOS OS HOOKS PRIMEIRO =======
+  
   // Monitora mudanças no tamanho do container
   React.useEffect(() => {
     const updateContainerWidth = () => {
@@ -73,30 +72,6 @@ const TransactionsTable = () => {
       window.removeEventListener('resize', updateContainerWidth);
     };
   }, []);
-
-  // Debug logs
-  console.log('TransactionsTable - Debug:', {
-    income: income ? income.length : 'null/undefined',
-    expenses: expenses ? expenses.length : 'null/undefined',
-    shouldShowLoading,
-    isLoading
-  });
-
-  if (shouldShowLoading) {
-    console.log('TransactionsTable - Showing loading state');
-    return (
-      <Card className="p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-          <div className="space-y-3">
-            {[...Array(5)].map((_, i) => (
-              <div key={i} className="h-12 bg-gray-200 rounded"></div>
-            ))}
-          </div>
-        </div>
-      </Card>
-    );
-  }
 
   // Combine and sort all transactions
   const allTransactions = useMemo(() => {
@@ -137,11 +112,29 @@ const TransactionsTable = () => {
     });
   }, [income, expenses, sortField, sortOrder]);
 
-  // Pagination logic
+  // Calcula larguras dinâmicas baseadas no container disponível
+  const calculateTableWidths = useMemo(() => {
+    const minTotalWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
+    
+    // Se a largura mínima é menor que o container, expande proporcionalmente
+    if (minTotalWidth < containerWidth && containerWidth > 0) {
+      const scale = containerWidth / minTotalWidth;
+      return {
+        type: Math.floor(columnWidths.type * scale),
+        description: Math.floor(columnWidths.description * scale),
+        category: Math.floor(columnWidths.category * scale),
+        date: Math.floor(columnWidths.date * scale),
+        amount: Math.floor(columnWidths.amount * scale),
+        actions: Math.floor(columnWidths.actions * scale)
+      };
+    }
+    
+    // Senão, usa as larguras definidas
+    return columnWidths;
+  }, [columnWidths, containerWidth]);
+
+  // Pagination logic (precisa estar aqui para os cálculos)
   const totalPages = Math.ceil(allTransactions.length / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const endIndex = startIndex + ITEMS_PER_PAGE;
-  const paginatedTransactions = allTransactions.slice(startIndex, endIndex);
 
   // Reset page when transactions change
   useEffect(() => {
@@ -149,6 +142,42 @@ const TransactionsTable = () => {
       setCurrentPage(1);
     }
   }, [totalPages]);
+
+  // ======= APÓS TODOS OS HOOKS, CONDIÇÕES DE EARLY RETURN =======
+  
+  // Só mostra loading se estiver carregando E não tiver dados ainda
+  const shouldShowLoading = isLoading && (!income?.length && !expenses?.length);
+
+  // Debug logs
+  console.log('TransactionsTable - Debug:', {
+    income: income ? income.length : 'null/undefined',
+    expenses: expenses ? expenses.length : 'null/undefined',
+    shouldShowLoading,
+    isLoading
+  });
+
+  if (shouldShowLoading) {
+    console.log('TransactionsTable - Showing loading state');
+    return (
+      <Card className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="h-12 bg-gray-200 rounded"></div>
+            ))}
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  // ======= LÓGICA DE PROCESSAMENTO APÓS EARLY RETURNS =======
+  
+  // Pagination logic
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedTransactions = allTransactions.slice(startIndex, endIndex);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -252,27 +281,6 @@ const TransactionsTable = () => {
     setEditModalOpen(false);
     setSelectedTransaction(null);
   };
-
-  // Calcula larguras dinâmicas baseadas no container disponível
-  const calculateTableWidths = useMemo(() => {
-    const minTotalWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
-    
-    // Se a largura mínima é menor que o container, expande proporcionalmente
-    if (minTotalWidth < containerWidth && containerWidth > 0) {
-      const scale = containerWidth / minTotalWidth;
-      return {
-        type: Math.floor(columnWidths.type * scale),
-        description: Math.floor(columnWidths.description * scale),
-        category: Math.floor(columnWidths.category * scale),
-        date: Math.floor(columnWidths.date * scale),
-        amount: Math.floor(columnWidths.amount * scale),
-        actions: Math.floor(columnWidths.actions * scale)
-      };
-    }
-    
-    // Senão, usa as larguras definidas
-    return columnWidths;
-  }, [columnWidths, containerWidth]);
 
   const totalWidth = Object.values(calculateTableWidths).reduce((a, b) => a + b, 0);
 
