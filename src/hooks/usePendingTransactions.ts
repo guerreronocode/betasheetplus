@@ -4,6 +4,7 @@ import { useRecurringTransactions } from './useRecurringTransactions';
 import { usePlannedIncome } from './usePlannedIncome';
 import { usePlannedExpenses } from './usePlannedExpenses';
 import { useCreditCardBills } from './useCreditCardBills';
+import { formatDateForDisplay } from '@/utils/formatters';
 
 export interface PendingTransaction {
   id: string;
@@ -129,18 +130,19 @@ export const usePendingTransactions = () => {
         });
       }
 
-      // 4. Faturas de cartão
+      // 4. Faturas de cartão (usar due_date para filtro)
       if (upcomingBills && Array.isArray(upcomingBills) || overdueBills && Array.isArray(overdueBills)) {
         [...(upcomingBills || []), ...(overdueBills || [])].forEach(bill => {
-          const billDate = new Date(bill.due_date);
-          const status = billDate < today ? 'overdue' : 'upcoming';
+          // Usar due_date como data de referência para a fatura
+          const billDueDate = new Date(bill.due_date);
+          const status = billDueDate < today ? 'overdue' : 'upcoming';
           pending.push({
             id: `bill-${bill.id}`,
             type: 'credit_bill' as const,
-            date: billDate,
+            date: billDueDate, // Usar due_date para ordenação e filtro
             category: 'Cartão de Crédito',
             account: 'A pagar',
-            description: `Fatura - Cartão`,
+            description: `Fatura - Vencimento ${formatDateForDisplay(bill.due_date)}`,
             value: -bill.total_amount,
             status: status as 'overdue' | 'upcoming',
             original: bill

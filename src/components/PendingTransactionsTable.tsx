@@ -1,12 +1,4 @@
 import React, { useState, useMemo, useRef } from 'react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,8 +14,8 @@ const ITEMS_PER_PAGE = 15;
 // Default column widths
 const DEFAULT_COLUMN_WIDTHS = {
   type: 60,
-  date: 120,
-  category: 200,
+  date: 100,
+  category: 180,
   account: 150,
   description: 250,
   value: 140,
@@ -37,14 +29,6 @@ interface PendingTransactionsTableProps {
 
 const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTableProps) => {
   const { pendingTransactions, isLoading } = usePendingTransactions();
-  
-  console.log('🎯 [PendingTransactionsTable] Received data:', {
-    pendingTransactions,
-    pendingLoading: isLoading,
-    length: pendingTransactions?.length || 0,
-    startDate,
-    endDate
-  });
   
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
@@ -69,45 +53,42 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
     }
 
     updateContainerWidth();
-    return () => resizeObserver.disconnect();
+    window.addEventListener('resize', updateContainerWidth);
+    
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateContainerWidth);
+    };
   }, []);
 
   // Automatically adjust column widths
-  React.useEffect(() => {
-    if (containerWidth === 0) return;
-
-    const totalDefaultWidth = Object.values(DEFAULT_COLUMN_WIDTHS).reduce((sum, width) => sum + width, 0);
+  const calculateTableWidths = useMemo(() => {
+    const minTotalWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
     
-    if (totalDefaultWidth < containerWidth) {
-      // Scale proportionally to fill container
-      const scale = containerWidth / totalDefaultWidth;
-      const scaledWidths = Object.entries(DEFAULT_COLUMN_WIDTHS).reduce((acc, [key, width]) => {
-        acc[key as keyof typeof DEFAULT_COLUMN_WIDTHS] = Math.floor(width * scale);
-        return acc;
-      }, {} as typeof DEFAULT_COLUMN_WIDTHS);
-      
-      setColumnWidths(scaledWidths);
-    } else {
-      setColumnWidths(DEFAULT_COLUMN_WIDTHS);
+    if (minTotalWidth < containerWidth && containerWidth > 0) {
+      const scale = containerWidth / minTotalWidth;
+      return {
+        type: Math.floor(columnWidths.type * scale),
+        date: Math.floor(columnWidths.date * scale),
+        category: Math.floor(columnWidths.category * scale),
+        account: Math.floor(columnWidths.account * scale),
+        description: Math.floor(columnWidths.description * scale),
+        value: Math.floor(columnWidths.value * scale),
+        status: Math.floor(columnWidths.status * scale)
+      };
     }
-  }, [containerWidth]);
+    
+    return columnWidths;
+  }, [columnWidths, containerWidth]);
 
   const filteredTransactions = useMemo(() => {
-    console.log('📅 [PendingTransactionsTable] Filtering transactions:', {
-      totalTransactions: pendingTransactions?.length || 0,
-      startDate: startDate?.toLocaleDateString(),
-      endDate: endDate?.toLocaleDateString()
-    });
-    
     if (!pendingTransactions || !Array.isArray(pendingTransactions) || pendingTransactions.length === 0) {
-      console.log('📅 [PendingTransactionsTable] No transactions to filter');
       return [];
     }
     
     const filtered = pendingTransactions.filter(transaction => {
-      // Transações recorrentes SEMPRE aparecem, independente do filtro de data
+      // Transações recorrentes SEMPRE aparecem
       if (transaction.type === 'recurring') {
-        console.log('♻️ [PendingTransactionsTable] Including recurring transaction:', transaction.description);
         return true;
       }
       
@@ -115,23 +96,9 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
       if (!startDate || !endDate) return true;
       
       const transactionDate = new Date(transaction.date);
-      const isInRange = transactionDate >= startDate && transactionDate <= endDate;
-      
-      console.log('🔍 [PendingTransactionsTable] Checking transaction:', {
-        description: transaction.description,
-        type: transaction.type,
-        date: transactionDate.toLocaleDateString(),
-        isInRange
-      });
-      
-      return isInRange;
+      return transactionDate >= startDate && transactionDate <= endDate;
     });
     
-    console.log('✅ [PendingTransactionsTable] Filtered transactions:', {
-      total: filtered.length,
-      recurring: filtered.filter(t => t.type === 'recurring').length,
-      others: filtered.filter(t => t.type !== 'recurring').length
-    });
     return filtered;
   }, [pendingTransactions, startDate, endDate]);
 
@@ -139,7 +106,7 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
     if (!filteredTransactions.length) return [];
 
     return [...filteredTransactions].sort((a, b) => {
-      // SEMPRE priorizar transações recorrentes no topo
+      // Priorizar transações recorrentes
       if (a.type === 'recurring' && b.type !== 'recurring') return -1;
       if (b.type === 'recurring' && a.type !== 'recurring') return 1;
       
@@ -163,13 +130,10 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
     });
   }, [filteredTransactions, sortField, sortOrder]);
 
-  const paginatedTransactions = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    return sortedTransactions.slice(startIndex, endIndex);
-  }, [sortedTransactions, currentPage]);
-
   const totalPages = Math.ceil(sortedTransactions.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedTransactions = sortedTransactions.slice(startIndex, endIndex);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
@@ -181,38 +145,87 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
     setCurrentPage(1);
   };
 
-  const handleResize = (column: string, delta: number) => {
+  const handleResize = (column: keyof typeof columnWidths, newWidth: number) => {
+    const minWidths = {
+      type: 60,
+      date: 80,
+      category: 100,
+      account: 100,
+      description: 100,
+      value: 100,
+      status: 80
+    };
+    
+    const finalWidth = Math.max(minWidths[column], newWidth);
+    
     setColumnWidths(prev => ({
       ...prev,
-      [column]: Math.max(50, prev[column as keyof typeof prev] + delta)
+      [column]: finalWidth
     }));
   };
 
-  const handleMouseDown = (e: React.MouseEvent, column: string) => {
-    e.preventDefault();
-    setResizing(column);
-    
-    const startX = e.clientX;
-    const startWidth = columnWidths[column as keyof typeof columnWidths];
-
-    const handleMouseMove = (e: MouseEvent) => {
-      const delta = e.clientX - startX;
-      const newWidth = Math.max(50, startWidth + delta);
+  const ResizableHeader = ({ 
+    field, 
+    column, 
+    children, 
+    align = 'left',
+    resizable = true
+  }: { 
+    field: SortField; 
+    column: keyof typeof columnWidths;
+    children: React.ReactNode; 
+    align?: 'left' | 'right' | 'center';
+    resizable?: boolean;
+  }) => {
+    const handleMouseDown = (e: React.MouseEvent) => {
+      if (!resizable) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setResizing(column);
       
-      setColumnWidths(prev => ({
-        ...prev,
-        [column]: newWidth
-      }));
+      const startX = e.clientX;
+      const startWidth = columnWidths[column];
+      
+      const handleMouseMove = (e: MouseEvent) => {
+        const deltaX = e.clientX - startX;
+        const newWidth = startWidth + deltaX;
+        handleResize(column, newWidth);
+      };
+      
+      const handleMouseUp = () => {
+        setResizing(null);
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+      
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
     };
 
-    const handleMouseUp = () => {
-      setResizing(null);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    return (
+      <th 
+        className={`relative cursor-pointer hover:bg-muted/50 text-sm h-10 px-3 border-r border-border/50 ${
+          align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left'
+        }`}
+        onClick={() => handleSort(field)}
+        style={{ width: `${calculateTableWidths[column]}px` }}
+      >
+        <div className="flex items-center gap-1 pr-2">
+          {children}
+          {sortField === field && (
+            sortOrder === 'asc' ? 
+              <ChevronUp className="w-4 h-4" /> : 
+              <ChevronDown className="w-4 h-4" />
+          )}
+        </div>
+        {resizable && (
+          <div
+            className="absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-primary/10"
+            onMouseDown={handleMouseDown}
+          />
+        )}
+      </th>
+    );
   };
 
   const getTypeIcon = (type: string) => {
@@ -249,9 +262,6 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
     );
   };
 
-  console.log('🔍 [PendingTransactionsTable] isLoading:', isLoading, 'pendingTransactions:', pendingTransactions?.length);
-  
-  // Só mostrar loading se estiver carregando E não tiver dados
   if (isLoading && (!pendingTransactions || pendingTransactions.length === 0)) {
     return (
       <Card className="p-6">
@@ -267,234 +277,199 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
     );
   }
 
-  const totalTableWidth = Object.values(columnWidths).reduce((sum, width) => sum + width, 0);
+  const totalWidth = Object.values(calculateTableWidths).reduce((a, b) => a + b, 0);
 
   return (
-    <Card className="w-full h-full flex flex-col">
-      <div className="p-4 flex-shrink-0">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-base font-semibold">Transações Pendentes</h3>
-            <p className="text-xs text-muted-foreground">
-              {sortedTransactions.length} transações pendentes
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <div 
-          ref={containerRef} 
-          className="h-full overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background"
+    <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] rounded-xl overflow-hidden" ref={containerRef}>
+      {/* Container com scroll horizontal */}
+      <div className="flex-1 overflow-auto fnb-scrollbar-custom" ref={tableRef}>
+        <table 
+          className="w-full table-fixed border-collapse"
+          style={{ 
+            minWidth: `${totalWidth}px`
+          }}
         >
-          <div ref={tableRef} style={{ minWidth: `${totalTableWidth}px` }}>
-            <Table style={{ tableLayout: 'fixed', width: `${totalTableWidth}px` }}>
-              <colgroup>
-                <col style={{ width: `${columnWidths.type}px` }} />
-                <col style={{ width: `${columnWidths.date}px` }} />
-                <col style={{ width: `${columnWidths.category}px` }} />
-                <col style={{ width: `${columnWidths.account}px` }} />
-                <col style={{ width: `${columnWidths.description}px` }} />
-                <col style={{ width: `${columnWidths.value}px` }} />
-                <col style={{ width: `${columnWidths.status}px` }} />
-              </colgroup>
-              <TableHeader>
-                <TableRow>
-                  <TableHead style={{ width: `${columnWidths.type}px` }}>
-                    <div className="flex items-center justify-between">
-                      Tipo
+          <colgroup>
+            <col style={{ width: `${calculateTableWidths.type}px` }} />
+            <col style={{ width: `${calculateTableWidths.date}px` }} />
+            <col style={{ width: `${calculateTableWidths.category}px` }} />
+            <col style={{ width: `${calculateTableWidths.account}px` }} />
+            <col style={{ width: `${calculateTableWidths.description}px` }} />
+            <col style={{ width: `${calculateTableWidths.value}px` }} />
+            <col style={{ width: `${calculateTableWidths.status}px` }} />
+          </colgroup>
+          
+          {/* Header */}
+          <thead className="sticky top-0 bg-white/95 backdrop-blur-sm border-b z-10">
+            <tr className="h-10 border-b">
+              <ResizableHeader field="date" column="type" align="center">
+                <span className="text-sm font-medium">Tipo</span>
+              </ResizableHeader>
+              <ResizableHeader field="date" column="date">
+                <span className="text-sm font-medium">Data</span>
+              </ResizableHeader>
+              <ResizableHeader field="category" column="category">
+                <span className="text-sm font-medium">Categoria</span>
+              </ResizableHeader>
+              <ResizableHeader field="account" column="account">
+                <span className="text-sm font-medium">Conta</span>
+              </ResizableHeader>
+              <ResizableHeader field="description" column="description">
+                <span className="text-sm font-medium">Descrição</span>
+              </ResizableHeader>
+              <ResizableHeader field="value" column="value" align="right">
+                <span className="text-sm font-medium">Valor</span>
+              </ResizableHeader>
+              <ResizableHeader field="status" column="status" align="center" resizable={false}>
+                <span className="text-sm font-medium">Status</span>
+              </ResizableHeader>
+            </tr>
+          </thead>
+
+          {/* Body */}
+          <tbody>
+            {paginatedTransactions.length === 0 ? (
+              <tr>
+                <td 
+                  colSpan={7} 
+                  className="text-center py-6 text-muted-foreground"
+                  style={{ width: `${totalWidth}px` }}
+                >
+                  <div>
+                    <p className="text-sm">Nenhuma transação pendente encontrada</p>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              paginatedTransactions.map((transaction) => (
+                <tr key={transaction.id} className="h-12 border-b hover:bg-gray-50/50">
+                  <td 
+                    className="px-3 py-2 border-r border-border/20"
+                    style={{ width: `${calculateTableWidths.type}px` }}
+                  >
+                    <div className="flex justify-center">
+                      {getTypeIcon(transaction.type)}
                     </div>
-                  </TableHead>
-                  <TableHead style={{ width: `${columnWidths.date}px` }}>
-                    <div className="flex items-center justify-between">
-                      <Button
-                        variant="ghost"
-                        className="h-auto p-0 font-medium"
-                        onClick={() => handleSort('date')}
-                      >
-                        Data
-                        {sortField === 'date' && (
-                          sortOrder === 'asc' ? <ChevronUp className="ml-1 w-4 h-4" /> : <ChevronDown className="ml-1 w-4 h-4" />
-                        )}
-                      </Button>
-                      <div
-                        className="w-1 h-4 cursor-col-resize hover:bg-border"
-                        onMouseDown={(e) => handleMouseDown(e, 'date')}
-                      />
-                    </div>
-                  </TableHead>
-                  <TableHead style={{ width: `${columnWidths.category}px` }}>
-                    <div className="flex items-center justify-between">
-                      <Button
-                        variant="ghost"
-                        className="h-auto p-0 font-medium"
-                        onClick={() => handleSort('category')}
-                      >
-                        Categoria
-                        {sortField === 'category' && (
-                          sortOrder === 'asc' ? <ChevronUp className="ml-1 w-4 h-4" /> : <ChevronDown className="ml-1 w-4 h-4" />
-                        )}
-                      </Button>
-                      <div
-                        className="w-1 h-4 cursor-col-resize hover:bg-border"
-                        onMouseDown={(e) => handleMouseDown(e, 'category')}
-                      />
-                    </div>
-                  </TableHead>
-                  <TableHead style={{ width: `${columnWidths.account}px` }}>
-                    <div className="flex items-center justify-between">
-                      <Button
-                        variant="ghost"
-                        className="h-auto p-0 font-medium"
-                        onClick={() => handleSort('account')}
-                      >
-                        Conta
-                        {sortField === 'account' && (
-                          sortOrder === 'asc' ? <ChevronUp className="ml-1 w-4 h-4" /> : <ChevronDown className="ml-1 w-4 h-4" />
-                        )}
-                      </Button>
-                      <div
-                        className="w-1 h-4 cursor-col-resize hover:bg-border"
-                        onMouseDown={(e) => handleMouseDown(e, 'account')}
-                      />
-                    </div>
-                  </TableHead>
-                  <TableHead style={{ width: `${columnWidths.description}px` }}>
-                    <div className="flex items-center justify-between">
-                      <Button
-                        variant="ghost"
-                        className="h-auto p-0 font-medium"
-                        onClick={() => handleSort('description')}
-                      >
-                        Descrição
-                        {sortField === 'description' && (
-                          sortOrder === 'asc' ? <ChevronUp className="ml-1 w-4 h-4" /> : <ChevronDown className="ml-1 w-4 h-4" />
-                        )}
-                      </Button>
-                      <div
-                        className="w-1 h-4 cursor-col-resize hover:bg-border"
-                        onMouseDown={(e) => handleMouseDown(e, 'description')}
-                      />
-                    </div>
-                  </TableHead>
-                  <TableHead style={{ width: `${columnWidths.value}px` }}>
-                    <div className="flex items-center justify-between">
-                      <Button
-                        variant="ghost"
-                        className="h-auto p-0 font-medium"
-                        onClick={() => handleSort('value')}
-                      >
-                        Valor
-                        {sortField === 'value' && (
-                          sortOrder === 'asc' ? <ChevronUp className="ml-1 w-4 h-4" /> : <ChevronDown className="ml-1 w-4 h-4" />
-                        )}
-                      </Button>
-                      <div
-                        className="w-1 h-4 cursor-col-resize hover:bg-border"
-                        onMouseDown={(e) => handleMouseDown(e, 'value')}
-                      />
-                    </div>
-                  </TableHead>
-                  <TableHead style={{ width: `${columnWidths.status}px` }}>
-                    <div className="flex items-center justify-between">
-                      <Button
-                        variant="ghost"
-                        className="h-auto p-0 font-medium"
-                        onClick={() => handleSort('status')}
-                      >
-                        Status
-                        {sortField === 'status' && (
-                          sortOrder === 'asc' ? <ChevronUp className="ml-1 w-4 h-4" /> : <ChevronDown className="ml-1 w-4 h-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {paginatedTransactions.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                      Nenhuma transação pendente encontrada
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  paginatedTransactions.map((transaction) => (
-                    <TableRow key={transaction.id}>
-                      <TableCell style={{ width: `${columnWidths.type}px` }}>
-                        <div className="flex items-center justify-center">
-                          {getTypeIcon(transaction.type)}
+                  </td>
+                  <td 
+                    className="text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
+                    style={{ width: `${calculateTableWidths.date}px` }}
+                  >
+                    <div className="truncate">{formatDateForDisplay(transaction.date.toISOString().split('T')[0])}</div>
+                  </td>
+                  <td 
+                    className="text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
+                    title={transaction.category}
+                    style={{ width: `${calculateTableWidths.category}px` }}
+                  >
+                    <div className="truncate">
+                      {transaction.category}
+                      {transaction.subcategory && (
+                        <div className="text-xs text-muted-foreground truncate">
+                          {transaction.subcategory}
                         </div>
-                      </TableCell>
-                      <TableCell style={{ width: `${columnWidths.date}px` }}>
-                        {formatDateForDisplay(transaction.date.toISOString().split('T')[0])}
-                      </TableCell>
-                      <TableCell style={{ width: `${columnWidths.category}px` }}>
-                        <div className="truncate" title={transaction.category}>
-                          {transaction.category}
-                          {transaction.subcategory && (
-                            <div className="text-xs text-muted-foreground truncate">
-                              {transaction.subcategory}
-                            </div>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell style={{ width: `${columnWidths.account}px` }}>
-                        <div className="truncate" title={transaction.account}>
-                          {transaction.account}
-                        </div>
-                      </TableCell>
-                      <TableCell style={{ width: `${columnWidths.description}px` }}>
-                        <div className="truncate" title={transaction.description}>
-                          {transaction.description}
-                        </div>
-                      </TableCell>
-                      <TableCell style={{ width: `${columnWidths.value}px` }}>
-                        <span className={`font-medium ${
-                          transaction.value >= 0 
-                            ? 'text-green-600 dark:text-green-400' 
-                            : 'text-red-600 dark:text-red-400'
-                        }`}>
-                          {formatCurrency(transaction.value)}
-                        </span>
-                      </TableCell>
-                      <TableCell style={{ width: `${columnWidths.status}px` }}>
-                        {getStatusBadge(transaction.status)}
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                      )}
+                    </div>
+                  </td>
+                  <td 
+                    className="text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
+                    title={transaction.account}
+                    style={{ width: `${calculateTableWidths.account}px` }}
+                  >
+                    <div className="truncate">{transaction.account}</div>
+                  </td>
+                  <td 
+                    className="font-medium text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
+                    title={transaction.description}
+                    style={{ width: `${calculateTableWidths.description}px` }}
+                  >
+                    <div className="truncate">{transaction.description}</div>
+                  </td>
+                  <td 
+                    className={`text-right font-semibold text-sm px-3 py-2 border-r border-border/20 overflow-hidden ${
+                      transaction.value > 0 ? 'text-green-600' : 'text-red-600'
+                    }`}
+                    title={`${transaction.value > 0 ? '+' : ''}${formatCurrency(Math.abs(transaction.value))}`}
+                    style={{ width: `${calculateTableWidths.value}px` }}
+                  >
+                    <div className="truncate">
+                      {transaction.value > 0 ? '+' : ''}{formatCurrency(Math.abs(transaction.value))}
+                    </div>
+                  </td>
+                  <td 
+                    className="px-3 py-2 text-center"
+                    style={{ width: `${calculateTableWidths.status}px` }}
+                  >
+                    {getStatusBadge(transaction.status)}
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Pagination Controls */}
+      <div className="flex items-center justify-between px-3 py-2 border-t text-xs bg-white/95">
+        <div className="flex items-center gap-2">
+          <p className="text-muted-foreground">
+            {sortedTransactions.length > 0 ? (
+              <>Mostrando {startIndex + 1} a {Math.min(endIndex, sortedTransactions.length)} de {sortedTransactions.length}</>
+            ) : (
+              <>0 transações</>
+            )}
+          </p>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1 || sortedTransactions.length === 0}
+            className="h-7 w-7 p-0"
+          >
+            <ChevronLeft className="w-3 h-3" />
+          </Button>
+          
+          <div className="flex items-center gap-1">
+            {Array.from({ length: Math.max(1, Math.min(5, totalPages)) }, (_, i) => {
+              let pageNumber;
+              if (totalPages <= 5) {
+                pageNumber = i + 1;
+              } else if (currentPage <= 3) {
+                pageNumber = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNumber = totalPages - 4 + i;
+              } else {
+                pageNumber = currentPage - 2 + i;
+              }
+              
+              return (
+                <Button
+                  key={pageNumber}
+                  variant={currentPage === pageNumber ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCurrentPage(pageNumber)}
+                  disabled={sortedTransactions.length === 0}
+                  className="h-7 w-7 p-0 text-xs"
+                >
+                  {pageNumber}
+                </Button>
+              );
+            })}
           </div>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages || sortedTransactions.length === 0}
+            className="h-7 w-7 p-0"
+          >
+            <ChevronRight className="w-3 h-3" />
+          </Button>
         </div>
       </div>
-
-      {totalPages > 1 && (
-        <div className="p-4 border-t flex items-center justify-between flex-shrink-0">
-          <div className="text-xs text-muted-foreground">
-            Página {currentPage} de {totalPages} ({sortedTransactions.length} registros)
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-      )}
     </Card>
   );
 };

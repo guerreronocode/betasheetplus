@@ -13,17 +13,17 @@ const LancamentosPendencias = () => {
   const navigate = useNavigate();
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   
-  // Date filter states - para pendências, o padrão é de hoje para frente
+  // Date filter states - padrão é hoje e daqui a 2 meses
   const [appliedStartDate, setAppliedStartDate] = useState<Date>(new Date());
   const [appliedEndDate, setAppliedEndDate] = useState<Date>(() => {
     const date = new Date();
-    date.setMonth(date.getMonth() + 3);
+    date.setMonth(date.getMonth() + 2);
     return date;
   });
   const [tempStartDate, setTempStartDate] = useState<Date>(new Date());
   const [tempEndDate, setTempEndDate] = useState<Date>(() => {
     const date = new Date();
-    date.setMonth(date.getMonth() + 3);
+    date.setMonth(date.getMonth() + 2);
     return date;
   });
 
@@ -56,7 +56,7 @@ const LancamentosPendencias = () => {
                 className="h-8 px-3 shadow-md hover:shadow-lg transition-shadow bg-background border border-border"
               >
                 <CalendarIcon className="mr-1 h-3 w-3" />
-                Filtrar
+                Data
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="end">
