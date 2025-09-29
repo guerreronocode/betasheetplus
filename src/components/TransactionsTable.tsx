@@ -148,7 +148,7 @@ const TransactionsTable = () => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
     }
-  }, [totalPages, currentPage]);
+  }, [totalPages]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
