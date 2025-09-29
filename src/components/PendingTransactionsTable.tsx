@@ -45,6 +45,7 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
     endDate,
     rawData: pendingTransactions
   });
+  
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -253,8 +254,13 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
             </p>
           </div>
         </div>
+      </div>
 
-        <div className="overflow-x-auto flex-1">
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <div 
+          ref={containerRef} 
+          className="h-full overflow-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-background"
+        >
           <div ref={tableRef} style={{ minWidth: `${totalTableWidth}px` }}>
             <Table style={{ tableLayout: 'fixed', width: `${totalTableWidth}px` }}>
               <colgroup>
@@ -436,35 +442,33 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
             </Table>
           </div>
         </div>
-
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between mt-3 flex-shrink-0">
-            <div className="text-xs text-muted-foreground">
-              Página {currentPage} de {totalPages} ({sortedTransactions.length} registros)
-            </div>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-                className="h-7"
-              >
-                <ChevronLeft className="w-3 h-3" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-                className="h-7"
-              >
-                <ChevronRight className="w-3 h-3" />
-              </Button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="p-4 border-t flex items-center justify-between flex-shrink-0">
+          <div className="text-xs text-muted-foreground">
+            Página {currentPage} de {totalPages} ({sortedTransactions.length} registros)
+          </div>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </Card>
   );
 };

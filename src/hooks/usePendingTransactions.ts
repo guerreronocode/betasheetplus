@@ -143,7 +143,9 @@ export const usePendingTransactions = () => {
       console.log('Final pending transactions:', sorted);
       return sorted;
     },
-    enabled: !!user && (recurringTransactions !== undefined || plannedIncome !== undefined || plannedExpenses !== undefined || upcomingBills !== undefined || overdueBills !== undefined),
+    enabled: !!user,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos
   });
 
   return {
