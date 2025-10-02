@@ -60,20 +60,20 @@ export const usePendingTransactions = () => {
       if (plannedIncome && Array.isArray(plannedIncome)) {
         plannedIncome.forEach(income => {
           const incomeDate = new Date(income.month);
-          if (incomeDate >= today) {
-            const status = incomeDate < today ? 'overdue' : 'upcoming';
-            pending.push({
-              id: `income-${income.id}`,
-              type: 'planned_income' as const,
-              date: incomeDate,
-              category: income.category,
-              account: 'A definir',
-              description: income.description || 'Receita planejada',
-              value: income.planned_amount,
-              status: status as 'overdue' | 'upcoming',
-              original: income
-            });
-          }
+          incomeDate.setHours(0, 0, 0, 0);
+          // CORREÇÃO: incluir todas as receitas (passadas, presentes e futuras)
+          const status = incomeDate < today ? 'overdue' : (incomeDate.getTime() === today.getTime() ? 'pending' : 'upcoming');
+          pending.push({
+            id: `income-${income.id}`,
+            type: 'planned_income' as const,
+            date: incomeDate,
+            category: income.category,
+            account: 'A definir',
+            description: income.description || 'Receita planejada',
+            value: income.planned_amount,
+            status: status as 'overdue' | 'upcoming' | 'pending',
+            original: income
+          });
         });
       }
 
@@ -81,20 +81,20 @@ export const usePendingTransactions = () => {
       if (plannedExpenses && Array.isArray(plannedExpenses)) {
         plannedExpenses.forEach(expense => {
           const expenseDate = new Date(expense.month);
-          if (expenseDate >= today) {
-            const status = expenseDate < today ? 'overdue' : 'upcoming';
-            pending.push({
-              id: `expense-${expense.id}`,
-              type: 'planned_expense' as const,
-              date: expenseDate,
-              category: expense.category,
-              account: 'A definir',
-              description: expense.description || 'Despesa planejada',
-              value: -expense.planned_amount,
-              status: status as 'overdue' | 'upcoming',
-              original: expense
-            });
-          }
+          expenseDate.setHours(0, 0, 0, 0);
+          // CORREÇÃO: incluir todas as despesas (passadas, presentes e futuras)
+          const status = expenseDate < today ? 'overdue' : (expenseDate.getTime() === today.getTime() ? 'pending' : 'upcoming');
+          pending.push({
+            id: `expense-${expense.id}`,
+            type: 'planned_expense' as const,
+            date: expenseDate,
+            category: expense.category,
+            account: 'A definir',
+            description: expense.description || 'Despesa planejada',
+            value: -expense.planned_amount,
+            status: status as 'overdue' | 'upcoming' | 'pending',
+            original: expense
+          });
         });
       }
 
@@ -103,7 +103,8 @@ export const usePendingTransactions = () => {
         [...(upcomingBills || []), ...(overdueBills || [])].forEach(bill => {
           // Usar due_date como data de referência para a fatura
           const billDueDate = new Date(bill.due_date);
-          const status = billDueDate < today ? 'overdue' : 'upcoming';
+          billDueDate.setHours(0, 0, 0, 0);
+          const status = billDueDate < today ? 'overdue' : (billDueDate.getTime() === today.getTime() ? 'pending' : 'upcoming');
           pending.push({
             id: `bill-${bill.id}`,
             type: 'credit_bill' as const,
@@ -112,7 +113,7 @@ export const usePendingTransactions = () => {
             account: 'A pagar',
             description: `Fatura - Vencimento ${formatDateForDisplay(bill.due_date)}`,
             value: -bill.total_amount,
-            status: status as 'overdue' | 'upcoming',
+            status: status as 'overdue' | 'upcoming' | 'pending',
             original: bill
           });
         });

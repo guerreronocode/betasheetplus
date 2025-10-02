@@ -92,19 +92,18 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
       return [];
     }
     
-    // Hoje (início do dia)
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    // Normalizar datas de filtro - se não fornecidas, usar range padrão
-    const filterStartDate = startDate ? new Date(startDate) : today;
+    // Normalizar datas de filtro
+    const filterStartDate = startDate ? new Date(startDate) : new Date();
     filterStartDate.setHours(0, 0, 0, 0);
     
-    const filterEndDate = endDate ? new Date(endDate) : new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000); // 2 meses
+    const filterEndDate = endDate ? new Date(endDate) : (() => {
+      const date = new Date();
+      date.setMonth(date.getMonth() + 6);
+      return date;
+    })();
     filterEndDate.setHours(23, 59, 59, 999);
     
     console.log('📅 [PendingTransactionsTable] Filter dates:', {
-      today: today.toISOString().split('T')[0],
       filterStart: filterStartDate.toISOString().split('T')[0],
       filterEnd: filterEndDate.toISOString().split('T')[0]
     });
@@ -113,27 +112,29 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
       const transactionDate = new Date(transaction.date);
       transactionDate.setHours(0, 0, 0, 0);
       
-      // Apenas transações FUTURAS (data > hoje)
-      const isFuture = transactionDate > today;
-      
-      // Está dentro do range de filtro
+      // CORREÇÃO CRÍTICA: Apenas verificar se está dentro do range de filtro
+      // Não adicionar filtro adicional de "futuro" pois o range já controla isso
       const inRange = transactionDate >= filterStartDate && transactionDate <= filterEndDate;
       
-      const shouldInclude = isFuture && inRange;
-      
-      if (!shouldInclude) {
-        console.log('🚫 [PendingTransactionsTable] Filtered out:', {
+      if (!inRange) {
+        console.log('🚫 [PendingTransactionsTable] Filtered out (fora do range):', {
           description: transaction.description,
           date: transactionDate.toISOString().split('T')[0],
-          isFuture,
-          inRange
+          filterStart: filterStartDate.toISOString().split('T')[0],
+          filterEnd: filterEndDate.toISOString().split('T')[0]
+        });
+      } else {
+        console.log('✅ [PendingTransactionsTable] Incluindo transação:', {
+          description: transaction.description,
+          date: transactionDate.toISOString().split('T')[0],
+          type: transaction.type
         });
       }
       
-      return shouldInclude;
+      return inRange;
     });
     
-    console.log('✅ [PendingTransactionsTable] Filtered transactions:', filtered.length);
+    console.log('✅ [PendingTransactionsTable] Total filtered transactions:', filtered.length);
     return filtered;
   }, [pendingTransactions, startDate, endDate]);
 

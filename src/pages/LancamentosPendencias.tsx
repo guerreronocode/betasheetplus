@@ -13,17 +13,17 @@ const LancamentosPendencias = () => {
   const navigate = useNavigate();
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   
-  // Date filter states - padrão é hoje e daqui a 2 meses
+  // Date filter states - padrão é hoje e daqui a 6 meses
   const [appliedStartDate, setAppliedStartDate] = useState<Date>(new Date());
   const [appliedEndDate, setAppliedEndDate] = useState<Date>(() => {
     const date = new Date();
-    date.setMonth(date.getMonth() + 2);
+    date.setMonth(date.getMonth() + 6);
     return date;
   });
   const [tempStartDate, setTempStartDate] = useState<Date | undefined>(new Date());
   const [tempEndDate, setTempEndDate] = useState<Date | undefined>(() => {
     const date = new Date();
-    date.setMonth(date.getMonth() + 2);
+    date.setMonth(date.getMonth() + 6);
     return date;
   });
 
