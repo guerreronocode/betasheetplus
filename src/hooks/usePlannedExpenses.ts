@@ -37,21 +37,13 @@ export const usePlannedExpenses = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      // Fetch ALL planned expenses (including past ones for pending tab)
-      console.log('🔍 [usePlannedExpenses] Fetching ALL planned expenses');
-      
       const { data, error } = await supabase
         .from('planned_expenses')
         .select('*')
         .eq('user_id', user.id)
         .order('month', { ascending: true });
       
-      if (error) {
-        console.error('❌ [usePlannedExpenses] Error fetching:', error);
-        throw error;
-      }
-
-      console.log('✅ [usePlannedExpenses] Fetched items:', data?.length || 0);
+      if (error) throw error;
       
       return data as PlannedExpense[];
     },

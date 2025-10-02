@@ -44,38 +44,37 @@ const RecurringTransactions = () => {
     try {
       const startDate = new Date(formData.startDate);
       const amount = parseFloat(formData.amount);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
 
-      // Create multiple transactions (one for each installment)
-      // Future transactions will NOT affect balance, only current/past ones will
       for (let i = 0; i < installments; i++) {
         const installmentDate = addMonths(startDate, i);
         const dateString = format(installmentDate, "yyyy-MM-dd");
+        const description = installments > 1 ? `${formData.description} (${i + 1}/${installments})` : formData.description;
 
         if (formData.type === "income") {
           await createPlannedIncome({
             category: formData.category,
-            description: installments > 1 ? `${formData.description} (${i + 1}/${installments})` : formData.description,
+            description,
             planned_amount: amount,
             month: dateString,
             is_recurring: false,
           });
+          console.log(`✅ Receita criada: ${description} - R$ ${amount} - Data: ${dateString}`);
         } else {
           await createPlannedExpense({
             category: formData.category,
-            description: installments > 1 ? `${formData.description} (${i + 1}/${installments})` : formData.description,
+            description,
             planned_amount: amount,
             month: dateString,
             is_recurring: false,
           });
+          console.log(`✅ Despesa criada: ${description} - R$ ${amount} - Data: ${dateString}`);
         }
       }
       
       toast.success(`${installments} transação(ões) criada(s) com sucesso!`);
       resetForm();
     } catch (error) {
-      console.error('Error creating planned transactions:', error);
+      console.error('Erro ao criar transações:', error);
       toast.error("Erro ao criar transações");
     }
   };

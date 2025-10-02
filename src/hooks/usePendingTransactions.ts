@@ -23,40 +23,18 @@ export const usePendingTransactions = () => {
   const { plannedIncome } = usePlannedIncome();
   const { plannedExpenses } = usePlannedExpenses();
   const { upcomingBills, overdueBills } = useCreditCardBills();
-  
-  console.log('🚀 [usePendingTransactions] Hook called', {
-    user: !!user,
-    userId: user?.id
-  });
-
-  console.log('usePendingTransactions - Data:', {
-    user: !!user,
-    plannedIncome: plannedIncome?.length || 0,
-    plannedExpenses: plannedExpenses?.length || 0,
-    upcomingBills: upcomingBills?.length || 0,
-    overdueBills: overdueBills?.length || 0
-  });
 
   const { data: pendingTransactions = [], isLoading } = useQuery({
     queryKey: ['pending_transactions', user?.id, plannedIncome, plannedExpenses, upcomingBills, overdueBills],
     queryFn: async (): Promise<PendingTransaction[]> => {
-      console.log('🔍 [usePendingTransactions] Query function executing');
-      
-      if (!user) {
-        console.log('🚫 [usePendingTransactions] No user, returning empty array');
-        return [];
-      }
+      if (!user) return [];
 
       const pending: PendingTransaction[] = [];
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const todayStr = today.toISOString().split('T')[0];
 
-      console.log('📅 [usePendingTransactions] Today:', todayStr);
-
-      // 1. Receitas planejadas (future only)
+      // 1. Receitas planejadas
       if (plannedIncome && Array.isArray(plannedIncome)) {
-        console.log('💰 [usePendingTransactions] Processing', plannedIncome.length, 'planned income');
         plannedIncome.forEach(income => {
           const incomeDate = new Date(income.month);
           incomeDate.setHours(0, 0, 0, 0);
@@ -75,9 +53,8 @@ export const usePendingTransactions = () => {
         });
       }
 
-      // 2. Despesas planejadas (future only)
+      // 2. Despesas planejadas
       if (plannedExpenses && Array.isArray(plannedExpenses)) {
-        console.log('💸 [usePendingTransactions] Processing', plannedExpenses.length, 'planned expenses');
         plannedExpenses.forEach(expense => {
           const expenseDate = new Date(expense.month);
           expenseDate.setHours(0, 0, 0, 0);
@@ -99,7 +76,6 @@ export const usePendingTransactions = () => {
       // 3. Faturas de cartão
       if (upcomingBills && Array.isArray(upcomingBills) || overdueBills && Array.isArray(overdueBills)) {
         const allBills = [...(upcomingBills || []), ...(overdueBills || [])];
-        console.log('💳 [usePendingTransactions] Processing', allBills.length, 'credit card bills');
         allBills.forEach(bill => {
           const billDueDate = new Date(bill.due_date);
           billDueDate.setHours(0, 0, 0, 0);
@@ -118,11 +94,7 @@ export const usePendingTransactions = () => {
         });
       }
 
-      // Ordenar por data
-      const sorted = pending.sort((a, b) => a.date.getTime() - b.date.getTime());
-      
-      console.log('✅ [usePendingTransactions] Total pending transactions:', sorted.length);
-      return sorted;
+      return pending.sort((a, b) => a.date.getTime() - b.date.getTime());
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000,

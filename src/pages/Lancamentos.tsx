@@ -15,8 +15,6 @@ import BankStatementModal from '@/components/modals/BankStatementModal';
 import { PurchaseForm } from '@/components/creditCard/PurchaseForm';
 
 const Lancamentos = () => {
-  console.log('Lancamentos page rendering...');
-  
   const navigate = useNavigate();
   const [addTransactionOpen, setAddTransactionOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
@@ -38,8 +36,6 @@ const Lancamentos = () => {
   });
   const [tempEndDate, setTempEndDate] = useState<Date | undefined>(new Date());
 
-  console.log('Lancamentos - About to render...');
-
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6 flex flex-col h-[calc(100vh-2rem)]">
@@ -54,10 +50,7 @@ const Lancamentos = () => {
             <div className="flex justify-between items-center py-3 px-4">
               <div className="flex gap-2">
                 <Button 
-                  onClick={() => {
-                    console.log('Add transaction button clicked');
-                    setAddTransactionOpen(true);
-                  }}
+                  onClick={() => setAddTransactionOpen(true)}
                   size="sm"
                   className="h-8 w-8 p-0"
                   title="Adicionar Transação"
@@ -66,10 +59,7 @@ const Lancamentos = () => {
                 </Button>
                 
                 <Button 
-                  onClick={() => {
-                    console.log('Credit card purchase button clicked');
-                    setCreditCardPurchaseOpen(true);
-                  }}
+                  onClick={() => setCreditCardPurchaseOpen(true)}
                   size="sm"
                   variant="outline"
                   className="h-8 w-8 p-0"
