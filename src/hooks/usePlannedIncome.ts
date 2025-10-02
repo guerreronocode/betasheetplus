@@ -41,6 +41,9 @@ export const usePlannedIncome = () => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const todayStr = today.toISOString().split('T')[0];
+      
+      console.log('🔍 [usePlannedIncome] Fetching with filter >= ', todayStr);
+      console.log('🔍 [usePlannedIncome] User ID:', user.id);
 
       const { data, error } = await supabase
         .from('planned_income')
@@ -49,7 +52,14 @@ export const usePlannedIncome = () => {
         .gte('month', todayStr)
         .order('month', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [usePlannedIncome] Error fetching:', error);
+        throw error;
+      }
+
+      console.log('✅ [usePlannedIncome] Fetched items:', data?.length || 0);
+      console.log('✅ [usePlannedIncome] Items:', data?.map(i => ({ month: i.month, amount: i.planned_amount, category: i.category })));
+      
       return data as PlannedIncome[];
     },
     enabled: !!user,

@@ -82,7 +82,13 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
   }, [columnWidths, containerWidth]);
 
   const filteredTransactions = useMemo(() => {
+    console.log('🔍 [PendingTransactionsTable] filteredTransactions useMemo called');
+    console.log('🔍 [PendingTransactionsTable] pendingTransactions:', pendingTransactions?.length || 0);
+    console.log('🔍 [PendingTransactionsTable] startDate:', startDate);
+    console.log('🔍 [PendingTransactionsTable] endDate:', endDate);
+    
     if (!pendingTransactions || !Array.isArray(pendingTransactions) || pendingTransactions.length === 0) {
+      console.log('❌ [PendingTransactionsTable] No pending transactions available');
       return [];
     }
     
@@ -90,26 +96,44 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     
-    // Normalizar datas de filtro
+    // Normalizar datas de filtro - se não fornecidas, usar range padrão
     const filterStartDate = startDate ? new Date(startDate) : today;
     filterStartDate.setHours(0, 0, 0, 0);
     
     const filterEndDate = endDate ? new Date(endDate) : new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000); // 2 meses
     filterEndDate.setHours(23, 59, 59, 999);
     
+    console.log('📅 [PendingTransactionsTable] Filter dates:', {
+      today: today.toISOString().split('T')[0],
+      filterStart: filterStartDate.toISOString().split('T')[0],
+      filterEnd: filterEndDate.toISOString().split('T')[0]
+    });
+    
     const filtered = pendingTransactions.filter(transaction => {
       const transactionDate = new Date(transaction.date);
       transactionDate.setHours(0, 0, 0, 0);
       
       // Apenas transações FUTURAS (data > hoje)
-      if (transactionDate <= today) {
-        return false;
+      const isFuture = transactionDate > today;
+      
+      // Está dentro do range de filtro
+      const inRange = transactionDate >= filterStartDate && transactionDate <= filterEndDate;
+      
+      const shouldInclude = isFuture && inRange;
+      
+      if (!shouldInclude) {
+        console.log('🚫 [PendingTransactionsTable] Filtered out:', {
+          description: transaction.description,
+          date: transactionDate.toISOString().split('T')[0],
+          isFuture,
+          inRange
+        });
       }
       
-      // Filtrar por range de data
-      return transactionDate >= filterStartDate && transactionDate <= filterEndDate;
+      return shouldInclude;
     });
     
+    console.log('✅ [PendingTransactionsTable] Filtered transactions:', filtered.length);
     return filtered;
   }, [pendingTransactions, startDate, endDate]);
 

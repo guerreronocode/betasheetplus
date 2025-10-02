@@ -99,14 +99,24 @@ export const useCreditCardBills = () => {
     enabled: !!user,
   });
 
-  // Calcular faturas próximas ao vencimento (próximos 7 dias)
+  // CORRIGIDO: Calcular TODAS as faturas futuras não pagas (sem limite de dias)
   const upcomingBills = bills.filter(bill => {
     if (bill.is_paid) return false;
     const dueDate = new Date(bill.due_date);
     const today = new Date();
-    const diffDays = Math.ceil((dueDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-    return diffDays >= 0 && diffDays <= 7;
+    today.setHours(0, 0, 0, 0);
+    dueDate.setHours(0, 0, 0, 0);
+    return dueDate >= today; // Todas as faturas com vencimento >= hoje
   });
+  
+  console.log('📊 [useCreditCardBills] Total bills:', bills.length);
+  console.log('📊 [useCreditCardBills] Upcoming bills (not paid, due >= today):', upcomingBills.length);
+  console.log('📊 [useCreditCardBills] Upcoming bills details:', upcomingBills.map(b => ({
+    id: b.id,
+    due_date: b.due_date,
+    total_amount: b.total_amount,
+    is_paid: b.is_paid
+  })));
 
   // Calcular faturas em atraso
   const overdueBills = bills.filter(bill => {

@@ -42,6 +42,9 @@ export const usePlannedExpenses = () => {
       today.setHours(0, 0, 0, 0);
       const todayStr = today.toISOString().split('T')[0];
       
+      console.log('🔍 [usePlannedExpenses] Fetching with filter >= ', todayStr);
+      console.log('🔍 [usePlannedExpenses] User ID:', user.id);
+      
       const { data, error } = await supabase
         .from('planned_expenses')
         .select('*')
@@ -49,7 +52,14 @@ export const usePlannedExpenses = () => {
         .gte('month', todayStr)
         .order('month', { ascending: true });
       
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [usePlannedExpenses] Error fetching:', error);
+        throw error;
+      }
+
+      console.log('✅ [usePlannedExpenses] Fetched items:', data?.length || 0);
+      console.log('✅ [usePlannedExpenses] Items:', data?.map(e => ({ month: e.month, amount: e.planned_amount, category: e.category })));
+      
       return data as PlannedExpense[];
     },
     enabled: !!user,
