@@ -91,6 +91,13 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
       return pendingTransactions;
     }
     
+    // Normalizar datas de filtro
+    const filterStartDate = new Date(startDate);
+    filterStartDate.setHours(0, 0, 0, 0);
+    
+    const filterEndDate = new Date(endDate);
+    filterEndDate.setHours(23, 59, 59, 999);
+    
     const filtered = pendingTransactions.filter(transaction => {
       // Transações recorrentes SEMPRE aparecem
       if (transaction.type === 'recurring') {
@@ -100,12 +107,6 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
       // Para outras transações, aplicar filtro de data
       const transactionDate = new Date(transaction.date);
       transactionDate.setHours(0, 0, 0, 0);
-      
-      const filterStartDate = new Date(startDate);
-      filterStartDate.setHours(0, 0, 0, 0);
-      
-      const filterEndDate = new Date(endDate);
-      filterEndDate.setHours(23, 59, 59, 999);
       
       return transactionDate >= filterStartDate && transactionDate <= filterEndDate;
     });

@@ -29,7 +29,12 @@ const DEFAULT_COLUMN_WIDTHS = {
   actions: 70
 };
 
-const TransactionsTable = () => {
+interface TransactionsTableProps {
+  startDate?: Date;
+  endDate?: Date;
+}
+
+const TransactionsTable = ({ startDate, endDate }: TransactionsTableProps = {}) => {
   const { income, expenses, isLoading } = useFinancialData();
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
@@ -73,17 +78,33 @@ const TransactionsTable = () => {
     };
   }, []);
 
-  // Combine and sort all transactions
+  // Combine, filter, and sort all transactions
   const allTransactions = useMemo(() => {
     // Garantir que income e expenses são arrays válidos
     const safeIncome = Array.isArray(income) ? income : [];
     const safeExpenses = Array.isArray(expenses) ? expenses : [];
     
-    // Não depender do isLoading global - usar os dados se estiverem disponíveis
-    const combined = [
+    // Combinar todas as transações
+    let combined = [
       ...safeIncome.map(item => ({ ...item, type: 'income' as const })),
       ...safeExpenses.map(item => ({ ...item, type: 'expense' as const }))
     ];
+
+    // Aplicar filtro de data se as datas forem fornecidas
+    if (startDate && endDate) {
+      const filterStartDate = new Date(startDate);
+      filterStartDate.setHours(0, 0, 0, 0);
+      
+      const filterEndDate = new Date(endDate);
+      filterEndDate.setHours(23, 59, 59, 999);
+      
+      combined = combined.filter(transaction => {
+        const transactionDate = new Date(transaction.date);
+        transactionDate.setHours(0, 0, 0, 0);
+        
+        return transactionDate >= filterStartDate && transactionDate <= filterEndDate;
+      });
+    }
 
     return combined.sort((a, b) => {
       let aValue: any = a[sortField];
@@ -110,7 +131,7 @@ const TransactionsTable = () => {
         return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
       }
     });
-  }, [income, expenses, sortField, sortOrder]);
+  }, [income, expenses, sortField, sortOrder, startDate, endDate]);
 
   // Calcula larguras dinâmicas baseadas no container disponível
   const calculateTableWidths = useMemo(() => {

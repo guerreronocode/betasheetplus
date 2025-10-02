@@ -31,12 +31,12 @@ const Lancamentos = () => {
     return date;
   });
   const [appliedEndDate, setAppliedEndDate] = useState<Date>(new Date());
-  const [tempStartDate, setTempStartDate] = useState<Date>(() => {
+  const [tempStartDate, setTempStartDate] = useState<Date | undefined>(() => {
     const date = new Date();
     date.setMonth(date.getMonth() - 3);
     return date;
   });
-  const [tempEndDate, setTempEndDate] = useState<Date>(new Date());
+  const [tempEndDate, setTempEndDate] = useState<Date | undefined>(new Date());
 
   console.log('Lancamentos - About to render...');
 
@@ -186,31 +186,50 @@ const Lancamentos = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <Label htmlFor="start-date" className="text-xs font-medium mb-2 block">Data inicial</Label>
-                      <Calendar
-                        mode="single"
-                        selected={tempStartDate}
-                        onSelect={setTempStartDate}
-                        className={cn("pointer-events-auto text-xs")}
-                      />
+                     <Calendar
+                      mode="single"
+                      selected={tempStartDate}
+                      onSelect={setTempStartDate}
+                      defaultMonth={tempStartDate}
+                      disabled={(date) => {
+                        // Desabilitar datas posteriores à data final selecionada
+                        if (tempEndDate) {
+                          return date > tempEndDate;
+                        }
+                        return false;
+                      }}
+                      className={cn("pointer-events-auto text-xs")}
+                    />
                     </div>
                     <div>
                       <Label htmlFor="end-date" className="text-xs font-medium mb-2 block">Data final</Label>
-                      <Calendar
-                        mode="single"
-                        selected={tempEndDate}
-                        onSelect={setTempEndDate}
-                        className={cn("pointer-events-auto text-xs")}
-                      />
+                     <Calendar
+                      mode="single"
+                      selected={tempEndDate}
+                      onSelect={setTempEndDate}
+                      defaultMonth={tempEndDate}
+                      disabled={(date) => {
+                        // Desabilitar datas anteriores à data inicial selecionada
+                        if (tempStartDate) {
+                          return date < tempStartDate;
+                        }
+                        return false;
+                      }}
+                      className={cn("pointer-events-auto text-xs")}
+                    />
                     </div>
                   </div>
                   <Button 
                     onClick={() => {
-                      setAppliedStartDate(tempStartDate);
-                      setAppliedEndDate(tempEndDate);
-                      setIsDatePickerOpen(false);
+                      if (tempStartDate && tempEndDate) {
+                        setAppliedStartDate(tempStartDate);
+                        setAppliedEndDate(tempEndDate);
+                        setIsDatePickerOpen(false);
+                      }
                     }} 
                     className="w-full h-8"
                     size="sm"
+                    disabled={!tempStartDate || !tempEndDate}
                   >
                     Filtrar
                   </Button>
@@ -222,7 +241,10 @@ const Lancamentos = () => {
           
           {/* Transactions Table - Full width */}
           <div className="flex-1">
-            <TransactionsTable />
+            <TransactionsTable 
+              startDate={appliedStartDate}
+              endDate={appliedEndDate}
+            />
           </div>
           
           {/* Modals */}
