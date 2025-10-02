@@ -27,6 +27,11 @@ const LancamentosPendencias = () => {
     return date;
   });
 
+  // Reset page when filter changes
+  React.useEffect(() => {
+    // This will trigger table reset when applied dates change
+  }, [appliedStartDate, appliedEndDate]);
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6 flex flex-col h-[calc(100vh-2rem)]">
@@ -133,6 +138,13 @@ const LancamentosPendencias = () => {
                       selected={tempStartDate}
                       onSelect={setTempStartDate}
                       defaultMonth={tempStartDate}
+                      disabled={(date) => {
+                        // Desabilitar datas posteriores à data final selecionada
+                        if (tempEndDate) {
+                          return date > tempEndDate;
+                        }
+                        return false;
+                      }}
                       className={cn("pointer-events-auto text-xs")}
                     />
                   </div>
@@ -143,6 +155,13 @@ const LancamentosPendencias = () => {
                       selected={tempEndDate}
                       onSelect={setTempEndDate}
                       defaultMonth={tempEndDate}
+                      disabled={(date) => {
+                        // Desabilitar datas anteriores à data inicial selecionada
+                        if (tempStartDate) {
+                          return date < tempStartDate;
+                        }
+                        return false;
+                      }}
                       className={cn("pointer-events-auto text-xs")}
                     />
                   </div>

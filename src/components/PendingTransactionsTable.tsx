@@ -86,6 +86,11 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
       return [];
     }
     
+    // Se não houver filtro de data, retornar todas as transações
+    if (!startDate || !endDate) {
+      return pendingTransactions;
+    }
+    
     const filtered = pendingTransactions.filter(transaction => {
       // Transações recorrentes SEMPRE aparecem
       if (transaction.type === 'recurring') {
@@ -93,8 +98,6 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
       }
       
       // Para outras transações, aplicar filtro de data
-      if (!startDate || !endDate) return true;
-      
       const transactionDate = new Date(transaction.date);
       transactionDate.setHours(0, 0, 0, 0);
       
@@ -114,7 +117,7 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
     if (!filteredTransactions.length) return [];
 
     return [...filteredTransactions].sort((a, b) => {
-      // Priorizar transações recorrentes
+      // Priorizar transações recorrentes no topo
       if (a.type === 'recurring' && b.type !== 'recurring') return -1;
       if (b.type === 'recurring' && a.type !== 'recurring') return 1;
       
@@ -136,6 +139,11 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
       if (aValue > bValue) return sortOrder === 'asc' ? 1 : -1;
       return 0;
     });
+  }, [filteredTransactions, sortField, sortOrder]);
+
+  // Reset para primeira página quando os filtros ou ordenação mudarem
+  React.useEffect(() => {
+    setCurrentPage(1);
   }, [filteredTransactions, sortField, sortOrder]);
 
   const totalPages = Math.ceil(sortedTransactions.length / ITEMS_PER_PAGE);
