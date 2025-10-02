@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRecurringTransactions } from './useRecurringTransactions';
 import { usePlannedIncome } from './usePlannedIncome';
 import { usePlannedExpenses } from './usePlannedExpenses';
 import { useCreditCardBills } from './useCreditCardBills';
@@ -8,7 +7,7 @@ import { formatDateForDisplay } from '@/utils/formatters';
 
 export interface PendingTransaction {
   id: string;
-  type: 'recurring' | 'planned_income' | 'planned_expense' | 'credit_bill';
+  type: 'planned_income' | 'planned_expense' | 'credit_bill';
   date: Date;
   category: string;
   subcategory?: string;
@@ -21,7 +20,6 @@ export interface PendingTransaction {
 
 export const usePendingTransactions = () => {
   const { user } = useAuth();
-  const { recurringTransactions } = useRecurringTransactions();
   const { plannedIncome } = usePlannedIncome();
   const { plannedExpenses } = usePlannedExpenses();
   const { upcomingBills, overdueBills } = useCreditCardBills();
@@ -33,7 +31,6 @@ export const usePendingTransactions = () => {
 
   console.log('usePendingTransactions - Data:', {
     user: !!user,
-    recurringTransactions: recurringTransactions?.length || 0,
     plannedIncome: plannedIncome?.length || 0,
     plannedExpenses: plannedExpenses?.length || 0,
     upcomingBills: upcomingBills?.length || 0,
@@ -41,11 +38,10 @@ export const usePendingTransactions = () => {
   });
 
   const { data: pendingTransactions = [], isLoading } = useQuery({
-    queryKey: ['pending_transactions', user?.id, recurringTransactions, plannedIncome, plannedExpenses, upcomingBills, overdueBills],
+    queryKey: ['pending_transactions', user?.id, plannedIncome, plannedExpenses, upcomingBills, overdueBills],
     queryFn: async (): Promise<PendingTransaction[]> => {
       console.log('🔍 [usePendingTransactions] Query function executing');
       console.log('🔍 [usePendingTransactions] User exists:', !!user);
-      console.log('🔍 [usePendingTransactions] recurringTransactions:', recurringTransactions);
       console.log('🔍 [usePendingTransactions] plannedIncome:', plannedIncome);
       console.log('🔍 [usePendingTransactions] plannedExpenses:', plannedExpenses);
       console.log('🔍 [usePendingTransactions] upcomingBills:', upcomingBills);
@@ -60,35 +56,7 @@ export const usePendingTransactions = () => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      // 1. Transações recorrentes (sempre aparecem primeiro)
-      console.log('Processing recurring transactions:', recurringTransactions);
-      if (recurringTransactions && Array.isArray(recurringTransactions)) {
-        recurringTransactions
-          .filter(t => t.is_active)
-          .forEach(transaction => {
-            console.log('Processing transaction:', transaction);
-            // Calcular próxima data baseada na frequência
-            const nextDate = calculateNextRecurringDate(transaction);
-            console.log('Next date calculated:', nextDate);
-            
-            const pendingItem: PendingTransaction = {
-              id: `recurring-${transaction.id}`,
-              type: 'recurring' as const,
-              date: nextDate,
-              category: transaction.category,
-              account: getBankAccountName(transaction.bank_account_id) || 'Conta não informada',
-              description: transaction.description,
-              value: transaction.type === 'income' ? transaction.amount : -transaction.amount,
-              status: 'pending' as const,
-              original: transaction
-            };
-            
-            console.log('Adding pending item:', pendingItem);
-            pending.push(pendingItem);
-          });
-      }
-
-      // 2. Receitas planejadas
+      // 1. Receitas planejadas
       if (plannedIncome && Array.isArray(plannedIncome)) {
         plannedIncome.forEach(income => {
           const incomeDate = new Date(income.month);
@@ -109,7 +77,7 @@ export const usePendingTransactions = () => {
         });
       }
 
-      // 3. Despesas planejadas
+      // 2. Despesas planejadas
       if (plannedExpenses && Array.isArray(plannedExpenses)) {
         plannedExpenses.forEach(expense => {
           const expenseDate = new Date(expense.month);
@@ -130,7 +98,7 @@ export const usePendingTransactions = () => {
         });
       }
 
-      // 4. Faturas de cartão (usar due_date para filtro)
+      // 3. Faturas de cartão (usar due_date para filtro)
       if (upcomingBills && Array.isArray(upcomingBills) || overdueBills && Array.isArray(overdueBills)) {
         [...(upcomingBills || []), ...(overdueBills || [])].forEach(bill => {
           // Usar due_date como data de referência para a fatura
@@ -150,10 +118,8 @@ export const usePendingTransactions = () => {
         });
       }
 
-      // Ordenar: recorrentes primeiro, depois por data
+      // Ordenar por data
       const sorted = pending.sort((a, b) => {
-        if (a.type === 'recurring' && b.type !== 'recurring') return -1;
-        if (a.type !== 'recurring' && b.type === 'recurring') return 1;
         return a.date.getTime() - b.date.getTime();
       });
       
@@ -170,41 +136,4 @@ export const usePendingTransactions = () => {
     pendingTransactions: pendingTransactions || [],
     isLoading
   };
-};
-
-const calculateNextRecurringDate = (transaction: any): Date => {
-  const today = new Date();
-  const startDate = new Date(transaction.start_date);
-  let nextDate = new Date(startDate);
-
-  // Se a data de início já passou, calcular próxima ocorrência
-  if (startDate <= today) {
-    const daysSinceStart = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-    
-    switch (transaction.frequency) {
-      case 'daily':
-        nextDate.setDate(startDate.getDate() + daysSinceStart + 1);
-        break;
-      case 'weekly':
-        const weeksSinceStart = Math.floor(daysSinceStart / 7);
-        nextDate.setDate(startDate.getDate() + (weeksSinceStart + 1) * 7);
-        break;
-      case 'monthly':
-        const monthsSinceStart = Math.floor(daysSinceStart / 30);
-        nextDate.setMonth(startDate.getMonth() + monthsSinceStart + 1);
-        break;
-      case 'yearly':
-        const yearsSinceStart = Math.floor(daysSinceStart / 365);
-        nextDate.setFullYear(startDate.getFullYear() + yearsSinceStart + 1);
-        break;
-    }
-  }
-
-  return nextDate;
-};
-
-const getBankAccountName = (accountId?: string): string | null => {
-  // TODO: Implementar busca do nome da conta
-  // Por enquanto retorna null, será implementado quando necessário
-  return null;
 };

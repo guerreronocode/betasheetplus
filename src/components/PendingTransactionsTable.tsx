@@ -99,12 +99,6 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
     filterEndDate.setHours(23, 59, 59, 999);
     
     const filtered = pendingTransactions.filter(transaction => {
-      // Transações recorrentes SEMPRE aparecem
-      if (transaction.type === 'recurring') {
-        return true;
-      }
-      
-      // Para outras transações, aplicar filtro de data
       const transactionDate = new Date(transaction.date);
       transactionDate.setHours(0, 0, 0, 0);
       
@@ -118,10 +112,6 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
     if (!filteredTransactions.length) return [];
 
     return [...filteredTransactions].sort((a, b) => {
-      // Priorizar transações recorrentes no topo
-      if (a.type === 'recurring' && b.type !== 'recurring') return -1;
-      if (b.type === 'recurring' && a.type !== 'recurring') return 1;
-      
       let aValue: any = a[sortField];
       let bValue: any = b[sortField];
 
@@ -247,8 +237,6 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
 
   const getTypeIcon = (type: string) => {
     switch (type) {
-      case 'recurring':
-        return <Repeat className="w-4 h-4 text-blue-500" />;
       case 'planned_income':
       case 'planned_expense':
         return <Calendar className="w-4 h-4 text-green-500" />;

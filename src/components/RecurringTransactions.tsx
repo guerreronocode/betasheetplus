@@ -1,447 +1,237 @@
-import React, { useState } from 'react';
-import { Calendar, Repeat, Plus, Edit, Trash2, AlertCircle } from 'lucide-react';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import HierarchicalCategorySelector from '@/components/shared/HierarchicalCategorySelector';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { useRecurringTransactions, RecurringTransaction } from '@/hooks/useRecurringTransactions';
-import { useBankAccounts } from '@/hooks/useBankAccounts';
-import { toast } from '@/hooks/use-toast';
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { usePlannedIncome } from "@/hooks/usePlannedIncome";
+import { usePlannedExpenses } from "@/hooks/usePlannedExpenses";
+import HierarchicalCategorySelector from "./shared/HierarchicalCategorySelector";
+import { Plus } from "lucide-react";
+import { addMonths, format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 const RecurringTransactions = () => {
-  const { 
-    recurringTransactions, 
-    addRecurringTransaction, 
-    updateRecurringTransaction,
-    deleteRecurringTransaction,
-    isAddingRecurring,
-    isUpdatingRecurring,
-    isDeletingRecurring
-  } = useRecurringTransactions();
-  
-  const { bankAccounts } = useBankAccounts();
+  const { createPlannedIncome } = usePlannedIncome();
+  const { createPlannedExpense } = usePlannedExpenses();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState<RecurringTransaction | null>(null);
-  const [showRetroactiveDialog, setShowRetroactiveDialog] = useState(false);
-  const [pendingTransaction, setPendingTransaction] = useState<any>(null);
   
-  const [form, setForm] = useState({
-    description: '',
-    amount: '',
-    category: '',
-    type: 'income' as 'income' | 'expense',
-    frequency: 'monthly' as 'daily' | 'weekly' | 'monthly' | 'yearly',
-    start_date: new Date().toISOString().split('T')[0],
-    end_date: '',
-    bank_account_id: ''
+  const [formData, setFormData] = useState({
+    type: "expense" as "income" | "expense",
+    description: "",
+    amount: "",
+    category: "",
+    installments: "1",
+    startDate: format(new Date(), "yyyy-MM-dd"),
   });
 
-  const incomeCategories = ['Salário', 'Freelance', 'Investimentos', 'Aluguel', 'Vendas', 'Outros'];
-  const expenseCategories = ['Alimentação', 'Transporte', 'Moradia', 'Saúde', 'Educação', 'Entretenimento', 'Compras', 'Outros'];
-
-  const isRetroactive = () => {
-    const startDate = new Date(form.start_date);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return startDate < today;
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.description || !form.amount || !form.category || !form.bank_account_id) {
-      toast({
-        title: 'Campos obrigatórios',
-        description: 'Preencha todos os campos obrigatórios, incluindo a conta bancária.',
-        variant: 'destructive'
-      });
+    
+    if (!formData.description || !formData.amount || !formData.category || !formData.installments) {
+      toast.error("Preencha todos os campos obrigatórios");
       return;
     }
-    
-    if (bankAccounts.length === 0) {
-      toast({
-        title: 'Conta bancária necessária',
-        description: 'Você precisa ter pelo menos uma conta bancária cadastrada.',
-        variant: 'destructive'
-      });
-      return;
-    }
-    
-    const transactionData = {
-      description: form.description,
-      amount: parseFloat(form.amount),
-      category: form.category,
-      type: form.type,
-      frequency: form.frequency,
-      start_date: form.start_date,
-      end_date: form.end_date || undefined,
-      bank_account_id: form.bank_account_id
-    };
 
-    if (editingTransaction) {
-      // Editando transação existente
-      updateRecurringTransaction({
-        id: editingTransaction.id,
-        updates: transactionData
-      });
-      setEditingTransaction(null);
-    } else {
-      // Nova transação
-      if (isRetroactive()) {
-        setPendingTransaction(transactionData);
-        setShowRetroactiveDialog(true);
-        return;
+    const installments = parseInt(formData.installments);
+    if (installments < 1) {
+      toast.error("Número de parcelas deve ser maior que zero");
+      return;
+    }
+
+    try {
+      const startDate = new Date(formData.startDate);
+      const amount = parseFloat(formData.amount);
+
+      // Create multiple planned transactions (one for each installment)
+      for (let i = 0; i < installments; i++) {
+        const installmentDate = addMonths(startDate, i);
+        const monthKey = format(installmentDate, "yyyy-MM-01");
+
+        if (formData.type === "income") {
+          await createPlannedIncome({
+            category: formData.category,
+            description: installments > 1 ? `${formData.description} (${i + 1}/${installments})` : formData.description,
+            planned_amount: amount,
+            month: monthKey,
+            is_recurring: false,
+          });
+        } else {
+          await createPlannedExpense({
+            category: formData.category,
+            description: installments > 1 ? `${formData.description} (${i + 1}/${installments})` : formData.description,
+            planned_amount: amount,
+            month: monthKey,
+            is_recurring: false,
+          });
+        }
       }
       
-      addRecurringTransaction({
-        transaction: transactionData,
-        generateRetroactive: false
-      });
+      toast.success(`${installments} transação(ões) criada(s) com sucesso!`);
+      resetForm();
+    } catch (error) {
+      console.error('Error creating planned transactions:', error);
+      toast.error("Erro ao criar transações");
     }
-    
-    resetForm();
-    setIsDialogOpen(false);
-  };
-
-  const handleRetroactiveChoice = (generateRetroactive: boolean) => {
-    if (pendingTransaction) {
-      addRecurringTransaction({
-        transaction: pendingTransaction,
-        generateRetroactive
-      });
-    }
-    
-    setShowRetroactiveDialog(false);
-    setPendingTransaction(null);
-    resetForm();
-    setIsDialogOpen(false);
   };
 
   const resetForm = () => {
-    setForm({
-      description: '',
-      amount: '',
-      category: '',
-      type: 'income',
-      frequency: 'monthly',
-      start_date: new Date().toISOString().split('T')[0],
-      end_date: '',
-      bank_account_id: ''
+    setFormData({
+      type: "expense",
+      description: "",
+      amount: "",
+      category: "",
+      installments: "1",
+      startDate: format(new Date(), "yyyy-MM-dd"),
     });
-  };
-
-  const openEditDialog = (transaction: RecurringTransaction) => {
-    setEditingTransaction(transaction);
-    setForm({
-      description: transaction.description,
-      amount: transaction.amount.toString(),
-      category: transaction.category,
-      type: transaction.type,
-      frequency: transaction.frequency,
-      start_date: transaction.start_date,
-      end_date: transaction.end_date || '',
-      bank_account_id: transaction.bank_account_id || ''
-    });
-    setIsDialogOpen(true);
-  };
-
-  const handleDelete = (id: string) => {
-    deleteRecurringTransaction(id);
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(value);
-  };
-
-  const getFrequencyLabel = (frequency: string) => {
-    const labels = {
-      daily: 'Diária',
-      weekly: 'Semanal',
-      monthly: 'Mensal',
-      yearly: 'Anual'
-    };
-    return labels[frequency as keyof typeof labels] || frequency;
+    setIsDialogOpen(false);
   };
 
   return (
-    <>
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <Repeat className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold">Transações Recorrentes</h3>
-              <p className="text-sm text-muted-foreground">Configure receitas e despesas automáticas</p>
-            </div>
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle>Criar Múltiplas Transações</CardTitle>
+            <CardDescription>
+              Crie várias transações futuras de uma vez (despesas ou receitas planejadas)
+            </CardDescription>
           </div>
-          
-          <Dialog open={isDialogOpen} onOpenChange={(open) => {
-            setIsDialogOpen(open);
-            if (!open) {
-              setEditingTransaction(null);
-              resetForm();
-            }
-          }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
-                Adicionar
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>
-                  {editingTransaction ? 'Editar Transação Recorrente' : 'Nova Transação Recorrente'}
-                </DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Label htmlFor="type">Tipo</Label>
-                  <Select
-                    value={form.type}
-                    onValueChange={(value: 'income' | 'expense') => setForm(prev => ({ ...prev, type: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="income">Receita</SelectItem>
-                      <SelectItem value="expense">Despesa</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label htmlFor="description">Descrição</Label>
-                  <Input
-                    id="description"
-                    value={form.description}
-                    onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Ex: Salário mensal"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="amount">Valor</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    value={form.amount}
-                    onChange={(e) => setForm(prev => ({ ...prev, amount: e.target.value }))}
-                    placeholder="0.00"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="category">Categoria</Label>
-                  <HierarchicalCategorySelector
-                    value={form.category}
-                    onChange={(value) => setForm(prev => ({ ...prev, category: value }))}
-                    placeholder="Selecione uma categoria"
-                    categoryType={form.type}
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="frequency">Frequência</Label>
-                  <Select
-                    value={form.frequency}
-                    onValueChange={(value: 'daily' | 'weekly' | 'monthly' | 'yearly') => setForm(prev => ({ ...prev, frequency: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="daily">Diária</SelectItem>
-                      <SelectItem value="weekly">Semanal</SelectItem>
-                      <SelectItem value="monthly">Mensal</SelectItem>
-                      <SelectItem value="yearly">Anual</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <Label htmlFor="start_date">Data de Início</Label>
-                  <Input
-                    id="start_date"
-                    type="date"
-                    value={form.start_date}
-                    onChange={(e) => setForm(prev => ({ ...prev, start_date: e.target.value }))}
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="end_date">Data de Fim (opcional)</Label>
-                  <Input
-                    id="end_date"
-                    type="date"
-                    value={form.end_date}
-                    onChange={(e) => setForm(prev => ({ ...prev, end_date: e.target.value }))}
-                  />
-                </div>
-                
-                <div>
-                  <Label htmlFor="bank_account_id">Conta Bancária *</Label>
-                  <Select
-                    value={form.bank_account_id}
-                    onValueChange={(value) => setForm(prev => ({ ...prev, bank_account_id: value }))}
-                    required
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione uma conta" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {bankAccounts.length === 0 ? (
-                        <SelectItem value="no-accounts" disabled>
-                          Nenhuma conta cadastrada
-                        </SelectItem>
-                      ) : (
-                        bankAccounts.map((account) => (
-                          <SelectItem key={account.id} value={account.id}>
-                            <div className="flex items-center space-x-2">
-                              <div className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: account.color }}
-                              />
-                              <span>{account.name} - {account.bank_name}</span>
-                            </div>
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
-                  {bankAccounts.length === 0 && (
-                    <p className="text-sm text-red-600 mt-1">
-                      Você precisa ter pelo menos uma conta bancária cadastrada.
-                    </p>
-                  )}
-                </div>
-                
-                <Button type="submit" className="w-full" disabled={isAddingRecurring || isUpdatingRecurring || bankAccounts.length === 0}>
-                  {isAddingRecurring || isUpdatingRecurring 
-                    ? (editingTransaction ? 'Atualizando...' : 'Adicionando...') 
-                    : (editingTransaction ? 'Atualizar Transação' : 'Criar Transação Recorrente')}
-                </Button>
-              </form>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => setIsDialogOpen(true)} size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Criar Transações
+          </Button>
         </div>
+      </CardHeader>
+      <CardContent>
+        <p className="text-muted-foreground text-center py-4">
+          Use o botão acima para criar múltiplas transações de uma vez.
+        </p>
+      </CardContent>
 
-        <div className="space-y-3">
-          {recurringTransactions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Repeat className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Nenhuma transação recorrente configurada</p>
-              <p className="text-sm">Configure receitas e despesas automáticas!</p>
-            </div>
-          ) : (
-            recurringTransactions.map((transaction) => (
-              <div
-                key={transaction.id}
-                className="flex items-center justify-between p-4 border rounded-lg"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg ${transaction.type === 'income' ? 'bg-green-100 dark:bg-green-900/20' : 'bg-red-100 dark:bg-red-900/20'}`}>
-                    <Calendar className={`w-5 h-5 ${transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} />
-                  </div>
-                  <div>
-                    <p className="font-medium">{transaction.description}</p>
-                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                      <span>{transaction.category}</span>
-                      <span>•</span>
-                      <span>{getFrequencyLabel(transaction.frequency)}</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <div className="text-right mr-2">
-                    <p className={`font-semibold ${transaction.type === 'income' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                      {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Desde {new Date(transaction.start_date).toLocaleDateString('pt-BR')}
-                    </p>
-                  </div>
-                  
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Criar Múltiplas Transações
+            </DialogTitle>
+            <DialogDescription>
+              Crie várias transações planejadas de uma vez
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Tipo *</Label>
+                <div className="flex gap-2">
                   <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => openEditDialog(transaction)}
-                    disabled={isUpdatingRecurring}
+                    type="button"
+                    variant={formData.type === "expense" ? "default" : "outline"}
+                    className="flex-1"
+                    onClick={() => setFormData({ ...formData, type: "expense" })}
                   >
-                    <Edit className="w-4 h-4" />
+                    Despesa
                   </Button>
-                  
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={isDeletingRecurring}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Excluir Transação Recorrente</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Tem certeza que deseja excluir "{transaction.description}"? Esta ação não pode ser desfeita.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleDelete(transaction.id)}>
-                          Excluir
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                  <Button
+                    type="button"
+                    variant={formData.type === "income" ? "default" : "outline"}
+                    className="flex-1"
+                    onClick={() => setFormData({ ...formData, type: "income" })}
+                  >
+                    Receita
+                  </Button>
                 </div>
               </div>
-            ))
-          )}
-        </div>
-      </Card>
+            </div>
 
-      {/* Dialog para lançamentos retroativos */}
-      <AlertDialog open={showRetroactiveDialog} onOpenChange={setShowRetroactiveDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-orange-500" />
-              Lançamentos Retroativos
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              A data de início selecionada é anterior ao dia de hoje. Deseja adicionar os lançamentos retroativos a partir da data de início informada?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => handleRetroactiveChoice(false)}>
-              Não, iniciar do próximo período
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={() => handleRetroactiveChoice(true)}>
-              Sim, adicionar retroativos
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+            <div className="space-y-2">
+              <Label htmlFor="description">Descrição *</Label>
+              <Input
+                id="description"
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+                placeholder="Ex: Aluguel"
+                required
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="amount">Valor por Parcela *</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  value={formData.amount}
+                  onChange={(e) =>
+                    setFormData({ ...formData, amount: e.target.value })
+                  }
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="installments">Número de Parcelas *</Label>
+                <Input
+                  id="installments"
+                  type="number"
+                  min="1"
+                  value={formData.installments}
+                  onChange={(e) =>
+                    setFormData({ ...formData, installments: e.target.value })
+                  }
+                  placeholder="1"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Categoria *</Label>
+              <HierarchicalCategorySelector
+                value={formData.category}
+                onChange={(value) =>
+                  setFormData({ ...formData, category: value })
+                }
+                placeholder="Selecione uma categoria"
+                categoryType={formData.type}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="startDate">Data da Primeira Parcela *</Label>
+              <Input
+                id="startDate"
+                type="date"
+                value={formData.startDate}
+                onChange={(e) =>
+                  setFormData({ ...formData, startDate: e.target.value })
+                }
+                required
+              />
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={resetForm}>
+                Cancelar
+              </Button>
+              <Button 
+                type="submit"
+                disabled={!formData.description || !formData.amount || !formData.category || !formData.installments}
+              >
+                Criar Transações
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </Card>
   );
 };
 
