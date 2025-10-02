@@ -10,8 +10,10 @@ import { useFinancialData } from '@/hooks/useFinancialData';
 import { useCustomCategories } from "@/hooks/useCustomCategories";
 import { useTransactionForm } from "@/hooks/useTransactionForm";
 import { useUnifiedCategories } from "@/hooks/useUnifiedCategories";
+import { usePlannedIncome } from '@/hooks/usePlannedIncome';
+import { usePlannedExpenses } from '@/hooks/usePlannedExpenses';
 import { formatDateForDatabase, getTodayForInput } from "@/utils/formatters";
-import { addMonths, differenceInMonths, startOfMonth, format } from 'date-fns';
+import { addMonths, differenceInMonths, startOfMonth, format, isFuture, startOfDay } from 'date-fns';
 import ImprovedTransactionFormFields from "./ImprovedTransactionFormFields";
 import { useToast } from '@/hooks/use-toast';
 
@@ -27,6 +29,8 @@ const baseIncomeCategories = [
 const UnifiedTransactionForm = () => {
   const { addIncome, addExpense, isAddingIncome, isAddingExpense, bankAccounts } = useFinancialData();
   const { categories: unifiedCategories } = useUnifiedCategories();
+  const { createPlannedIncome } = usePlannedIncome();
+  const { createPlannedExpense } = usePlannedExpenses();
 
   // Usar as categorias unificadas como base para as categorias customizadas
   const incomeCategoriesCfg = useCustomCategories("custom-categories-receita", unifiedCategories.filter(cat => 
@@ -68,6 +72,7 @@ const UnifiedTransactionForm = () => {
     if (!values.description || !values.amount || !values.category || !values.bank_account_id) return;
     
     const amount = parseFloat(values.amount);
+    const today = startOfDay(new Date());
     let installments = 1;
     
     // Calcular número de parcelas se for recorrente
@@ -80,20 +85,35 @@ const UnifiedTransactionForm = () => {
     
     // Criar múltiplas transações se for recorrente
     for (let i = 0; i < installments; i++) {
-      const transactionDate = new Date(values.date);
-      transactionDate.setMonth(transactionDate.getMonth() + i);
+      const transactionDate = addMonths(new Date(values.date), i);
+      const dateStr = format(transactionDate, 'yyyy-MM-dd');
+      const isFutureDate = isFuture(startOfDay(transactionDate));
       
       const description = installments > 1 
         ? `${values.description} (${i + 1}/${installments})`
         : values.description;
       
-      await addIncome({
-        description,
-        amount,
-        category: values.category,
-        date: formatDateForDatabase(transactionDate.toISOString().split('T')[0]),
-        bank_account_id: values.bank_account_id
-      });
+      if (isFutureDate) {
+        // Transação futura → planned_income (pendência)
+        createPlannedIncome({
+          description,
+          planned_amount: amount,
+          category: values.category,
+          month: dateStr,
+          is_recurring: false,
+        });
+        console.log(`✅ [PENDÊNCIA] Tipo: receita - Data: ${dateStr} - Descrição: ${description}`);
+      } else {
+        // Transação presente/passada → income (efetivada)
+        await addIncome({
+          description,
+          amount,
+          category: values.category,
+          date: formatDateForDatabase(dateStr),
+          bank_account_id: values.bank_account_id
+        });
+        console.log(`✅ [EFETIVADA] Tipo: receita - Data: ${dateStr} - Descrição: ${description}`);
+      }
     }
     
     // Exibir apenas 1 toast para transações recorrentes
@@ -121,6 +141,7 @@ const UnifiedTransactionForm = () => {
     if (!values.description || !values.amount || !values.category || !values.bank_account_id) return;
     
     const amount = parseFloat(values.amount);
+    const today = startOfDay(new Date());
     let installments = 1;
     
     // Calcular número de parcelas se for recorrente
@@ -133,20 +154,35 @@ const UnifiedTransactionForm = () => {
     
     // Criar múltiplas transações se for recorrente
     for (let i = 0; i < installments; i++) {
-      const transactionDate = new Date(values.date);
-      transactionDate.setMonth(transactionDate.getMonth() + i);
+      const transactionDate = addMonths(new Date(values.date), i);
+      const dateStr = format(transactionDate, 'yyyy-MM-dd');
+      const isFutureDate = isFuture(startOfDay(transactionDate));
       
       const description = installments > 1 
         ? `${values.description} (${i + 1}/${installments})`
         : values.description;
       
-      await addExpense({
-        description,
-        amount,
-        category: values.category,
-        date: formatDateForDatabase(transactionDate.toISOString().split('T')[0]),
-        bank_account_id: values.bank_account_id
-      });
+      if (isFutureDate) {
+        // Transação futura → planned_expenses (pendência)
+        createPlannedExpense({
+          description,
+          planned_amount: amount,
+          category: values.category,
+          month: dateStr,
+          is_recurring: false,
+        });
+        console.log(`✅ [PENDÊNCIA] Tipo: despesa - Data: ${dateStr} - Descrição: ${description}`);
+      } else {
+        // Transação presente/passada → expenses (efetivada)
+        await addExpense({
+          description,
+          amount,
+          category: values.category,
+          date: formatDateForDatabase(dateStr),
+          bank_account_id: values.bank_account_id
+        });
+        console.log(`✅ [EFETIVADA] Tipo: despesa - Data: ${dateStr} - Descrição: ${description}`);
+      }
     }
     
     // Exibir apenas 1 toast para transações recorrentes
