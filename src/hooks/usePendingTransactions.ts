@@ -41,11 +41,6 @@ export const usePendingTransactions = () => {
     queryKey: ['pending_transactions', user?.id, plannedIncome, plannedExpenses, upcomingBills, overdueBills],
     queryFn: async (): Promise<PendingTransaction[]> => {
       console.log('🔍 [usePendingTransactions] Query function executing');
-      console.log('🔍 [usePendingTransactions] User exists:', !!user);
-      console.log('🔍 [usePendingTransactions] plannedIncome:', plannedIncome);
-      console.log('🔍 [usePendingTransactions] plannedExpenses:', plannedExpenses);
-      console.log('🔍 [usePendingTransactions] upcomingBills:', upcomingBills);
-      console.log('🔍 [usePendingTransactions] overdueBills:', overdueBills);
       
       if (!user) {
         console.log('🚫 [usePendingTransactions] No user, returning empty array');
@@ -55,13 +50,16 @@ export const usePendingTransactions = () => {
       const pending: PendingTransaction[] = [];
       const today = new Date();
       today.setHours(0, 0, 0, 0);
+      const todayStr = today.toISOString().split('T')[0];
 
-      // 1. Receitas planejadas
+      console.log('📅 [usePendingTransactions] Today:', todayStr);
+
+      // 1. Receitas planejadas (future only)
       if (plannedIncome && Array.isArray(plannedIncome)) {
+        console.log('💰 [usePendingTransactions] Processing', plannedIncome.length, 'planned income');
         plannedIncome.forEach(income => {
           const incomeDate = new Date(income.month);
           incomeDate.setHours(0, 0, 0, 0);
-          // CORREÇÃO: incluir todas as receitas (passadas, presentes e futuras)
           const status = incomeDate < today ? 'overdue' : (incomeDate.getTime() === today.getTime() ? 'pending' : 'upcoming');
           pending.push({
             id: `income-${income.id}`,
@@ -77,12 +75,12 @@ export const usePendingTransactions = () => {
         });
       }
 
-      // 2. Despesas planejadas
+      // 2. Despesas planejadas (future only)
       if (plannedExpenses && Array.isArray(plannedExpenses)) {
+        console.log('💸 [usePendingTransactions] Processing', plannedExpenses.length, 'planned expenses');
         plannedExpenses.forEach(expense => {
           const expenseDate = new Date(expense.month);
           expenseDate.setHours(0, 0, 0, 0);
-          // CORREÇÃO: incluir todas as despesas (passadas, presentes e futuras)
           const status = expenseDate < today ? 'overdue' : (expenseDate.getTime() === today.getTime() ? 'pending' : 'upcoming');
           pending.push({
             id: `expense-${expense.id}`,
@@ -98,17 +96,18 @@ export const usePendingTransactions = () => {
         });
       }
 
-      // 3. Faturas de cartão (usar due_date para filtro)
+      // 3. Faturas de cartão
       if (upcomingBills && Array.isArray(upcomingBills) || overdueBills && Array.isArray(overdueBills)) {
-        [...(upcomingBills || []), ...(overdueBills || [])].forEach(bill => {
-          // Usar due_date como data de referência para a fatura
+        const allBills = [...(upcomingBills || []), ...(overdueBills || [])];
+        console.log('💳 [usePendingTransactions] Processing', allBills.length, 'credit card bills');
+        allBills.forEach(bill => {
           const billDueDate = new Date(bill.due_date);
           billDueDate.setHours(0, 0, 0, 0);
           const status = billDueDate < today ? 'overdue' : (billDueDate.getTime() === today.getTime() ? 'pending' : 'upcoming');
           pending.push({
             id: `bill-${bill.id}`,
             type: 'credit_bill' as const,
-            date: billDueDate, // Usar due_date para ordenação e filtro
+            date: billDueDate,
             category: 'Cartão de Crédito',
             account: 'A pagar',
             description: `Fatura - Vencimento ${formatDateForDisplay(bill.due_date)}`,
@@ -120,17 +119,14 @@ export const usePendingTransactions = () => {
       }
 
       // Ordenar por data
-      const sorted = pending.sort((a, b) => {
-        return a.date.getTime() - b.date.getTime();
-      });
+      const sorted = pending.sort((a, b) => a.date.getTime() - b.date.getTime());
       
-      console.log('✅ [usePendingTransactions] Final pending transactions:', sorted);
-      console.log('✅ [usePendingTransactions] Total items found:', sorted.length);
+      console.log('✅ [usePendingTransactions] Total pending transactions:', sorted.length);
       return sorted;
     },
     enabled: !!user,
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
   });
 
   return {

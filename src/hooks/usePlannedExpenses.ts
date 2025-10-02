@@ -37,19 +37,13 @@ export const usePlannedExpenses = () => {
     queryFn: async () => {
       if (!user) return [];
       
-      // Buscar apenas despesas planejadas com data >= hoje
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayStr = today.toISOString().split('T')[0];
-      
-      console.log('🔍 [usePlannedExpenses] Fetching with filter >= ', todayStr);
-      console.log('🔍 [usePlannedExpenses] User ID:', user.id);
+      // Fetch ALL planned expenses (including past ones for pending tab)
+      console.log('🔍 [usePlannedExpenses] Fetching ALL planned expenses');
       
       const { data, error } = await supabase
         .from('planned_expenses')
         .select('*')
         .eq('user_id', user.id)
-        .gte('month', todayStr)
         .order('month', { ascending: true });
       
       if (error) {
@@ -58,7 +52,6 @@ export const usePlannedExpenses = () => {
       }
 
       console.log('✅ [usePlannedExpenses] Fetched items:', data?.length || 0);
-      console.log('✅ [usePlannedExpenses] Items:', data?.map(e => ({ month: e.month, amount: e.planned_amount, category: e.category })));
       
       return data as PlannedExpense[];
     },

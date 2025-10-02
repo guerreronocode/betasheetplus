@@ -22,13 +22,24 @@ export const useExpenses = () => {
     queryKey: ['expenses', user?.id],
     queryFn: async () => {
       if (!user) return [];
+      
+      // Only fetch expenses with date <= today (effected transactions)
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      const todayStr = today.toISOString().split('T')[0];
+      
+      console.log('🔍 [useExpenses] Fetching expenses with date <=', todayStr);
+      
       const { data, error } = await supabase
         .from('expenses')
         .select('*')
         .eq('user_id', user.id)
+        .lte('date', todayStr)
         .order('date', { ascending: false });
       
       if (error) throw error;
+      
+      console.log('✅ [useExpenses] Fetched', data?.length || 0, 'effected expenses');
       return data as ExpenseEntry[];
     },
     enabled: !!user && !authLoading,

@@ -44,18 +44,21 @@ const RecurringTransactions = () => {
     try {
       const startDate = new Date(formData.startDate);
       const amount = parseFloat(formData.amount);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
 
-      // Create multiple planned transactions (one for each installment)
+      // Create multiple transactions (one for each installment)
+      // Future transactions will NOT affect balance, only current/past ones will
       for (let i = 0; i < installments; i++) {
         const installmentDate = addMonths(startDate, i);
-        const monthKey = format(installmentDate, "yyyy-MM-01");
+        const dateString = format(installmentDate, "yyyy-MM-dd");
 
         if (formData.type === "income") {
           await createPlannedIncome({
             category: formData.category,
             description: installments > 1 ? `${formData.description} (${i + 1}/${installments})` : formData.description,
             planned_amount: amount,
-            month: monthKey,
+            month: dateString,
             is_recurring: false,
           });
         } else {
@@ -63,7 +66,7 @@ const RecurringTransactions = () => {
             category: formData.category,
             description: installments > 1 ? `${formData.description} (${i + 1}/${installments})` : formData.description,
             planned_amount: amount,
-            month: monthKey,
+            month: dateString,
             is_recurring: false,
           });
         }

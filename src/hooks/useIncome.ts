@@ -22,13 +22,24 @@ export const useIncome = () => {
     queryKey: ['income', user?.id],
     queryFn: async () => {
       if (!user) return [];
+      
+      // Only fetch income with date <= today (effected transactions)
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      const todayStr = today.toISOString().split('T')[0];
+      
+      console.log('🔍 [useIncome] Fetching income with date <=', todayStr);
+      
       const { data, error } = await supabase
         .from('income')
         .select('*')
         .eq('user_id', user.id)
+        .lte('date', todayStr)
         .order('date', { ascending: false });
       
       if (error) throw error;
+      
+      console.log('✅ [useIncome] Fetched', data?.length || 0, 'effected income');
       return data as IncomeEntry[];
     },
     enabled: !!user && !authLoading,
