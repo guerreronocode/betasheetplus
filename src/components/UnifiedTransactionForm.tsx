@@ -11,6 +11,7 @@ import { useCustomCategories } from "@/hooks/useCustomCategories";
 import { useTransactionForm } from "@/hooks/useTransactionForm";
 import { useUnifiedCategories } from "@/hooks/useUnifiedCategories";
 import { formatDateForDatabase, getTodayForInput } from "@/utils/formatters";
+import { addMonths } from 'date-fns';
 import ImprovedTransactionFormFields from "./ImprovedTransactionFormFields";
 
 const baseIncomeCategories = [
@@ -41,7 +42,8 @@ const UnifiedTransactionForm = () => {
     category: '',
     date: getTodayForInput(),
     bank_account_id: '',
-    isRecurring: false
+    isRecurring: false,
+    installments: '1'
   };
 
   const initialExpenseForm = {
@@ -50,7 +52,8 @@ const UnifiedTransactionForm = () => {
     category: '',
     date: getTodayForInput(),
     bank_account_id: '',
-    isRecurring: false
+    isRecurring: false,
+    installments: '1'
   };
 
   const {
@@ -60,21 +63,37 @@ const UnifiedTransactionForm = () => {
     isSubmitting: isIncomeSubmitting
   } = useTransactionForm(initialIncomeForm, async (values) => {
     if (!values.description || !values.amount || !values.category || !values.bank_account_id) return;
-    await addIncome({
-      description: values.description,
-      amount: parseFloat(values.amount),
-      category: values.category,
-      date: formatDateForDatabase(values.date),
-      bank_account_id: values.bank_account_id
-    });
+    
+    const amount = parseFloat(values.amount);
+    const installments = values.isRecurring ? parseInt(values.installments || '1') : 1;
+    
+    // Criar múltiplas transações se for recorrente
+    for (let i = 0; i < installments; i++) {
+      const transactionDate = new Date(values.date);
+      transactionDate.setMonth(transactionDate.getMonth() + i);
+      
+      const description = installments > 1 
+        ? `${values.description} (${i + 1}/${installments})`
+        : values.description;
+      
+      await addIncome({
+        description,
+        amount,
+        category: values.category,
+        date: formatDateForDatabase(transactionDate.toISOString().split('T')[0]),
+        bank_account_id: values.bank_account_id
+      });
+    }
     
     // Reset personalizado: manter categoria e conta selecionadas
     handleIncomeChange({
       description: '',
       amount: '',
-      date: getTodayForInput()
+      date: getTodayForInput(),
+      isRecurring: false,
+      installments: '1'
     });
-  }, { resetOnSuccess: false }); // NÃO RESETAR AUTOMATICAMENTE
+  }, { resetOnSuccess: false });
 
   const {
     form: expenseForm,
@@ -84,21 +103,37 @@ const UnifiedTransactionForm = () => {
     resetForm: resetExpenseForm
   } = useTransactionForm(initialExpenseForm, async (values) => {
     if (!values.description || !values.amount || !values.category || !values.bank_account_id) return;
-    await addExpense({
-      description: values.description,
-      amount: parseFloat(values.amount),
-      category: values.category,
-      date: formatDateForDatabase(values.date),
-      bank_account_id: values.bank_account_id
-    });
+    
+    const amount = parseFloat(values.amount);
+    const installments = values.isRecurring ? parseInt(values.installments || '1') : 1;
+    
+    // Criar múltiplas transações se for recorrente
+    for (let i = 0; i < installments; i++) {
+      const transactionDate = new Date(values.date);
+      transactionDate.setMonth(transactionDate.getMonth() + i);
+      
+      const description = installments > 1 
+        ? `${values.description} (${i + 1}/${installments})`
+        : values.description;
+      
+      await addExpense({
+        description,
+        amount,
+        category: values.category,
+        date: formatDateForDatabase(transactionDate.toISOString().split('T')[0]),
+        bank_account_id: values.bank_account_id
+      });
+    }
     
     // Reset personalizado: manter categoria e conta selecionadas
     handleExpenseChange({
       description: '',
       amount: '',
-      date: getTodayForInput()
+      date: getTodayForInput(),
+      isRecurring: false,
+      installments: '1'
     });
-  }, { resetOnSuccess: false }); // NÃO RESETAR AUTOMATICAMENTE
+  }, { resetOnSuccess: false });
 
 
 
@@ -162,6 +197,21 @@ const UnifiedTransactionForm = () => {
                   Receita recorrente
                 </Label>
               </div>
+              {incomeForm.isRecurring && (
+                <div className="mt-2">
+                  <Label htmlFor="income-installments" className="text-xs">Número de Parcelas</Label>
+                  <Input
+                    id="income-installments"
+                    type="number"
+                    min="1"
+                    value={incomeForm.installments}
+                    onChange={(e) => handleIncomeChange({ installments: e.target.value })}
+                    placeholder="1"
+                    className="h-8 mt-1"
+                    required
+                  />
+                </div>
+              )}
             </div>
             <div>
               <Label htmlFor="income-bank-account" className="text-xs">Instituição Financeira *</Label>
@@ -274,6 +324,21 @@ const UnifiedTransactionForm = () => {
                   Despesa recorrente
                 </Label>
               </div>
+              {expenseForm.isRecurring && (
+                <div className="mt-2">
+                  <Label htmlFor="expense-installments" className="text-xs">Número de Parcelas</Label>
+                  <Input
+                    id="expense-installments"
+                    type="number"
+                    min="1"
+                    value={expenseForm.installments}
+                    onChange={(e) => handleExpenseChange({ installments: e.target.value })}
+                    placeholder="1"
+                    className="h-8 mt-1"
+                    required
+                  />
+                </div>
+              )}
             </div>
             <div>
               <Label htmlFor="expense-bank-account" className="text-xs">Instituição Financeira *</Label>

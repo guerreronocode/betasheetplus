@@ -86,22 +86,27 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
       return [];
     }
     
-    // Se não houver filtro de data, retornar todas as transações
-    if (!startDate || !endDate) {
-      return pendingTransactions;
-    }
+    // Hoje (início do dia)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     
     // Normalizar datas de filtro
-    const filterStartDate = new Date(startDate);
+    const filterStartDate = startDate ? new Date(startDate) : today;
     filterStartDate.setHours(0, 0, 0, 0);
     
-    const filterEndDate = new Date(endDate);
+    const filterEndDate = endDate ? new Date(endDate) : new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000); // 2 meses
     filterEndDate.setHours(23, 59, 59, 999);
     
     const filtered = pendingTransactions.filter(transaction => {
       const transactionDate = new Date(transaction.date);
       transactionDate.setHours(0, 0, 0, 0);
       
+      // Apenas transações FUTURAS (data > hoje)
+      if (transactionDate <= today) {
+        return false;
+      }
+      
+      // Filtrar por range de data
       return transactionDate >= filterStartDate && transactionDate <= filterEndDate;
     });
     

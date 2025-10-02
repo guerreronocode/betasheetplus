@@ -90,6 +90,10 @@ const TransactionsTable = ({ startDate, endDate }: TransactionsTableProps = {}) 
       ...safeExpenses.map(item => ({ ...item, type: 'expense' as const }))
     ];
 
+    // Hoje (fim do dia)
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
     // Aplicar filtro de data se as datas forem fornecidas
     if (startDate && endDate) {
       const filterStartDate = new Date(startDate);
@@ -102,7 +106,21 @@ const TransactionsTable = ({ startDate, endDate }: TransactionsTableProps = {}) 
         const transactionDate = new Date(transaction.date);
         transactionDate.setHours(0, 0, 0, 0);
         
+        // Apenas transações passadas ou de hoje (data <= hoje)
+        if (transactionDate > today) {
+          return false;
+        }
+        
         return transactionDate >= filterStartDate && transactionDate <= filterEndDate;
+      });
+    } else {
+      // Se não houver filtro de data, aplicar apenas o filtro de hoje
+      combined = combined.filter(transaction => {
+        const transactionDate = new Date(transaction.date);
+        transactionDate.setHours(0, 0, 0, 0);
+        
+        // Apenas transações passadas ou de hoje (data <= hoje)
+        return transactionDate <= today;
       });
     }
 
