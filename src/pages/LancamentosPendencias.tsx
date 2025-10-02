@@ -20,8 +20,8 @@ const LancamentosPendencias = () => {
     date.setMonth(date.getMonth() + 2);
     return date;
   });
-  const [tempStartDate, setTempStartDate] = useState<Date>(new Date());
-  const [tempEndDate, setTempEndDate] = useState<Date>(() => {
+  const [tempStartDate, setTempStartDate] = useState<Date | undefined>(new Date());
+  const [tempEndDate, setTempEndDate] = useState<Date | undefined>(() => {
     const date = new Date();
     date.setMonth(date.getMonth() + 2);
     return date;
@@ -132,6 +132,7 @@ const LancamentosPendencias = () => {
                       mode="single"
                       selected={tempStartDate}
                       onSelect={setTempStartDate}
+                      defaultMonth={tempStartDate}
                       className={cn("pointer-events-auto text-xs")}
                     />
                   </div>
@@ -141,18 +142,22 @@ const LancamentosPendencias = () => {
                       mode="single"
                       selected={tempEndDate}
                       onSelect={setTempEndDate}
+                      defaultMonth={tempEndDate}
                       className={cn("pointer-events-auto text-xs")}
                     />
                   </div>
                 </div>
                 <Button 
                   onClick={() => {
-                    setAppliedStartDate(tempStartDate);
-                    setAppliedEndDate(tempEndDate);
-                    setIsDatePickerOpen(false);
+                    if (tempStartDate && tempEndDate) {
+                      setAppliedStartDate(tempStartDate);
+                      setAppliedEndDate(tempEndDate);
+                      setIsDatePickerOpen(false);
+                    }
                   }} 
                   className="w-full h-8"
                   size="sm"
+                  disabled={!tempStartDate || !tempEndDate}
                 >
                   Filtrar
                 </Button>

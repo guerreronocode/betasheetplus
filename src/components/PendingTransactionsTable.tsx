@@ -96,7 +96,15 @@ const PendingTransactionsTable = ({ startDate, endDate }: PendingTransactionsTab
       if (!startDate || !endDate) return true;
       
       const transactionDate = new Date(transaction.date);
-      return transactionDate >= startDate && transactionDate <= endDate;
+      transactionDate.setHours(0, 0, 0, 0);
+      
+      const filterStartDate = new Date(startDate);
+      filterStartDate.setHours(0, 0, 0, 0);
+      
+      const filterEndDate = new Date(endDate);
+      filterEndDate.setHours(23, 59, 59, 999);
+      
+      return transactionDate >= filterStartDate && transactionDate <= filterEndDate;
     });
     
     return filtered;
