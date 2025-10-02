@@ -37,10 +37,16 @@ export const usePlannedExpenses = () => {
     queryFn: async () => {
       if (!user) return [];
       
+      // Buscar apenas despesas planejadas com data >= hoje
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayStr = today.toISOString().split('T')[0];
+      
       const { data, error } = await supabase
         .from('planned_expenses')
         .select('*')
         .eq('user_id', user.id)
+        .gte('month', todayStr)
         .order('month', { ascending: true });
       
       if (error) throw error;

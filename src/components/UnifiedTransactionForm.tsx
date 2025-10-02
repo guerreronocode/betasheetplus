@@ -11,8 +11,9 @@ import { useCustomCategories } from "@/hooks/useCustomCategories";
 import { useTransactionForm } from "@/hooks/useTransactionForm";
 import { useUnifiedCategories } from "@/hooks/useUnifiedCategories";
 import { formatDateForDatabase, getTodayForInput } from "@/utils/formatters";
-import { addMonths } from 'date-fns';
+import { addMonths, differenceInMonths, startOfMonth, format } from 'date-fns';
 import ImprovedTransactionFormFields from "./ImprovedTransactionFormFields";
+import { useToast } from '@/hooks/use-toast';
 
 const baseIncomeCategories = [
   'Salário',
@@ -36,6 +37,8 @@ const UnifiedTransactionForm = () => {
     !baseIncomeCategories.includes(cat)
   ));
 
+  const { toast } = useToast();
+
   const initialIncomeForm = {
     description: '',
     amount: '',
@@ -43,7 +46,7 @@ const UnifiedTransactionForm = () => {
     date: getTodayForInput(),
     bank_account_id: '',
     isRecurring: false,
-    installments: '1'
+    endMonthYear: ''
   };
 
   const initialExpenseForm = {
@@ -53,7 +56,7 @@ const UnifiedTransactionForm = () => {
     date: getTodayForInput(),
     bank_account_id: '',
     isRecurring: false,
-    installments: '1'
+    endMonthYear: ''
   };
 
   const {
@@ -65,7 +68,15 @@ const UnifiedTransactionForm = () => {
     if (!values.description || !values.amount || !values.category || !values.bank_account_id) return;
     
     const amount = parseFloat(values.amount);
-    const installments = values.isRecurring ? parseInt(values.installments || '1') : 1;
+    let installments = 1;
+    
+    // Calcular número de parcelas se for recorrente
+    if (values.isRecurring && values.endMonthYear) {
+      const startDate = startOfMonth(new Date(values.date));
+      const [year, month] = values.endMonthYear.split('-').map(Number);
+      const endDate = startOfMonth(new Date(year, month - 1));
+      installments = differenceInMonths(endDate, startDate) + 1;
+    }
     
     // Criar múltiplas transações se for recorrente
     for (let i = 0; i < installments; i++) {
@@ -85,13 +96,18 @@ const UnifiedTransactionForm = () => {
       });
     }
     
+    // Exibir apenas 1 toast para transações recorrentes
+    if (values.isRecurring) {
+      toast({ title: 'Transação recorrente adicionada com sucesso!' });
+    }
+    
     // Reset personalizado: manter categoria e conta selecionadas
     handleIncomeChange({
       description: '',
       amount: '',
       date: getTodayForInput(),
       isRecurring: false,
-      installments: '1'
+      endMonthYear: ''
     });
   }, { resetOnSuccess: false });
 
@@ -105,7 +121,15 @@ const UnifiedTransactionForm = () => {
     if (!values.description || !values.amount || !values.category || !values.bank_account_id) return;
     
     const amount = parseFloat(values.amount);
-    const installments = values.isRecurring ? parseInt(values.installments || '1') : 1;
+    let installments = 1;
+    
+    // Calcular número de parcelas se for recorrente
+    if (values.isRecurring && values.endMonthYear) {
+      const startDate = startOfMonth(new Date(values.date));
+      const [year, month] = values.endMonthYear.split('-').map(Number);
+      const endDate = startOfMonth(new Date(year, month - 1));
+      installments = differenceInMonths(endDate, startDate) + 1;
+    }
     
     // Criar múltiplas transações se for recorrente
     for (let i = 0; i < installments; i++) {
@@ -125,13 +149,18 @@ const UnifiedTransactionForm = () => {
       });
     }
     
+    // Exibir apenas 1 toast para transações recorrentes
+    if (values.isRecurring) {
+      toast({ title: 'Transação recorrente adicionada com sucesso!' });
+    }
+    
     // Reset personalizado: manter categoria e conta selecionadas
     handleExpenseChange({
       description: '',
       amount: '',
       date: getTodayForInput(),
       isRecurring: false,
-      installments: '1'
+      endMonthYear: ''
     });
   }, { resetOnSuccess: false });
 
@@ -199,14 +228,13 @@ const UnifiedTransactionForm = () => {
               </div>
               {incomeForm.isRecurring && (
                 <div className="mt-2">
-                  <Label htmlFor="income-installments" className="text-xs">Número de Parcelas</Label>
+                  <Label htmlFor="income-end-month" className="text-xs">Até que mês/ano?</Label>
                   <Input
-                    id="income-installments"
-                    type="number"
-                    min="1"
-                    value={incomeForm.installments}
-                    onChange={(e) => handleIncomeChange({ installments: e.target.value })}
-                    placeholder="1"
+                    id="income-end-month"
+                    type="month"
+                    value={incomeForm.endMonthYear}
+                    onChange={(e) => handleIncomeChange({ endMonthYear: e.target.value })}
+                    min={format(new Date(incomeForm.date), 'yyyy-MM')}
                     className="h-8 mt-1"
                     required
                   />
@@ -326,14 +354,13 @@ const UnifiedTransactionForm = () => {
               </div>
               {expenseForm.isRecurring && (
                 <div className="mt-2">
-                  <Label htmlFor="expense-installments" className="text-xs">Número de Parcelas</Label>
+                  <Label htmlFor="expense-end-month" className="text-xs">Até que mês/ano?</Label>
                   <Input
-                    id="expense-installments"
-                    type="number"
-                    min="1"
-                    value={expenseForm.installments}
-                    onChange={(e) => handleExpenseChange({ installments: e.target.value })}
-                    placeholder="1"
+                    id="expense-end-month"
+                    type="month"
+                    value={expenseForm.endMonthYear}
+                    onChange={(e) => handleExpenseChange({ endMonthYear: e.target.value })}
+                    min={format(new Date(expenseForm.date), 'yyyy-MM')}
                     className="h-8 mt-1"
                     required
                   />

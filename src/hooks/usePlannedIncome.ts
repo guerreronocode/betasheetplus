@@ -36,11 +36,17 @@ export const usePlannedIncome = () => {
     queryKey: ['planned_income', user?.id],
     queryFn: async () => {
       if (!user) return [];
+      
+      // Buscar apenas receitas planejadas com data >= hoje
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const todayStr = today.toISOString().split('T')[0];
 
       const { data, error } = await supabase
         .from('planned_income')
         .select('*')
         .eq('user_id', user.id)
+        .gte('month', todayStr)
         .order('month', { ascending: false });
 
       if (error) throw error;
