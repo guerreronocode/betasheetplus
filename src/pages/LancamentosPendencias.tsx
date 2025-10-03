@@ -32,7 +32,7 @@ const LancamentosPendencias = () => {
 
   const { pendingTransactions } = usePendingTransactions();
 
-  // Calculate statistics based on filtered data
+  // Calculate statistics
   const statistics = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -47,6 +47,7 @@ const LancamentosPendencias = () => {
     })();
     filterEndDate.setHours(23, 59, 59, 999);
 
+    // Total value: apenas transações dentro do filtro de data
     const filteredTransactions = pendingTransactions.filter(transaction => {
       const transactionDate = new Date(transaction.date);
       transactionDate.setHours(0, 0, 0, 0);
@@ -55,7 +56,8 @@ const LancamentosPendencias = () => {
 
     const totalValue = filteredTransactions.reduce((sum, t) => sum + t.value, 0);
     
-    const overdueTransactions = filteredTransactions.filter(t => {
+    // Overdue: TODAS as transações vencidas, independente do filtro
+    const overdueTransactions = pendingTransactions.filter(t => {
       const tDate = new Date(t.date);
       tDate.setHours(0, 0, 0, 0);
       return tDate < today;

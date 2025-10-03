@@ -1,12 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Pencil, ArrowUpCircle, ArrowDownCircle, ChevronUp, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -18,16 +10,6 @@ type SortField = 'description' | 'category' | 'date' | 'amount' | 'type';
 type SortOrder = 'asc' | 'desc';
 
 const ITEMS_PER_PAGE = 15;
-
-// Default column widths
-const DEFAULT_COLUMN_WIDTHS = {
-  type: 60,
-  description: 250, 
-  category: 180,
-  date: 100,
-  amount: 140,
-  actions: 70
-};
 
 interface TransactionsTableProps {
   startDate?: Date;
@@ -41,42 +23,6 @@ const TransactionsTable = ({ startDate, endDate }: TransactionsTableProps = {}) 
   const [sortField, setSortField] = useState<SortField>('date');
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc');
   const [currentPage, setCurrentPage] = useState(1);
-  const [columnWidths, setColumnWidths] = useState(DEFAULT_COLUMN_WIDTHS);
-  const [resizing, setResizing] = useState<string | null>(null);
-  const tableRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
-
-  // ======= TODOS OS HOOKS PRIMEIRO =======
-  
-  // Monitora mudanças no tamanho do container
-  React.useEffect(() => {
-    const updateContainerWidth = () => {
-      if (containerRef.current) {
-        setContainerWidth(containerRef.current.clientWidth);
-      }
-    };
-
-    // Atualiza imediatamente
-    updateContainerWidth();
-    
-    // Observer para mudanças no tamanho do container
-    const resizeObserver = new ResizeObserver(() => {
-      updateContainerWidth();
-    });
-    
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
-    
-    // Fallback para resize da janela
-    window.addEventListener('resize', updateContainerWidth);
-    
-    return () => {
-      resizeObserver.disconnect();
-      window.removeEventListener('resize', updateContainerWidth);
-    };
-  }, []);
 
   // Combine, filter, and sort all transactions
   const allTransactions = useMemo(() => {
@@ -151,28 +97,7 @@ const TransactionsTable = ({ startDate, endDate }: TransactionsTableProps = {}) 
     });
   }, [income, expenses, sortField, sortOrder, startDate, endDate]);
 
-  // Calcula larguras dinâmicas baseadas no container disponível
-  const calculateTableWidths = useMemo(() => {
-    const minTotalWidth = Object.values(columnWidths).reduce((a, b) => a + b, 0);
-    
-    // Se a largura mínima é menor que o container, expande proporcionalmente
-    if (minTotalWidth < containerWidth && containerWidth > 0) {
-      const scale = containerWidth / minTotalWidth;
-      return {
-        type: Math.floor(columnWidths.type * scale),
-        description: Math.floor(columnWidths.description * scale),
-        category: Math.floor(columnWidths.category * scale),
-        date: Math.floor(columnWidths.date * scale),
-        amount: Math.floor(columnWidths.amount * scale),
-        actions: Math.floor(columnWidths.actions * scale)
-      };
-    }
-    
-    // Senão, usa as larguras definidas
-    return columnWidths;
-  }, [columnWidths, containerWidth]);
-
-  // Pagination logic (precisa estar aqui para os cálculos)
+  // Pagination logic
   const totalPages = Math.ceil(allTransactions.length / ITEMS_PER_PAGE);
 
   // Reset page when transactions change
@@ -227,73 +152,23 @@ const TransactionsTable = ({ startDate, endDate }: TransactionsTableProps = {}) 
     }
   };
 
-  const handleResize = (column: keyof typeof columnWidths, newWidth: number) => {
-    // Tamanhos mínimos baseados no conteúdo dos títulos das colunas
-    const minWidths = {
-      type: 60,      // "Tipo"  
-      description: 100, // "Descrição"
-      category: 100,    // "Categoria"
-      date: 80,         // "Data"
-      amount: 100,      // "Valor"
-      actions: 70       // "Ações"
-    };
-    
-    // Aplica apenas o width mínimo, cada coluna é independente
-    const finalWidth = Math.max(minWidths[column], newWidth);
-    
-    setColumnWidths(prev => ({
-      ...prev,
-      [column]: finalWidth
-    }));
-  };
-
-  const ResizableHeader = ({ 
+  const SortableHeader = ({ 
     field, 
-    column, 
     children, 
     align = 'left',
-    resizable = true
   }: { 
     field: SortField; 
-    column: keyof typeof columnWidths;
     children: React.ReactNode; 
     align?: 'left' | 'right' | 'center';
-    resizable?: boolean;
   }) => {
-    const handleMouseDown = (e: React.MouseEvent) => {
-      if (!resizable) return;
-      e.preventDefault();
-      e.stopPropagation();
-      setResizing(column);
-      
-      const startX = e.clientX;
-      const startWidth = columnWidths[column];
-      
-      const handleMouseMove = (e: MouseEvent) => {
-        const deltaX = e.clientX - startX;
-        const newWidth = startWidth + deltaX;
-        handleResize(column, newWidth);
-      };
-      
-      const handleMouseUp = () => {
-        setResizing(null);
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-      
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    };
-
     return (
       <th 
-        className={`relative cursor-pointer hover:bg-muted/50 text-sm h-10 px-3 border-r border-border/50 ${
+        className={`cursor-pointer hover:bg-muted/50 text-sm h-10 px-3 border-r border-border/50 ${
           align === 'right' ? 'text-right' : align === 'center' ? 'text-center' : 'text-left'
         }`}
         onClick={() => handleSort(field)}
-        style={{ width: `${calculateTableWidths[column]}px` }}
       >
-        <div className="flex items-center gap-1 pr-2">
+        <div className="flex items-center gap-1">
           {children}
           {sortField === field && (
             sortOrder === 'asc' ? 
@@ -301,12 +176,6 @@ const TransactionsTable = ({ startDate, endDate }: TransactionsTableProps = {}) 
               <ChevronDown className="w-4 h-4" />
           )}
         </div>
-        {resizable && (
-          <div
-            className="absolute right-0 top-0 h-full w-2 cursor-col-resize hover:bg-primary/10"
-            onMouseDown={handleMouseDown}
-          />
-        )}
       </th>
     );
   };
@@ -321,49 +190,30 @@ const TransactionsTable = ({ startDate, endDate }: TransactionsTableProps = {}) 
     setSelectedTransaction(null);
   };
 
-  const totalWidth = Object.values(calculateTableWidths).reduce((a, b) => a + b, 0);
-
   return (
-    <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] rounded-xl overflow-hidden" ref={containerRef}>
+    <Card className="fnb-card flex flex-col h-[calc(100vh-200px)] rounded-xl overflow-hidden">
       {/* Container com scroll horizontal */}
-      <div className="flex-1 overflow-auto fnb-scrollbar-custom" ref={tableRef}>
-        <table 
-          className="w-full table-fixed border-collapse"
-          style={{ 
-            minWidth: `${totalWidth}px`
-          }}
-        >
-          <colgroup>
-            <col style={{ width: `${calculateTableWidths.type}px` }} />
-            <col style={{ width: `${calculateTableWidths.description}px` }} />
-            <col style={{ width: `${calculateTableWidths.category}px` }} />
-            <col style={{ width: `${calculateTableWidths.date}px` }} />
-            <col style={{ width: `${calculateTableWidths.amount}px` }} />
-            <col style={{ width: `${calculateTableWidths.actions}px` }} />
-          </colgroup>
-          
+      <div className="flex-1 overflow-auto fnb-scrollbar-custom">
+        <table className="w-full border-collapse">
           {/* Header */}
           <thead className="sticky top-0 bg-white/95 backdrop-blur-sm border-b z-10">
             <tr className="h-10 border-b">
-              <ResizableHeader field="type" column="type" align="center">
-                <span className="text-sm font-medium">Tipo</span>
-              </ResizableHeader>
-              <ResizableHeader field="description" column="description">
-                <span className="text-sm font-medium">Descrição</span>
-              </ResizableHeader>
-              <ResizableHeader field="category" column="category">
-                <span className="text-sm font-medium">Categoria</span>
-              </ResizableHeader>
-              <ResizableHeader field="date" column="date">
-                <span className="text-sm font-medium">Data</span>
-              </ResizableHeader>
-              <ResizableHeader field="amount" column="amount" align="right">
-                <span className="text-sm font-medium">Valor</span>
-              </ResizableHeader>
-              <th 
-                className="text-center px-3 py-2 text-sm font-medium border-r border-border/50"
-                style={{ width: `${calculateTableWidths.actions}px` }}
-              >
+              <SortableHeader field="type" align="center">
+                <span className="text-sm font-medium min-w-[60px]">Tipo</span>
+              </SortableHeader>
+              <SortableHeader field="description">
+                <span className="text-sm font-medium min-w-[200px]">Descrição</span>
+              </SortableHeader>
+              <SortableHeader field="category">
+                <span className="text-sm font-medium min-w-[150px]">Categoria</span>
+              </SortableHeader>
+              <SortableHeader field="date">
+                <span className="text-sm font-medium min-w-[100px]">Data</span>
+              </SortableHeader>
+              <SortableHeader field="amount" align="right">
+                <span className="text-sm font-medium min-w-[120px]">Valor</span>
+              </SortableHeader>
+              <th className="text-center px-3 py-2 text-sm font-medium border-r border-border/50 min-w-[70px]">
                 Ações
               </th>
             </tr>
@@ -373,11 +223,7 @@ const TransactionsTable = ({ startDate, endDate }: TransactionsTableProps = {}) 
           <tbody>
             {paginatedTransactions.length === 0 ? (
               <tr>
-                <td 
-                  colSpan={6} 
-                  className="text-center py-6 text-fnb-ink/70"
-                  style={{ width: `${totalWidth}px` }}
-                >
+                <td colSpan={6} className="text-center py-6 text-fnb-ink/70">
                   <div>
                     <p className="text-sm">Nenhuma transação encontrada</p>
                     <p className="text-xs">Adicione sua primeira receita ou despesa!</p>
@@ -387,10 +233,7 @@ const TransactionsTable = ({ startDate, endDate }: TransactionsTableProps = {}) 
             ) : (
               paginatedTransactions.map((transaction) => (
                 <tr key={`${transaction.type}-${transaction.id}`} className="h-12 border-b hover:bg-gray-50/50">
-                  <td 
-                    className="px-3 py-2 border-r border-border/20"
-                    style={{ width: `${calculateTableWidths.type}px` }}
-                  >
+                  <td className="px-3 py-2 border-r border-border/20 min-w-[60px]">
                     <div className="flex justify-center">
                       {transaction.type === 'income' ? (
                         <ArrowUpCircle className="w-4 h-4 text-green-600" />
@@ -400,40 +243,31 @@ const TransactionsTable = ({ startDate, endDate }: TransactionsTableProps = {}) 
                     </div>
                   </td>
                   <td 
-                    className="font-medium text-fnb-ink text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
+                    className="font-medium text-fnb-ink text-sm px-3 py-2 border-r border-border/20 overflow-hidden min-w-[200px]"
                     title={transaction.description}
-                    style={{ width: `${calculateTableWidths.description}px` }}
                   >
                     <div className="truncate">{transaction.description}</div>
                   </td>
                   <td 
-                    className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
+                    className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden min-w-[150px]"
                     title={transaction.category}
-                    style={{ width: `${calculateTableWidths.category}px` }}
                   >
                     <div className="truncate">{transaction.category}</div>
                   </td>
-                  <td 
-                    className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden"
-                    style={{ width: `${calculateTableWidths.date}px` }}
-                  >
+                  <td className="text-fnb-ink/70 text-sm px-3 py-2 border-r border-border/20 overflow-hidden min-w-[100px]">
                     <div className="truncate">{formatDateForDisplay(transaction.date)}</div>
                   </td>
                   <td 
-                    className={`text-right font-semibold text-sm px-3 py-2 border-r border-border/20 overflow-hidden ${
+                    className={`text-right font-semibold text-sm px-3 py-2 border-r border-border/20 overflow-hidden min-w-[120px] ${
                       transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                     }`}
                     title={`${transaction.type === 'income' ? '+' : '-'}${formatCurrency(transaction.amount)}`}
-                    style={{ width: `${calculateTableWidths.amount}px` }}
                   >
                     <div className="truncate">
                       {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                     </div>
                   </td>
-                  <td 
-                    className="px-3 py-2 text-center"
-                    style={{ width: `${calculateTableWidths.actions}px` }}
-                  >
+                  <td className="px-3 py-2 text-center min-w-[70px]">
                     <Button
                       variant="ghost"
                       size="sm"

@@ -1,11 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Layout } from '@/components/Layout';
-import { Plus, ArrowRightLeft, Upload, CalendarIcon, Clock, CreditCard } from 'lucide-react';
+import { Plus, ArrowRightLeft, Upload, CalendarIcon, Clock, CreditCard, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import TransactionsTable from '@/components/TransactionsTable';
@@ -13,6 +14,8 @@ import AddTransactionModal from '@/components/modals/AddTransactionModal';
 import TransferModal from '@/components/modals/TransferModal';
 import BankStatementModal from '@/components/modals/BankStatementModal';
 import { PurchaseForm } from '@/components/creditCard/PurchaseForm';
+import { useFinancialData } from '@/hooks/useFinancialData';
+import { formatCurrency } from '@/utils/formatters';
 
 const Lancamentos = () => {
   const navigate = useNavigate();
@@ -36,6 +39,41 @@ const Lancamentos = () => {
   });
   const [tempEndDate, setTempEndDate] = useState<Date | undefined>(new Date());
 
+  const { income, expenses } = useFinancialData();
+
+  // Calculate total value in filtered period
+  const totalValue = useMemo(() => {
+    const safeIncome = Array.isArray(income) ? income : [];
+    const safeExpenses = Array.isArray(expenses) ? expenses : [];
+
+    const filterStartDate = new Date(appliedStartDate);
+    filterStartDate.setHours(0, 0, 0, 0);
+    
+    const filterEndDate = new Date(appliedEndDate);
+    filterEndDate.setHours(23, 59, 59, 999);
+
+    const today = new Date();
+    today.setHours(23, 59, 59, 999);
+
+    const filteredIncome = safeIncome
+      .filter(item => {
+        const itemDate = new Date(item.date);
+        itemDate.setHours(0, 0, 0, 0);
+        return itemDate >= filterStartDate && itemDate <= filterEndDate && itemDate <= today;
+      })
+      .reduce((sum, item) => sum + (item.amount || 0), 0);
+
+    const filteredExpenses = safeExpenses
+      .filter(item => {
+        const itemDate = new Date(item.date);
+        itemDate.setHours(0, 0, 0, 0);
+        return itemDate >= filterStartDate && itemDate <= filterEndDate && itemDate <= today;
+      })
+      .reduce((sum, item) => sum + (item.amount || 0), 0);
+
+    return filteredIncome - filteredExpenses;
+  }, [income, expenses, appliedStartDate, appliedEndDate]);
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-6 flex flex-col h-[calc(100vh-2rem)]">
@@ -48,7 +86,9 @@ const Lancamentos = () => {
           {/* Header with action buttons and date filter */}
           <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border shadow-lg rounded-lg">
             <div className="flex justify-between items-center py-3 px-4">
-              <div className="flex gap-2">
+              {/* Left side: Action buttons and Total Value */}
+              <div className="flex items-center gap-3">
+                <div className="flex gap-2">
                 <Button 
                   onClick={() => setAddTransactionOpen(true)}
                   size="sm"
@@ -97,9 +137,19 @@ const Lancamentos = () => {
                 >
                   <Clock className="w-4 h-4" />
                 </Button>
+                </div>
+
+                {/* Total Value Badge */}
+                <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 text-sm font-medium">
+                  <DollarSign className="w-4 h-4" />
+                  <span>Saldo: {formatCurrency(Math.abs(totalValue))}</span>
+                  <span className={totalValue >= 0 ? 'text-green-600' : 'text-red-600'}>
+                    {totalValue >= 0 ? '(+)' : '(-)'}
+                  </span>
+                </Badge>
               </div>
 
-              {/* Date Filter */}
+              {/* Right side: Date Filter */}
               <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                 <PopoverTrigger asChild>
                   <Button 
