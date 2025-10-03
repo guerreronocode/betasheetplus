@@ -1,10 +1,9 @@
 import React, { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatCurrency } from '@/utils/formatters';
 import { getInvestmentTypeLabel } from '@/utils/investmentHelpers';
 import { Investment } from '@/hooks/useInvestments';
-import { format, startOfMonth, endOfMonth, eachMonthOfInterval, isSameMonth, parseISO } from 'date-fns';
+import { format, startOfMonth, eachMonthOfInterval, isSameMonth, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -87,18 +86,18 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({ investments }
 
   if (investments.length === 0) {
     return (
-      <Card className="p-8 text-center text-muted-foreground">
+      <Card className="p-6 text-center text-sm text-muted-foreground">
         Nenhum investimento encontrado. Adicione seus investimentos para visualizar a tabela.
       </Card>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-title text-fnb-ink">Tabela de Investimentos</h2>
+        <h2 className="text-xl font-title text-fnb-ink">Tabela de Investimentos</h2>
         <Select value={selectedYear} onValueChange={setSelectedYear}>
-          <SelectTrigger className="w-32">
+          <SelectTrigger className="w-24 h-8 text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -112,71 +111,99 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({ investments }
       </div>
 
       <Card className="overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="min-w-[150px] bg-fnb-accent/5">Nome</TableHead>
-                <TableHead className="min-w-[120px] bg-fnb-accent/5">Tipo</TableHead>
-                <TableHead className="min-w-[120px] bg-fnb-accent/5">Rendimento</TableHead>
-                {months.map((month, idx) => (
-                  <TableHead key={idx} className="min-w-[100px] text-center bg-fnb-accent/5">
-                    {format(month, 'MMM', { locale: ptBR })}
-                  </TableHead>
+        <div className="flex">
+          {/* Tabela fixa da esquerda */}
+          <div className="flex-shrink-0 border-r border-border">
+            <table className="text-xs">
+              <thead>
+                <tr className="bg-fnb-accent/5">
+                  <th className="px-2 py-1 text-left font-semibold border-b w-32">Nome</th>
+                  <th className="px-2 py-1 text-left font-semibold border-b w-24">Tipo</th>
+                  <th className="px-2 py-1 text-left font-semibold border-b w-24">Rendimento</th>
+                  <th className="px-2 py-1 text-center font-semibold border-b w-20">Métrica</th>
+                </tr>
+              </thead>
+              <tbody>
+                {investmentData.map(({ investment }, invIdx) => (
+                  <React.Fragment key={investment.id}>
+                    <tr className="border-b-0">
+                      <td rowSpan={2} className="px-2 py-1 font-medium border-b align-middle">
+                        {investment.name}
+                      </td>
+                      <td rowSpan={2} className="px-2 py-1 border-b align-middle text-xs">
+                        {getInvestmentTypeLabel(investment.type)}
+                      </td>
+                      <td rowSpan={2} className="px-2 py-1 border-b align-middle text-xs">
+                        {getYieldTypeLabel(investment.yield_type)}
+                        {investment.yield_rate > 0 && ` +${investment.yield_rate}%`}
+                      </td>
+                      <td className="px-2 py-1 text-center text-xs bg-blue-50/50 font-medium">
+                        Aplicado
+                      </td>
+                    </tr>
+                    <tr className={invIdx < investmentData.length - 1 ? "border-b" : ""}>
+                      <td className="px-2 py-1 text-center text-xs bg-green-50/50 font-medium">
+                        Total
+                      </td>
+                    </tr>
+                  </React.Fragment>
                 ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {investmentData.map(({ investment, monthlyData }, invIdx) => (
-                <React.Fragment key={investment.id}>
-                  {/* Linha principal com info do investimento */}
-                  <TableRow className="border-b-0">
-                    <TableCell rowSpan={2} className="font-medium border-r">
-                      {investment.name}
-                    </TableCell>
-                    <TableCell rowSpan={2} className="border-r">
-                      {getInvestmentTypeLabel(investment.type)}
-                    </TableCell>
-                    <TableCell rowSpan={2} className="border-r">
-                      {getYieldTypeLabel(investment.yield_type)}
-                      {investment.yield_rate > 0 && ` + ${investment.yield_rate}%`}
-                    </TableCell>
-                    {monthlyData.map((data, monthIdx) => (
-                      <TableCell 
-                        key={`applied-${monthIdx}`} 
-                        className="text-center text-sm bg-blue-50"
-                      >
-                        {data.applied > 0 ? formatCurrency(data.applied) : '-'}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                  {/* Segunda linha com totais */}
-                  <TableRow className={invIdx < investmentData.length - 1 ? "border-b-2" : ""}>
-                    {monthlyData.map((data, monthIdx) => (
-                      <TableCell 
-                        key={`total-${monthIdx}`} 
-                        className="text-center text-sm font-semibold bg-green-50"
-                      >
-                        {data.total > 0 ? formatCurrency(data.total) : '-'}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </React.Fragment>
-              ))}
-            </TableBody>
-          </Table>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Tabela com scroll horizontal (meses) */}
+          <div className="flex-1 overflow-x-auto">
+            <table className="text-xs w-full">
+              <thead>
+                <tr className="bg-fnb-accent/5">
+                  {months.map((month, idx) => (
+                    <th key={idx} className="px-2 py-1 text-center font-semibold border-b min-w-[70px]">
+                      {format(month, 'MMM/yy', { locale: ptBR })}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {investmentData.map(({ monthlyData }, invIdx) => (
+                  <React.Fragment key={invIdx}>
+                    <tr className="border-b-0">
+                      {monthlyData.map((data, monthIdx) => (
+                        <td 
+                          key={`applied-${monthIdx}`} 
+                          className="px-2 py-1 text-center text-xs bg-blue-50/30"
+                        >
+                          {data.applied > 0 ? formatCurrency(data.applied) : '-'}
+                        </td>
+                      ))}
+                    </tr>
+                    <tr className={invIdx < investmentData.length - 1 ? "border-b" : ""}>
+                      {monthlyData.map((data, monthIdx) => (
+                        <td 
+                          key={`total-${monthIdx}`} 
+                          className="px-2 py-1 text-center text-xs font-semibold bg-green-50/30"
+                        >
+                          {data.total > 0 ? formatCurrency(data.total) : '-'}
+                        </td>
+                      ))}
+                    </tr>
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </Card>
 
-      <Card className="p-4 bg-fnb-accent/5">
-        <div className="flex gap-6 text-sm">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-blue-50 border border-blue-200 rounded"></div>
+      <Card className="p-3 bg-fnb-accent/5">
+        <div className="flex gap-4 text-xs">
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 bg-blue-50/50 border border-blue-200 rounded"></div>
             <span>Aplicado no mês</span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 bg-green-50 border border-green-200 rounded"></div>
-            <span>Saldo total</span>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 bg-green-50/50 border border-green-200 rounded"></div>
+            <span>Saldo total acumulado</span>
           </div>
         </div>
       </Card>
