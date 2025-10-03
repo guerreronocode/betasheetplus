@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Layout } from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, CalendarIcon } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, CalendarIcon, AlertTriangle, DollarSign } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import PendingTransactionsTable from '@/components/PendingTransactionsTable';
+import { usePendingTransactions } from '@/hooks/usePendingTransactions';
+import { formatCurrency, formatDateForDisplay } from '@/utils/formatters';
 
 const LancamentosPendencias = () => {
   const navigate = useNavigate();
@@ -27,10 +30,49 @@ const LancamentosPendencias = () => {
     return date;
   });
 
-  // Reset page when filter changes
-  React.useEffect(() => {
-    // This will trigger table reset when applied dates change
-  }, [appliedStartDate, appliedEndDate]);
+  const { pendingTransactions } = usePendingTransactions();
+
+  // Calculate statistics based on filtered data
+  const statistics = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const filterStartDate = appliedStartDate ? new Date(appliedStartDate) : new Date();
+    filterStartDate.setHours(0, 0, 0, 0);
+    
+    const filterEndDate = appliedEndDate ? new Date(appliedEndDate) : (() => {
+      const date = new Date();
+      date.setMonth(date.getMonth() + 6);
+      return date;
+    })();
+    filterEndDate.setHours(23, 59, 59, 999);
+
+    const filteredTransactions = pendingTransactions.filter(transaction => {
+      const transactionDate = new Date(transaction.date);
+      transactionDate.setHours(0, 0, 0, 0);
+      return transactionDate >= filterStartDate && transactionDate <= filterEndDate;
+    });
+
+    const totalValue = filteredTransactions.reduce((sum, t) => sum + t.value, 0);
+    
+    const overdueTransactions = filteredTransactions.filter(t => {
+      const tDate = new Date(t.date);
+      tDate.setHours(0, 0, 0, 0);
+      return tDate < today;
+    });
+
+    const earliestOverdue = overdueTransactions.length > 0
+      ? overdueTransactions.reduce((earliest, t) => {
+          return t.date < earliest ? t.date : earliest;
+        }, overdueTransactions[0].date)
+      : null;
+
+    return {
+      totalValue,
+      overdueCount: overdueTransactions.length,
+      earliestOverdueDate: earliestOverdue
+    };
+  }, [pendingTransactions, appliedStartDate, appliedEndDate]);
 
   return (
     <Layout>
@@ -51,9 +93,34 @@ const LancamentosPendencias = () => {
           <p className="text-fnb-ink/70 text-sm">Receitas e despesas programadas, faturas de cartão e transações recorrentes</p>
         </div>
 
-        {/* Date Filter Button - Isolated */}
-        <div className="mb-4 flex justify-end">
-          <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+        {/* Header with notifications and date filter */}
+        <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border shadow-lg rounded-lg mb-4">
+          <div className="flex justify-between items-center py-3 px-4">
+            {/* Left side: Statistics */}
+            <div className="flex items-center gap-3">
+              {/* Total Value Badge */}
+              <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 text-sm font-medium">
+                <DollarSign className="w-4 h-4" />
+                <span>Total: {formatCurrency(Math.abs(statistics.totalValue))}</span>
+                <span className={statistics.totalValue >= 0 ? 'text-green-600' : 'text-red-600'}>
+                  {statistics.totalValue >= 0 ? '(+)' : '(-)'}
+                </span>
+              </Badge>
+
+              {/* Overdue Badge */}
+              {statistics.overdueCount > 0 && (
+                <Badge variant="destructive" className="h-8 px-3 flex items-center gap-2 text-sm">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>
+                    {statistics.overdueCount} vencida{statistics.overdueCount > 1 ? 's' : ''} desde {' '}
+                    {statistics.earliestOverdueDate && formatDateForDisplay(statistics.earliestOverdueDate.toISOString().split('T')[0])}
+                  </span>
+                </Badge>
+              )}
+            </div>
+
+            {/* Right side: Date Filter */}
+            <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
             <PopoverTrigger asChild>
               <Button 
                 variant="outline" 
@@ -182,8 +249,9 @@ const LancamentosPendencias = () => {
                 </Button>
               </div>
             </PopoverContent>
-          </Popover>
-        </div>
+            </Popover>
+            </div>
+          </div>
         
         {/* Pending Transactions Table - Full height */}
         <div className="flex-1 min-h-0">

@@ -45,8 +45,8 @@ const Lancamentos = () => {
         </div>
 
         <div className="flex flex-col flex-1 space-y-4">
-          {/* Header with buttons */}
-          <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-lg rounded-lg mx-1 mb-2">
+          {/* Header with action buttons and date filter */}
+          <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border shadow-lg rounded-lg">
             <div className="flex justify-between items-center py-3 px-4">
               <div className="flex gap-2">
                 <Button 
@@ -102,9 +102,13 @@ const Lancamentos = () => {
               {/* Date Filter */}
               <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 px-3">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-8 px-3 shadow-md hover:shadow-lg transition-shadow bg-background border border-border"
+                  >
                     <CalendarIcon className="mr-1 h-3 w-3" />
-                    Filtrar
+                    Data
                   </Button>
                 </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="end">
