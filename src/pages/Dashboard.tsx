@@ -3,17 +3,13 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import UpdatedQuickStats from '@/components/UpdatedQuickStats';
 import QuickFinancialCards from '@/components/QuickFinancialCards';
-import AdvancedInvestmentManager from '@/components/AdvancedInvestmentManager';
-import ImprovedYieldRatesDisplay from '@/components/ImprovedYieldRatesDisplay';
 import ImprovedPatrimonyManager from '@/components/ImprovedPatrimonyManager';
 import DebtManager from "@/components/debts/DebtManager";
 import { RefactoredPlanningPanel } from '@/components/budget/RefactoredPlanningPanel';
 import { GoalsManager } from '@/components/goals/GoalsManager';
 import { GoalsSummary } from '@/components/goals/GoalsSummary';
-import { useFinancialData } from '@/hooks/useFinancialData';
 
 const Dashboard = () => {
-  const { yieldRates } = useFinancialData();
 
   return (
     <div className="min-h-screen bg-fnb-cream">      
@@ -25,7 +21,6 @@ const Dashboard = () => {
         <Tabs defaultValue="planning" className="w-full">
           <TabsList className="flex flex-wrap gap-1 h-auto p-1 fnb-card">
             <TabsTrigger value="planning" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Planejamento</TabsTrigger>
-            <TabsTrigger value="investments" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Investimentos</TabsTrigger>
             <TabsTrigger value="goals" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Metas</TabsTrigger>
             <TabsTrigger value="patrimony" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Patrimônio</TabsTrigger>
             <TabsTrigger value="debts" className="flex-shrink-0 fnb-card hover:bg-fnb-accent/10">Dívidas</TabsTrigger>
@@ -40,14 +35,6 @@ const Dashboard = () => {
               <GoalsSummary />
               
               <RefactoredPlanningPanel />
-            </div>
-          </TabsContent>
-
-
-          <TabsContent value="investments">
-            <div className="space-y-6">
-              <AdvancedInvestmentManager />
-              <ImprovedYieldRatesDisplay yieldRates={yieldRates} />
             </div>
           </TabsContent>
 
