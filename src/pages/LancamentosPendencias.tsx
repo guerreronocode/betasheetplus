@@ -103,9 +103,12 @@ const LancamentosPendencias = () => {
               {/* Total Value Badge */}
               <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 text-sm font-medium">
                 <DollarSign className="w-4 h-4" />
-                <span>Total: {formatCurrency(Math.abs(statistics.totalValue))}</span>
-                <span className={statistics.totalValue >= 0 ? 'text-green-600' : 'text-red-600'}>
-                  {statistics.totalValue >= 0 ? '(+)' : '(-)'}
+                <span>Total: </span>
+                <span className={statistics.totalValue >= 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
+                  {statistics.totalValue >= 0 
+                    ? formatCurrency(statistics.totalValue)
+                    : `-${formatCurrency(Math.abs(statistics.totalValue))}`
+                  }
                 </span>
               </Badge>
 

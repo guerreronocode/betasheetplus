@@ -142,9 +142,12 @@ const Lancamentos = () => {
                 {/* Total Value Badge */}
                 <Badge variant="outline" className="h-8 px-3 flex items-center gap-2 text-sm font-medium">
                   <DollarSign className="w-4 h-4" />
-                  <span>Saldo: {formatCurrency(Math.abs(totalValue))}</span>
-                  <span className={totalValue >= 0 ? 'text-green-600' : 'text-red-600'}>
-                    {totalValue >= 0 ? '(+)' : '(-)'}
+                  <span>Saldo: </span>
+                  <span className={totalValue >= 0 ? 'text-green-600 font-semibold' : 'text-red-600 font-semibold'}>
+                    {totalValue >= 0 
+                      ? formatCurrency(totalValue)
+                      : `-${formatCurrency(Math.abs(totalValue))}`
+                    }
                   </span>
                 </Badge>
               </div>
