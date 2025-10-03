@@ -9,11 +9,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 
 interface InvestmentTableViewProps {
   investments: Investment[];
+  selectedYear: string;
+  onYearChange: (year: string) => void;
 }
 
-const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({ investments }) => {
+const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({ 
+  investments,
+  selectedYear,
+  onYearChange 
+}) => {
   const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState(currentYear.toString());
 
   // Gerar meses do ano selecionado
   const months = useMemo(() => {
@@ -94,9 +99,8 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({ investments }
 
   return (
     <div className="space-y-3">
-      <div className="flex justify-between items-center">
-        <h2 className="text-xl font-title text-fnb-ink">Tabela de Investimentos</h2>
-        <Select value={selectedYear} onValueChange={setSelectedYear}>
+      <div className="flex justify-end items-center">
+        <Select value={selectedYear} onValueChange={onYearChange}>
           <SelectTrigger className="w-24 h-8 text-xs">
             <SelectValue />
           </SelectTrigger>
@@ -191,19 +195,6 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({ investments }
                 ))}
               </tbody>
             </table>
-          </div>
-        </div>
-      </Card>
-
-      <Card className="p-3 bg-fnb-accent/5">
-        <div className="flex gap-4 text-xs">
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 bg-blue-50/50 border border-blue-200 rounded"></div>
-            <span>Aplicado no mês</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 bg-green-50/50 border border-green-200 rounded"></div>
-            <span>Saldo total acumulado</span>
           </div>
         </div>
       </Card>
