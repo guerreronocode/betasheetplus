@@ -1,32 +1,26 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Card } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatters';
 import { getInvestmentTypeLabel } from '@/utils/investmentHelpers';
 import { Investment } from '@/hooks/useInvestments';
 import { format, startOfMonth, eachMonthOfInterval, isSameMonth, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface InvestmentTableViewProps {
   investments: Investment[];
-  selectedYear: string;
-  onYearChange: (year: string) => void;
+  startDate: Date;
+  endDate: Date;
 }
 
 const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({ 
   investments,
-  selectedYear,
-  onYearChange 
+  startDate,
+  endDate 
 }) => {
-  const currentYear = new Date().getFullYear();
-
-  // Gerar meses do ano selecionado
+  // Gerar meses do período filtrado
   const months = useMemo(() => {
-    const year = parseInt(selectedYear);
-    const startDate = new Date(year, 0, 1);
-    const endDate = new Date(year, 11, 31);
     return eachMonthOfInterval({ start: startDate, end: endDate });
-  }, [selectedYear]);
+  }, [startDate, endDate]);
 
   // Calcular dados por investimento e mês
   const investmentData = useMemo(() => {
@@ -64,20 +58,6 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
     });
   }, [investments, months]);
 
-  // Gerar anos disponíveis (do mais antigo investimento até ano atual + 1)
-  const availableYears = useMemo(() => {
-    if (investments.length === 0) return [currentYear];
-    
-    const oldestYear = Math.min(
-      ...investments.map(inv => new Date(inv.purchase_date).getFullYear())
-    );
-    
-    const years = [];
-    for (let year = oldestYear; year <= currentYear + 1; year++) {
-      years.push(year);
-    }
-    return years;
-  }, [investments, currentYear]);
 
   const getYieldTypeLabel = (yieldType: string) => {
     const labels: Record<string, string> = {
@@ -98,23 +78,7 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
   }
 
   return (
-    <div className="space-y-3">
-      <div className="flex justify-end items-center">
-        <Select value={selectedYear} onValueChange={onYearChange}>
-          <SelectTrigger className="w-24 h-8 text-xs">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {availableYears.map(year => (
-              <SelectItem key={year} value={year.toString()}>
-                {year}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <Card className="overflow-hidden">
+    <Card className="overflow-hidden">
         <div className="flex">
           {/* Tabela fixa da esquerda */}
           <div className="flex-shrink-0 border-r border-border">
@@ -198,7 +162,6 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
           </div>
         </div>
       </Card>
-    </div>
   );
 };
 

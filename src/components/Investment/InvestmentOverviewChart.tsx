@@ -21,25 +21,24 @@ import { useToast } from '@/hooks/use-toast';
 
 interface InvestmentOverviewChartProps {
   investments: Investment[];
-  selectedYear: string;
+  startDate: Date;
+  endDate: Date;
 }
 
 const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({ 
   investments, 
-  selectedYear 
+  startDate,
+  endDate 
 }) => {
   const { toast } = useToast();
   const [financialIndependenceGoal, setFinancialIndependenceGoal] = useState<number>(0);
   const [goalInput, setGoalInput] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Gerar meses do ano selecionado
+  // Gerar meses do período filtrado
   const months = useMemo(() => {
-    const year = parseInt(selectedYear);
-    const startDate = new Date(year, 0, 1);
-    const endDate = new Date(year, 11, 31);
     return eachMonthOfInterval({ start: startDate, end: endDate });
-  }, [selectedYear]);
+  }, [startDate, endDate]);
 
   // Calcular dados para o gráfico
   const chartData = useMemo(() => {
