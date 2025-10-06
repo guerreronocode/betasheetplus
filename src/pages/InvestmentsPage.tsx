@@ -48,19 +48,13 @@ const InvestmentsPage = () => {
   return (
     <Layout>
       <div className="min-h-screen bg-fnb-cream">
-        {/* Header with parallax effect */}
-        <div 
-          className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b shadow-lg transition-all duration-300"
-          style={parallaxStyle}
-        >
-          <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-3">
-              <div>
-                <h1 className="text-xl font-bold text-fnb-ink">Investimentos</h1>
-                <p className="text-fnb-ink/70 text-xs">Gerencie seus investimentos</p>
-              </div>
-
-              {/* Date Filter */}
+        <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="space-y-6">
+            {/* Date Filter with parallax */}
+            <div 
+              className="transition-all duration-300"
+              style={parallaxStyle}
+            >
               <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
                 <PopoverTrigger asChild>
                   <Button 
@@ -72,7 +66,7 @@ const InvestmentsPage = () => {
                     Data
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
+                <PopoverContent className="w-auto p-0" align="start">
                   <div className="p-3 space-y-3">
                     {/* Quick Filters */}
                     <div className="space-y-2">
@@ -149,7 +143,6 @@ const InvestmentsPage = () => {
                           disabled={(date) => {
                             const today = new Date();
                             today.setHours(23, 59, 59, 999);
-                            // Desabilitar datas posteriores à data final selecionada ou posteriores a hoje
                             if (tempEndDate) {
                               return date > tempEndDate || date > today;
                             }
@@ -168,7 +161,6 @@ const InvestmentsPage = () => {
                           disabled={(date) => {
                             const today = new Date();
                             today.setHours(23, 59, 59, 999);
-                            // Desabilitar datas anteriores à data inicial selecionada ou posteriores a hoje
                             if (tempStartDate) {
                               return date < tempStartDate || date > today;
                             }
@@ -196,18 +188,14 @@ const InvestmentsPage = () => {
                 </PopoverContent>
               </Popover>
             </div>
-          </div>
-        </div>
 
-        <main className="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="space-y-6">
             {investmentsLoading ? (
               <Card className="p-8 text-center">
                 <p className="text-fnb-ink/70">Carregando investimentos...</p>
               </Card>
             ) : (
               <>
-                <InvestmentOverviewChart 
+                <InvestmentOverviewChart
                   investments={investments}
                   startDate={appliedStartDate}
                   endDate={appliedEndDate}

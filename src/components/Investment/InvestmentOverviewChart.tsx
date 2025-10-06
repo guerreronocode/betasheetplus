@@ -171,15 +171,15 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
         </div>
 
         {/* Cards de detalhamento */}
-        <div className="lg:w-52 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible" style={{ maxHeight: '280px' }}>
-          <Card className="p-2 bg-muted/50 flex-shrink-0 lg:flex-shrink">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:w-52 lg:flex lg:flex-col gap-2" style={{ maxHeight: '280px' }}>
+          <Card className="p-2 bg-muted/50">
             <p className="text-[10px] text-muted-foreground mb-0.5">Investido</p>
             <p className="text-sm font-semibold text-foreground">
               {formatCurrency(currentTotals.totalInvested)}
             </p>
           </Card>
 
-          <Card className="p-2 bg-muted/50 flex-shrink-0 lg:flex-shrink">
+          <Card className="p-2 bg-muted/50">
             <p className="text-[10px] text-muted-foreground mb-0.5">Rendimento</p>
             <p className="text-sm font-semibold text-foreground">
               {formatCurrency(currentTotals.returnValue)}
@@ -189,14 +189,14 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
             </p>
           </Card>
 
-          <Card className="p-2 bg-muted/50 flex-shrink-0 lg:flex-shrink">
+          <Card className="p-2 bg-muted/50">
             <p className="text-[10px] text-muted-foreground mb-0.5">Valor Total</p>
             <p className="text-sm font-semibold text-foreground">
               {formatCurrency(currentTotals.totalCurrent)}
             </p>
           </Card>
 
-          <Card className="p-2 bg-muted/50 group relative flex-shrink-0 lg:flex-shrink">
+          <Card className="p-2 bg-muted/50 group relative">
             <p className="text-[10px] text-muted-foreground mb-0.5">Independência Financeira</p>
             <p className="text-sm font-semibold text-foreground">
               {financialIndependenceGoal > 0 

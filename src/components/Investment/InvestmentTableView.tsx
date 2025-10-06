@@ -1,10 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/utils/formatters';
 import { getInvestmentTypeLabel } from '@/utils/investmentHelpers';
 import { Investment } from '@/hooks/useInvestments';
 import { format, startOfMonth, eachMonthOfInterval, isSameMonth, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Plus, TrendingDown, History } from 'lucide-react';
 
 interface InvestmentTableViewProps {
   investments: Investment[];
@@ -17,6 +19,8 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
   startDate,
   endDate 
 }) => {
+  const [selectedInvestments, setSelectedInvestments] = useState<string[]>([]);
+
   // Gerar meses do período filtrado
   const months = useMemo(() => {
     return eachMonthOfInterval({ start: startDate, end: endDate });
@@ -78,7 +82,37 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
   }
 
   return (
-    <Card className="overflow-hidden">
+    <div className="space-y-4">
+      {/* Action Buttons */}
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-9 w-9"
+          title="Cadastrar investimento"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-9 w-9"
+          title="Resgate de investimento"
+        >
+          <TrendingDown className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-9 w-9"
+          title="Visualizar log de ações"
+          disabled={selectedInvestments.length === 0}
+        >
+          <History className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <Card className="overflow-hidden">
         <div className="flex">
           {/* Tabela fixa da esquerda */}
           <div className="flex-shrink-0 border-r border-border">
@@ -162,6 +196,7 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
           </div>
         </div>
       </Card>
+    </div>
   );
 };
 
