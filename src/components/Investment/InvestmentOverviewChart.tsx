@@ -114,9 +114,9 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
 
   return (
     <Card className="p-4">
-      <div className="flex gap-4">
+      <div className="flex flex-col lg:flex-row gap-4">
         {/* Gráfico */}
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <ResponsiveContainer width="100%" height={280}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -172,41 +172,41 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
         </div>
 
         {/* Cards de detalhamento */}
-        <div className="w-64 space-y-2">
-          <Card className="p-3 bg-muted/50">
-            <p className="text-xs text-muted-foreground mb-1">Total Investido</p>
-            <p className="text-lg font-semibold text-foreground">
+        <div className="lg:w-52 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible" style={{ maxHeight: '280px' }}>
+          <Card className="p-2 bg-muted/50 flex-shrink-0 lg:flex-shrink">
+            <p className="text-[10px] text-muted-foreground mb-0.5">Investido</p>
+            <p className="text-sm font-semibold text-foreground">
               {formatCurrency(currentTotals.totalInvested)}
             </p>
           </Card>
 
-          <Card className="p-3 bg-muted/50">
-            <p className="text-xs text-muted-foreground mb-1">Valor Total Atual</p>
-            <p className="text-lg font-semibold text-foreground">
-              {formatCurrency(currentTotals.totalCurrent)}
-            </p>
-          </Card>
-
-          <Card className="p-3 bg-muted/50">
-            <p className="text-xs text-muted-foreground mb-1">Rendimento</p>
-            <p className="text-lg font-semibold text-foreground">
+          <Card className="p-2 bg-muted/50 flex-shrink-0 lg:flex-shrink">
+            <p className="text-[10px] text-muted-foreground mb-0.5">Rendimento</p>
+            <p className="text-sm font-semibold text-foreground">
               {formatCurrency(currentTotals.returnValue)}
             </p>
-            <p className={`text-xs font-medium ${currentTotals.returnPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            <p className={`text-[10px] font-medium ${currentTotals.returnPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {currentTotals.returnPercentage >= 0 ? '+' : ''}{currentTotals.returnPercentage.toFixed(2)}%
             </p>
           </Card>
 
-          <Card className="p-3 bg-muted/50 group relative">
-            <p className="text-xs text-muted-foreground mb-1">Independência Financeira</p>
-            <p className="text-lg font-semibold text-foreground">
+          <Card className="p-2 bg-muted/50 flex-shrink-0 lg:flex-shrink">
+            <p className="text-[10px] text-muted-foreground mb-0.5">Valor Total</p>
+            <p className="text-sm font-semibold text-foreground">
+              {formatCurrency(currentTotals.totalCurrent)}
+            </p>
+          </Card>
+
+          <Card className="p-2 bg-muted/50 group relative flex-shrink-0 lg:flex-shrink">
+            <p className="text-[10px] text-muted-foreground mb-0.5">Independência Financeira</p>
+            <p className="text-sm font-semibold text-foreground">
               {financialIndependenceGoal > 0 
                 ? `${currentTotals.independenceDegree.toFixed(1)} meses`
                 : 'Não configurado'
               }
             </p>
             {financialIndependenceGoal > 0 && (
-              <p className="text-xs text-muted-foreground mt-1">
+              <p className="text-[10px] text-muted-foreground mt-0.5">
                 Meta: {formatCurrency(financialIndependenceGoal)}/mês
               </p>
             )}
@@ -216,7 +216,7 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6"
+                  className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity h-5 w-5"
                 >
                   <Settings className="h-3 w-3" />
                 </Button>
