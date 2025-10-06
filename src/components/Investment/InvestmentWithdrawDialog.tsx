@@ -225,18 +225,6 @@ const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
             )}
           </div>
 
-          <div>
-            <Label htmlFor="withdraw_date">Data do Resgate</Label>
-            <Input
-              id="withdraw_date"
-              type="date"
-              max={today}
-              value={withdrawDate}
-              onChange={(e) => setWithdrawDate(e.target.value)}
-              required
-            />
-          </div>
-
           <div className="flex items-center space-x-2">
             <Checkbox
               id="has_cost"
@@ -247,7 +235,7 @@ const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
               }}
             />
             <Label htmlFor="has_cost" className="cursor-pointer">
-              Custo de transação (imposto, taxa da corretora, etc.)
+              Custo de Transação
             </Label>
           </div>
 
@@ -265,10 +253,22 @@ const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
                 required
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Ex: R$ 100 de imposto + R$ 20 de taxa = R$ 120
+                Esse valor será deduzido do resgate (impostos, taxas, etc.)
               </p>
             </div>
           )}
+
+          <div>
+            <Label htmlFor="withdraw_date">Data do Resgate</Label>
+            <Input
+              id="withdraw_date"
+              type="date"
+              max={today}
+              value={withdrawDate}
+              onChange={(e) => setWithdrawDate(e.target.value)}
+              required
+            />
+          </div>
 
           {withdrawAmount && hasTransactionCost && transactionCost && (
             <Card className="p-3 bg-muted/30">
