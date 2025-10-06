@@ -63,28 +63,12 @@ const InvestmentsPage = () => {
   });
   const [tempEndDate, setTempEndDate] = useState<Date | undefined>(new Date());
 
-  // Parallax effect
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrollY(window.scrollY);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const parallaxStyle = {
-    transform: `translateY(${scrollY * 0.5}px)`,
-    opacity: Math.max(0.3, 1 - scrollY / 300),
-  };
 
   return (
     <Layout>
       <div className="min-h-screen bg-fnb-cream">
-        {/* Date Filter with parallax - full width outside sidebar */}
-        <div 
-          className="sticky top-0 z-10 bg-fnb-cream/95 backdrop-blur-sm border-b border-border py-4 transition-all duration-300"
-          style={parallaxStyle}
+        {/* Date Filter - sticky at top */}
+        <div className="sticky top-0 z-10 bg-fnb-cream backdrop-blur-sm border-b border-border py-4"
         >
           <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
             <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
@@ -287,7 +271,7 @@ const InvestmentsPage = () => {
 
       {/* Create Investment Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-lg">Adicionar Investimento</DialogTitle>
           </DialogHeader>
