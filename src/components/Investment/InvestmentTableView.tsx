@@ -6,20 +6,22 @@ import { getInvestmentTypeLabel } from '@/utils/investmentHelpers';
 import { Investment } from '@/hooks/useInvestments';
 import { format, startOfMonth, eachMonthOfInterval, isSameMonth, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Plus, TrendingDown, History } from 'lucide-react';
 
 interface InvestmentTableViewProps {
   investments: Investment[];
   startDate: Date;
   endDate: Date;
+  selectedInvestments?: string[];
+  onSelectionChange?: (selected: string[]) => void;
 }
 
 const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({ 
   investments,
   startDate,
-  endDate 
+  endDate,
+  selectedInvestments = [],
+  onSelectionChange
 }) => {
-  const [selectedInvestments, setSelectedInvestments] = useState<string[]>([]);
 
   // Gerar meses do período filtrado
   const months = useMemo(() => {
@@ -83,35 +85,6 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Action Buttons */}
-      <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-9 w-9"
-          title="Cadastrar investimento"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-9 w-9"
-          title="Resgate de investimento"
-        >
-          <TrendingDown className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="outline"
-          size="icon"
-          className="h-9 w-9"
-          title="Visualizar log de ações"
-          disabled={selectedInvestments.length === 0}
-        >
-          <History className="h-4 w-4" />
-        </Button>
-      </div>
-
       <Card className="overflow-hidden">
         <div className="flex">
           {/* Tabela fixa da esquerda */}
