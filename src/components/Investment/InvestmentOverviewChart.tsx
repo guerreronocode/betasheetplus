@@ -1,7 +1,8 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatters';
 import { Investment } from '@/hooks/useInvestments';
+import { useInvestmentSettings } from '@/hooks/useInvestmentSettings';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { format, startOfMonth, eachMonthOfInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -31,9 +32,17 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
   endDate 
 }) => {
   const { toast } = useToast();
-  const [financialIndependenceGoal, setFinancialIndependenceGoal] = useState<number>(0);
+  const { settings, updateSettings, isLoading: settingsLoading } = useInvestmentSettings();
   const [goalInput, setGoalInput] = useState<string>('');
+  const [incomeInput, setIncomeInput] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (settings) {
+      setGoalInput(settings.financial_independence_goal.toString());
+      setIncomeInput(settings.average_monthly_income.toString());
+    }
+  }, [settings]);
 
   // Gerar meses do período filtrado
   const months = useMemo(() => {
@@ -58,9 +67,10 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
       const returnValue = totalCurrent - totalInvested;
       const returnPercentage = totalInvested > 0 ? (returnValue / totalInvested) * 100 : 0;
 
-      // Calcular grau de independência financeira (quantos meses de despesas cobertas)
-      const independenceDegree = financialIndependenceGoal > 0 
-        ? (totalCurrent / financialIndependenceGoal) 
+      // Calcular grau de independência financeira (% da renda média mensal)
+      const monthlyYield = totalCurrent * 0.01; // Assumindo 1% de rendimento mensal como padrão
+      const independenceDegree = (settings?.average_monthly_income ?? 0) > 0 
+        ? (monthlyYield / (settings?.average_monthly_income ?? 1)) * 100
         : 0;
 
       return {
@@ -72,7 +82,7 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
         independenceDegree,
       };
     });
-  }, [investments, months, financialIndependenceGoal]);
+  }, [investments, months, settings]);
 
   // Calcular totais atuais
   const currentTotals = useMemo(() => {
@@ -80,8 +90,11 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
     const totalCurrent = investments.reduce((sum, inv) => sum + (inv.current_value || inv.amount), 0);
     const returnValue = totalCurrent - totalInvested;
     const returnPercentage = totalInvested > 0 ? (returnValue / totalInvested) * 100 : 0;
-    const independenceDegree = financialIndependenceGoal > 0 
-      ? (totalCurrent / financialIndependenceGoal) 
+    
+    // Calcular % da renda média mensal alcançada
+    const monthlyYield = totalCurrent * 0.01; // Assumindo 1% de rendimento mensal
+    const independenceDegree = (settings?.average_monthly_income ?? 0) > 0 
+      ? (monthlyYield / (settings?.average_monthly_income ?? 1)) * 100
       : 0;
 
     return {
@@ -91,21 +104,22 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
       returnPercentage,
       independenceDegree,
     };
-  }, [investments, financialIndependenceGoal]);
+  }, [investments, settings]);
 
   const handleSaveGoal = () => {
-    const value = parseFloat(goalInput.replace(/[^\d,]/g, '').replace(',', '.'));
-    if (!isNaN(value) && value > 0) {
-      setFinancialIndependenceGoal(value);
-      setIsDialogOpen(false);
-      toast({
-        title: "Meta atualizada",
-        description: "Valor de independência financeira configurado com sucesso.",
+    const goalValue = parseFloat(goalInput.replace(/[^\d,]/g, '').replace(',', '.'));
+    const incomeValue = parseFloat(incomeInput.replace(/[^\d,]/g, '').replace(',', '.'));
+    
+    if (!isNaN(goalValue) && goalValue > 0 && !isNaN(incomeValue) && incomeValue > 0) {
+      updateSettings({
+        financial_independence_goal: goalValue,
+        average_monthly_income: incomeValue,
       });
+      setIsDialogOpen(false);
     } else {
       toast({
-        title: "Valor inválido",
-        description: "Por favor, insira um valor válido.",
+        title: "Valores inválidos",
+        description: "Por favor, insira valores válidos para meta e renda média mensal.",
         variant: "destructive",
       });
     }
@@ -163,7 +177,7 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
                 dataKey="independenceDegree" 
                 stroke="hsl(var(--chart-3))" 
                 strokeWidth={2}
-                name="Meses de Cobertura"
+                name="% Independência"
                 dot={false}
               />
             </LineChart>
@@ -197,16 +211,16 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
           </Card>
 
           <Card className="p-2 bg-muted/50 group relative">
-            <p className="text-[10px] text-muted-foreground mb-0.5">Independência Financeira</p>
+            <p className="text-[10px] text-muted-foreground mb-0.5">Grau de Independência Financeira</p>
             <p className="text-sm font-semibold text-foreground">
-              {financialIndependenceGoal > 0 
-                ? `${currentTotals.independenceDegree.toFixed(1)} meses`
+              {(settings?.financial_independence_goal ?? 0) > 0 
+                ? `${currentTotals.independenceDegree.toFixed(1)}%`
                 : 'Não configurado'
               }
             </p>
-            {financialIndependenceGoal > 0 && (
+            {(settings?.financial_independence_goal ?? 0) > 0 && (
               <p className="text-[10px] text-muted-foreground mt-0.5">
-                Meta: {formatCurrency(financialIndependenceGoal)}/mês
+                Meta: {formatCurrency(settings?.financial_independence_goal ?? 0)}/mês
               </p>
             )}
             
@@ -222,14 +236,14 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Configurar Meta de Independência</DialogTitle>
+                  <DialogTitle>Configurar Grau de Independência Financeira</DialogTitle>
                   <DialogDescription>
-                    Defina o valor mensal necessário para sua independência financeira
+                    Defina sua meta mensal e renda média para calcular o grau de independência
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="goal">Valor mensal necessário (R$)</Label>
+                    <Label htmlFor="goal">Meta mensal de independência (R$)</Label>
                     <Input
                       id="goal"
                       type="text"
@@ -238,8 +252,25 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
                       onChange={(e) => setGoalInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSaveGoal()}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Valor mensal que você precisa para ser financeiramente independente
+                    </p>
                   </div>
-                  <Button onClick={handleSaveGoal} className="w-full">
+                  <div className="space-y-2">
+                    <Label htmlFor="income">Renda média mensal (R$)</Label>
+                    <Input
+                      id="income"
+                      type="text"
+                      placeholder="Ex: 3000"
+                      value={incomeInput}
+                      onChange={(e) => setIncomeInput(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleSaveGoal()}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Sua renda média mensal atual
+                    </p>
+                  </div>
+                  <Button onClick={handleSaveGoal} className="w-full" disabled={settingsLoading}>
                     Salvar
                   </Button>
                 </div>

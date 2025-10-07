@@ -6,6 +6,9 @@ import { getInvestmentTypeLabel } from '@/utils/investmentHelpers';
 import { Investment } from '@/hooks/useInvestments';
 import { format, startOfMonth, eachMonthOfInterval, isSameMonth, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Edit, Plus, History } from 'lucide-react';
+import InvestmentAportHistoryDialog from './InvestmentAportHistoryDialog';
+import EditMonthValueDialog from './EditMonthValueDialog';
 
 interface InvestmentTableViewProps {
   investments: Investment[];
@@ -22,6 +25,16 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
   selectedInvestments = [],
   onSelectionChange
 }) => {
+  const [hoveredCell, setHoveredCell] = useState<{ invIdx: number; monthIdx: number; type: 'applied' | 'total' } | null>(null);
+  const [historyDialog, setHistoryDialog] = useState<{ open: boolean; investmentId: string; month: Date } | null>(null);
+  const [editDialog, setEditDialog] = useState<{ 
+    open: boolean; 
+    investmentId: string; 
+    investmentName: string;
+    month: Date; 
+    currentTotal: number;
+    currentApplied: number;
+  } | null>(null);
 
   // Gerar meses do período filtrado
   const months = useMemo(() => {
@@ -73,6 +86,16 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
       ipca: 'IPCA'
     };
     return labels[yieldType] || yieldType;
+  };
+
+  const handleSaveMonthValue = (investmentId: string, month: Date, newTotal: number) => {
+    // TODO: Implementar atualização do valor total no banco
+    console.log('Salvando valor total:', { investmentId, month, newTotal });
+  };
+
+  const handleNewAport = (invIdx: number, monthIdx: number) => {
+    // TODO: Abrir modal de novo aporte
+    console.log('Novo aporte:', { invIdx, monthIdx });
   };
 
   if (investments.length === 0) {
@@ -140,15 +163,37 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {investmentData.map(({ monthlyData }, invIdx) => (
+                {investmentData.map(({ investment, monthlyData }, invIdx) => (
                   <React.Fragment key={invIdx}>
                     <tr className="border-b-0">
                       {monthlyData.map((data, monthIdx) => (
                         <td 
                           key={`applied-${monthIdx}`} 
-                          className="px-2 py-1 text-center text-xs bg-blue-50/30"
+                          className="px-2 py-1 text-center text-xs bg-blue-50/30 relative group cursor-pointer"
+                          onMouseEnter={() => setHoveredCell({ invIdx, monthIdx, type: 'applied' })}
+                          onMouseLeave={() => setHoveredCell(null)}
                         >
                           {data.applied > 0 ? formatCurrency(data.applied) : '-'}
+                          {hoveredCell?.invIdx === invIdx && hoveredCell?.monthIdx === monthIdx && hoveredCell?.type === 'applied' && (
+                            <div className="absolute inset-0 bg-blue-100/80 flex items-center justify-center gap-1 z-10">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => setHistoryDialog({ open: true, investmentId: investment.id, month: months[monthIdx] })}
+                              >
+                                <History className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => handleNewAport(invIdx, monthIdx)}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
                         </td>
                       ))}
                     </tr>
@@ -156,9 +201,30 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
                       {monthlyData.map((data, monthIdx) => (
                         <td 
                           key={`total-${monthIdx}`} 
-                          className="px-2 py-1 text-center text-xs font-semibold bg-green-50/30"
+                          className="px-2 py-1 text-center text-xs font-semibold bg-green-50/30 relative group cursor-pointer"
+                          onMouseEnter={() => setHoveredCell({ invIdx, monthIdx, type: 'total' })}
+                          onMouseLeave={() => setHoveredCell(null)}
                         >
                           {data.total > 0 ? formatCurrency(data.total) : '-'}
+                          {hoveredCell?.invIdx === invIdx && hoveredCell?.monthIdx === monthIdx && hoveredCell?.type === 'total' && (
+                            <div className="absolute inset-0 bg-green-100/80 flex items-center justify-center z-10">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0"
+                                onClick={() => setEditDialog({ 
+                                  open: true, 
+                                  investmentId: investment.id, 
+                                  investmentName: investment.name,
+                                  month: months[monthIdx],
+                                  currentTotal: data.total,
+                                  currentApplied: data.applied
+                                })}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          )}
                         </td>
                       ))}
                     </tr>
@@ -169,6 +235,28 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
           </div>
         </div>
       </Card>
+
+      {historyDialog && (
+        <InvestmentAportHistoryDialog
+          open={historyDialog.open}
+          onOpenChange={(open) => setHistoryDialog(open ? historyDialog : null)}
+          investmentId={historyDialog.investmentId}
+          month={historyDialog.month}
+        />
+      )}
+
+      {editDialog && (
+        <EditMonthValueDialog
+          open={editDialog.open}
+          onOpenChange={(open) => setEditDialog(open ? editDialog : null)}
+          investmentId={editDialog.investmentId}
+          investmentName={editDialog.investmentName}
+          month={editDialog.month}
+          currentTotal={editDialog.currentTotal}
+          currentApplied={editDialog.currentApplied}
+          onSave={handleSaveMonthValue}
+        />
+      )}
     </div>
   );
 };

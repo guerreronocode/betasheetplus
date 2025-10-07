@@ -1393,6 +1393,33 @@ export type Database = {
           },
         ]
       }
+      user_investment_settings: {
+        Row: {
+          average_monthly_income: number
+          created_at: string
+          financial_independence_goal: number
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          average_monthly_income?: number
+          created_at?: string
+          financial_independence_goal?: number
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          average_monthly_income?: number
+          created_at?: string
+          financial_independence_goal?: number
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_stats: {
         Row: {
           consecutive_days_accessed: number | null
