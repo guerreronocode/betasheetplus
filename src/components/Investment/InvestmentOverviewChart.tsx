@@ -34,13 +34,11 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
   const { toast } = useToast();
   const { settings, updateSettings, isLoading: settingsLoading } = useInvestmentSettings();
   const [goalInput, setGoalInput] = useState<string>('');
-  const [incomeInput, setIncomeInput] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     if (settings) {
       setGoalInput(settings.financial_independence_goal.toString());
-      setIncomeInput(settings.average_monthly_income.toString());
     }
   }, [settings]);
 
@@ -67,10 +65,16 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
       const returnValue = totalCurrent - totalInvested;
       const returnPercentage = totalInvested > 0 ? (returnValue / totalInvested) * 100 : 0;
 
-      // Calcular grau de independência financeira (% da renda média mensal)
-      const monthlyYield = totalCurrent * 0.01; // Assumindo 1% de rendimento mensal como padrão
-      const independenceDegree = (settings?.average_monthly_income ?? 0) > 0 
-        ? (monthlyYield / (settings?.average_monthly_income ?? 1)) * 100
+      // Calcular rendimento médio mensal baseado no retorno acumulado
+      const monthsElapsed = investments.reduce((maxMonths, inv) => {
+        const investmentMonths = Math.max(1, Math.ceil((new Date().getTime() - new Date(inv.purchase_date).getTime()) / (1000 * 60 * 60 * 24 * 30)));
+        return Math.max(maxMonths, investmentMonths);
+      }, 1);
+      const averageMonthlyYield = returnValue / monthsElapsed;
+      
+      // Calcular grau de independência financeira
+      const independenceDegree = (settings?.financial_independence_goal ?? 0) > 0 
+        ? (averageMonthlyYield / (settings?.financial_independence_goal ?? 1)) * 100
         : 0;
 
       return {
@@ -91,10 +95,16 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
     const returnValue = totalCurrent - totalInvested;
     const returnPercentage = totalInvested > 0 ? (returnValue / totalInvested) * 100 : 0;
     
-    // Calcular % da renda média mensal alcançada
-    const monthlyYield = totalCurrent * 0.01; // Assumindo 1% de rendimento mensal
-    const independenceDegree = (settings?.average_monthly_income ?? 0) > 0 
-      ? (monthlyYield / (settings?.average_monthly_income ?? 1)) * 100
+    // Calcular rendimento médio mensal dos investimentos
+    const monthsElapsed = investments.reduce((maxMonths, inv) => {
+      const investmentMonths = Math.max(1, Math.ceil((new Date().getTime() - new Date(inv.purchase_date).getTime()) / (1000 * 60 * 60 * 24 * 30)));
+      return Math.max(maxMonths, investmentMonths);
+    }, 1);
+    const averageMonthlyYield = returnValue / monthsElapsed;
+    
+    // Calcular grau de independência financeira
+    const independenceDegree = (settings?.financial_independence_goal ?? 0) > 0 
+      ? (averageMonthlyYield / (settings?.financial_independence_goal ?? 1)) * 100
       : 0;
 
     return {
@@ -108,18 +118,16 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
 
   const handleSaveGoal = () => {
     const goalValue = parseFloat(goalInput.replace(/[^\d,]/g, '').replace(',', '.'));
-    const incomeValue = parseFloat(incomeInput.replace(/[^\d,]/g, '').replace(',', '.'));
     
-    if (!isNaN(goalValue) && goalValue > 0 && !isNaN(incomeValue) && incomeValue > 0) {
+    if (!isNaN(goalValue) && goalValue > 0) {
       updateSettings({
         financial_independence_goal: goalValue,
-        average_monthly_income: incomeValue,
       });
       setIsDialogOpen(false);
     } else {
       toast({
-        title: "Valores inválidos",
-        description: "Por favor, insira valores válidos para meta e renda média mensal.",
+        title: "Valor inválido",
+        description: "Por favor, insira um valor válido para a meta de independência financeira.",
         variant: "destructive",
       });
     }
@@ -220,7 +228,7 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
             </p>
             {(settings?.financial_independence_goal ?? 0) > 0 && (
               <p className="text-[10px] text-muted-foreground mt-0.5">
-                Meta: {formatCurrency(settings?.financial_independence_goal ?? 0)}/mês
+                Meta: {formatCurrency(settings?.financial_independence_goal ?? 0)}/mês | Rendimento: {formatCurrency(currentTotals.independenceDegree * (settings?.financial_independence_goal ?? 0) / 100)}/mês
               </p>
             )}
             
@@ -238,7 +246,7 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
                 <DialogHeader>
                   <DialogTitle>Configurar Grau de Independência Financeira</DialogTitle>
                   <DialogDescription>
-                    Defina sua meta mensal e renda média para calcular o grau de independência
+                    Defina o valor mensal necessário para sua independência financeira. O sistema calculará automaticamente quantos % os seus investimentos estão gerando em relação a essa meta.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
@@ -247,27 +255,13 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
                     <Input
                       id="goal"
                       type="text"
-                      placeholder="Ex: 5000"
+                      placeholder="Ex: 10000"
                       value={goalInput}
                       onChange={(e) => setGoalInput(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleSaveGoal()}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Valor mensal que você precisa para ser financeiramente independente
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="income">Renda média mensal (R$)</Label>
-                    <Input
-                      id="income"
-                      type="text"
-                      placeholder="Ex: 3000"
-                      value={incomeInput}
-                      onChange={(e) => setIncomeInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleSaveGoal()}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Sua renda média mensal atual
+                      Valor mensal que você precisa gerar através dos rendimentos dos investimentos para ser financeiramente independente
                     </p>
                   </div>
                   <Button onClick={handleSaveGoal} className="w-full" disabled={settingsLoading}>
