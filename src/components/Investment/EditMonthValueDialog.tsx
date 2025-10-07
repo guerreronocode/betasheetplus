@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/utils/formatters';
+import { useInvestments } from '@/hooks/useInvestments';
+import { useToast } from '@/hooks/use-toast';
 
 interface EditMonthValueDialogProps {
   open: boolean;
@@ -32,6 +34,8 @@ const EditMonthValueDialog: React.FC<EditMonthValueDialogProps> = ({
   currentApplied,
   onSave,
 }) => {
+  const { toast } = useToast();
+  const { updateInvestmentValue } = useInvestments();
   const [newTotal, setNewTotal] = useState<string>(currentTotal.toString());
 
   const calculatedYield = parseFloat(newTotal || '0') - currentApplied;
@@ -39,8 +43,15 @@ const EditMonthValueDialog: React.FC<EditMonthValueDialogProps> = ({
   const handleSave = () => {
     const value = parseFloat(newTotal);
     if (!isNaN(value) && value >= 0) {
+      updateInvestmentValue(investmentId, value);
       onSave(investmentId, month, value);
       onOpenChange(false);
+    } else {
+      toast({
+        title: "Valor inválido",
+        description: "Por favor, insira um valor válido.",
+        variant: "destructive",
+      });
     }
   };
 

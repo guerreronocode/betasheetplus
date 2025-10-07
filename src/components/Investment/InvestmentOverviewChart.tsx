@@ -226,11 +226,6 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
                 : 'Não configurado'
               }
             </p>
-            {(settings?.financial_independence_goal ?? 0) > 0 && (
-              <p className="text-[10px] text-muted-foreground mt-0.5">
-                Meta: {formatCurrency(settings?.financial_independence_goal ?? 0)}/mês | Rendimento: {formatCurrency(currentTotals.independenceDegree * (settings?.financial_independence_goal ?? 0) / 100)}/mês
-              </p>
-            )}
             
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>

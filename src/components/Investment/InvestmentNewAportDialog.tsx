@@ -10,34 +10,37 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/utils/formatters';
+import { useInvestments } from '@/hooks/useInvestments';
 import { useBankAccounts } from '@/hooks/useBankAccounts';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
-interface InvestmentAportDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  investment: any;
-  onAport: (investmentId: string, amount: number, currentValue: number, bankAccountId: string) => void;
+interface InvestmentNewAportDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  investmentId: string;
+  investmentName: string;
+  month: Date;
 }
 
-const InvestmentAportDialog: React.FC<InvestmentAportDialogProps> = ({
-  isOpen,
-  onClose,
-  investment,
-  onAport,
+const InvestmentNewAportDialog: React.FC<InvestmentNewAportDialogProps> = ({
+  open,
+  onOpenChange,
+  investmentId,
+  investmentName,
+  month,
 }) => {
   const { toast } = useToast();
+  const { addInvestmentAport, investments } = useInvestments();
   const { bankAccounts } = useBankAccounts();
   
   const [aportAmount, setAportAmount] = useState<string>('');
   const [newTotal, setNewTotal] = useState<string>('');
   const [selectedBankAccount, setSelectedBankAccount] = useState<string>('');
 
-  if (!investment) return null;
-
-  const currentAmount = investment.amount || 0;
-  const currentValue = investment.current_value || 0;
+  const investment = investments.find(inv => inv.id === investmentId);
+  const currentAmount = investment?.amount || 0;
+  const currentValue = investment?.current_value || 0;
 
   const handleSave = () => {
     const aport = parseFloat(aportAmount);
@@ -70,17 +73,17 @@ const InvestmentAportDialog: React.FC<InvestmentAportDialogProps> = ({
       return;
     }
 
-    onAport(investment.id, aport, total, selectedBankAccount);
-    onClose();
+    addInvestmentAport(investmentId, aport, total, selectedBankAccount);
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Registrar Aporte</DialogTitle>
           <DialogDescription>
-            {investment.name}
+            {investmentName} - {month.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
@@ -163,7 +166,7 @@ const InvestmentAportDialog: React.FC<InvestmentAportDialogProps> = ({
           </div>
 
           <div className="flex gap-2 pt-2">
-            <Button variant="outline" onClick={onClose} className="flex-1">
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
               Cancelar
             </Button>
             <Button onClick={handleSave} className="flex-1">
@@ -176,4 +179,4 @@ const InvestmentAportDialog: React.FC<InvestmentAportDialogProps> = ({
   );
 };
 
-export default InvestmentAportDialog;
+export default InvestmentNewAportDialog;

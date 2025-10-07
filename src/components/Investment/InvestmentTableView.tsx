@@ -9,6 +9,7 @@ import { ptBR } from 'date-fns/locale';
 import { Edit, Plus, History } from 'lucide-react';
 import InvestmentAportHistoryDialog from './InvestmentAportHistoryDialog';
 import EditMonthValueDialog from './EditMonthValueDialog';
+import InvestmentNewAportDialog from './InvestmentNewAportDialog';
 
 interface InvestmentTableViewProps {
   investments: Investment[];
@@ -34,6 +35,12 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
     month: Date; 
     currentTotal: number;
     currentApplied: number;
+  } | null>(null);
+  const [aportDialog, setAportDialog] = useState<{
+    open: boolean;
+    investmentId: string;
+    investmentName: string;
+    month: Date;
   } | null>(null);
 
   // Gerar meses do período filtrado
@@ -89,13 +96,18 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
   };
 
   const handleSaveMonthValue = (investmentId: string, month: Date, newTotal: number) => {
-    // TODO: Implementar atualização do valor total no banco
-    console.log('Salvando valor total:', { investmentId, month, newTotal });
+    // A lógica de atualização será implementada via mutation
+    // Por ora, vamos apenas fechar o dialog (a mutation será chamada dentro do EditMonthValueDialog)
   };
 
-  const handleNewAport = (invIdx: number, monthIdx: number) => {
-    // TODO: Abrir modal de novo aporte
-    console.log('Novo aporte:', { invIdx, monthIdx });
+  const handleNewAport = (investmentId: string, investmentName: string, month: Date) => {
+    // Abrir modal de novo aporte
+    setAportDialog({
+      open: true,
+      investmentId,
+      investmentName,
+      month
+    });
   };
 
   if (investments.length === 0) {
@@ -188,7 +200,7 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
                                 size="sm"
                                 variant="ghost"
                                 className="h-6 w-6 p-0"
-                                onClick={() => handleNewAport(invIdx, monthIdx)}
+                                onClick={() => handleNewAport(investment.id, investment.name, months[monthIdx])}
                               >
                                 <Plus className="h-3 w-3" />
                               </Button>
@@ -255,6 +267,16 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
           currentTotal={editDialog.currentTotal}
           currentApplied={editDialog.currentApplied}
           onSave={handleSaveMonthValue}
+        />
+      )}
+
+      {aportDialog && (
+        <InvestmentNewAportDialog
+          open={aportDialog.open}
+          onOpenChange={(open) => setAportDialog(open ? aportDialog : null)}
+          investmentId={aportDialog.investmentId}
+          investmentName={aportDialog.investmentName}
+          month={aportDialog.month}
         />
       )}
     </div>
