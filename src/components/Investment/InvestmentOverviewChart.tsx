@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { formatCurrency } from '@/utils/formatters';
 import { Investment } from '@/hooks/useInvestments';
 import { useInvestmentSettings } from '@/hooks/useInvestmentSettings';
+import { useInvestmentMonthlyValues } from '@/hooks/useInvestmentMonthlyValues';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { format, startOfMonth, eachMonthOfInterval, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -33,6 +34,7 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
 }) => {
   const { toast } = useToast();
   const { settings, updateSettings, isLoading: settingsLoading } = useInvestmentSettings();
+  const { monthlyValues } = useInvestmentMonthlyValues(undefined, startDate, endDate);
   const [goalInput, setGoalInput] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -47,74 +49,69 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
     return eachMonthOfInterval({ start: startDate, end: endDate });
   }, [startDate, endDate]);
 
-  // Calcular dados para o gráfico
+  // Calcular dados para o gráfico baseados nos valores mensais
   const chartData = useMemo(() => {
     return months.map(month => {
-      let totalInvested = 0;
-      let totalCurrent = 0;
+      const monthStr = format(startOfMonth(month), 'yyyy-MM-dd');
+      
+      // Somar valores do mês de todos os investimentos
+      let totalApplied = 0;
+      let totalValue = 0;
+      let totalYield = 0;
 
       investments.forEach(investment => {
-        const purchaseDate = parseISO(investment.purchase_date);
-        
-        if (month >= startOfMonth(purchaseDate)) {
-          totalInvested += investment.amount;
-          totalCurrent += investment.current_value || investment.amount;
+        const monthlyValue = monthlyValues.find(
+          mv => mv.investment_id === investment.id && mv.month_date === monthStr
+        );
+
+        if (monthlyValue) {
+          totalApplied += monthlyValue.applied_value;
+          totalValue += monthlyValue.total_value;
+          totalYield += monthlyValue.yield_value;
         }
       });
 
-      const returnValue = totalCurrent - totalInvested;
-      const returnPercentage = totalInvested > 0 ? (returnValue / totalInvested) * 100 : 0;
-
-      // Calcular rendimento médio mensal baseado no retorno acumulado
-      const monthsElapsed = investments.reduce((maxMonths, inv) => {
-        const investmentMonths = Math.max(1, Math.ceil((new Date().getTime() - new Date(inv.purchase_date).getTime()) / (1000 * 60 * 60 * 24 * 30)));
-        return Math.max(maxMonths, investmentMonths);
-      }, 1);
-      const averageMonthlyYield = returnValue / monthsElapsed;
-      
-      // Calcular grau de independência financeira
+      // Calcular grau de independência financeira baseado no rendimento do mês
       const independenceDegree = (settings?.financial_independence_goal ?? 0) > 0 
-        ? (averageMonthlyYield / (settings?.financial_independence_goal ?? 1)) * 100
+        ? (totalYield / (settings?.financial_independence_goal ?? 1)) * 100
         : 0;
 
       return {
         month: format(month, 'MMM/yy', { locale: ptBR }),
-        totalInvested,
-        totalCurrent,
-        returnValue,
-        returnPercentage,
+        totalApplied,
+        totalValue,
+        totalYield,
         independenceDegree,
       };
     });
-  }, [investments, months, settings]);
+  }, [investments, months, monthlyValues, settings]);
 
-  // Calcular totais atuais
+  // Calcular totais atuais (último mês do período)
   const currentTotals = useMemo(() => {
-    const totalInvested = investments.reduce((sum, inv) => sum + inv.amount, 0);
-    const totalCurrent = investments.reduce((sum, inv) => sum + (inv.current_value || inv.amount), 0);
-    const returnValue = totalCurrent - totalInvested;
-    const returnPercentage = totalInvested > 0 ? (returnValue / totalInvested) * 100 : 0;
+    const lastMonthData = chartData[chartData.length - 1];
     
-    // Calcular rendimento médio mensal dos investimentos
-    const monthsElapsed = investments.reduce((maxMonths, inv) => {
-      const investmentMonths = Math.max(1, Math.ceil((new Date().getTime() - new Date(inv.purchase_date).getTime()) / (1000 * 60 * 60 * 24 * 30)));
-      return Math.max(maxMonths, investmentMonths);
-    }, 1);
-    const averageMonthlyYield = returnValue / monthsElapsed;
-    
-    // Calcular grau de independência financeira
-    const independenceDegree = (settings?.financial_independence_goal ?? 0) > 0 
-      ? (averageMonthlyYield / (settings?.financial_independence_goal ?? 1)) * 100
+    if (!lastMonthData) {
+      return {
+        totalApplied: 0,
+        totalValue: 0,
+        totalYield: 0,
+        returnPercentage: 0,
+        independenceDegree: 0,
+      };
+    }
+
+    const returnPercentage = lastMonthData.totalApplied > 0 
+      ? (lastMonthData.totalYield / lastMonthData.totalApplied) * 100 
       : 0;
 
     return {
-      totalInvested,
-      totalCurrent,
-      returnValue,
+      totalApplied: lastMonthData.totalApplied,
+      totalValue: lastMonthData.totalValue,
+      totalYield: lastMonthData.totalYield,
       returnPercentage,
-      independenceDegree,
+      independenceDegree: lastMonthData.independenceDegree,
     };
-  }, [investments, settings]);
+  }, [chartData]);
 
   const handleSaveGoal = () => {
     const goalValue = parseFloat(goalInput.replace(/[^\d,]/g, '').replace(',', '.'));
@@ -166,18 +163,18 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
               />
               <Line 
                 type="monotone" 
-                dataKey="totalCurrent" 
+                dataKey="totalValue" 
                 stroke="hsl(var(--primary))" 
                 strokeWidth={2}
-                name="Valor Total"
+                name="Saldo"
                 dot={false}
               />
               <Line 
                 type="monotone" 
-                dataKey="totalInvested" 
+                dataKey="totalYield" 
                 stroke="hsl(var(--chart-2))" 
                 strokeWidth={2}
-                name="Total Investido"
+                name="Rendimento"
                 dot={false}
               />
               <Line 
@@ -195,16 +192,16 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
         {/* Cards de detalhamento */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:w-52 lg:flex lg:flex-col gap-2" style={{ maxHeight: '280px' }}>
           <Card className="p-2 bg-muted/50">
-            <p className="text-[10px] text-muted-foreground mb-0.5">Investido</p>
+            <p className="text-[10px] text-muted-foreground mb-0.5">Aplicado</p>
             <p className="text-sm font-semibold text-foreground">
-              {formatCurrency(currentTotals.totalInvested)}
+              {formatCurrency(currentTotals.totalApplied)}
             </p>
           </Card>
 
           <Card className="p-2 bg-muted/50">
             <p className="text-[10px] text-muted-foreground mb-0.5">Rendimento</p>
             <p className="text-sm font-semibold text-foreground">
-              {formatCurrency(currentTotals.returnValue)}
+              {formatCurrency(currentTotals.totalYield)}
             </p>
             <p className={`text-[10px] font-medium ${currentTotals.returnPercentage >= 0 ? 'text-green-600' : 'text-red-600'}`}>
               {currentTotals.returnPercentage >= 0 ? '+' : ''}{currentTotals.returnPercentage.toFixed(2)}%
@@ -212,9 +209,9 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
           </Card>
 
           <Card className="p-2 bg-muted/50">
-            <p className="text-[10px] text-muted-foreground mb-0.5">Valor Total</p>
+            <p className="text-[10px] text-muted-foreground mb-0.5">Saldo</p>
             <p className="text-sm font-semibold text-foreground">
-              {formatCurrency(currentTotals.totalCurrent)}
+              {formatCurrency(currentTotals.totalValue)}
             </p>
           </Card>
 

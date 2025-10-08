@@ -106,10 +106,31 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
         .single();
       
       if (error) throw error;
+
+      // Criar valor mensal inicial
+      const purchaseDate = new Date(investment.purchase_date);
+      const monthDate = new Date(purchaseDate.getFullYear(), purchaseDate.getMonth(), 1);
+      
+      const { error: monthlyValueError } = await supabase
+        .from('investment_monthly_values')
+        .insert({
+          user_id: user.id,
+          investment_id: data.id,
+          month_date: monthDate.toISOString().split('T')[0],
+          total_value: investment.amount,
+          applied_value: investment.amount,
+          yield_value: 0,
+        });
+
+      if (monthlyValueError) {
+        console.error('Erro ao criar valor mensal inicial:', monthlyValueError);
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['investments'] });
+      queryClient.invalidateQueries({ queryKey: ['investment_monthly_values'] });
       queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
       queryClient.invalidateQueries({ queryKey: ['user_stats'] });
       toast({ title: 'Investimento adicionado com sucesso!' });
@@ -264,10 +285,55 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
 
       if (accountError) throw accountError;
 
+      // Criar/atualizar valor mensal para o mês atual
+      const currentDate = new Date();
+      const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      const monthDateStr = monthDate.toISOString().split('T')[0];
+
+      // Buscar valor mensal existente
+      const { data: existingMonthlyValue } = await supabase
+        .from('investment_monthly_values')
+        .select('*')
+        .eq('investment_id', investmentId)
+        .eq('month_date', monthDateStr)
+        .maybeSingle();
+
+      if (existingMonthlyValue) {
+        // Atualizar valor mensal existente
+        const newAppliedValue = existingMonthlyValue.applied_value + amount;
+        const newYieldValue = currentValue - newAppliedValue;
+
+        await supabase
+          .from('investment_monthly_values')
+          .update({
+            applied_value: newAppliedValue,
+            total_value: currentValue,
+            yield_value: newYieldValue,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingMonthlyValue.id);
+      } else {
+        // Criar novo registro mensal - usar o total aplicado atualizado
+        const totalApplied = investment.amount + amount;
+        const newYieldValue = currentValue - totalApplied;
+        
+        await supabase
+          .from('investment_monthly_values')
+          .insert({
+            user_id: user.id,
+            investment_id: investmentId,
+            month_date: monthDateStr,
+            applied_value: totalApplied,
+            total_value: currentValue,
+            yield_value: newYieldValue,
+          });
+      }
+
       return { investmentId, amount, currentValue };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['investments'] });
+      queryClient.invalidateQueries({ queryKey: ['investment_monthly_values'] });
       queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
       queryClient.invalidateQueries({ queryKey: ['user_stats'] });
       toast({ title: 'Aporte realizado com sucesso!' });

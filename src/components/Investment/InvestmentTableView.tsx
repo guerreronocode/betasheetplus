@@ -10,6 +10,7 @@ import { Edit, Plus, History } from 'lucide-react';
 import InvestmentAportHistoryDialog from './InvestmentAportHistoryDialog';
 import EditMonthValueDialog from './EditMonthValueDialog';
 import InvestmentNewAportDialog from './InvestmentNewAportDialog';
+import { useInvestmentMonthlyValues } from '@/hooks/useInvestmentMonthlyValues';
 
 interface InvestmentTableViewProps {
   investments: Investment[];
@@ -26,6 +27,7 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
   selectedInvestments = [],
   onSelectionChange
 }) => {
+  const { getMonthlyValue } = useInvestmentMonthlyValues(undefined, startDate, endDate);
   const [hoveredCell, setHoveredCell] = useState<{ invIdx: number; monthIdx: number; type: 'applied' | 'total' } | null>(null);
   const [historyDialog, setHistoryDialog] = useState<{ open: boolean; investmentId: string; month: Date } | null>(null);
   const [editDialog, setEditDialog] = useState<{ 
@@ -59,7 +61,17 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
           return { applied: 0, total: 0 };
         }
         
-        // No mês da compra, o valor aplicado é o amount inicial
+        // Buscar valor mensal registrado no banco
+        const monthlyValue = getMonthlyValue(investment.id, month);
+        
+        if (monthlyValue) {
+          return {
+            applied: monthlyValue.applied_value,
+            total: monthlyValue.total_value
+          };
+        }
+        
+        // No mês da compra (fallback se não houver registro), usar valor inicial
         if (isSameMonth(month, purchaseDate)) {
           return { 
             applied: investment.amount, 
@@ -67,13 +79,10 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
           };
         }
         
-        // Após o mês da compra, não há novos aportes (aplicado = 0), 
-        // mas o total continua acumulando (usando current_value como proxy)
-        // Para simplificar, vamos mostrar 0 em aplicado e current_value no último mês
-        const isLastMonth = month.getTime() === months[months.length - 1].getTime();
+        // Sem dados mensais registrados
         return { 
           applied: 0, 
-          total: isLastMonth ? investment.current_value : investment.amount 
+          total: 0
         };
       });
 
@@ -82,7 +91,7 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
         monthlyData
       };
     });
-  }, [investments, months]);
+  }, [investments, months, getMonthlyValue]);
 
 
   const getYieldTypeLabel = (yieldType: string) => {

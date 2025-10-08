@@ -10,7 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/utils/formatters';
-import { useInvestments } from '@/hooks/useInvestments';
+import { useInvestmentMonthlyValues } from '@/hooks/useInvestmentMonthlyValues';
 import { useToast } from '@/hooks/use-toast';
 
 interface EditMonthValueDialogProps {
@@ -35,7 +35,7 @@ const EditMonthValueDialog: React.FC<EditMonthValueDialogProps> = ({
   onSave,
 }) => {
   const { toast } = useToast();
-  const { updateInvestmentValue } = useInvestments();
+  const { upsertMonthlyValue } = useInvestmentMonthlyValues();
   const [newTotal, setNewTotal] = useState<string>(currentTotal.toString());
 
   const calculatedYield = parseFloat(newTotal || '0') - currentApplied;
@@ -43,7 +43,12 @@ const EditMonthValueDialog: React.FC<EditMonthValueDialogProps> = ({
   const handleSave = () => {
     const value = parseFloat(newTotal);
     if (!isNaN(value) && value >= 0) {
-      updateInvestmentValue(investmentId, value);
+      upsertMonthlyValue({
+        investmentId,
+        monthDate: month,
+        totalValue: value,
+        appliedValue: currentApplied
+      });
       onSave(investmentId, month, value);
       onOpenChange(false);
     } else {
