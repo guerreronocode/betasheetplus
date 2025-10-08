@@ -52,10 +52,12 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
 
   // Calcular dados por investimento e mês
   const investmentData = useMemo(() => {
+    console.log('🔄 Recalculating investment data. Monthly values count:', monthlyValues.length);
+    
     return investments.map(investment => {
       const purchaseDate = parseISO(investment.purchase_date);
       
-      const monthlyData = months.map(month => {
+      const monthlyData = months.map((month, idx) => {
         // Se o investimento ainda não foi feito neste mês, retorna zero
         if (month < startOfMonth(purchaseDate)) {
           return { applied: 0, total: 0 };
@@ -79,10 +81,33 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
           };
         }
         
-        // Sem dados mensais registrados
+        // Para meses após a compra sem registro, propagar o valor do mês anterior
+        if (idx > 0) {
+          const previousMonthValue = getMonthlyValue(investment.id, months[idx - 1]);
+          if (previousMonthValue) {
+            return {
+              applied: previousMonthValue.applied_value,
+              total: previousMonthValue.total_value
+            };
+          }
+          
+          // Buscar último valor conhecido antes deste mês
+          const previousValues = monthlyValues
+            .filter(mv => mv.investment_id === investment.id && new Date(mv.month_date) < month)
+            .sort((a, b) => new Date(b.month_date).getTime() - new Date(a.month_date).getTime());
+          
+          if (previousValues.length > 0) {
+            return {
+              applied: previousValues[0].applied_value,
+              total: previousValues[0].total_value
+            };
+          }
+        }
+        
+        // Sem dados mensais registrados - usar valor inicial como fallback
         return { 
-          applied: 0, 
-          total: 0
+          applied: investment.amount, 
+          total: investment.amount
         };
       });
 

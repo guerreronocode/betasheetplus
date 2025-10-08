@@ -42,22 +42,34 @@ const EditMonthValueDialog: React.FC<EditMonthValueDialogProps> = ({
 
   const handleSave = () => {
     const value = parseFloat(newTotal);
-    if (!isNaN(value) && value >= 0) {
-      upsertMonthlyValue({
-        investmentId,
-        monthDate: month,
-        totalValue: value,
-        appliedValue: currentApplied
-      });
-      onSave(investmentId, month, value);
-      onOpenChange(false);
-    } else {
+    
+    if (isNaN(value) || value < 0) {
       toast({
         title: "Valor inválido",
-        description: "Por favor, insira um valor válido.",
+        description: "O valor total deve ser um número positivo.",
         variant: "destructive",
       });
+      return;
     }
+
+    console.log('💾 Saving monthly value:', {
+      investmentId,
+      investmentName,
+      month: month.toISOString(),
+      totalValue: value,
+      appliedValue: currentApplied,
+      yieldValue: value - currentApplied
+    });
+
+    upsertMonthlyValue({
+      investmentId,
+      monthDate: month,
+      totalValue: value,
+      appliedValue: currentApplied
+    });
+
+    onSave(investmentId, month, value);
+    onOpenChange(false);
   };
 
   return (
