@@ -77,17 +77,19 @@ export const useInvestmentMonthlyValues = (investmentId?: string, startDate?: Da
           applied_value: appliedValue,
           yield_value: yieldValue,
           updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'investment_id,month_date'
         })
         .select()
         .single();
+
+      console.log('✅ Upsert monthly value:', { investmentId, monthDateStr, totalValue, appliedValue, yieldValue });
 
       if (error) throw error;
       return data;
     },
     onSuccess: () => {
+      console.log('✅ Invalidating queries after upsert');
       queryClient.invalidateQueries({ queryKey: ['investment_monthly_values'] });
+      queryClient.invalidateQueries({ queryKey: ['investments'] });
       toast({ title: 'Valor mensal atualizado com sucesso!' });
     },
     onError: (error) => {
