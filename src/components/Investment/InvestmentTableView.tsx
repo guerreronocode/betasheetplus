@@ -27,7 +27,7 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
   selectedInvestments = [],
   onSelectionChange
 }) => {
-  const { getMonthlyValue } = useInvestmentMonthlyValues(undefined, startDate, endDate);
+  const { monthlyValues, getMonthlyValue } = useInvestmentMonthlyValues(undefined, startDate, endDate);
   const [hoveredCell, setHoveredCell] = useState<{ invIdx: number; monthIdx: number; type: 'applied' | 'total' } | null>(null);
   const [historyDialog, setHistoryDialog] = useState<{ open: boolean; investmentId: string; month: Date } | null>(null);
   const [editDialog, setEditDialog] = useState<{ 
@@ -91,7 +91,7 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
         monthlyData
       };
     });
-  }, [investments, months, getMonthlyValue]);
+  }, [investments, months, getMonthlyValue, monthlyValues]);
 
 
   const getYieldTypeLabel = (yieldType: string) => {

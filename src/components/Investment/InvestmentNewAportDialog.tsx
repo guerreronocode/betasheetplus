@@ -35,7 +35,6 @@ const InvestmentNewAportDialog: React.FC<InvestmentNewAportDialogProps> = ({
   const { bankAccounts } = useBankAccounts();
   
   const [aportAmount, setAportAmount] = useState<string>('');
-  const [newTotal, setNewTotal] = useState<string>('');
   const [selectedBankAccount, setSelectedBankAccount] = useState<string>('');
 
   const investment = investments.find(inv => inv.id === investmentId);
@@ -44,21 +43,11 @@ const InvestmentNewAportDialog: React.FC<InvestmentNewAportDialogProps> = ({
 
   const handleSave = () => {
     const aport = parseFloat(aportAmount);
-    const total = parseFloat(newTotal);
 
     if (isNaN(aport) || aport <= 0) {
       toast({
         title: "Valor inválido",
         description: "O valor do aporte deve ser maior que zero.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (isNaN(total) || total < currentValue + aport) {
-      toast({
-        title: "Valor total inválido",
-        description: "O novo valor total deve ser maior ou igual ao valor atual + aporte.",
         variant: "destructive",
       });
       return;
@@ -73,7 +62,9 @@ const InvestmentNewAportDialog: React.FC<InvestmentNewAportDialogProps> = ({
       return;
     }
 
-    addInvestmentAport(investmentId, aport, total, selectedBankAccount);
+    // O novo valor total será automaticamente currentValue + aport
+    const newTotal = currentValue + aport;
+    addInvestmentAport(investmentId, aport, newTotal, selectedBankAccount);
     onOpenChange(false);
   };
 
@@ -124,22 +115,6 @@ const InvestmentNewAportDialog: React.FC<InvestmentNewAportDialogProps> = ({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="newTotal">Novo Valor Total</Label>
-            <Input
-              id="newTotal"
-              type="number"
-              step="0.01"
-              min="0"
-              value={newTotal}
-              onChange={(e) => setNewTotal(e.target.value)}
-              placeholder="0.00"
-            />
-            <p className="text-xs text-muted-foreground">
-              Valor total após o aporte (incluindo rendimentos)
-            </p>
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="bankAccount">Conta Bancária</Label>
             <Select value={selectedBankAccount} onValueChange={setSelectedBankAccount}>
               <SelectTrigger>
@@ -156,12 +131,12 @@ const InvestmentNewAportDialog: React.FC<InvestmentNewAportDialogProps> = ({
           </div>
 
           <div className="bg-muted/50 p-3 rounded-md space-y-1">
-            <p className="text-xs font-medium">Rendimento calculado</p>
-            <p className={`text-sm font-semibold ${(parseFloat(newTotal || '0') - currentValue - parseFloat(aportAmount || '0')) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(parseFloat(newTotal || '0') - currentValue - parseFloat(aportAmount || '0'))}
+            <p className="text-xs font-medium">Valor total após aporte</p>
+            <p className="text-sm font-semibold text-fnb-accent">
+              {formatCurrency(currentValue + parseFloat(aportAmount || '0'))}
             </p>
             <p className="text-xs text-muted-foreground">
-              Diferença entre novo total e (valor atual + aporte)
+              O valor total deve ser ajustado manualmente na tabela para incluir rendimentos
             </p>
           </div>
 
