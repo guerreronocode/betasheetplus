@@ -16,7 +16,9 @@ import {
   LogOut,
   ChevronRight,
   User,
-  Menu
+  Menu,
+  Settings,
+  Trash2
 } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
@@ -40,7 +42,17 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/AuthContext"
+import { AccountResetDialog } from "@/components/AccountResetDialog"
 
 const dashboardItems = [
   { title: "Balanço mensal", icon: BarChart3, path: "/monthly-balance" },
@@ -75,10 +87,28 @@ const mainSections = [
 
 export function AppSidebar() {
   const { state, setOpen } = useSidebar()
-  const { signOut } = useAuth()
+  const { signOut, user } = useAuth()
   const navigate = useNavigate()
   const [openSections, setOpenSections] = useState<string[]>([])
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false)
   const collapsed = state === 'collapsed'
+
+  const getUserDisplayName = () => {
+    if (user?.user_metadata?.full_name) {
+      return user.user_metadata.full_name
+    }
+    return user?.email?.split('@')[0] || 'Usuário'
+  }
+
+  const getUserInitials = () => {
+    const name = getUserDisplayName()
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+  }
 
   const toggleSection = (sectionTitle: string) => {
     if (collapsed) {
@@ -117,17 +147,52 @@ export function AppSidebar() {
     >
       <SidebarHeader className={`border-b border-fnb-accent/10 ${collapsed ? 'p-1' : 'p-4'}`}>
         <div className={`flex items-center ${collapsed ? 'flex-col gap-2 items-center' : 'justify-between'}`}>
-          <Button
-            variant="ghost"
-            size={collapsed ? "icon" : "sm"}
-            onClick={() => console.log('Abrindo gerenciamento de perfil...')}
-            className={`fnb-card hover:bg-fnb-accent/10 transition-colors ${
-              collapsed ? 'h-10 w-10' : 'gap-3'
-            }`}
-          >
-            <User className="h-6 w-6 text-fnb-accent" />
-            {!collapsed && <span className="font-title text-fnb-ink">Perfil</span>}
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size={collapsed ? "icon" : "sm"}
+                className={`fnb-card hover:bg-fnb-accent/10 transition-colors ${
+                  collapsed ? 'h-10 w-10' : 'gap-3'
+                }`}
+              >
+                {collapsed ? (
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={user?.user_metadata?.avatar_url} />
+                    <AvatarFallback className="bg-fnb-accent text-white text-xs">
+                      {getUserInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <>
+                    <Avatar className="h-6 w-6">
+                      <AvatarImage src={user?.user_metadata?.avatar_url} />
+                      <AvatarFallback className="bg-fnb-accent text-white text-xs">
+                        {getUserInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="font-title text-fnb-ink">{getUserDisplayName()}</span>
+                  </>
+                )}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-56">
+              <DropdownMenuLabel>
+                <div className="flex flex-col">
+                  <span className="font-title">{getUserDisplayName()}</span>
+                  <span className="text-xs text-fnb-ink/60 font-normal">{user?.email}</span>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => setIsResetDialogOpen(true)}
+                className="text-red-500 focus:text-red-500 cursor-pointer"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Zerar dados da conta
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           
           {!collapsed && (
             <Button
@@ -141,6 +206,11 @@ export function AppSidebar() {
           )}
         </div>
       </SidebarHeader>
+
+      <AccountResetDialog 
+        open={isResetDialogOpen}
+        onOpenChange={setIsResetDialogOpen}
+      />
 
       <SidebarContent className="px-2 py-4">
         {mainSections.map((section) => (
