@@ -77,6 +77,8 @@ export const useInvestmentMonthlyValues = (investmentId?: string, startDate?: Da
           applied_value: appliedValue,
           yield_value: yieldValue,
           updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'investment_id,month_date'
         })
         .select()
         .single();
