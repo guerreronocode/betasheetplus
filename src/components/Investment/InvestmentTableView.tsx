@@ -209,73 +209,87 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
                 </tr>
               </thead>
               <tbody>
-                {investmentData.map(({ investment, monthlyData }, invIdx) => (
-                  <React.Fragment key={invIdx}>
-                    <tr className="border-b-0">
-                      {monthlyData.map((data, monthIdx) => (
-                        <td 
-                          key={`applied-${monthIdx}`} 
-                          className="px-2 py-1 text-center text-xs bg-blue-50/30 relative group cursor-pointer"
-                          onMouseEnter={() => setHoveredCell({ invIdx, monthIdx, type: 'applied' })}
-                          onMouseLeave={() => setHoveredCell(null)}
-                        >
-                          {data.applied > 0 ? formatCurrency(data.applied) : '-'}
-                          {hoveredCell?.invIdx === invIdx && hoveredCell?.monthIdx === monthIdx && hoveredCell?.type === 'applied' && (
-                            <div className="absolute inset-0 bg-blue-100/80 flex items-center justify-center gap-1 z-10">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0"
-                                onClick={() => setHistoryDialog({ open: true, investmentId: investment.id, month: months[monthIdx] })}
-                              >
-                                <History className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0"
-                                onClick={() => handleNewAport(investment.id, investment.name, months[monthIdx])}
-                              >
-                                <Plus className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                    <tr className={invIdx < investmentData.length - 1 ? "border-b" : ""}>
-                      {monthlyData.map((data, monthIdx) => (
-                        <td 
-                          key={`total-${monthIdx}`} 
-                          className="px-2 py-1 text-center text-xs font-semibold bg-green-50/30 relative group cursor-pointer"
-                          onMouseEnter={() => setHoveredCell({ invIdx, monthIdx, type: 'total' })}
-                          onMouseLeave={() => setHoveredCell(null)}
-                        >
-                          {data.total > 0 ? formatCurrency(data.total) : '-'}
-                          {hoveredCell?.invIdx === invIdx && hoveredCell?.monthIdx === monthIdx && hoveredCell?.type === 'total' && (
-                            <div className="absolute inset-0 bg-green-100/80 flex items-center justify-center z-10">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 w-6 p-0"
-                                onClick={() => setEditDialog({ 
-                                  open: true, 
-                                  investmentId: investment.id, 
-                                  investmentName: investment.name,
-                                  month: months[monthIdx],
-                                  currentTotal: data.total,
-                                  currentApplied: data.applied
-                                })}
-                              >
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          )}
-                        </td>
-                      ))}
-                    </tr>
-                  </React.Fragment>
-                ))}
+                {investmentData.map(({ investment, monthlyData }, invIdx) => {
+                  const purchaseDate = parseISO(investment.purchase_date);
+                  
+                  return (
+                    <React.Fragment key={invIdx}>
+                      <tr className="border-b-0">
+                        {monthlyData.map((data, monthIdx) => {
+                          const currentMonth = months[monthIdx];
+                          const isBeforePurchase = currentMonth < startOfMonth(purchaseDate);
+                          
+                          return (
+                            <td 
+                              key={`applied-${monthIdx}`} 
+                              className={`px-2 py-1 text-center text-xs bg-blue-50/30 relative ${isBeforePurchase ? '' : 'group cursor-pointer'}`}
+                              onMouseEnter={isBeforePurchase ? undefined : () => setHoveredCell({ invIdx, monthIdx, type: 'applied' })}
+                              onMouseLeave={isBeforePurchase ? undefined : () => setHoveredCell(null)}
+                            >
+                              {data.applied > 0 ? formatCurrency(data.applied) : '-'}
+                              {!isBeforePurchase && hoveredCell?.invIdx === invIdx && hoveredCell?.monthIdx === monthIdx && hoveredCell?.type === 'applied' && (
+                                <div className="absolute inset-0 bg-blue-100/80 flex items-center justify-center gap-1 z-10">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => setHistoryDialog({ open: true, investmentId: investment.id, month: months[monthIdx] })}
+                                  >
+                                    <History className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => handleNewAport(investment.id, investment.name, months[monthIdx])}
+                                  >
+                                    <Plus className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                      <tr className={invIdx < investmentData.length - 1 ? "border-b" : ""}>
+                        {monthlyData.map((data, monthIdx) => {
+                          const currentMonth = months[monthIdx];
+                          const isBeforePurchase = currentMonth < startOfMonth(purchaseDate);
+                          
+                          return (
+                            <td 
+                              key={`total-${monthIdx}`} 
+                              className={`px-2 py-1 text-center text-xs font-semibold bg-green-50/30 relative ${isBeforePurchase ? '' : 'group cursor-pointer'}`}
+                              onMouseEnter={isBeforePurchase ? undefined : () => setHoveredCell({ invIdx, monthIdx, type: 'total' })}
+                              onMouseLeave={isBeforePurchase ? undefined : () => setHoveredCell(null)}
+                            >
+                              {data.total > 0 ? formatCurrency(data.total) : '-'}
+                              {!isBeforePurchase && hoveredCell?.invIdx === invIdx && hoveredCell?.monthIdx === monthIdx && hoveredCell?.type === 'total' && (
+                                <div className="absolute inset-0 bg-green-100/80 flex items-center justify-center z-10">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 w-6 p-0"
+                                    onClick={() => setEditDialog({ 
+                                      open: true, 
+                                      investmentId: investment.id, 
+                                      investmentName: investment.name,
+                                      month: months[monthIdx],
+                                      currentTotal: data.total,
+                                      currentApplied: data.applied
+                                    })}
+                                  >
+                                    <Edit className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              )}
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
