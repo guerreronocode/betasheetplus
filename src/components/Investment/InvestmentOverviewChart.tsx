@@ -125,11 +125,9 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
     });
   }, [investments, months, monthlyValues, settings]);
 
-  // Calcular totais atuais (último mês do período)
+  // Calcular totais considerando TODO o período filtrado
   const currentTotals = useMemo(() => {
-    const lastMonthData = chartData[chartData.length - 1];
-    
-    if (!lastMonthData) {
+    if (chartData.length === 0) {
       return {
         totalApplied: 0,
         totalValue: 0,
@@ -139,16 +137,31 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
       };
     }
 
-    const returnPercentage = lastMonthData.totalApplied > 0 
-      ? (lastMonthData.totalYield / lastMonthData.totalApplied) * 100 
+    const lastMonthData = chartData[chartData.length - 1];
+    
+    // Total Aplicado: Soma de TODOS os aportes durante TODO o período filtrado
+    const totalAppliedAllPeriod = chartData.reduce((sum, month) => sum + month.totalApplied, 0);
+    
+    // Saldo: Valor total do último mês (valor acumulado atual)
+    const totalValue = lastMonthData.totalValue;
+    
+    // Rendimento: Rendimento acumulado do último mês
+    const totalYield = lastMonthData.totalYield;
+    
+    // Percentual de retorno: rendimento / total aplicado
+    const returnPercentage = totalAppliedAllPeriod > 0 
+      ? (totalYield / totalAppliedAllPeriod) * 100 
       : 0;
 
+    // Grau de independência: baseado no rendimento do último mês
+    const independenceDegree = lastMonthData.independenceDegree;
+
     return {
-      totalApplied: lastMonthData.totalApplied,
-      totalValue: lastMonthData.totalValue,
-      totalYield: lastMonthData.totalYield,
+      totalApplied: totalAppliedAllPeriod,
+      totalValue,
+      totalYield,
       returnPercentage,
-      independenceDegree: lastMonthData.independenceDegree,
+      independenceDegree,
     };
   }, [chartData]);
 
