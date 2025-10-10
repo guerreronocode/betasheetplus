@@ -51,7 +51,10 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
 
   // Calcular dados para o gráfico baseados nos valores mensais
   const chartData = useMemo(() => {
-    return months.map(month => {
+    // Manter valores acumulados por investimento entre meses
+    const investmentAccumulatedValues = new Map<string, { applied: number; total: number; yield: number }>();
+
+    return months.map((month, monthIdx) => {
       const monthStr = format(startOfMonth(month), 'yyyy-MM-dd');
       
       // Somar valores do mês de todos os investimentos
@@ -60,14 +63,50 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
       let totalYield = 0;
 
       investments.forEach(investment => {
+        const purchaseDate = parseISO(investment.purchase_date);
+        
+        // Se o investimento ainda não foi criado neste mês, ignora
+        if (month < startOfMonth(purchaseDate)) {
+          return;
+        }
+
         const monthlyValue = monthlyValues.find(
           mv => mv.investment_id === investment.id && mv.month_date === monthStr
         );
 
         if (monthlyValue) {
+          // Tem registro no banco - usar valores registrados
           totalApplied += monthlyValue.applied_value;
           totalValue += monthlyValue.total_value;
           totalYield += monthlyValue.yield_value;
+          
+          // Atualizar valores acumulados para este investimento
+          investmentAccumulatedValues.set(investment.id, {
+            applied: monthlyValue.applied_value,
+            total: monthlyValue.total_value,
+            yield: monthlyValue.yield_value
+          });
+        } else {
+          // Não tem registro - usar valores acumulados do mês anterior
+          const accumulated = investmentAccumulatedValues.get(investment.id);
+          
+          if (accumulated) {
+            // Propagar valores do mês anterior (sem novo aporte)
+            totalApplied += 0; // Sem novo aporte neste mês
+            totalValue += accumulated.total; // Mantém valor total anterior
+            totalYield += accumulated.yield; // Mantém rendimento acumulado
+          } else {
+            // Primeiro mês do investimento sem registro - usar valor inicial
+            totalApplied += 0;
+            totalValue += investment.amount;
+            totalYield += 0;
+            
+            investmentAccumulatedValues.set(investment.id, {
+              applied: 0,
+              total: investment.amount,
+              yield: 0
+            });
+          }
         }
       });
 
