@@ -34,6 +34,7 @@ const InvestmentsPage = () => {
     yield_extra: string;
     yield_percent_index: string;
     purchase_date: string;
+    maturity_date: string;
     bank_account_id: string;
     already_owned: boolean;
   }>({
@@ -45,6 +46,7 @@ const InvestmentsPage = () => {
     yield_extra: '',
     yield_percent_index: '',
     purchase_date: new Date().toISOString().split('T')[0],
+    maturity_date: '',
     bank_account_id: 'none',
     already_owned: false
   });
@@ -94,8 +96,7 @@ const InvestmentsPage = () => {
                         className="h-7 text-xs"
                         onClick={() => {
                           const today = new Date();
-                          const oneMonthAgo = new Date(today);
-                          oneMonthAgo.setMonth(today.getMonth() - 1);
+                          const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, 1);
                           setTempStartDate(oneMonthAgo);
                           setTempEndDate(today);
                         }}
@@ -108,8 +109,7 @@ const InvestmentsPage = () => {
                         className="h-7 text-xs"
                         onClick={() => {
                           const today = new Date();
-                          const threeMonthsAgo = new Date(today);
-                          threeMonthsAgo.setMonth(today.getMonth() - 3);
+                          const threeMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 3, 1);
                           setTempStartDate(threeMonthsAgo);
                           setTempEndDate(today);
                         }}
@@ -122,8 +122,7 @@ const InvestmentsPage = () => {
                         className="h-7 text-xs"
                         onClick={() => {
                           const today = new Date();
-                          const sixMonthsAgo = new Date(today);
-                          sixMonthsAgo.setMonth(today.getMonth() - 6);
+                          const sixMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 6, 1);
                           setTempStartDate(sixMonthsAgo);
                           setTempEndDate(today);
                         }}
@@ -136,8 +135,7 @@ const InvestmentsPage = () => {
                         className="h-7 text-xs"
                         onClick={() => {
                           const today = new Date();
-                          const oneYearAgo = new Date(today);
-                          oneYearAgo.setFullYear(today.getFullYear() - 1);
+                          const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), 1);
                           setTempStartDate(oneYearAgo);
                           setTempEndDate(today);
                         }}
@@ -147,42 +145,34 @@ const InvestmentsPage = () => {
                     </div>
                   </div>
                   
-                  {/* Custom Calendars */}
+                  {/* Month/Year Pickers */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <Label htmlFor="start-date" className="text-xs font-medium mb-2 block">Data inicial</Label>
-                      <Calendar
-                        mode="single"
-                        selected={tempStartDate}
-                        onSelect={setTempStartDate}
-                        defaultMonth={tempStartDate}
-                        disabled={(date) => {
-                          const today = new Date();
-                          today.setHours(23, 59, 59, 999);
-                          if (tempEndDate) {
-                            return date > tempEndDate || date > today;
-                          }
-                          return date > today;
+                      <Label htmlFor="start-month" className="text-xs font-medium mb-2 block">Mês inicial</Label>
+                      <Input
+                        id="start-month"
+                        type="month"
+                        value={tempStartDate ? `${tempStartDate.getFullYear()}-${String(tempStartDate.getMonth() + 1).padStart(2, '0')}` : ''}
+                        onChange={(e) => {
+                          const [year, month] = e.target.value.split('-');
+                          setTempStartDate(new Date(parseInt(year), parseInt(month) - 1, 1));
                         }}
-                        className={cn("pointer-events-auto text-xs")}
+                        max={tempEndDate ? `${tempEndDate.getFullYear()}-${String(tempEndDate.getMonth() + 1).padStart(2, '0')}` : undefined}
+                        className="h-9"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="end-date" className="text-xs font-medium mb-2 block">Data final</Label>
-                      <Calendar
-                        mode="single"
-                        selected={tempEndDate}
-                        onSelect={setTempEndDate}
-                        defaultMonth={tempEndDate}
-                        disabled={(date) => {
-                          const today = new Date();
-                          today.setHours(23, 59, 59, 999);
-                          if (tempStartDate) {
-                            return date < tempStartDate || date > today;
-                          }
-                          return date > today;
+                      <Label htmlFor="end-month" className="text-xs font-medium mb-2 block">Mês final</Label>
+                      <Input
+                        id="end-month"
+                        type="month"
+                        value={tempEndDate ? `${tempEndDate.getFullYear()}-${String(tempEndDate.getMonth() + 1).padStart(2, '0')}` : ''}
+                        onChange={(e) => {
+                          const [year, month] = e.target.value.split('-');
+                          setTempEndDate(new Date(parseInt(year), parseInt(month) - 1, 1));
                         }}
-                        className={cn("pointer-events-auto text-xs")}
+                        min={tempStartDate ? `${tempStartDate.getFullYear()}-${String(tempStartDate.getMonth() + 1).padStart(2, '0')}` : undefined}
+                        className="h-9"
                       />
                     </div>
                   </div>
@@ -305,6 +295,7 @@ const InvestmentsPage = () => {
               type: form.type,
               amount: parseFloat(form.amount),
               purchase_date: form.purchase_date,
+              maturity_date: form.maturity_date || undefined,
               yield_type: submittedYieldType,
               yield_rate: yield_rate_final,
               bank_account_id: form.already_owned ? undefined : (form.bank_account_id === 'none' ? undefined : form.bank_account_id)
@@ -319,6 +310,7 @@ const InvestmentsPage = () => {
               yield_extra: '',
               yield_percent_index: '',
               purchase_date: new Date().toISOString().split('T')[0],
+              maturity_date: '',
               bank_account_id: 'none',
               already_owned: false
             });
@@ -449,6 +441,18 @@ const InvestmentsPage = () => {
                 onChange={(e) => setForm(prev => ({ ...prev, purchase_date: e.target.value }))}
                 className="h-9"
                 required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="maturity_date" className="text-sm">Data de Vencimento (Opcional)</Label>
+              <Input
+                id="maturity_date"
+                type="date"
+                value={form.maturity_date}
+                onChange={(e) => setForm(prev => ({ ...prev, maturity_date: e.target.value }))}
+                min={form.purchase_date}
+                className="h-9"
               />
             </div>
             

@@ -59,56 +59,61 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
       
       const monthlyData = months.map((month, idx) => {
         // Se o investimento ainda não foi feito neste mês, retorna zero
-        if (month < startOfMonth(purchaseDate)) {
-          return { applied: 0, total: 0 };
-        }
+                        if (month < startOfMonth(purchaseDate)) {
+                          return { applied: 0, total: 0, isBeforePurchase: true };
+                        }
         
         // Buscar valor mensal registrado no banco
         const monthlyValue = getMonthlyValue(investment.id, month);
         
-        if (monthlyValue) {
-          return {
-            applied: monthlyValue.applied_value,
-            total: monthlyValue.total_value
-          };
-        }
+                        if (monthlyValue) {
+                          return {
+                            applied: monthlyValue.applied_value,
+                            total: monthlyValue.total_value,
+                            isBeforePurchase: false
+                          };
+                        }
         
-        // No mês da compra (fallback se não houver registro), usar valor inicial
-        if (isSameMonth(month, purchaseDate)) {
-          return { 
-            applied: investment.amount, 
-            total: investment.amount 
-          };
-        }
-        
-        // Para meses após a compra sem registro, propagar o valor do mês anterior
-        if (idx > 0) {
-          const previousMonthValue = getMonthlyValue(investment.id, months[idx - 1]);
-          if (previousMonthValue) {
-            return {
-              applied: previousMonthValue.applied_value,
-              total: previousMonthValue.total_value
-            };
-          }
-          
-          // Buscar último valor conhecido antes deste mês
-          const previousValues = monthlyValues
-            .filter(mv => mv.investment_id === investment.id && new Date(mv.month_date) < month)
-            .sort((a, b) => new Date(b.month_date).getTime() - new Date(a.month_date).getTime());
-          
-          if (previousValues.length > 0) {
-            return {
-              applied: previousValues[0].applied_value,
-              total: previousValues[0].total_value
-            };
-          }
-        }
-        
-        // Sem dados mensais registrados - usar valor inicial como fallback
-        return { 
-          applied: investment.amount, 
-          total: investment.amount
-        };
+                        // No mês da compra (fallback se não houver registro), usar valor inicial
+                        if (isSameMonth(month, purchaseDate)) {
+                          return { 
+                            applied: investment.amount, 
+                            total: investment.amount,
+                            isBeforePurchase: false
+                          };
+                        }
+                        
+                        // Para meses após a compra sem registro, propagar o valor do mês anterior
+                        if (idx > 0) {
+                          const previousMonthValue = getMonthlyValue(investment.id, months[idx - 1]);
+                          if (previousMonthValue) {
+                            return {
+                              applied: previousMonthValue.applied_value,
+                              total: previousMonthValue.total_value,
+                              isBeforePurchase: false
+                            };
+                          }
+                          
+                          // Buscar último valor conhecido antes deste mês
+                          const previousValues = monthlyValues
+                            .filter(mv => mv.investment_id === investment.id && new Date(mv.month_date) < month)
+                            .sort((a, b) => new Date(b.month_date).getTime() - new Date(a.month_date).getTime());
+                          
+                          if (previousValues.length > 0) {
+                            return {
+                              applied: previousValues[0].applied_value,
+                              total: previousValues[0].total_value,
+                              isBeforePurchase: false
+                            };
+                          }
+                        }
+                        
+                        // Sem dados mensais registrados - usar valor inicial como fallback
+                        return { 
+                          applied: investment.amount, 
+                          total: investment.amount,
+                          isBeforePurchase: false
+                        };
       });
 
       return {
@@ -119,15 +124,6 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
   }, [investments, months, getMonthlyValue, monthlyValues]);
 
 
-  const getYieldTypeLabel = (yieldType: string) => {
-    const labels: Record<string, string> = {
-      fixed: 'Fixo',
-      cdi: 'CDI',
-      selic: 'SELIC',
-      ipca: 'IPCA'
-    };
-    return labels[yieldType] || yieldType;
-  };
 
   const handleSaveMonthValue = (investmentId: string, month: Date, newTotal: number) => {
     // A lógica de atualização será implementada via mutation
@@ -163,7 +159,7 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
                 <tr className="bg-fnb-accent/5">
                   <th className="px-2 py-1 text-left font-semibold border-b w-32">Nome</th>
                   <th className="px-2 py-1 text-left font-semibold border-b w-24">Tipo</th>
-                  <th className="px-2 py-1 text-left font-semibold border-b w-24">Rendimento</th>
+                  <th className="px-2 py-1 text-left font-semibold border-b w-28">Vencimento</th>
                   <th className="px-2 py-1 text-center font-semibold border-b w-20">Métrica</th>
                 </tr>
               </thead>
@@ -178,8 +174,7 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
                         {getInvestmentTypeLabel(investment.type)}
                       </td>
                       <td rowSpan={2} className="px-2 py-1 border-b align-middle text-xs">
-                        {getYieldTypeLabel(investment.yield_type)}
-                        {investment.yield_rate > 0 && ` +${investment.yield_rate}%`}
+                        {investment.maturity_date ? format(parseISO(investment.maturity_date), 'dd/MM/yyyy', { locale: ptBR }) : '-'}
                       </td>
                       <td className="px-2 py-1 text-center text-xs bg-blue-50/50 font-medium">
                         Aplicado
@@ -197,7 +192,12 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
           </div>
 
           {/* Tabela com scroll horizontal (meses) */}
-          <div className="flex-1 overflow-x-auto">
+          <div className="flex-1 overflow-x-auto" ref={(el) => {
+            if (el && months.length > 0) {
+              // Scroll to the end on mount
+              el.scrollLeft = el.scrollWidth;
+            }
+          }}>
             <table className="text-xs w-full">
               <thead>
                 <tr className="bg-fnb-accent/5">
@@ -216,8 +216,7 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
                     <React.Fragment key={invIdx}>
                       <tr className="border-b-0">
                         {monthlyData.map((data, monthIdx) => {
-                          const currentMonth = months[monthIdx];
-                          const isBeforePurchase = currentMonth < startOfMonth(purchaseDate);
+                          const isBeforePurchase = data.isBeforePurchase;
                           
                           return (
                             <td 
@@ -257,8 +256,7 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
                       </tr>
                       <tr className={invIdx < investmentData.length - 1 ? "border-b" : ""}>
                         {monthlyData.map((data, monthIdx) => {
-                          const currentMonth = months[monthIdx];
-                          const isBeforePurchase = currentMonth < startOfMonth(purchaseDate);
+                          const isBeforePurchase = data.isBeforePurchase;
                           
                           return (
                             <td 
