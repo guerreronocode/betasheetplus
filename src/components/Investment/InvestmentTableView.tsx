@@ -222,11 +222,15 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
                           return (
                             <td 
                               key={`applied-${monthIdx}`} 
-                              className={`px-2 py-1 text-center text-xs bg-blue-50/30 relative ${isBeforePurchase ? '' : 'group cursor-pointer'}`}
+                              className={`px-2 py-1 text-center text-xs relative ${
+                                isBeforePurchase 
+                                  ? 'bg-muted/30' 
+                                  : 'bg-blue-50/30 group cursor-pointer'
+                              }`}
                               onMouseEnter={isBeforePurchase ? undefined : () => setHoveredCell({ invIdx, monthIdx, type: 'applied' })}
                               onMouseLeave={isBeforePurchase ? undefined : () => setHoveredCell(null)}
                             >
-                              {data.applied > 0 ? formatCurrency(data.applied) : '-'}
+                              {isBeforePurchase ? '' : (data.applied > 0 ? formatCurrency(data.applied) : '-')}
                               {!isBeforePurchase && hoveredCell?.invIdx === invIdx && hoveredCell?.monthIdx === monthIdx && hoveredCell?.type === 'applied' && (
                                 <div className="absolute inset-0 bg-blue-100/80 flex items-center justify-center gap-1 z-10">
                                   <Button
@@ -259,11 +263,15 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
                           return (
                             <td 
                               key={`total-${monthIdx}`} 
-                              className={`px-2 py-1 text-center text-xs font-semibold bg-green-50/30 relative ${isBeforePurchase ? '' : 'group cursor-pointer'}`}
+                              className={`px-2 py-1 text-center text-xs font-semibold relative ${
+                                isBeforePurchase 
+                                  ? 'bg-muted/30' 
+                                  : 'bg-green-50/30 group cursor-pointer'
+                              }`}
                               onMouseEnter={isBeforePurchase ? undefined : () => setHoveredCell({ invIdx, monthIdx, type: 'total' })}
                               onMouseLeave={isBeforePurchase ? undefined : () => setHoveredCell(null)}
                             >
-                              {data.total > 0 ? formatCurrency(data.total) : '-'}
+                              {isBeforePurchase ? '' : (data.total > 0 ? formatCurrency(data.total) : '-')}
                               {!isBeforePurchase && hoveredCell?.invIdx === invIdx && hoveredCell?.monthIdx === monthIdx && hoveredCell?.type === 'total' && (
                                 <div className="absolute inset-0 bg-green-100/80 flex items-center justify-center z-10">
                                   <Button

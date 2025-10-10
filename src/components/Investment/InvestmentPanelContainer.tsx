@@ -50,7 +50,7 @@ const InvestmentPanelContainer: React.FC = () => {
   };
 
   const handleAportSubmit = (investmentId: string, amount: number, currentValue: number, bankAccountId: string) => {
-    addInvestmentAport(investmentId, amount, currentValue, bankAccountId);
+    addInvestmentAport(investmentId, amount, currentValue, bankAccountId, new Date());
     setAportingInvestment(null);
   };
 

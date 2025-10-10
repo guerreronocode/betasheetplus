@@ -221,11 +221,12 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
 
   // Aporte em investimento
   const addInvestmentAportMutation = useMutation({
-    mutationFn: async ({ investmentId, amount, currentValue, bankAccountId }: {
+    mutationFn: async ({ investmentId, amount, currentValue, bankAccountId, month }: {
       investmentId: string;
       amount: number;
       currentValue: number;
       bankAccountId: string;
+      month: Date;
     }) => {
       if (!user) throw new Error('User not authenticated');
 
@@ -285,9 +286,8 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
 
       if (accountError) throw accountError;
 
-      // Criar/atualizar valor mensal para o mês atual
-      const currentDate = new Date();
-      const monthDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+      // Criar/atualizar valor mensal para o mês fornecido
+      const monthDate = new Date(month.getFullYear(), month.getMonth(), 1);
       const monthDateStr = monthDate.toISOString().split('T')[0];
 
       // Buscar valor mensal existente
@@ -380,8 +380,8 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
     }
   });
 
-  const addInvestmentAport = (investmentId: string, amount: number, currentValue: number, bankAccountId: string) => {
-    addInvestmentAportMutation.mutate({ investmentId, amount, currentValue, bankAccountId });
+  const addInvestmentAport = (investmentId: string, amount: number, currentValue: number, bankAccountId: string, month: Date) => {
+    addInvestmentAportMutation.mutate({ investmentId, amount, currentValue, bankAccountId, month });
   };
 
   const updateInvestmentValue = (investmentId: string, currentValue: number) => {

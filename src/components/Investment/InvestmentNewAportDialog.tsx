@@ -64,7 +64,7 @@ const InvestmentNewAportDialog: React.FC<InvestmentNewAportDialogProps> = ({
 
     // O novo valor total será automaticamente currentValue + aport
     const newTotal = currentValue + aport;
-    addInvestmentAport(investmentId, aport, newTotal, selectedBankAccount);
+    addInvestmentAport(investmentId, aport, newTotal, selectedBankAccount, month);
     onOpenChange(false);
   };
 
