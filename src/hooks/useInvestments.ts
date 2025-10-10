@@ -315,9 +315,8 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
           })
           .eq('id', existingMonthlyValue.id);
       } else {
-        // Criar novo registro mensal - usar o total aplicado atualizado
-        const totalApplied = investment.amount + amount;
-        const newYieldValue = currentValue - totalApplied;
+        // Criar novo registro mensal - registrar apenas o aporte do mês
+        const newYieldValue = currentValue - amount;
         
         await supabase
           .from('investment_monthly_values')
@@ -325,7 +324,7 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
             user_id: user.id,
             investment_id: investmentId,
             month_date: monthDateStr,
-            applied_value: totalApplied,
+            applied_value: amount,
             total_value: currentValue,
             yield_value: newYieldValue,
           });

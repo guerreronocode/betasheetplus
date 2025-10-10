@@ -145,8 +145,8 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
     // Saldo: Valor total do último mês (valor acumulado atual)
     const totalValue = lastMonthData.totalValue;
     
-    // Rendimento: Rendimento acumulado do último mês
-    const totalYield = lastMonthData.totalYield;
+    // Rendimento: Saldo - Aplicado (pode ser negativo)
+    const totalYield = totalValue - totalAppliedAllPeriod;
     
     // Percentual de retorno: rendimento / total aplicado
     const returnPercentage = totalAppliedAllPeriod > 0 
