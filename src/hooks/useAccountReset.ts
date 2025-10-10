@@ -54,24 +54,28 @@ export const useAccountReset = () => {
         'credit_card_bills',
         'credit_card_purchases',
         'credit_cards',
+        'investment_logs', // Logs de aportes/retiradas
+        'investment_vaults', // Cofres de investimentos
+        'investment_monthly_values', // Valores mensais dos investimentos
         'investment_profiles',
+        'user_investment_settings', // Configurações de independência financeira
         'monthly_objectives',
         'user_achievements',
         'recurring_transactions',
-        'planned_income', // Adicionado para deletar receitas planejadas
-        'planned_expenses', // Adicionado para deletar despesas planejadas
+        'planned_income',
+        'planned_expenses',
         'income',
         'expenses',
-        'bank_statement_uploads', // Adicionado para deletar uploads de extrato
+        'bank_statement_uploads',
         'goal_links', // CRÍTICO: Limpar links das metas antes das metas
-        'goals', // Deve vir antes de investments devido à foreign key linked_investment_id
+        'goals',
         'investments',
         'debts',
         'assets',
         'liabilities',
         'bank_account_vaults', // CRÍTICO: Limpar cofres antes das contas bancárias
         'bank_accounts',
-        'user_categories', // Adicionar limpeza das categorias personalizadas
+        'user_categories',
         'user_stats'
       ];
 
