@@ -83,13 +83,14 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
                           };
                         }
                         
-                        // Para meses após a compra sem registro, propagar o valor do mês anterior
+                        // Para meses após a compra sem registro, propagar apenas o valor total
+                        // Valor aplicado deve ser 0 (nenhum aporte neste mês)
                         if (idx > 0) {
                           const previousMonthValue = getMonthlyValue(investment.id, months[idx - 1]);
                           if (previousMonthValue) {
                             return {
-                              applied: previousMonthValue.applied_value,
-                              total: previousMonthValue.total_value,
+                              applied: 0, // Sem aporte neste mês
+                              total: previousMonthValue.total_value, // Mantém valor total do mês anterior
                               isBeforePurchase: false
                             };
                           }
@@ -101,8 +102,8 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
                           
                           if (previousValues.length > 0) {
                             return {
-                              applied: previousValues[0].applied_value,
-                              total: previousValues[0].total_value,
+                              applied: 0, // Sem aporte neste mês
+                              total: previousValues[0].total_value, // Mantém valor total do último mês conhecido
                               isBeforePurchase: false
                             };
                           }
