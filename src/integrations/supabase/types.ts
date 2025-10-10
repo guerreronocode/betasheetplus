@@ -851,6 +851,48 @@ export type Database = {
         }
         Relationships: []
       }
+      investment_logs: {
+        Row: {
+          amount: number
+          bank_account_id: string | null
+          created_at: string
+          id: string
+          investment_id: string
+          month_date: string
+          new_value: number | null
+          notes: string | null
+          operation_type: string
+          previous_value: number | null
+          user_id: string
+        }
+        Insert: {
+          amount?: number
+          bank_account_id?: string | null
+          created_at?: string
+          id?: string
+          investment_id: string
+          month_date: string
+          new_value?: number | null
+          notes?: string | null
+          operation_type: string
+          previous_value?: number | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          bank_account_id?: string | null
+          created_at?: string
+          id?: string
+          investment_id?: string
+          month_date?: string
+          new_value?: number | null
+          notes?: string | null
+          operation_type?: string
+          previous_value?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       investment_monthly_values: {
         Row: {
           applied_value: number
@@ -983,6 +1025,42 @@ export type Database = {
           organization_level?: string
           risk_profile?: string
           short_term_goals?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      investment_vaults: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          id: string
+          investment_id: string
+          name: string
+          reserved_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          investment_id: string
+          name: string
+          reserved_amount?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          investment_id?: string
+          name?: string
+          reserved_amount?: number
           updated_at?: string
           user_id?: string
         }

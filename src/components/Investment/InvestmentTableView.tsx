@@ -29,7 +29,7 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
 }) => {
   const { monthlyValues, getMonthlyValue } = useInvestmentMonthlyValues(undefined, startDate, endDate);
   const [hoveredCell, setHoveredCell] = useState<{ invIdx: number; monthIdx: number; type: 'applied' | 'total' } | null>(null);
-  const [historyDialog, setHistoryDialog] = useState<{ open: boolean; investmentId: string; month: Date } | null>(null);
+  const [historyDialog, setHistoryDialog] = useState<{ open: boolean; investmentId: string } | null>(null);
   const [editDialog, setEditDialog] = useState<{ 
     open: boolean; 
     investmentId: string; 
@@ -236,7 +236,7 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
                                     size="sm"
                                     variant="ghost"
                                     className="h-6 w-6 p-0"
-                                    onClick={() => setHistoryDialog({ open: true, investmentId: investment.id, month: months[monthIdx] })}
+                                    onClick={() => setHistoryDialog({ open: true, investmentId: investment.id })}
                                   >
                                     <History className="h-3 w-3" />
                                   </Button>
@@ -307,7 +307,6 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
           open={historyDialog.open}
           onOpenChange={(open) => setHistoryDialog(open ? historyDialog : null)}
           investmentId={historyDialog.investmentId}
-          month={historyDialog.month}
         />
       )}
 

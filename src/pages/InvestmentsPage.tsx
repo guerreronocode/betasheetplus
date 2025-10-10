@@ -3,6 +3,8 @@ import { Layout } from '@/components/Layout';
 import InvestmentTableView from '@/components/Investment/InvestmentTableView';
 import InvestmentOverviewChart from '@/components/Investment/InvestmentOverviewChart';
 import InvestmentWithdrawDialog from '@/components/Investment/InvestmentWithdrawDialog';
+import InvestmentAportHistoryDialog from '@/components/Investment/InvestmentAportHistoryDialog';
+import InvestmentVaultsDialog from '@/components/Investment/InvestmentVaultsDialog';
 import { useInvestments } from '@/hooks/useInvestments';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { Card } from '@/components/ui/card';
@@ -13,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { CalendarIcon, Plus, TrendingDown, History } from 'lucide-react';
+import { CalendarIcon, Plus, TrendingDown, History, Vault } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const InvestmentsPage = () => {
@@ -24,6 +26,8 @@ const InvestmentsPage = () => {
   const [selectedInvestments, setSelectedInvestments] = useState<string[]>([]);
   const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isLogsDialogOpen, setIsLogsDialogOpen] = useState(false);
+  const [isVaultsDialogOpen, setIsVaultsDialogOpen] = useState(false);
   
   const [form, setForm] = useState<{
     name: string;
@@ -233,10 +237,19 @@ const InvestmentsPage = () => {
                   <Button
                     variant="outline"
                     size="icon"
-                    disabled={selectedInvestments.length === 0}
-                    title="Visualizar log de ações"
+                    onClick={() => setIsLogsDialogOpen(true)}
+                    title="Visualizar histórico de operações"
                   >
                     <History className="h-4 w-4" />
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => setIsVaultsDialogOpen(true)}
+                    title="Gerenciar cofres de investimentos"
+                  >
+                    <Vault className="h-4 w-4" />
                   </Button>
                 </div>
 
@@ -252,6 +265,16 @@ const InvestmentsPage = () => {
                   isOpen={isWithdrawDialogOpen}
                   onClose={() => setIsWithdrawDialogOpen(false)}
                   investments={investments}
+                />
+
+                <InvestmentAportHistoryDialog
+                  open={isLogsDialogOpen}
+                  onOpenChange={setIsLogsDialogOpen}
+                />
+
+                <InvestmentVaultsDialog
+                  open={isVaultsDialogOpen}
+                  onOpenChange={setIsVaultsDialogOpen}
                 />
               </>
             )}

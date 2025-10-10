@@ -253,12 +253,14 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
       // Buscar investimento atual
       const { data: investment, error: getError } = await supabase
         .from('investments')
-        .select('amount')
+        .select('amount, current_value')
         .eq('id', investmentId)
         .eq('user_id', user.id)
         .single();
 
       if (getError) throw getError;
+
+      const previousValue = investment.current_value || investment.amount;
 
       // Atualizar investimento
       const { error: investmentError } = await supabase
@@ -329,11 +331,26 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
           });
       }
 
+      // Registrar log do aporte
+      await supabase
+        .from('investment_logs')
+        .insert({
+          user_id: user.id,
+          investment_id: investmentId,
+          operation_type: 'aport',
+          amount,
+          previous_value: previousValue,
+          new_value: currentValue,
+          month_date: monthDateStr,
+          bank_account_id: bankAccountId,
+        });
+
       return { investmentId, amount, currentValue };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['investments'] });
       queryClient.invalidateQueries({ queryKey: ['investment_monthly_values'] });
+      queryClient.invalidateQueries({ queryKey: ['investment-logs'] });
       queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
       queryClient.invalidateQueries({ queryKey: ['user_stats'] });
       toast({ title: 'Aporte realizado com sucesso!' });
@@ -342,6 +359,128 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
       console.error('Erro ao realizar aporte:', error);
       toast({ 
         title: 'Erro ao realizar aporte', 
+        description: error.message,
+        variant: 'destructive' 
+      });
+    }
+  });
+
+  // Retirada de investimento
+  const withdrawInvestmentMutation = useMutation({
+    mutationFn: async ({ investmentId, amount, currentValue, bankAccountId, month }: {
+      investmentId: string;
+      amount: number;
+      currentValue: number;
+      bankAccountId: string;
+      month: Date;
+    }) => {
+      if (!user) throw new Error('User not authenticated');
+
+      // Buscar investimento atual
+      const { data: investment, error: getError } = await supabase
+        .from('investments')
+        .select('amount, current_value')
+        .eq('id', investmentId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (getError) throw getError;
+
+      if (investment.amount < amount) {
+        throw new Error('Valor de retirada maior que o valor investido');
+      }
+
+      const previousValue = investment.current_value || investment.amount;
+
+      // Atualizar investimento
+      const { error: investmentError } = await supabase
+        .from('investments')
+        .update({
+          amount: investment.amount - amount,
+          current_value: currentValue,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', investmentId)
+        .eq('user_id', user.id);
+
+      if (investmentError) throw investmentError;
+
+      // Creditar o valor na conta bancária
+      const { data: currentAccount, error: fetchError } = await supabase
+        .from('bank_accounts')
+        .select('balance')
+        .eq('id', bankAccountId)
+        .eq('user_id', user.id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const newBalance = currentAccount.balance + amount;
+      const { error: accountError } = await supabase
+        .from('bank_accounts')
+        .update({
+          balance: newBalance,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', bankAccountId)
+        .eq('user_id', user.id);
+
+      if (accountError) throw accountError;
+
+      // Atualizar valor mensal
+      const monthDate = new Date(month.getFullYear(), month.getMonth(), 1);
+      const monthDateStr = monthDate.toISOString().split('T')[0];
+
+      const { data: existingMonthlyValue } = await supabase
+        .from('investment_monthly_values')
+        .select('*')
+        .eq('investment_id', investmentId)
+        .eq('month_date', monthDateStr)
+        .maybeSingle();
+
+      if (existingMonthlyValue) {
+        const newAppliedValue = existingMonthlyValue.applied_value - amount;
+        const newYieldValue = currentValue - newAppliedValue;
+
+        await supabase
+          .from('investment_monthly_values')
+          .update({
+            applied_value: newAppliedValue,
+            total_value: currentValue,
+            yield_value: newYieldValue,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingMonthlyValue.id);
+      }
+
+      // Registrar log da retirada
+      await supabase
+        .from('investment_logs')
+        .insert({
+          user_id: user.id,
+          investment_id: investmentId,
+          operation_type: 'withdraw',
+          amount,
+          previous_value: previousValue,
+          new_value: currentValue,
+          month_date: monthDateStr,
+          bank_account_id: bankAccountId,
+        });
+
+      return { investmentId, amount, currentValue };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['investments'] });
+      queryClient.invalidateQueries({ queryKey: ['investment_monthly_values'] });
+      queryClient.invalidateQueries({ queryKey: ['investment-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
+      queryClient.invalidateQueries({ queryKey: ['user_stats'] });
+      toast({ title: 'Retirada realizada com sucesso!' });
+    },
+    onError: (error) => {
+      console.error('Erro ao realizar retirada:', error);
+      toast({ 
+        title: 'Erro ao realizar retirada', 
         description: error.message,
         variant: 'destructive' 
       });
@@ -388,6 +527,10 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
     updateInvestmentValueMutation.mutate({ investmentId, currentValue });
   };
 
+  const withdrawInvestment = (investmentId: string, amount: number, currentValue: number, bankAccountId: string, month: Date) => {
+    withdrawInvestmentMutation.mutate({ investmentId, amount, currentValue, bankAccountId, month });
+  };
+
   return {
     investments,
     investmentsLoading: investmentsLoading || authLoading,
@@ -395,7 +538,9 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
     updateInvestment: updateInvestmentMutation.mutate,
     deleteInvestment: deleteInvestmentMutation.mutate,
     addInvestmentAport,
+    withdrawInvestment,
     updateInvestmentValue,
     isAddingInvestment: addInvestmentMutation.isPending,
+    isWithdrawingInvestment: withdrawInvestmentMutation.isPending,
   };
 };
