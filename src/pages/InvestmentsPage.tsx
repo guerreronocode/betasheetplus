@@ -105,6 +105,25 @@ const InvestmentsPage = () => {
                         className="h-7 text-xs"
                         onClick={() => {
                           const today = new Date();
+                          if (investments.length > 0) {
+                            const firstPurchaseDate = investments
+                              .map(inv => new Date(inv.purchase_date))
+                              .sort((a, b) => a.getTime() - b.getTime())[0];
+                            setTempStartDate(firstPurchaseDate);
+                          } else {
+                            setTempStartDate(today);
+                          }
+                          setTempEndDate(today);
+                        }}
+                      >
+                        Máximo
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 text-xs"
+                        onClick={() => {
+                          const today = new Date();
                           const oneMonthAgo = new Date(today.getFullYear(), today.getMonth() - 1, 1);
                           setTempStartDate(oneMonthAgo);
                           setTempEndDate(today);

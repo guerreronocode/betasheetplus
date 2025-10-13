@@ -69,6 +69,25 @@ export const useInvestmentLogs = (investmentId?: string) => {
     },
   });
 
+  const updateLogMutation = useMutation({
+    mutationFn: async ({ logId, data }: { logId: string; data: Partial<InvestmentLog> }) => {
+      const { error } = await supabase
+        .from('investment_logs')
+        .update(data)
+        .eq('id', logId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['investment-logs'] });
+      toast.success('Log atualizado com sucesso');
+    },
+    onError: (error) => {
+      console.error('Error updating investment log:', error);
+      toast.error('Erro ao atualizar log');
+    },
+  });
+
   const deleteLogMutation = useMutation({
     mutationFn: async (logId: string) => {
       const { error } = await supabase
@@ -92,8 +111,10 @@ export const useInvestmentLogs = (investmentId?: string) => {
     logs,
     isLoading,
     createLog: createLogMutation.mutateAsync,
+    updateLog: updateLogMutation.mutateAsync,
     deleteLog: deleteLogMutation.mutateAsync,
     isCreatingLog: createLogMutation.isPending,
+    isUpdatingLog: updateLogMutation.isPending,
     isDeletingLog: deleteLogMutation.isPending,
   };
 };

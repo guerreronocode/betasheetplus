@@ -6,13 +6,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useInvestmentLogs } from '@/hooks/useInvestmentLogs';
+import { useInvestmentLogs, InvestmentLog } from '@/hooks/useInvestmentLogs';
 import { useInvestments } from '@/hooks/useInvestments';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Trash2, TrendingUp, TrendingDown, RefreshCw } from 'lucide-react';
+import { Trash2, TrendingUp, TrendingDown, RefreshCw, Edit } from 'lucide-react';
 
 interface InvestmentAportHistoryDialogProps {
   open: boolean;
@@ -27,7 +29,13 @@ const InvestmentAportHistoryDialog: React.FC<InvestmentAportHistoryDialogProps> 
 }) => {
   const [selectedInvestmentId, setSelectedInvestmentId] = useState<string | undefined>(initialInvestmentId);
   const { investments } = useInvestments();
-  const { logs, deleteLog, isDeletingLog } = useInvestmentLogs(selectedInvestmentId);
+  const { logs, updateLog, deleteLog, isDeletingLog, isUpdatingLog } = useInvestmentLogs(selectedInvestmentId);
+  
+  const [editingLog, setEditingLog] = useState<InvestmentLog | null>(null);
+  const [editForm, setEditForm] = useState({
+    amount: '',
+    notes: '',
+  });
 
   const getOperationIcon = (type: string) => {
     switch (type) {
@@ -47,12 +55,35 @@ const InvestmentAportHistoryDialog: React.FC<InvestmentAportHistoryDialogProps> 
       case 'aport':
         return 'Aporte';
       case 'withdraw':
-        return 'Retirada';
+        return 'Resgate';
       case 'update_value':
         return 'Atualização de Valor';
       default:
         return type;
     }
+  };
+
+  const handleEditClick = (log: InvestmentLog) => {
+    setEditingLog(log);
+    setEditForm({
+      amount: log.amount.toString(),
+      notes: log.notes || '',
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingLog) return;
+
+    await updateLog({
+      logId: editingLog.id,
+      data: {
+        amount: parseFloat(editForm.amount),
+        notes: editForm.notes || null,
+      },
+    });
+
+    setEditingLog(null);
+    setEditForm({ amount: '', notes: '' });
   };
 
   return (
@@ -123,15 +154,26 @@ const InvestmentAportHistoryDialog: React.FC<InvestmentAportHistoryDialogProps> 
                         )}
                       </div>
                     </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteLog(log.id)}
-                      disabled={isDeletingLog}
-                      className="ml-2"
-                    >
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    <div className="flex gap-1 ml-2">
+                      {(log.operation_type === 'aport' || log.operation_type === 'withdraw') && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditClick(log)}
+                          disabled={isUpdatingLog || isDeletingLog}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteLog(log.id)}
+                        disabled={isDeletingLog}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
                   </div>
                 );
               })}
@@ -139,6 +181,48 @@ const InvestmentAportHistoryDialog: React.FC<InvestmentAportHistoryDialogProps> 
           )}
         </div>
       </DialogContent>
+
+      {/* Edit Log Dialog */}
+      <Dialog open={!!editingLog} onOpenChange={(open) => !open && setEditingLog(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Editar Operação</DialogTitle>
+            <DialogDescription>
+              Edite os detalhes da operação de {editingLog ? getOperationLabel(editingLog.operation_type).toLowerCase() : ''}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="edit-amount">Valor</Label>
+              <Input
+                id="edit-amount"
+                type="number"
+                step="0.01"
+                value={editForm.amount}
+                onChange={(e) => setEditForm(prev => ({ ...prev, amount: e.target.value }))}
+                placeholder="0.00"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-notes">Observações</Label>
+              <Input
+                id="edit-notes"
+                value={editForm.notes}
+                onChange={(e) => setEditForm(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Adicione uma observação (opcional)"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setEditingLog(null)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveEdit} disabled={isUpdatingLog || !editForm.amount}>
+                Salvar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Dialog>
   );
 };
