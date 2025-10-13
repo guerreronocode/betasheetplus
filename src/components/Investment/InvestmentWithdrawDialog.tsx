@@ -17,12 +17,14 @@ interface InvestmentWithdrawDialogProps {
   isOpen: boolean;
   onClose: () => void;
   investments: Investment[];
+  preSelectedInvestmentId?: string;
 }
 
 const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
   isOpen,
   onClose,
-  investments
+  investments,
+  preSelectedInvestmentId
 }) => {
   const { bankAccounts } = useFinancialData();
   const { toast } = useToast();
@@ -36,6 +38,13 @@ const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
   const [hasTransactionCost, setHasTransactionCost] = useState(false);
   const [transactionCost, setTransactionCost] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Set pre-selected investment when dialog opens
+  React.useEffect(() => {
+    if (isOpen && preSelectedInvestmentId) {
+      setSelectedInvestmentId(preSelectedInvestmentId);
+    }
+  }, [isOpen, preSelectedInvestmentId]);
 
   const selectedInvestment = investments.find(inv => inv.id === selectedInvestmentId);
 

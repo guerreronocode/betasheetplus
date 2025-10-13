@@ -55,19 +55,24 @@ const InvestmentsPage = () => {
     already_owned: false
   });
   
-  // Date filter states
+  // Date filter states - default from first investment to today
   const [appliedStartDate, setAppliedStartDate] = useState<Date>(() => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - 12);
-    return date;
+    if (investments.length === 0) return new Date();
+    const firstPurchaseDate = investments
+      .map(inv => new Date(inv.purchase_date))
+      .sort((a, b) => a.getTime() - b.getTime())[0];
+    return firstPurchaseDate || new Date();
   });
   const [appliedEndDate, setAppliedEndDate] = useState<Date>(new Date());
   const [tempStartDate, setTempStartDate] = useState<Date | undefined>(() => {
-    const date = new Date();
-    date.setMonth(date.getMonth() - 12);
-    return date;
+    if (investments.length === 0) return new Date();
+    const firstPurchaseDate = investments
+      .map(inv => new Date(inv.purchase_date))
+      .sort((a, b) => a.getTime() - b.getTime())[0];
+    return firstPurchaseDate || new Date();
   });
   const [tempEndDate, setTempEndDate] = useState<Date | undefined>(new Date());
+  const [preSelectedInvestmentId, setPreSelectedInvestmentId] = useState<string | undefined>();
 
 
   return (
@@ -259,12 +264,24 @@ const InvestmentsPage = () => {
                   endDate={appliedEndDate}
                   selectedInvestments={selectedInvestments}
                   onSelectionChange={setSelectedInvestments}
+                  onOpenWithdrawDialog={(investmentId) => {
+                    setPreSelectedInvestmentId(investmentId);
+                    setIsWithdrawDialogOpen(true);
+                  }}
+                  onOpenVaultsDialog={(investmentId) => {
+                    setPreSelectedInvestmentId(investmentId);
+                    setIsVaultsDialogOpen(true);
+                  }}
                 />
 
                 <InvestmentWithdrawDialog
                   isOpen={isWithdrawDialogOpen}
-                  onClose={() => setIsWithdrawDialogOpen(false)}
+                  onClose={() => {
+                    setIsWithdrawDialogOpen(false);
+                    setPreSelectedInvestmentId(undefined);
+                  }}
                   investments={investments}
+                  preSelectedInvestmentId={preSelectedInvestmentId}
                 />
 
                 <InvestmentAportHistoryDialog
@@ -274,7 +291,11 @@ const InvestmentsPage = () => {
 
                 <InvestmentVaultsDialog
                   open={isVaultsDialogOpen}
-                  onOpenChange={setIsVaultsDialogOpen}
+                  onOpenChange={(open) => {
+                    setIsVaultsDialogOpen(open);
+                    if (!open) setPreSelectedInvestmentId(undefined);
+                  }}
+                  investmentId={preSelectedInvestmentId}
                 />
               </>
             )}

@@ -6,7 +6,7 @@ import { getInvestmentTypeLabel } from '@/utils/investmentHelpers';
 import { Investment } from '@/hooks/useInvestments';
 import { format, startOfMonth, eachMonthOfInterval, isSameMonth, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Edit, Plus, History } from 'lucide-react';
+import { Edit, Plus, History, TrendingDown, Vault } from 'lucide-react';
 import InvestmentAportHistoryDialog from './InvestmentAportHistoryDialog';
 import EditMonthValueDialog from './EditMonthValueDialog';
 import InvestmentNewAportDialog from './InvestmentNewAportDialog';
@@ -18,6 +18,8 @@ interface InvestmentTableViewProps {
   endDate: Date;
   selectedInvestments?: string[];
   onSelectionChange?: (selected: string[]) => void;
+  onOpenWithdrawDialog?: (investmentId: string) => void;
+  onOpenVaultsDialog?: (investmentId: string) => void;
 }
 
 const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({ 
@@ -25,10 +27,13 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
   startDate,
   endDate,
   selectedInvestments = [],
-  onSelectionChange
+  onSelectionChange,
+  onOpenWithdrawDialog,
+  onOpenVaultsDialog
 }) => {
   const { monthlyValues, getMonthlyValue } = useInvestmentMonthlyValues(undefined, startDate, endDate);
   const [hoveredCell, setHoveredCell] = useState<{ invIdx: number; monthIdx: number; type: 'applied' | 'total' } | null>(null);
+  const [hoveredInvestmentName, setHoveredInvestmentName] = useState<number | null>(null);
   const [historyDialog, setHistoryDialog] = useState<{ open: boolean; investmentId: string } | null>(null);
   const [editDialog, setEditDialog] = useState<{ 
     open: boolean; 
@@ -168,8 +173,37 @@ const InvestmentTableView: React.FC<InvestmentTableViewProps> = ({
                 {investmentData.map(({ investment }, invIdx) => (
                   <React.Fragment key={investment.id}>
                     <tr className="border-b-0">
-                      <td rowSpan={2} className="px-2 py-1 font-medium border-b align-middle">
-                        {investment.name}
+                      <td 
+                        rowSpan={2} 
+                        className="px-2 py-1 font-medium border-b align-middle relative group cursor-pointer"
+                        onMouseEnter={() => setHoveredInvestmentName(invIdx)}
+                        onMouseLeave={() => setHoveredInvestmentName(null)}
+                      >
+                        <span className={hoveredInvestmentName === invIdx ? 'opacity-0' : ''}>
+                          {investment.name}
+                        </span>
+                        {hoveredInvestmentName === invIdx && (
+                          <div className="absolute inset-0 bg-fnb-accent/10 flex items-center justify-center gap-2 z-10">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0"
+                              onClick={() => onOpenWithdrawDialog?.(investment.id)}
+                              title="Resgate de investimento"
+                            >
+                              <TrendingDown className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0"
+                              onClick={() => onOpenVaultsDialog?.(investment.id)}
+                              title="Cofres de investimento"
+                            >
+                              <Vault className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        )}
                       </td>
                       <td rowSpan={2} className="px-2 py-1 border-b align-middle text-xs">
                         {getInvestmentTypeLabel(investment.type)}
