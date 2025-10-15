@@ -55,23 +55,28 @@ const InvestmentsPage = () => {
     already_owned: false
   });
   
+  // Calculate first purchase date
+  const firstPurchaseDate = React.useMemo(() => {
+    if (investments.length === 0) return new Date();
+    const sorted = investments
+      .map(inv => new Date(inv.purchase_date))
+      .sort((a, b) => a.getTime() - b.getTime());
+    return sorted[0] || new Date();
+  }, [investments]);
+
   // Date filter states - default from first investment to today
-  const [appliedStartDate, setAppliedStartDate] = useState<Date>(() => {
-    if (investments.length === 0) return new Date();
-    const firstPurchaseDate = investments
-      .map(inv => new Date(inv.purchase_date))
-      .sort((a, b) => a.getTime() - b.getTime())[0];
-    return firstPurchaseDate || new Date();
-  });
+  const [appliedStartDate, setAppliedStartDate] = useState<Date>(new Date());
   const [appliedEndDate, setAppliedEndDate] = useState<Date>(new Date());
-  const [tempStartDate, setTempStartDate] = useState<Date | undefined>(() => {
-    if (investments.length === 0) return new Date();
-    const firstPurchaseDate = investments
-      .map(inv => new Date(inv.purchase_date))
-      .sort((a, b) => a.getTime() - b.getTime())[0];
-    return firstPurchaseDate || new Date();
-  });
+  const [tempStartDate, setTempStartDate] = useState<Date | undefined>(new Date());
   const [tempEndDate, setTempEndDate] = useState<Date | undefined>(new Date());
+
+  // Set default filter when investments load
+  React.useEffect(() => {
+    if (investments.length > 0) {
+      setAppliedStartDate(firstPurchaseDate);
+      setAppliedEndDate(new Date());
+    }
+  }, [investments.length, firstPurchaseDate]);
   const [preSelectedInvestmentId, setPreSelectedInvestmentId] = useState<string | undefined>();
 
 

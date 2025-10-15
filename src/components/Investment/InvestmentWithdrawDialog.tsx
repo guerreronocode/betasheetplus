@@ -34,7 +34,10 @@ const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
   const [selectedInvestmentId, setSelectedInvestmentId] = useState<string>('');
   const [withdrawAmount, setWithdrawAmount] = useState<string>('');
   const [bankAccountId, setBankAccountId] = useState<string>('');
-  const [withdrawDate, setWithdrawDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [withdrawMonth, setWithdrawMonth] = useState<string>(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  });
   const [hasTransactionCost, setHasTransactionCost] = useState(false);
   const [transactionCost, setTransactionCost] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -81,6 +84,11 @@ const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
       const newCurrentValue = selectedInvestment.current_value - withdrawAmountNum;
       const proportionalAmount = (selectedInvestment.amount * newCurrentValue) / selectedInvestment.current_value;
 
+      // Parse withdraw month to get month_date
+      const [year, month] = withdrawMonth.split('-');
+      const monthDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+      const monthDateStr = monthDate.toISOString().split('T')[0];
+
       // Update investment
       const { error: investmentError } = await supabase
         .from('investments')
@@ -117,8 +125,59 @@ const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
         if (balanceError) throw balanceError;
       }
 
+      // Update monthly value for the withdrawal month
+      const { data: existingMonthlyValue } = await supabase
+        .from('investment_monthly_values')
+        .select('*')
+        .eq('investment_id', selectedInvestmentId)
+        .eq('month_date', monthDateStr)
+        .maybeSingle();
+
+      if (existingMonthlyValue) {
+        const newTotalValue = existingMonthlyValue.total_value - withdrawAmountNum;
+        const newYieldValue = newTotalValue - existingMonthlyValue.applied_value;
+
+        await supabase
+          .from('investment_monthly_values')
+          .update({
+            total_value: newTotalValue,
+            yield_value: newYieldValue,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingMonthlyValue.id);
+      } else {
+        // Create new monthly value if it doesn't exist
+        await supabase
+          .from('investment_monthly_values')
+          .insert({
+            user_id: user.id,
+            investment_id: selectedInvestmentId,
+            month_date: monthDateStr,
+            total_value: newCurrentValue,
+            applied_value: proportionalAmount,
+            yield_value: newCurrentValue - proportionalAmount
+          });
+      }
+
+      // Create withdrawal log
+      await supabase
+        .from('investment_logs')
+        .insert({
+          user_id: user.id,
+          investment_id: selectedInvestmentId,
+          operation_type: 'withdraw',
+          amount: withdrawAmountNum,
+          previous_value: selectedInvestment.current_value,
+          new_value: newCurrentValue,
+          month_date: monthDateStr,
+          bank_account_id: bankAccountId || null,
+          notes: hasTransactionCost ? `Custo de transação: R$ ${transactionCostNum.toFixed(2)}` : null
+        });
+
       // Invalidate queries
       queryClient.invalidateQueries({ queryKey: ['investments'] });
+      queryClient.invalidateQueries({ queryKey: ['investment_monthly_values'] });
+      queryClient.invalidateQueries({ queryKey: ['investment-logs'] });
       queryClient.invalidateQueries({ queryKey: ['bank_accounts'] });
       queryClient.invalidateQueries({ queryKey: ['user_stats'] });
 
@@ -133,7 +192,8 @@ const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
       setSelectedInvestmentId('');
       setWithdrawAmount('');
       setBankAccountId('');
-      setWithdrawDate(new Date().toISOString().split('T')[0]);
+      const today = new Date();
+      setWithdrawMonth(`${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`);
       setHasTransactionCost(false);
       setTransactionCost('');
       onClose();
@@ -149,7 +209,17 @@ const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
     }
   };
 
-  const today = new Date().toISOString().split('T')[0];
+  // Calculate min month based on selected investment purchase date
+  const minMonth = selectedInvestment 
+    ? (() => {
+        const purchaseDate = new Date(selectedInvestment.purchase_date);
+        return `${purchaseDate.getFullYear()}-${String(purchaseDate.getMonth() + 1).padStart(2, '0')}`;
+      })()
+    : '';
+
+  // Max month is current month
+  const today = new Date();
+  const maxMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -268,15 +338,19 @@ const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
           )}
 
           <div>
-            <Label htmlFor="withdraw_date">Data do Resgate</Label>
+            <Label htmlFor="withdraw_month">Mês/Ano do Resgate</Label>
             <Input
-              id="withdraw_date"
-              type="date"
-              max={today}
-              value={withdrawDate}
-              onChange={(e) => setWithdrawDate(e.target.value)}
+              id="withdraw_month"
+              type="month"
+              min={minMonth}
+              max={maxMonth}
+              value={withdrawMonth}
+              onChange={(e) => setWithdrawMonth(e.target.value)}
               required
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Selecione o mês em que o resgate será contabilizado
+            </p>
           </div>
 
           {withdrawAmount && hasTransactionCost && transactionCost && (
