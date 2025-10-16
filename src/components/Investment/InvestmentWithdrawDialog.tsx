@@ -145,19 +145,8 @@ const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
             updated_at: new Date().toISOString()
           })
           .eq('id', existingMonthlyValue.id);
-      } else {
-        // Create new monthly value if it doesn't exist
-        await supabase
-          .from('investment_monthly_values')
-          .insert({
-            user_id: user.id,
-            investment_id: selectedInvestmentId,
-            month_date: monthDateStr,
-            total_value: newCurrentValue,
-            applied_value: proportionalAmount,
-            yield_value: newCurrentValue - proportionalAmount
-          });
       }
+      // Não criar registro mensal se não existe - resgate não cria novo mês
 
       // Create withdrawal log
       await supabase

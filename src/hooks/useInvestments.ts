@@ -262,12 +262,11 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
 
       const previousValue = investment.current_value || investment.amount;
 
-      // Atualizar investimento
+      // Atualizar investimento - apenas o valor aplicado, não o valor total
       const { error: investmentError } = await supabase
         .from('investments')
         .update({
-          amount: investment.amount + amount, 
-          current_value: currentValue,
+          amount: investment.amount + amount,
           updated_at: new Date().toISOString()
         })
         .eq('id', investmentId)
@@ -301,23 +300,18 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
         .maybeSingle();
 
       if (existingMonthlyValue) {
-        // Atualizar valor mensal existente
+        // Atualizar valor mensal existente - apenas applied_value
         const newAppliedValue = existingMonthlyValue.applied_value + amount;
-        const newYieldValue = currentValue - newAppliedValue;
 
         await supabase
           .from('investment_monthly_values')
           .update({
             applied_value: newAppliedValue,
-            total_value: currentValue,
-            yield_value: newYieldValue,
             updated_at: new Date().toISOString()
           })
           .eq('id', existingMonthlyValue.id);
       } else {
         // Criar novo registro mensal - registrar apenas o aporte do mês
-        const newYieldValue = currentValue - amount;
-        
         await supabase
           .from('investment_monthly_values')
           .insert({
@@ -325,8 +319,8 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
             investment_id: investmentId,
             month_date: monthDateStr,
             applied_value: amount,
-            total_value: currentValue,
-            yield_value: newYieldValue,
+            total_value: 0, // Será preenchido manualmente pelo usuário
+            yield_value: 0,
           });
       }
 
@@ -338,8 +332,8 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
           investment_id: investmentId,
           operation_type: 'aport',
           amount,
-          previous_value: previousValue,
-          new_value: currentValue,
+          previous_value: null, // Não rastrear valor total nos logs
+          new_value: null,
           month_date: monthDateStr,
           bank_account_id: bankAccountId,
         });
@@ -391,12 +385,11 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
 
       const previousValue = investment.current_value || investment.amount;
 
-      // Atualizar investimento
+      // Atualizar investimento - apenas o valor aplicado
       const { error: investmentError } = await supabase
         .from('investments')
         .update({
           amount: investment.amount - amount,
-          current_value: currentValue,
           updated_at: new Date().toISOString()
         })
         .eq('id', investmentId)
@@ -439,14 +432,11 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
 
       if (existingMonthlyValue) {
         const newAppliedValue = existingMonthlyValue.applied_value - amount;
-        const newYieldValue = currentValue - newAppliedValue;
 
         await supabase
           .from('investment_monthly_values')
           .update({
             applied_value: newAppliedValue,
-            total_value: currentValue,
-            yield_value: newYieldValue,
             updated_at: new Date().toISOString()
           })
           .eq('id', existingMonthlyValue.id);
@@ -460,8 +450,8 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
           investment_id: investmentId,
           operation_type: 'withdraw',
           amount,
-          previous_value: previousValue,
-          new_value: currentValue,
+          previous_value: null,
+          new_value: null,
           month_date: monthDateStr,
           bank_account_id: bankAccountId,
         });
