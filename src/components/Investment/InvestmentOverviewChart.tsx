@@ -53,6 +53,8 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
   const chartData = useMemo(() => {
     // Manter valores acumulados por investimento entre meses
     const investmentAccumulatedValues = new Map<string, { applied: number; total: number; yield: number }>();
+    // Variável para rastrear o yield do mês anterior
+    let previousMonthTotalYield = 0;
 
     return months.map((month, monthIdx) => {
       const monthStr = format(startOfMonth(month), 'yyyy-MM-dd');
@@ -133,14 +135,16 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
       });
       totalApplied = accumulatedApplied;
 
-      // Calcular rendimento mensal (diferença do acumulado)
-      const previousMonthYield = monthIdx > 0 ? chartData[monthIdx - 1]?.totalYield ?? 0 : 0;
-      const monthlyYield = totalYield - previousMonthYield;
+      // Calcular rendimento mensal (diferença do acumulado) usando variável temporária
+      const monthlyYield = totalYield - previousMonthTotalYield;
 
       // Grau de independência baseado no rendimento MENSAL
       const independenceDegree = (settings?.financial_independence_goal ?? 0) > 0 
         ? (monthlyYield / (settings?.financial_independence_goal ?? 1)) * 100
         : 0;
+
+      // Atualizar yield anterior para próxima iteração
+      previousMonthTotalYield = totalYield;
 
       return {
         month: format(month, 'MMM/yy', { locale: ptBR }),
@@ -150,7 +154,7 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
         independenceDegree,
       };
     });
-  }, [investments, months, monthlyValues, settings]);
+  }, [investments, months, monthlyValues, settings, startDate]);
 
   // Calcular totais considerando TODO o período filtrado
   const currentTotals = useMemo(() => {
