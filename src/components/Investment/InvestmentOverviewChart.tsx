@@ -116,11 +116,8 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
         const purchaseDate = parseISO(investment.purchase_date);
         const investmentStartDate = startOfMonth(purchaseDate);
         
-        // Adicionar valor inicial APENAS UMA VEZ quando o investimento foi criado
-        // e está dentro do período filtrado
-        if (investmentStartDate >= startOfMonth(startDate) && 
-            investmentStartDate <= startOfMonth(endDate) && 
-            investmentStartDate <= month) {
+        // Adicionar valor inicial APENAS NO MÊS DE CRIAÇÃO
+        if (format(investmentStartDate, 'yyyy-MM-dd') === format(month, 'yyyy-MM-dd')) {
           accumulatedApplied += investment.amount;
         }
         
