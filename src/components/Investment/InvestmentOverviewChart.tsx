@@ -54,7 +54,7 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
     // Manter valores acumulados por investimento entre meses
     const investmentAccumulatedValues = new Map<string, { applied: number; total: number; yield: number }>();
 
-    return months.map((month, monthIdx) => {
+    return months.map((month) => {
       const monthStr = format(startOfMonth(month), 'yyyy-MM-dd');
       
       // Somar valores do mês de todos os investimentos
@@ -76,7 +76,6 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
 
         if (monthlyValue) {
           // Tem registro no banco - usar valores registrados
-          totalApplied += monthlyValue.applied_value;
           totalValue += monthlyValue.total_value;
           totalYield += monthlyValue.yield_value;
           
@@ -91,13 +90,12 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
           const accumulated = investmentAccumulatedValues.get(investment.id);
           
           if (accumulated) {
-            // Já temos valores acumulados deste investimento, propagar
-            totalApplied += accumulated.applied;
+            // Já temos valores acumulados deste investimento, apenas propagar (sem somar)
             totalValue += accumulated.total;
             totalYield += accumulated.yield;
+            // NÃO soma ao totalApplied pois não houve novo aporte
           } else {
-            // Primeiro mês sem registro - usar valor inicial do investimento
-            totalApplied += investment.amount;
+            // Primeiro mês sem registro - inicializar com valor do investimento
             totalValue += investment.amount;
             totalYield += 0;
             
@@ -109,6 +107,29 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
           }
         }
       });
+
+      // Calcular totalApplied como soma dos valores iniciais dos investimentos ativos + aportes registrados
+      let accumulatedApplied = 0;
+      investments.forEach(investment => {
+        const purchaseDate = parseISO(investment.purchase_date);
+        if (month >= startOfMonth(purchaseDate)) {
+          // Valor inicial do investimento
+          accumulatedApplied += investment.amount;
+          
+          // Somar aportes até este mês (applied_value > 0 significa aporte)
+          const aportes = monthlyValues
+            .filter(mv => 
+              mv.investment_id === investment.id && 
+              parseISO(mv.month_date) <= month &&
+              parseISO(mv.month_date) > startOfMonth(purchaseDate) &&
+              mv.applied_value > 0
+            )
+            .reduce((sum, mv) => sum + mv.applied_value, 0);
+          
+          accumulatedApplied += aportes;
+        }
+      });
+      totalApplied = accumulatedApplied;
 
       // Calcular grau de independência financeira baseado no rendimento do mês
       const independenceDegree = (settings?.financial_independence_goal ?? 0) > 0 
@@ -139,8 +160,8 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
 
     const lastMonthData = chartData[chartData.length - 1];
     
-    // Total Aplicado: Soma de TODOS os aportes durante TODO o período filtrado
-    const totalAppliedAllPeriod = chartData.reduce((sum, month) => sum + month.totalApplied, 0);
+    // Total Aplicado: usar o último valor (já é acumulado)
+    const totalAppliedAllPeriod = lastMonthData.totalApplied;
     
     // Saldo: Valor total do último mês (valor acumulado atual)
     const totalValue = lastMonthData.totalValue;
