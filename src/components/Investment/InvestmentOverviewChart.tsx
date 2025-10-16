@@ -110,28 +110,30 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
         }
       });
 
-      // Calcular totalApplied como soma dos valores iniciais + aportes DENTRO DO PERÍODO FILTRADO
+      // Calcular totalApplied acumulado até este mês
       let accumulatedApplied = 0;
       investments.forEach(investment => {
         const purchaseDate = parseISO(investment.purchase_date);
         const investmentStartDate = startOfMonth(purchaseDate);
         
-        // Se o investimento foi criado DENTRO do período filtrado, adicionar valor inicial
-        if (investmentStartDate >= startOfMonth(startDate) && investmentStartDate <= month) {
+        // Adicionar valor inicial APENAS UMA VEZ quando o investimento foi criado
+        // e está dentro do período filtrado
+        if (investmentStartDate >= startOfMonth(startDate) && 
+            investmentStartDate <= startOfMonth(endDate) && 
+            investmentStartDate <= month) {
           accumulatedApplied += investment.amount;
         }
         
-        // Adicionar aportes registrados DENTRO do período filtrado
-        const aportesNoPeriodo = monthlyValues
+        // Adicionar SOMA de todos os aportes até este mês
+        const aportesAteMes = monthlyValues
           .filter(mv => 
             mv.investment_id === investment.id && 
-            parseISO(mv.month_date) >= startOfMonth(startDate) &&
             parseISO(mv.month_date) <= month &&
             mv.applied_value > 0
           )
           .reduce((sum, mv) => sum + mv.applied_value, 0);
         
-        accumulatedApplied += aportesNoPeriodo;
+        accumulatedApplied += aportesAteMes;
       });
       totalApplied = accumulatedApplied;
 
@@ -236,7 +238,10 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
               <YAxis 
                 tick={{ fontSize: 11 }}
                 stroke="hsl(var(--muted-foreground))"
-                tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                tickFormatter={(value) => {
+                  if (value < 1000) return value.toFixed(0);
+                  return `${(value / 1000).toFixed(0)}k`;
+                }}
               />
               <Tooltip 
                 contentStyle={{ 
