@@ -90,6 +90,18 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
           .eq('user_id', user.id);
         
         if (balanceError) throw balanceError;
+
+        // Criar lançamento de despesa para o investimento
+        await supabase
+          .from('expenses')
+          .insert({
+            user_id: user.id,
+            amount: investment.amount,
+            date: investment.purchase_date,
+            description: `Investimento em ${investment.name}`,
+            category: 'Investimentos',
+            bank_account_id: investment.bank_account_id
+          });
       }
 
       const { data, error } = await supabase
@@ -290,6 +302,24 @@ export const useInvestments = (startDate?: Date, endDate?: Date) => {
       // Criar/atualizar valor mensal para o mês fornecido
       const monthDate = new Date(month.getFullYear(), month.getMonth(), 1);
       const monthDateStr = monthDate.toISOString().split('T')[0];
+
+      // Criar lançamento de despesa para o aporte
+      const { data: investmentData } = await supabase
+        .from('investments')
+        .select('name')
+        .eq('id', investmentId)
+        .single();
+
+      await supabase
+        .from('expenses')
+        .insert({
+          user_id: user.id,
+          amount: amount,
+          date: monthDateStr,
+          description: `Aporte em ${investmentData?.name || 'investimento'}`,
+          category: 'Investimentos',
+          bank_account_id: bankAccountId
+        });
 
       // Buscar valor mensal existente
       const { data: existingMonthlyValue } = await supabase

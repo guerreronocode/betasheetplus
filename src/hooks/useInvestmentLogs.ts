@@ -84,6 +84,27 @@ export const useInvestmentLogs = (investmentId?: string) => {
 
       const amountDiff = data.amount ? data.amount - originalLog.amount : 0;
 
+      // Deletar lançamento financeiro antigo
+      if (originalLog.bank_account_id) {
+        if (originalLog.operation_type === 'aport') {
+          await supabase
+            .from('expenses')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('bank_account_id', originalLog.bank_account_id)
+            .eq('amount', originalLog.amount)
+            .eq('date', originalLog.month_date);
+        } else if (originalLog.operation_type === 'withdraw') {
+          await supabase
+            .from('income')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('bank_account_id', originalLog.bank_account_id)
+            .eq('amount', originalLog.amount)
+            .eq('date', originalLog.month_date);
+        }
+      }
+
       // Atualizar o log
       const { error: updateError } = await supabase
         .from('investment_logs')
@@ -148,6 +169,43 @@ export const useInvestmentLogs = (investmentId?: string) => {
             .from('bank_accounts')
             .update({ balance: account.balance + balanceAdjust })
             .eq('id', originalLog.bank_account_id);
+        }
+      }
+
+      // Criar novo lançamento financeiro com valores atualizados
+      const newBankAccountId = data.bank_account_id || originalLog.bank_account_id;
+      const newAmount = data.amount || originalLog.amount;
+      const newDate = data.month_date || originalLog.month_date;
+
+      if (newBankAccountId) {
+        const { data: investment } = await supabase
+          .from('investments')
+          .select('name')
+          .eq('id', originalLog.investment_id)
+          .single();
+
+        if (originalLog.operation_type === 'aport') {
+          await supabase
+            .from('expenses')
+            .insert({
+              user_id: user.id,
+              amount: newAmount,
+              date: newDate,
+              description: `Aporte em ${investment?.name || 'investimento'}`,
+              category: 'Investimentos',
+              bank_account_id: newBankAccountId
+            });
+        } else if (originalLog.operation_type === 'withdraw') {
+          await supabase
+            .from('income')
+            .insert({
+              user_id: user.id,
+              amount: newAmount,
+              date: newDate,
+              description: `Resgate de ${investment?.name || 'investimento'}`,
+              category: 'Investimentos',
+              bank_account_id: newBankAccountId
+            });
         }
       }
     },
@@ -230,6 +288,25 @@ export const useInvestmentLogs = (investmentId?: string) => {
           .from('bank_accounts')
           .update({ balance: account.balance + balanceAdjust })
           .eq('id', log.bank_account_id);
+
+        // Deletar lançamento financeiro correspondente
+        if (log.operation_type === 'aport') {
+          await supabase
+            .from('expenses')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('bank_account_id', log.bank_account_id)
+            .eq('amount', log.amount)
+            .eq('date', log.month_date);
+        } else if (log.operation_type === 'withdraw') {
+          await supabase
+            .from('income')
+            .delete()
+            .eq('user_id', user.id)
+            .eq('bank_account_id', log.bank_account_id)
+            .eq('amount', log.amount)
+            .eq('date', log.month_date);
+        }
       }
 
       // Deletar o log

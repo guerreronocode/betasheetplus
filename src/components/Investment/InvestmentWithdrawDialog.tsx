@@ -123,6 +123,18 @@ const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
           .eq('user_id', user.id);
 
         if (balanceError) throw balanceError;
+
+        // Criar lançamento de receita para o resgate
+        await supabase
+          .from('income')
+          .insert({
+            user_id: user.id,
+            amount: netAmount,
+            date: monthDateStr,
+            description: `Resgate de ${selectedInvestment.name}`,
+            category: 'Investimentos',
+            bank_account_id: bankAccountId
+          });
       }
 
       // Update monthly value for the withdrawal month
@@ -145,8 +157,19 @@ const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
             updated_at: new Date().toISOString()
           })
           .eq('id', existingMonthlyValue.id);
+      } else {
+        // Criar registro mensal negativo quando não existe
+        await supabase
+          .from('investment_monthly_values')
+          .insert({
+            user_id: user.id,
+            investment_id: selectedInvestmentId,
+            month_date: monthDateStr,
+            applied_value: 0,
+            total_value: -withdrawAmountNum,
+            yield_value: -withdrawAmountNum
+          });
       }
-      // Não criar registro mensal se não existe - resgate não cria novo mês
 
       // Create withdrawal log
       await supabase
