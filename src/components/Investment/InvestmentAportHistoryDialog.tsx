@@ -92,7 +92,7 @@ const InvestmentAportHistoryDialog: React.FC<InvestmentAportHistoryDialogProps> 
         <DialogHeader>
           <DialogTitle>Histórico de Operações</DialogTitle>
           <DialogDescription>
-            Visualize todos os aportes, retiradas e atualizações de valor dos seus investimentos
+            Visualize todos os aportes e atualizações de valor dos seus investimentos
           </DialogDescription>
         </DialogHeader>
         
@@ -114,13 +114,13 @@ const InvestmentAportHistoryDialog: React.FC<InvestmentAportHistoryDialogProps> 
             </Select>
           </div>
 
-          {logs.length === 0 ? (
+          {logs.filter(log => log.operation_type !== 'withdraw').length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">
               Nenhum log encontrado para este investimento
             </p>
           ) : (
             <div className="space-y-2">
-              {logs.map((log) => {
+              {logs.filter(log => log.operation_type !== 'withdraw').map((log) => {
                 const investment = investments.find(i => i.id === log.investment_id);
                 return (
                   <div
