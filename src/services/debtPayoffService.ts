@@ -1,5 +1,9 @@
-
 import { DebtData } from './debtService';
+import { 
+  calculateEffectiveMonthlyRate, 
+  calculatePriceAmortization, 
+  validateDebtData 
+} from '@/utils/debtCalculations';
 
 export interface PayoffCalculation {
   debtId: string;
@@ -47,7 +51,7 @@ export class DebtPayoffCalculatorService {
   ): PayoffStrategy {
     // Ordenar por menor saldo devedor
     const sortedDebts = debts
-      .filter(debt => debt.status === 'active' && debt.remaining_balance > 0)
+      .filter(debt => debt.status === 'active' && validateDebtData(debt))
       .sort((a, b) => a.remaining_balance - b.remaining_balance);
 
     return this.calculateStrategy(sortedDebts, extraPayment, 'snowball');
@@ -59,11 +63,11 @@ export class DebtPayoffCalculatorService {
   ): PayoffStrategy {
     // Ordenar por maior taxa de juros
     const sortedDebts = debts
-      .filter(debt => debt.status === 'active' && debt.remaining_balance > 0)
+      .filter(debt => debt.status === 'active' && validateDebtData(debt))
       .sort((a, b) => {
-        // Calcular taxa mensal implícita
-        const rateA = this.calculateImpliedMonthlyRate(a);
-        const rateB = this.calculateImpliedMonthlyRate(b);
+        // Calcular taxa mensal efetiva
+        const rateA = calculateEffectiveMonthlyRate(a);
+        const rateB = calculateEffectiveMonthlyRate(b);
         return rateB - rateA;
       });
 
@@ -78,12 +82,11 @@ export class DebtPayoffCalculatorService {
     const calculations: PayoffCalculation[] = [];
     const monthlyTimeline: PayoffMonthData[] = [];
     
-    let availableExtraPayment = extraPayment;
     let currentMonth = 0;
     const workingDebts = sortedDebts.map(debt => ({
       ...debt,
       currentBalance: debt.remaining_balance,
-      monthlyRate: this.calculateImpliedMonthlyRate(debt)
+      monthlyRate: calculateEffectiveMonthlyRate(debt)
     }));
 
     // Simular mês a mês até quitar todas as dívidas
@@ -92,26 +95,26 @@ export class DebtPayoffCalculatorService {
       let monthlyInterest = 0;
       let totalMonthlyPayment = 0;
 
-      // Calcular pagamentos mensais normais
+      // Calcular pagamentos mensais usando sistema Price
       workingDebts.forEach(debt => {
         if (debt.currentBalance > 0) {
-          const interestCharge = debt.currentBalance * debt.monthlyRate;
-          const principalPayment = Math.min(
-            debt.installment_value - interestCharge,
-            debt.currentBalance
+          const { interest, amortization, newBalance } = calculatePriceAmortization(
+            debt.currentBalance,
+            debt.installment_value,
+            debt.monthlyRate
           );
           
-          debt.currentBalance = Math.max(0, debt.currentBalance - principalPayment);
-          monthlyInterest += interestCharge;
-          totalMonthlyPayment += debt.installment_value;
+          debt.currentBalance = newBalance;
+          monthlyInterest += interest;
+          totalMonthlyPayment += Math.min(debt.installment_value, debt.currentBalance + interest);
         }
       });
 
-      // Aplicar pagamento extra na primeira dívida ativa
-      if (availableExtraPayment > 0) {
+      // Aplicar pagamento extra na primeira dívida ativa (100% no principal)
+      if (extraPayment > 0) {
         const firstActiveDebt = workingDebts.find(debt => debt.currentBalance > 0);
         if (firstActiveDebt) {
-          const extraApplied = Math.min(availableExtraPayment, firstActiveDebt.currentBalance);
+          const extraApplied = Math.min(extraPayment, firstActiveDebt.currentBalance);
           firstActiveDebt.currentBalance -= extraApplied;
           totalMonthlyPayment += extraApplied;
         }
@@ -143,7 +146,7 @@ export class DebtPayoffCalculatorService {
         debtName: `${debt.creditor} - ${debt.description}`,
         currentBalance: debt.remaining_balance,
         monthlyPayment: debt.installment_value,
-        interestRate: this.calculateImpliedMonthlyRate(debt) * 100,
+        interestRate: calculateEffectiveMonthlyRate(debt) * 100,
         monthsToPayoff: debt.total_installments - debt.paid_installments,
         totalInterest: debt.total_interest_amount,
         order: index + 1
@@ -156,21 +159,13 @@ export class DebtPayoffCalculatorService {
     return {
       strategyName,
       totalMonthsToPayoff: currentMonth,
-      totalInterestSaved: 0, // Será calculado comparando com a estratégia oposta
+      totalInterestSaved: 0, // Será calculado em compareStrategies
       totalAmount,
       monthlyTimeline,
       debtOrder: calculations
     };
   }
 
-  private static calculateImpliedMonthlyRate(debt: DebtData): number {
-    // Calcular taxa mensal implícita baseada nos juros totais
-    const totalInterest = debt.total_debt_amount - debt.financed_amount;
-    const avgMonthlyInterest = totalInterest / debt.total_installments / debt.financed_amount;
-    
-    // Garantir uma taxa mínima realista
-    return Math.max(0.005, avgMonthlyInterest); // Mínimo de 0.5% ao mês
-  }
 
   static calculateRecommendation(
     userProfile: any, // Dados do usuário para análise
@@ -200,7 +195,7 @@ export class DebtPayoffCalculatorService {
     else if (totalDebt < 15000) profileScore -= 10;
     
     // Fator 4: Dispersão das taxas de juros
-    const rates = debts.map(debt => this.calculateImpliedMonthlyRate(debt));
+    const rates = debts.map(debt => calculateEffectiveMonthlyRate(debt));
     const maxRate = Math.max(...rates);
     const minRate = Math.min(...rates);
     const rateSpread = (maxRate - minRate) * 100;
@@ -234,20 +229,86 @@ export class DebtPayoffCalculatorService {
     const snowball = this.calculateSnowballStrategy(debts, extraPayment);
     const avalanche = this.calculateAvalancheStrategy(debts, extraPayment);
     
-    // Calcular economia relativa
-    const interestDifference = snowball.monthlyTimeline.reduce((sum, month) => sum + month.interestPaid, 0) - 
-                             avalanche.monthlyTimeline.reduce((sum, month) => sum + month.interestPaid, 0);
+    // Calcular cenário baseline (sem estratégia - apenas pagamentos mínimos)
+    const baseline = this.calculateBaselineStrategy(debts);
+    
+    // Calcular juros totais de cada estratégia
+    const snowballInterest = snowball.monthlyTimeline.reduce((sum, month) => sum + month.interestPaid, 0);
+    const avalancheInterest = avalanche.monthlyTimeline.reduce((sum, month) => sum + month.interestPaid, 0);
+    const baselineInterest = baseline.monthlyTimeline.reduce((sum, month) => sum + month.interestPaid, 0);
     
     return {
       snowball: {
         ...snowball,
-        totalInterestSaved: Math.max(0, -interestDifference)
+        totalInterestSaved: Math.max(0, baselineInterest - snowballInterest)
       },
       avalanche: {
         ...avalanche,
-        totalInterestSaved: Math.max(0, interestDifference)
+        totalInterestSaved: Math.max(0, baselineInterest - avalancheInterest)
       },
       recommendation: this.calculateRecommendation({}, debts)
+    };
+  }
+
+  /**
+   * Calcula cenário baseline (sem estratégia de aceleração)
+   * Apenas pagamentos mínimos mensais sem priorização
+   */
+  private static calculateBaselineStrategy(debts: DebtData[]): PayoffStrategy {
+    const monthlyTimeline: PayoffMonthData[] = [];
+    let currentMonth = 0;
+    
+    const workingDebts = debts
+      .filter(debt => debt.status === 'active' && validateDebtData(debt))
+      .map(debt => ({
+        ...debt,
+        currentBalance: debt.remaining_balance,
+        monthlyRate: calculateEffectiveMonthlyRate(debt)
+      }));
+
+    while (workingDebts.some(debt => debt.currentBalance > 0)) {
+      currentMonth++;
+      let monthlyInterest = 0;
+      let totalMonthlyPayment = 0;
+
+      workingDebts.forEach(debt => {
+        if (debt.currentBalance > 0) {
+          const { interest, amortization, newBalance } = calculatePriceAmortization(
+            debt.currentBalance,
+            debt.installment_value,
+            debt.monthlyRate
+          );
+          
+          debt.currentBalance = newBalance;
+          monthlyInterest += interest;
+          totalMonthlyPayment += Math.min(debt.installment_value, debt.currentBalance + interest);
+        }
+      });
+
+      monthlyTimeline.push({
+        month: currentMonth,
+        remainingDebts: workingDebts
+          .filter(debt => debt.currentBalance > 0)
+          .map(debt => ({
+            debtId: debt.id!,
+            debtName: `${debt.creditor} - ${debt.description}`,
+            remainingBalance: debt.currentBalance
+          })),
+        totalRemaining: workingDebts.reduce((sum, debt) => sum + debt.currentBalance, 0),
+        monthlyPayment: totalMonthlyPayment,
+        interestPaid: monthlyInterest
+      });
+
+      if (currentMonth > 600) break;
+    }
+
+    return {
+      strategyName: 'snowball',
+      totalMonthsToPayoff: currentMonth,
+      totalInterestSaved: 0,
+      totalAmount: debts.reduce((sum, debt) => sum + debt.remaining_balance, 0),
+      monthlyTimeline,
+      debtOrder: []
     };
   }
 }

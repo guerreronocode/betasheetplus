@@ -1,5 +1,5 @@
-
 import { DebtData } from './debtService';
+import { calculateEffectiveMonthlyRate, calculatePresentValue } from '@/utils/debtCalculations';
 
 export interface EarlyPayoffCalculation {
   currentPayoffAmount: number;
@@ -22,12 +22,12 @@ export class EarlyPayoffCalculatorService {
       return this.createEmptyCalculation();
     }
 
-    // Calcular taxa de juros mensal implícita
-    const monthlyRate = this.calculateImpliedMonthlyRate(debt);
+    // Calcular taxa de juros mensal efetiva
+    const monthlyRate = calculateEffectiveMonthlyRate(debt);
     const annualRate = ((1 + monthlyRate) ** 12 - 1) * 100;
     
     // Valor presente das parcelas restantes (valor para quitar hoje)
-    const currentPayoffAmount = this.calculatePresentValue(
+    const currentPayoffAmount = calculatePresentValue(
       debt.installment_value,
       monthlyRate,
       remainingInstallments
@@ -61,19 +61,6 @@ export class EarlyPayoffCalculatorService {
     };
   }
 
-  private static calculateImpliedMonthlyRate(debt: DebtData): number {
-    // Usar taxa implícita baseada no total de juros e prazo
-    const totalInterest = debt.total_debt_amount - debt.financed_amount;
-    const avgMonthlyInterest = totalInterest / debt.total_installments / debt.financed_amount;
-    
-    // Garantir uma taxa mínima realista
-    return Math.max(0.005, avgMonthlyInterest); // Mínimo de 0.5% ao mês
-  }
-
-  private static calculatePresentValue(payment: number, rate: number, periods: number): number {
-    if (rate === 0) return payment * periods;
-    return payment * ((1 - Math.pow(1 + rate, -periods)) / rate);
-  }
 
   private static calculateRecommendationScore(
     debt: DebtData,
