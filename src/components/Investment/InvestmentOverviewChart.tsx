@@ -87,22 +87,22 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
             yield: monthlyValue.yield_value
           });
         } else {
-          // Não tem registro - usar valores acumulados do mês anterior
+          // Não tem registro - propagar último valor conhecido
           const accumulated = investmentAccumulatedValues.get(investment.id);
           
           if (accumulated) {
-            // Propagar valores do mês anterior (sem novo aporte)
-            totalApplied += 0; // Sem novo aporte neste mês
-            totalValue += accumulated.total; // Mantém valor total anterior
-            totalYield += accumulated.yield; // Mantém rendimento acumulado
+            // Já temos valores acumulados deste investimento, propagar
+            totalApplied += accumulated.applied;
+            totalValue += accumulated.total;
+            totalYield += accumulated.yield;
           } else {
-            // Primeiro mês do investimento sem registro - usar valor inicial
-            totalApplied += 0;
+            // Primeiro mês sem registro - usar valor inicial do investimento
+            totalApplied += investment.amount;
             totalValue += investment.amount;
             totalYield += 0;
             
             investmentAccumulatedValues.set(investment.id, {
-              applied: 0,
+              applied: investment.amount,
               total: investment.amount,
               yield: 0
             });

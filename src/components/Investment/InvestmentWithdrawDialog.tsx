@@ -158,7 +158,23 @@ const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
           })
           .eq('id', existingMonthlyValue.id);
       } else {
-        // Criar registro mensal negativo quando não existe
+        // Buscar último valor total registrado antes deste mês
+        const { data: previousMonthValues } = await supabase
+          .from('investment_monthly_values')
+          .select('total_value')
+          .eq('investment_id', selectedInvestmentId)
+          .lt('month_date', monthDateStr)
+          .order('month_date', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        // Se não há registro anterior, usar o valor inicial do investimento
+        const previousTotalValue = previousMonthValues 
+          ? previousMonthValues.total_value 
+          : selectedInvestment.amount;
+
+        const newTotalValue = previousTotalValue - withdrawAmountNum;
+
         await supabase
           .from('investment_monthly_values')
           .insert({
@@ -166,8 +182,8 @@ const InvestmentWithdrawDialog: React.FC<InvestmentWithdrawDialogProps> = ({
             investment_id: selectedInvestmentId,
             month_date: monthDateStr,
             applied_value: 0,
-            total_value: -withdrawAmountNum,
-            yield_value: -withdrawAmountNum
+            total_value: newTotalValue,
+            yield_value: newTotalValue
           });
       }
 
