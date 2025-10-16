@@ -4,6 +4,7 @@ import {
   calculatePriceAmortization, 
   validateDebtData 
 } from '@/utils/debtCalculations';
+import { formatCurrency } from '@/utils/formatters';
 
 export interface PayoffCalculation {
   debtId: string;
@@ -169,14 +170,16 @@ export class DebtPayoffCalculatorService {
 
   static calculateRecommendation(
     userProfile: any, // Dados do usuário para análise
-    debts: DebtData[]
+    debts: DebtData[],
+    snowball?: PayoffStrategy,
+    avalanche?: PayoffStrategy
   ): PayoffRecommendation {
-    // Calcular ambas as estratégias
-    const snowball = this.calculateSnowballStrategy(debts);
-    const avalanche = this.calculateAvalancheStrategy(debts);
+    // Usar estratégias pré-calculadas ou calcular se não fornecidas
+    const snowballStrategy = snowball || this.calculateSnowballStrategy(debts);
+    const avalancheStrategy = avalanche || this.calculateAvalancheStrategy(debts);
     
     // Diferença de meses entre estratégias
-    const monthsDifference = snowball.totalMonthsToPayoff - avalanche.totalMonthsToPayoff;
+    const monthsDifference = snowballStrategy.totalMonthsToPayoff - avalancheStrategy.totalMonthsToPayoff;
     
     // Fatores de análise do perfil do usuário
     let profileScore = 50; // Base neutra
@@ -211,10 +214,17 @@ export class DebtPayoffCalculatorService {
     
     if (recommendedStrategy === 'avalanche') {
       userProfileType = 'aggressive';
-      reason = `Recomendamos a estratégia Avalanche pois você tem bom controle financeiro e pode economizar R$ ${Math.abs(avalanche.totalInterestSaved - snowball.totalInterestSaved).toFixed(2)} em juros, quitando ${Math.abs(monthsDifference)} meses mais cedo.`;
+      const interestDifference = Math.abs(avalancheStrategy.totalInterestSaved - snowballStrategy.totalInterestSaved);
+      const monthsDiff = Math.abs(monthsDifference);
+      
+      if (monthsDiff > 0) {
+        reason = `Recomendamos a estratégia Avalanche para maximizar economia. Você economizará ${formatCurrency(interestDifference)} em juros e quitará ${monthsDiff} ${monthsDiff === 1 ? 'mês' : 'meses'} mais cedo.`;
+      } else {
+        reason = `Recomendamos a estratégia Avalanche por priorizar as dívidas com maiores taxas de juros, garantindo máxima economia financeira de ${formatCurrency(avalancheStrategy.totalInterestSaved)}.`;
+      }
     } else {
       userProfileType = 'conservative';
-      reason = `Recomendamos a estratégia Bola de Neve para manter sua motivação alta com vitórias rápidas. Você quitará ${smallDebts} dívidas pequenas logo no início, criando momentum positivo.`;
+      reason = `Recomendamos a estratégia Bola de Neve para manter sua motivação alta. Você quitará ${smallDebts} ${smallDebts === 1 ? 'dívida' : 'dívidas'} pequenas rapidamente, criando momentum positivo.`;
     }
     
     return {
@@ -237,16 +247,38 @@ export class DebtPayoffCalculatorService {
     const avalancheInterest = avalanche.monthlyTimeline.reduce((sum, month) => sum + month.interestPaid, 0);
     const baselineInterest = baseline.monthlyTimeline.reduce((sum, month) => sum + month.interestPaid, 0);
     
-    return {
+    const snowballWithSavings = {
+      ...snowball,
+      totalInterestSaved: Math.max(0, baselineInterest - snowballInterest)
+    };
+    
+    const avalancheWithSavings = {
+      ...avalanche,
+      totalInterestSaved: Math.max(0, baselineInterest - avalancheInterest)
+    };
+    
+    // Debug logs
+    console.log('🔍 Debt Payoff Comparison:', {
+      baseline: {
+        months: baseline.totalMonthsToPayoff,
+        totalInterest: baselineInterest
+      },
       snowball: {
-        ...snowball,
-        totalInterestSaved: Math.max(0, baselineInterest - snowballInterest)
+        months: snowball.totalMonthsToPayoff,
+        totalInterest: snowballInterest,
+        saved: snowballWithSavings.totalInterestSaved
       },
       avalanche: {
-        ...avalanche,
-        totalInterestSaved: Math.max(0, baselineInterest - avalancheInterest)
-      },
-      recommendation: this.calculateRecommendation({}, debts)
+        months: avalanche.totalMonthsToPayoff,
+        totalInterest: avalancheInterest,
+        saved: avalancheWithSavings.totalInterestSaved
+      }
+    });
+    
+    return {
+      snowball: snowballWithSavings,
+      avalanche: avalancheWithSavings,
+      recommendation: this.calculateRecommendation({}, debts, snowballWithSavings, avalancheWithSavings)
     };
   }
 
