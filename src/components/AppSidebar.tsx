@@ -69,7 +69,7 @@ const controleItems = [
 
 const patrimonioItems = [
   { title: "Investimentos", icon: PiggyBank, path: "/investments" },
-  { title: "Dívidas", icon: FileText, path: "/" },
+  { title: "Dívidas", icon: FileText, path: "/debts" },
   { title: "Patrimônio", icon: Building, path: "/" },
 ]
 

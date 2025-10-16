@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { usePatrimony } from '@/hooks/usePatrimony';
 import { useFinancialData } from '@/hooks/useFinancialData';
@@ -5,8 +6,6 @@ import { patrimonyGroupLabels } from "./patrimonyCategories";
 import { usePatrimonyGroupsFull } from "@/hooks/usePatrimonyGroupsFull";
 import { PatrimonyFormFactory, PatrimonyFormData } from "@/services/patrimonyService";
 import { patrimonyCategoryRules } from "@/utils/patrimonyHelpers";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import DebtManager from "@/components/debts/DebtManager";
 import PatrimonyHeaderSection from "./PatrimonyHeaderSection";
 import PatrimonyListSection from "./PatrimonyListSection";
 import PatrimonyManagerFormSection from "./PatrimonyManagerFormSection";
@@ -100,79 +99,62 @@ const ImprovedPatrimonyManager = () => {
 
   return (
     <div>
-      <Tabs defaultValue="patrimony" className="w-full">
-        <TabsList className="mb-4 fnb-card">
-          <TabsTrigger value="patrimony" className="fnb-card hover:bg-fnb-accent/10">
-            Patrimônio
-          </TabsTrigger>
-          <TabsTrigger value="debts" className="fnb-card hover:bg-fnb-accent/10">
-            Dívidas
-          </TabsTrigger>
-        </TabsList>
+      <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
+        <h3 className="font-medium text-green-800 mb-2">✅ Integração DEFINITIVAMENTE Corrigida</h3>
+        <div className="space-y-1 text-sm text-green-700">
+          <p>
+            <strong>🎯 Lógica Implementada:</strong> Ativos são classificados automaticamente pela categoria. 
+            Carros, imóveis e bens duráveis são SEMPRE não circulantes.
+          </p>
+          <p>
+            <strong>💳 Dívidas Calculadas Dinamicamente:</strong> APENAS de cartões ATIVOS são contabilizadas no patrimônio.
+          </p>
+          <p>
+            <strong>🔄 Atualização Automática:</strong> Quando cartões são desativados, suas dívidas são IMEDIATAMENTE removidas do patrimônio.
+          </p>
+          <p>
+            <strong>✅ Garantia:</strong> Classificação contábil correta para todos os tipos de ativo e passivo.
+          </p>
+        </div>
+      </div>
 
-        <TabsContent value="patrimony">
-          <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
-            <h3 className="font-medium text-green-800 mb-2">✅ Integração DEFINITIVAMENTE Corrigida</h3>
-            <div className="space-y-1 text-sm text-green-700">
-              <p>
-                <strong>🎯 Lógica Implementada:</strong> Ativos são classificados automaticamente pela categoria. 
-                Carros, imóveis e bens duráveis são SEMPRE não circulantes.
-              </p>
-              <p>
-                <strong>💳 Dívidas Calculadas Dinamicamente:</strong> APENAS de cartões ATIVOS são contabilizadas no patrimônio.
-              </p>
-              <p>
-                <strong>🔄 Atualização Automática:</strong> Quando cartões são desativados, suas dívidas são IMEDIATAMENTE removidas do patrimônio.
-              </p>
-              <p>
-                <strong>✅ Garantia:</strong> Classificação contábil correta para todos os tipos de ativo e passivo.
-              </p>
-            </div>
-          </div>
+      <PatrimonyHeaderSection
+        groups={groups}
+        totals={totals}
+        selectedGroup={selectedGroup}
+        onGroupSelect={handleGroupSelect}
+        netWorth={patrimonioLiquido}
+      />
 
-          <PatrimonyHeaderSection
-            groups={groups}
-            totals={totals}
-            selectedGroup={selectedGroup}
-            onGroupSelect={handleGroupSelect}
-            netWorth={patrimonioLiquido}
-          />
+      {selectedGroup && (
+        <PatrimonyListSection
+          selectedGroup={selectedGroup}
+          groups={groups}
+          onEdit={handleEditItem}
+          onDelete={handleDeleteItem}
+        />
+      )}
 
-          {selectedGroup && (
-            <PatrimonyListSection
-              selectedGroup={selectedGroup}
-              groups={groups}
-              onEdit={handleEditItem}
-              onDelete={handleDeleteItem}
-            />
-          )}
-
-          <PatrimonyManagerFormSection
-            entryType={entryType}
-            setEntryType={setEntryType}
-            onResetForm={resetForm}
-            selectedGroup={selectedGroup}
-            patrimonyCategoryRules={patrimonyCategoryRules}
-            form={form}
-            setForm={setForm}
-            investments={investments}
-            bankAccounts={bankAccounts}
-            debts={debts}
-            isAddingAsset={isAddingAsset}
-            isAddingLiability={isAddingLiability}
-            addAsset={addAsset}
-            updateAsset={updateAsset}
-            deleteAsset={deleteAsset}
-            addLiability={addLiability}
-            updateLiability={updateLiability}
-            deleteLiability={deleteLiability}
-          />
-        </TabsContent>
-
-        <TabsContent value="debts">
-          <DebtManager />
-        </TabsContent>
-      </Tabs>
+      <PatrimonyManagerFormSection
+        entryType={entryType}
+        setEntryType={setEntryType}
+        onResetForm={resetForm}
+        selectedGroup={selectedGroup}
+        patrimonyCategoryRules={patrimonyCategoryRules}
+        form={form}
+        setForm={setForm}
+        investments={investments}
+        bankAccounts={bankAccounts}
+        debts={debts}
+        isAddingAsset={isAddingAsset}
+        isAddingLiability={isAddingLiability}
+        addAsset={addAsset}
+        updateAsset={updateAsset}
+        deleteAsset={deleteAsset}
+        addLiability={addLiability}
+        updateLiability={updateLiability}
+        deleteLiability={deleteLiability}
+      />
     </div>
   );
 };

@@ -21,6 +21,7 @@ import Lancamentos from "./pages/Lancamentos";
 import LancamentosPendencias from "./pages/LancamentosPendencias";
 import LancamentosSimple from "./pages/LancamentosSimple";
 import InvestmentsPage from "./pages/InvestmentsPage";
+import DebtsPage from "./pages/DebtsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -99,6 +100,11 @@ const App: React.FC = () => {
               <Route path="/investments" element={
                 <ProtectedRoute>
                   <InvestmentsPage />
+                </ProtectedRoute>
+              } />
+              <Route path="/debts" element={
+                <ProtectedRoute>
+                  <DebtsPage />
                 </ProtectedRoute>
               } />
               <Route path="/style-guide" element={<StyleGuide />} />
