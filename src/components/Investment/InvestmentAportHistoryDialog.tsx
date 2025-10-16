@@ -155,7 +155,7 @@ const InvestmentAportHistoryDialog: React.FC<InvestmentAportHistoryDialogProps> 
                       </div>
                     </div>
                     <div className="flex gap-1 ml-2">
-                      {(log.operation_type === 'aport' || log.operation_type === 'withdraw') && (
+                      {(log.operation_type === 'aport') && (
                         <Button
                           variant="ghost"
                           size="sm"

@@ -54,7 +54,7 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
     // Manter valores acumulados por investimento entre meses
     const investmentAccumulatedValues = new Map<string, { applied: number; total: number; yield: number }>();
 
-    return months.map((month) => {
+    return months.map((month, monthIdx) => {
       const monthStr = format(startOfMonth(month), 'yyyy-MM-dd');
       
       // Somar valores do mês de todos os investimentos
@@ -108,32 +108,38 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
         }
       });
 
-      // Calcular totalApplied como soma dos valores iniciais dos investimentos ativos + aportes registrados
+      // Calcular totalApplied como soma dos valores iniciais + aportes DENTRO DO PERÍODO FILTRADO
       let accumulatedApplied = 0;
       investments.forEach(investment => {
         const purchaseDate = parseISO(investment.purchase_date);
-        if (month >= startOfMonth(purchaseDate)) {
-          // Valor inicial do investimento
+        const investmentStartDate = startOfMonth(purchaseDate);
+        
+        // Se o investimento foi criado DENTRO do período filtrado, adicionar valor inicial
+        if (investmentStartDate >= startOfMonth(startDate) && investmentStartDate <= month) {
           accumulatedApplied += investment.amount;
-          
-          // Somar aportes até este mês (applied_value > 0 significa aporte)
-          const aportes = monthlyValues
-            .filter(mv => 
-              mv.investment_id === investment.id && 
-              parseISO(mv.month_date) <= month &&
-              parseISO(mv.month_date) > startOfMonth(purchaseDate) &&
-              mv.applied_value > 0
-            )
-            .reduce((sum, mv) => sum + mv.applied_value, 0);
-          
-          accumulatedApplied += aportes;
         }
+        
+        // Adicionar aportes registrados DENTRO do período filtrado
+        const aportesNoPeriodo = monthlyValues
+          .filter(mv => 
+            mv.investment_id === investment.id && 
+            parseISO(mv.month_date) >= startOfMonth(startDate) &&
+            parseISO(mv.month_date) <= month &&
+            mv.applied_value > 0
+          )
+          .reduce((sum, mv) => sum + mv.applied_value, 0);
+        
+        accumulatedApplied += aportesNoPeriodo;
       });
       totalApplied = accumulatedApplied;
 
-      // Calcular grau de independência financeira baseado no rendimento do mês
+      // Calcular rendimento mensal (diferença do acumulado)
+      const previousMonthYield = monthIdx > 0 ? chartData[monthIdx - 1]?.totalYield ?? 0 : 0;
+      const monthlyYield = totalYield - previousMonthYield;
+
+      // Grau de independência baseado no rendimento MENSAL
       const independenceDegree = (settings?.financial_independence_goal ?? 0) > 0 
-        ? (totalYield / (settings?.financial_independence_goal ?? 1)) * 100
+        ? (monthlyYield / (settings?.financial_independence_goal ?? 1)) * 100
         : 0;
 
       return {
@@ -166,16 +172,23 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
     // Saldo: Valor total do último mês (valor acumulado atual)
     const totalValue = lastMonthData.totalValue;
     
-    // Rendimento: Saldo - Aplicado (pode ser negativo)
-    const totalYield = totalValue - totalAppliedAllPeriod;
+    // Rendimento: usar totalYield do último mês (já é a diferença acumulada)
+    const totalYield = lastMonthData.totalYield;
     
     // Percentual de retorno: rendimento / total aplicado
     const returnPercentage = totalAppliedAllPeriod > 0 
       ? (totalYield / totalAppliedAllPeriod) * 100 
       : 0;
 
-    // Grau de independência: baseado no rendimento do último mês
-    const independenceDegree = lastMonthData.independenceDegree;
+    // Grau de independência: baseado no rendimento MENSAL do último mês
+    const penultimateMonthYield = chartData.length > 1 
+      ? chartData[chartData.length - 2].totalYield 
+      : 0;
+    const lastMonthlyYield = lastMonthData.totalYield - penultimateMonthYield;
+
+    const independenceDegree = (settings?.financial_independence_goal ?? 0) > 0
+      ? (lastMonthlyYield / (settings?.financial_independence_goal ?? 1)) * 100
+      : 0;
 
     return {
       totalApplied: totalAppliedAllPeriod,
