@@ -90,35 +90,51 @@ export class DebtPayoffCalculatorService {
       monthlyRate: calculateEffectiveMonthlyRate(debt)
     }));
 
+    // Calcular orçamento total disponível (soma dos pagamentos mínimos + extra)
+    const totalBudget = sortedDebts.reduce((sum, debt) => sum + debt.installment_value, 0) + extraPayment;
+
     // Simular mês a mês até quitar todas as dívidas
     while (workingDebts.some(debt => debt.currentBalance > 0)) {
       currentMonth++;
       let monthlyInterest = 0;
       let totalMonthlyPayment = 0;
+      let remainingBudget = totalBudget;
 
-      // Calcular pagamentos mensais usando sistema Price
+      // ESTRATÉGIA: Pagar mínimo nas dívidas não-prioritárias, concentrar resto na prioritária
+      
+      // 1. Identificar dívida prioritária (primeira ativa da lista ordenada)
+      const priorityDebt = workingDebts.find(debt => debt.currentBalance > 0);
+      
+      // 2. Pagar mínimo em todas as dívidas não-prioritárias
       workingDebts.forEach(debt => {
-        if (debt.currentBalance > 0) {
+        if (debt.currentBalance > 0 && debt !== priorityDebt) {
+          // Calcular pagamento mínimo usando Price
+          const minPayment = Math.min(debt.installment_value, debt.currentBalance * (1 + debt.monthlyRate));
           const { interest, amortization, newBalance } = calculatePriceAmortization(
             debt.currentBalance,
-            debt.installment_value,
+            minPayment,
             debt.monthlyRate
           );
           
           debt.currentBalance = newBalance;
           monthlyInterest += interest;
-          totalMonthlyPayment += Math.min(debt.installment_value, debt.currentBalance + interest);
+          totalMonthlyPayment += minPayment;
+          remainingBudget -= minPayment;
         }
       });
 
-      // Aplicar pagamento extra na primeira dívida ativa (100% no principal)
-      if (extraPayment > 0) {
-        const firstActiveDebt = workingDebts.find(debt => debt.currentBalance > 0);
-        if (firstActiveDebt) {
-          const extraApplied = Math.min(extraPayment, firstActiveDebt.currentBalance);
-          firstActiveDebt.currentBalance -= extraApplied;
-          totalMonthlyPayment += extraApplied;
-        }
+      // 3. Concentrar TODO o orçamento restante na dívida prioritária
+      if (priorityDebt && priorityDebt.currentBalance > 0) {
+        const maxPayment = Math.min(remainingBudget, priorityDebt.currentBalance * (1 + priorityDebt.monthlyRate));
+        const { interest, amortization, newBalance } = calculatePriceAmortization(
+          priorityDebt.currentBalance,
+          maxPayment,
+          priorityDebt.monthlyRate
+        );
+        
+        priorityDebt.currentBalance = newBalance;
+        monthlyInterest += interest;
+        totalMonthlyPayment += maxPayment;
       }
 
       // Registrar estado do mês
