@@ -8,7 +8,10 @@ import { PatrimonyFormFactory, PatrimonyFormData } from "@/services/patrimonySer
 import { patrimonyCategoryRules } from "@/utils/patrimonyHelpers";
 import PatrimonyHeaderSection from "./PatrimonyHeaderSection";
 import PatrimonyListSection from "./PatrimonyListSection";
-import PatrimonyManagerFormSection from "./PatrimonyManagerFormSection";
+import { AssetFormDialog } from './patrimony/AssetFormDialog';
+import { LiabilityFormDialog } from './patrimony/LiabilityFormDialog';
+import { Button } from '@/components/ui/button';
+import { Plus, Minus } from 'lucide-react';
 
 const ImprovedPatrimonyManager = () => {
   const {
@@ -34,6 +37,8 @@ const ImprovedPatrimonyManager = () => {
   const [entryType, setEntryType] = useState<'asset' | 'liability'>('asset');
   const [form, setForm] = useState<PatrimonyFormData>(PatrimonyFormFactory.createEmptyAssetForm());
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
+  const [isAssetDialogOpen, setIsAssetDialogOpen] = useState(false);
+  const [isLiabilityDialogOpen, setIsLiabilityDialogOpen] = useState(false);
 
   const resetForm = useCallback(() => {
     if (entryType === 'asset') {
@@ -78,6 +83,12 @@ const ImprovedPatrimonyManager = () => {
     const entryType = isAsset ? 'asset' : 'liability';
     setEntryType(entryType);
     setForm(PatrimonyFormFactory.createEditForm(item, entryType));
+    
+    if (isAsset) {
+      setIsAssetDialogOpen(true);
+    } else {
+      setIsLiabilityDialogOpen(true);
+    }
   }, []);
 
   const handleDeleteItem = useCallback((id: string) => {
@@ -99,25 +110,6 @@ const ImprovedPatrimonyManager = () => {
 
   return (
     <div>
-      <div className="mb-4 p-4 bg-green-50 rounded-lg border border-green-200">
-        <h3 className="font-medium text-green-800 mb-2">✅ Integração DEFINITIVAMENTE Corrigida</h3>
-        <div className="space-y-1 text-sm text-green-700">
-          <p>
-            <strong>🎯 Lógica Implementada:</strong> Ativos são classificados automaticamente pela categoria. 
-            Carros, imóveis e bens duráveis são SEMPRE não circulantes.
-          </p>
-          <p>
-            <strong>💳 Dívidas Calculadas Dinamicamente:</strong> APENAS de cartões ATIVOS são contabilizadas no patrimônio.
-          </p>
-          <p>
-            <strong>🔄 Atualização Automática:</strong> Quando cartões são desativados, suas dívidas são IMEDIATAMENTE removidas do patrimônio.
-          </p>
-          <p>
-            <strong>✅ Garantia:</strong> Classificação contábil correta para todos os tipos de ativo e passivo.
-          </p>
-        </div>
-      </div>
-
       <PatrimonyHeaderSection
         groups={groups}
         totals={totals}
@@ -135,22 +127,62 @@ const ImprovedPatrimonyManager = () => {
         />
       )}
 
-      <PatrimonyManagerFormSection
-        entryType={entryType}
-        setEntryType={setEntryType}
-        onResetForm={resetForm}
-        selectedGroup={selectedGroup}
-        patrimonyCategoryRules={patrimonyCategoryRules}
+      {/* Action buttons */}
+      <div className="flex gap-2 mt-6">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => {
+            setEntryType('asset');
+            setForm(PatrimonyFormFactory.createEmptyAssetForm());
+            setIsAssetDialogOpen(true);
+          }}
+          title="Adicionar ativo"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+        
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => {
+            setEntryType('liability');
+            setForm(PatrimonyFormFactory.createEmptyLiabilityForm());
+            setIsLiabilityDialogOpen(true);
+          }}
+          title="Adicionar passivo"
+        >
+          <Minus className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <AssetFormDialog
+        open={isAssetDialogOpen}
+        onOpenChange={setIsAssetDialogOpen}
         form={form}
         setForm={setForm}
+        onResetForm={resetForm}
+        patrimonyCategoryRules={patrimonyCategoryRules}
         investments={investments}
         bankAccounts={bankAccounts}
         debts={debts}
         isAddingAsset={isAddingAsset}
-        isAddingLiability={isAddingLiability}
         addAsset={addAsset}
         updateAsset={updateAsset}
         deleteAsset={deleteAsset}
+      />
+
+      <LiabilityFormDialog
+        open={isLiabilityDialogOpen}
+        onOpenChange={setIsLiabilityDialogOpen}
+        form={form}
+        setForm={setForm}
+        onResetForm={resetForm}
+        patrimonyCategoryRules={patrimonyCategoryRules}
+        investments={investments}
+        bankAccounts={bankAccounts}
+        debts={debts}
+        isAddingLiability={isAddingLiability}
         addLiability={addLiability}
         updateLiability={updateLiability}
         deleteLiability={deleteLiability}
