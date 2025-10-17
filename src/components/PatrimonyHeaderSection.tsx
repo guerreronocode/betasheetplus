@@ -1,7 +1,9 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { formatCurrency } from "@/utils/formatters";
+import { Button } from "@/components/ui/button";
+import { List, LayoutGrid } from "lucide-react";
 
 interface Props {
   groups: Record<string, any[]>;
@@ -14,6 +16,7 @@ interface Props {
 const PatrimonyHeaderSection: React.FC<Props> = ({
   groups, totals, selectedGroup, onGroupSelect, netWorth
 }) => {
+  const [detailedView, setDetailedView] = useState(false);
   const quadrants = [
     {
       key: 'ativo_circulante',
@@ -45,9 +48,81 @@ const PatrimonyHeaderSection: React.FC<Props> = ({
     }
   ];
 
+  const renderQuadrantContent = (quadrant: typeof quadrants[0]) => {
+    if (!detailedView) {
+      return (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-fnb-ink/70 uppercase tracking-wide">
+            {quadrant.title}
+          </h3>
+          <p className="text-3xl font-bold text-fnb-ink">
+            {formatCurrency(quadrant.total)}
+          </p>
+          <p className="text-xs text-fnb-ink/60">
+            {quadrant.items} {quadrant.items === 1 ? 'item' : 'itens'}
+          </p>
+        </div>
+      );
+    }
+
+    const items = groups[quadrant.key] || [];
+    const displayItems = items.slice(0, 5);
+    const hasMore = items.length > 5;
+    const othersTotal = hasMore 
+      ? items.slice(5).reduce((sum, item) => sum + (item.current_value ?? item.remaining_amount ?? 0), 0)
+      : 0;
+
+    return (
+      <div className="space-y-2">
+        <h3 className="text-xs font-semibold text-fnb-ink/70 uppercase tracking-wide">
+          {quadrant.title}
+        </h3>
+        <div className="space-y-1 text-sm max-h-48 overflow-y-auto">
+          {displayItems.map((item) => (
+            <div key={item.id} className="flex justify-between items-center">
+              <span className="text-fnb-ink/80 truncate">{item.name}</span>
+              <span className="font-medium text-fnb-ink ml-2">
+                {formatCurrency(item.current_value ?? item.remaining_amount ?? 0)}
+              </span>
+            </div>
+          ))}
+          {hasMore && (
+            <div className="flex justify-between items-center text-fnb-ink/60">
+              <span>Outros ({items.length - 5})</span>
+              <span className="font-medium ml-2">{formatCurrency(othersTotal)}</span>
+            </div>
+          )}
+          <div className="flex justify-between items-center pt-2 border-t border-fnb-ink/20">
+            <span className="font-semibold text-fnb-ink">Resumo:</span>
+            <span className="font-bold text-fnb-ink">{formatCurrency(quadrant.total)}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-fnb-ink">Meu Patrimônio</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold text-fnb-ink">Meu Patrimônio</h2>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setDetailedView(!detailedView)}
+        >
+          {detailedView ? (
+            <>
+              <LayoutGrid className="w-4 h-4 mr-2" />
+              Visão Resumida
+            </>
+          ) : (
+            <>
+              <List className="w-4 h-4 mr-2" />
+              Visão Detalhada
+            </>
+          )}
+        </Button>
+      </div>
       
       {/* Quadrantes 2x2 */}
       <div className="grid grid-cols-2 gap-4">
@@ -59,17 +134,7 @@ const PatrimonyHeaderSection: React.FC<Props> = ({
             }`}
             onClick={() => onGroupSelect(selectedGroup === quadrant.key ? '' : quadrant.key)}
           >
-            <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-fnb-ink/70 uppercase tracking-wide">
-                {quadrant.title}
-              </h3>
-              <p className="text-3xl font-bold text-fnb-ink">
-                {formatCurrency(quadrant.total)}
-              </p>
-              <p className="text-xs text-fnb-ink/60">
-                {quadrant.items} {quadrant.items === 1 ? 'item' : 'itens'}
-              </p>
-            </div>
+            {renderQuadrantContent(quadrant)}
           </Card>
         ))}
       </div>
