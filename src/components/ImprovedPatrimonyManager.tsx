@@ -118,15 +118,6 @@ const ImprovedPatrimonyManager = () => {
         netWorth={patrimonioLiquido}
       />
 
-      {selectedGroup && (
-        <PatrimonyListSection
-          selectedGroup={selectedGroup}
-          groups={groups}
-          onEdit={handleEditItem}
-          onDelete={handleDeleteItem}
-        />
-      )}
-
       {/* Action buttons */}
       <div className="flex gap-2 mt-6">
         <Button
