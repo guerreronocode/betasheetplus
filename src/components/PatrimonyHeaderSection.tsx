@@ -51,11 +51,11 @@ const PatrimonyHeaderSection: React.FC<Props> = ({
   const renderQuadrantContent = (quadrant: typeof quadrants[0]) => {
     if (!detailedView) {
       return (
-        <div className="space-y-2">
-          <h3 className="text-sm font-semibold text-fnb-ink/70 uppercase tracking-wide">
+        <div className="flex flex-col items-center justify-center space-y-1">
+          <h3 className="text-xs font-semibold text-fnb-ink/70 uppercase tracking-wide text-center">
             {quadrant.title}
           </h3>
-          <p className="text-3xl font-bold text-fnb-ink">
+          <p className="text-2xl font-bold text-fnb-ink">
             {formatCurrency(quadrant.total)}
           </p>
           <p className="text-xs text-fnb-ink/60">
@@ -129,7 +129,7 @@ const PatrimonyHeaderSection: React.FC<Props> = ({
         {quadrants.map((quadrant) => (
           <Card
             key={quadrant.key}
-            className={`p-6 cursor-pointer transition-all border-2 ${quadrant.colorClass} ${
+            className={`p-4 cursor-pointer transition-all border-2 ${quadrant.colorClass} ${
               selectedGroup === quadrant.key ? 'ring-4 ring-fnb-accent ring-offset-2' : ''
             }`}
             onClick={() => onGroupSelect(selectedGroup === quadrant.key ? '' : quadrant.key)}
