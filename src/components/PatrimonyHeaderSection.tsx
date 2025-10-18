@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { formatCurrency } from "@/utils/formatters";
 import { Button } from "@/components/ui/button";
-import { List, LayoutGrid } from "lucide-react";
+import { List, LayoutGrid, Plus, Minus } from "lucide-react";
 
 interface Props {
   groups: Record<string, any[]>;
@@ -11,10 +11,12 @@ interface Props {
   selectedGroup: string | null;
   onGroupSelect: (group: string) => void;
   netWorth: number;
+  onAddAsset: () => void;
+  onAddLiability: () => void;
 }
 
 const PatrimonyHeaderSection: React.FC<Props> = ({
-  groups, totals, selectedGroup, onGroupSelect, netWorth
+  groups, totals, selectedGroup, onGroupSelect, netWorth, onAddAsset, onAddLiability
 }) => {
   const [detailedView, setDetailedView] = useState(false);
   const quadrants = [
@@ -66,10 +68,16 @@ const PatrimonyHeaderSection: React.FC<Props> = ({
     }
 
     const items = groups[quadrant.key] || [];
-    const displayItems = items.slice(0, 5);
-    const hasMore = items.length > 5;
+    // Ordenar por valor decrescente (maior para menor)
+    const sortedItems = [...items].sort((a, b) => {
+      const valueA = a.current_value ?? a.remaining_amount ?? 0;
+      const valueB = b.current_value ?? b.remaining_amount ?? 0;
+      return valueB - valueA;
+    });
+    const displayItems = sortedItems.slice(0, 5);
+    const hasMore = sortedItems.length > 5;
     const othersTotal = hasMore 
-      ? items.slice(5).reduce((sum, item) => sum + (item.current_value ?? item.remaining_amount ?? 0), 0)
+      ? sortedItems.slice(5).reduce((sum, item) => sum + (item.current_value ?? item.remaining_amount ?? 0), 0)
       : 0;
 
     return (
@@ -105,23 +113,43 @@ const PatrimonyHeaderSection: React.FC<Props> = ({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-fnb-ink">Meu Patrimônio</h2>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setDetailedView(!detailedView)}
-        >
-          {detailedView ? (
-            <>
-              <LayoutGrid className="w-4 h-4 mr-2" />
-              Visão Resumida
-            </>
-          ) : (
-            <>
-              <List className="w-4 h-4 mr-2" />
-              Visão Detalhada
-            </>
-          )}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onAddAsset}
+            title="Adicionar ativo"
+          >
+            <Plus className="h-4 w-4" />
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={onAddLiability}
+            title="Adicionar passivo"
+          >
+            <Minus className="h-4 w-4" />
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setDetailedView(!detailedView)}
+          >
+            {detailedView ? (
+              <>
+                <LayoutGrid className="w-4 h-4 mr-2" />
+                Visão Resumida
+              </>
+            ) : (
+              <>
+                <List className="w-4 h-4 mr-2" />
+                Visão Detalhada
+              </>
+            )}
+          </Button>
+        </div>
       </div>
       
       {/* Quadrantes 2x2 */}

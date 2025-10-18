@@ -116,36 +116,17 @@ const ImprovedPatrimonyManager = () => {
         selectedGroup={selectedGroup}
         onGroupSelect={handleGroupSelect}
         netWorth={patrimonioLiquido}
+        onAddAsset={() => {
+          setEntryType('asset');
+          setForm(PatrimonyFormFactory.createEmptyAssetForm());
+          setIsAssetDialogOpen(true);
+        }}
+        onAddLiability={() => {
+          setEntryType('liability');
+          setForm(PatrimonyFormFactory.createEmptyLiabilityForm());
+          setIsLiabilityDialogOpen(true);
+        }}
       />
-
-      {/* Action buttons */}
-      <div className="flex gap-2 mt-6">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => {
-            setEntryType('asset');
-            setForm(PatrimonyFormFactory.createEmptyAssetForm());
-            setIsAssetDialogOpen(true);
-          }}
-          title="Adicionar ativo"
-        >
-          <Plus className="h-4 w-4" />
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => {
-            setEntryType('liability');
-            setForm(PatrimonyFormFactory.createEmptyLiabilityForm());
-            setIsLiabilityDialogOpen(true);
-          }}
-          title="Adicionar passivo"
-        >
-          <Minus className="h-4 w-4" />
-        </Button>
-      </div>
 
       <AssetFormDialog
         open={isAssetDialogOpen}
