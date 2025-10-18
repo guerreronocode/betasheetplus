@@ -111,26 +111,21 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
       });
 
       // Calcular totalApplied acumulado até este mês
+      // IMPORTANTE: applied_value já inclui o valor inicial no primeiro mês
       let accumulatedApplied = 0;
       investments.forEach(investment => {
         const purchaseDate = parseISO(investment.purchase_date);
-        const investmentStartDate = startOfMonth(purchaseDate);
         
-        // Adicionar valor inicial APENAS NO MÊS DE CRIAÇÃO
-        if (format(investmentStartDate, 'yyyy-MM-dd') === format(month, 'yyyy-MM-dd')) {
-          accumulatedApplied += investment.amount;
-        }
-        
-        // Adicionar SOMA de todos os aportes até este mês
-        const aportesAteMes = monthlyValues
+        // Somar APENAS os applied_value dos registros até este mês
+        const valorAplicadoAteEsteMes = monthlyValues
           .filter(mv => 
             mv.investment_id === investment.id && 
             parseISO(mv.month_date) <= month &&
-            mv.applied_value > 0
+            parseISO(mv.month_date) >= startOfMonth(purchaseDate)
           )
           .reduce((sum, mv) => sum + mv.applied_value, 0);
         
-        accumulatedApplied += aportesAteMes;
+        accumulatedApplied += valorAplicadoAteEsteMes;
       });
       totalApplied = accumulatedApplied;
 
