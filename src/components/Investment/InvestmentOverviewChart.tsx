@@ -170,8 +170,8 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
     // Saldo: Valor total do último mês (valor acumulado atual)
     const totalValue = lastMonthData.totalValue;
     
-    // Rendimento: usar totalYield do último mês (já é a diferença acumulada)
-    const totalYield = lastMonthData.totalYield;
+    // Rendimento: Saldo Total - Aplicado Total
+    const totalYield = totalValue - totalAppliedAllPeriod;
     
     // Percentual de retorno: rendimento / total aplicado
     const returnPercentage = totalAppliedAllPeriod > 0 
@@ -195,7 +195,7 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
       returnPercentage,
       independenceDegree,
     };
-  }, [chartData]);
+  }, [chartData, settings]);
 
   const handleSaveGoal = () => {
     const goalValue = parseFloat(goalInput.replace(/[^\d,]/g, '').replace(',', '.'));
