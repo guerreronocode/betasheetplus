@@ -72,15 +72,63 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
           return;
         }
 
-        // Total Aplicado: somar investment.amount (capital inicial) de todos os investimentos ativos
-        totalApplied += investment.amount;
-        
-        // Total Value: usar current_value (saldo atual total)
-        totalValue += investment.current_value || 0;
+        const monthlyValue = monthlyValues.find(
+          mv => mv.investment_id === investment.id && mv.month_date === monthStr
+        );
+
+        if (monthlyValue) {
+          // Tem registro no banco - usar valores registrados
+          totalValue += monthlyValue.total_value;
+          totalYield += monthlyValue.yield_value;
+          
+          // Atualizar valores acumulados para este investimento
+          investmentAccumulatedValues.set(investment.id, {
+            applied: monthlyValue.applied_value,
+            total: monthlyValue.total_value,
+            yield: monthlyValue.yield_value
+          });
+        } else {
+          // Não tem registro - propagar último valor conhecido
+          const accumulated = investmentAccumulatedValues.get(investment.id);
+          
+          if (accumulated) {
+            // Já temos valores acumulados deste investimento, apenas propagar (sem somar)
+            totalValue += accumulated.total;
+            totalYield += accumulated.yield;
+            // NÃO soma ao totalApplied pois não houve novo aporte
+          } else {
+            // Primeiro mês sem registro - inicializar com valor atual do investimento
+            const currentValue = investment.current_value || 0;
+            totalValue += currentValue;
+            totalYield += 0;
+            
+            investmentAccumulatedValues.set(investment.id, {
+              applied: investment.amount,
+              total: currentValue,
+              yield: 0
+            });
+          }
+        }
       });
 
-      // Rendimento = Saldo - Aplicado
-      totalYield = totalValue - totalApplied;
+      // Calcular totalApplied acumulado até este mês
+      // IMPORTANTE: applied_value já inclui o valor inicial no primeiro mês
+      let accumulatedApplied = 0;
+      investments.forEach(investment => {
+        const purchaseDate = parseISO(investment.purchase_date);
+        
+        // Somar APENAS os applied_value dos registros até este mês
+        const valorAplicadoAteEsteMes = monthlyValues
+          .filter(mv => 
+            mv.investment_id === investment.id && 
+            parseISO(mv.month_date) <= month &&
+            parseISO(mv.month_date) >= startOfMonth(purchaseDate)
+          )
+          .reduce((sum, mv) => sum + mv.applied_value, 0);
+        
+        accumulatedApplied += valorAplicadoAteEsteMes;
+      });
+      totalApplied = accumulatedApplied;
 
       // Calcular rendimento mensal (diferença do acumulado) usando variável temporária
       const monthlyYield = totalYield - previousMonthTotalYield;

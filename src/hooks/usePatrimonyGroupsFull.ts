@@ -1,6 +1,7 @@
 
 import { useMemo } from 'react';
 import { useCreditCardDebts } from './useCreditCardDebts';
+import { useInvestmentMonthlyValues } from './useInvestmentMonthlyValues';
 
 interface UsePatrimonyGroupsFullProps {
   assets: any[];
@@ -19,6 +20,16 @@ export const usePatrimonyGroupsFull = ({
 }: UsePatrimonyGroupsFullProps) => {
   
   const { creditCardDebts } = useCreditCardDebts();
+  const { monthlyValues } = useInvestmentMonthlyValues();
+  
+  // Helper function to get the most recent monthly value for an investment
+  const getLatestInvestmentValue = (investmentId: string) => {
+    const values = monthlyValues
+      .filter(mv => mv.investment_id === investmentId)
+      .sort((a, b) => new Date(b.month_date).getTime() - new Date(a.month_date).getTime());
+    
+    return values[0]?.total_value;
+  };
   
   return useMemo(() => {
     const ativoCirculante = [
@@ -38,15 +49,18 @@ export const usePatrimonyGroupsFull = ({
       // Investimentos líquidos
       ...investments
         .filter(inv => inv.liquidity === 'daily')
-        .map(inv => ({
-          id: inv.id,
-          name: inv.name,
-          current_value: Number(inv.current_value || 0),
-          category: 'Investimento',
-          description: `${inv.type} - Liquidez diária`,
-          isLinked: true,
-          source: 'investment'
-        })),
+        .map(inv => {
+          const latestValue = getLatestInvestmentValue(inv.id);
+          return {
+            id: inv.id,
+            name: inv.name,
+            current_value: Number(latestValue ?? inv.current_value ?? 0),
+            category: 'Investimento',
+            description: `${inv.type} - Liquidez diária`,
+            isLinked: true,
+            source: 'investment'
+          };
+        }),
       
       // Ativos manuais circulantes - CORREÇÃO CRÍTICA: usar classificação automática
       ...assets.filter(asset => {
@@ -88,15 +102,18 @@ export const usePatrimonyGroupsFull = ({
       // Investimentos não líquidos
       ...investments
         .filter(inv => inv.liquidity !== 'daily')
-        .map(inv => ({
-          id: inv.id,
-          name: inv.name,
-          current_value: Number(inv.current_value || 0),
-          category: 'Investimento',
-          description: `${inv.type} - ${inv.liquidity}`,
-          isLinked: true,
-          source: 'investment'
-        })),
+        .map(inv => {
+          const latestValue = getLatestInvestmentValue(inv.id);
+          return {
+            id: inv.id,
+            name: inv.name,
+            current_value: Number(latestValue ?? inv.current_value ?? 0),
+            category: 'Investimento',
+            description: `${inv.type} - ${inv.liquidity}`,
+            isLinked: true,
+            source: 'investment'
+          };
+        }),
       
       // Ativos manuais não circulantes - CORREÇÃO CRÍTICA: usar classificação automática
       ...assets.filter(asset => {
@@ -242,5 +259,5 @@ export const usePatrimonyGroupsFull = ({
       nonLinkedInvestments,
       nonLinkedDebts,
     };
-  }, [assets, liabilities, investments, bankAccounts, debts, creditCardDebts]);
+  }, [assets, liabilities, investments, bankAccounts, debts, creditCardDebts, monthlyValues]);
 };
