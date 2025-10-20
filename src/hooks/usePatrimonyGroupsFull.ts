@@ -41,7 +41,7 @@ export const usePatrimonyGroupsFull = ({
         .map(inv => ({
           id: inv.id,
           name: inv.name,
-          current_value: Number(inv.current_value || inv.amount),
+          current_value: Number(inv.current_value || 0),
           category: 'Investimento',
           description: `${inv.type} - Liquidez diária`,
           isLinked: true,
@@ -91,7 +91,7 @@ export const usePatrimonyGroupsFull = ({
         .map(inv => ({
           id: inv.id,
           name: inv.name,
-          current_value: Number(inv.current_value || inv.amount),
+          current_value: Number(inv.current_value || 0),
           category: 'Investimento',
           description: `${inv.type} - ${inv.liquidity}`,
           isLinked: true,
