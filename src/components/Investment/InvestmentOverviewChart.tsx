@@ -97,13 +97,14 @@ const InvestmentOverviewChart: React.FC<InvestmentOverviewChartProps> = ({
             totalYield += accumulated.yield;
             // NÃO soma ao totalApplied pois não houve novo aporte
           } else {
-            // Primeiro mês sem registro - inicializar com valor do investimento
-            totalValue += investment.amount;
+            // Primeiro mês sem registro - inicializar com valor atual do investimento
+            const currentValue = investment.current_value || 0;
+            totalValue += currentValue;
             totalYield += 0;
             
             investmentAccumulatedValues.set(investment.id, {
               applied: investment.amount,
-              total: investment.amount,
+              total: currentValue,
               yield: 0
             });
           }
