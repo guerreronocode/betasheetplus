@@ -3,7 +3,8 @@ import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { formatCurrency } from "@/utils/formatters";
 import { Button } from "@/components/ui/button";
-import { List, LayoutGrid, Plus, Minus } from "lucide-react";
+import { List, LayoutGrid, Plus, Minus, Eye } from "lucide-react";
+import { PatrimonyItemsModal } from "./PatrimonyItemsModal";
 
 interface Props {
   groups: Record<string, any[]>;
@@ -19,6 +20,8 @@ const PatrimonyHeaderSection: React.FC<Props> = ({
   groups, totals, selectedGroup, onGroupSelect, netWorth, onAddAsset, onAddLiability
 }) => {
   const [detailedView, setDetailedView] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedModalGroup, setSelectedModalGroup] = useState<string | null>(null);
   const quadrants = [
     {
       key: 'ativo_circulante',
@@ -50,6 +53,11 @@ const PatrimonyHeaderSection: React.FC<Props> = ({
     }
   ];
 
+  const handleOpenModal = (groupKey: string) => {
+    setSelectedModalGroup(groupKey);
+    setModalOpen(true);
+  };
+
   const renderQuadrantContent = (quadrant: typeof quadrants[0]) => {
     if (!detailedView) {
       return (
@@ -60,9 +68,24 @@ const PatrimonyHeaderSection: React.FC<Props> = ({
           <p className="text-2xl font-bold text-fnb-ink">
             {formatCurrency(quadrant.total)}
           </p>
-          <p className="text-xs text-fnb-ink/60">
-            {quadrant.items} {quadrant.items === 1 ? 'item' : 'itens'}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-xs text-fnb-ink/60">
+              {quadrant.items} {quadrant.items === 1 ? 'item' : 'itens'}
+            </p>
+            {quadrant.items > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 px-2"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleOpenModal(quadrant.key);
+                }}
+              >
+                <Eye className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
         </div>
       );
     }
@@ -182,6 +205,17 @@ const PatrimonyHeaderSection: React.FC<Props> = ({
           </p>
         </div>
       </Card>
+
+      {/* Modal de itens */}
+      {selectedModalGroup && (
+        <PatrimonyItemsModal
+          open={modalOpen}
+          onOpenChange={setModalOpen}
+          groupKey={selectedModalGroup}
+          items={groups[selectedModalGroup] || []}
+          total={totals[selectedModalGroup] || 0}
+        />
+      )}
     </div>
   );
 };
