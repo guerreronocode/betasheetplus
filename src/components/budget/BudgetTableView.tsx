@@ -112,8 +112,9 @@ const BudgetTableView: React.FC<BudgetTableViewProps> = ({
 
   return (
     <div className="space-y-4">
-      <Card className="overflow-hidden">
-        <div className="flex overflow-x-auto">
+      <div className="w-full overflow-hidden">
+        <Card className="overflow-hidden max-w-full">
+          <div className="flex overflow-x-auto">
           {/* Tabela fixa da esquerda */}
           <div className="flex-shrink-0 border-r border-border">
             <table className="text-xs">
@@ -218,6 +219,7 @@ const BudgetTableView: React.FC<BudgetTableViewProps> = ({
           </div>
         </div>
       </Card>
+      </div>
 
       {/* Dialog de detalhes */}
       <Dialog open={!!detailsCategory} onOpenChange={() => setDetailsCategory(null)}>

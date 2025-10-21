@@ -6,8 +6,17 @@ import { usePlannedExpenses } from '@/hooks/usePlannedExpenses';
 import { EnhancedBudgetProjectionChart } from './EnhancedBudgetProjectionChart';
 import { PlannedIncomeList } from './PlannedIncomeList';
 import { PlannedExpensesList } from './PlannedExpensesList';
+import { startOfMonth, endOfMonth, addMonths } from 'date-fns';
 
-export const RefactoredPlanningPanel: React.FC = () => {
+interface RefactoredPlanningPanelProps {
+  startDate?: Date;
+  endDate?: Date;
+}
+
+export const RefactoredPlanningPanel: React.FC<RefactoredPlanningPanelProps> = ({ 
+  startDate = startOfMonth(new Date()),
+  endDate = addMonths(endOfMonth(new Date()), 11)
+}) => {
   const { plannedIncome } = usePlannedIncome();
   const { plannedExpenses } = usePlannedExpenses();
 
@@ -68,7 +77,10 @@ export const RefactoredPlanningPanel: React.FC = () => {
             </Card>
           </div>
 
-          <EnhancedBudgetProjectionChart />
+          <EnhancedBudgetProjectionChart 
+            startDate={startDate} 
+            endDate={endDate} 
+          />
         </TabsContent>
 
         <TabsContent value="management" className="space-y-6">

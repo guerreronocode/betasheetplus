@@ -8,6 +8,7 @@ import { TrendingUp, TrendingDown, CalendarIcon } from 'lucide-react';
 import BudgetTableView from '@/components/budget/BudgetTableView';
 import { PlannedIncomeFormModal } from '@/components/budget/PlannedIncomeFormModal';
 import { PlannedExpenseFormModal } from '@/components/budget/PlannedExpenseFormModal';
+import { EnhancedBudgetProjectionChart } from '@/components/budget/EnhancedBudgetProjectionChart';
 import { Card, CardContent } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -118,6 +119,12 @@ const Planejamento = () => {
                   />
                 </TabsContent>
               </Tabs>
+
+              {/* Gráfico de projeção */}
+              <EnhancedBudgetProjectionChart 
+                startDate={startDate} 
+                endDate={endDate} 
+              />
             </div>
           </main>
         </SidebarInset>

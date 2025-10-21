@@ -4,6 +4,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 import { Checkbox } from '@/components/ui/checkbox';
 import { usePlannedIncome } from '@/hooks/usePlannedIncome';
 import { usePlannedExpenses } from '@/hooks/usePlannedExpenses';
+import { eachMonthOfInterval, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface ChartVisibilityState {
   saldoMensal: boolean;
@@ -19,7 +21,15 @@ const DEFAULT_VISIBILITY: ChartVisibilityState = {
   despesaPrevista: false,
 };
 
-export const EnhancedBudgetProjectionChart: React.FC = () => {
+interface EnhancedBudgetProjectionChartProps {
+  startDate: Date;
+  endDate: Date;
+}
+
+export const EnhancedBudgetProjectionChart: React.FC<EnhancedBudgetProjectionChartProps> = ({ 
+  startDate, 
+  endDate 
+}) => {
   const { plannedIncome } = usePlannedIncome();
   const { plannedExpenses } = usePlannedExpenses();
 
@@ -35,16 +45,16 @@ export const EnhancedBudgetProjectionChart: React.FC = () => {
   }, [visibility]);
 
   const projectionData = useMemo(() => {
-    const currentDate = new Date();
     const data = [];
     let cumulativeBalance = 0;
 
-    // Gerar dados para os próximos 12 meses
-    for (let i = 0; i < 12; i++) {
-      const date = new Date(currentDate.getFullYear(), currentDate.getMonth() + i, 1);
+    // Usar meses do filtro ao invés de fixo 12 meses
+    const months = eachMonthOfInterval({ start: startDate, end: endDate });
+
+    for (const date of months) {
       // Gerar monthKey no formato YYYY-MM-DD (primeiro dia do mês) para coincidir com o banco
       const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
-      const monthLabel = date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' });
+      const monthLabel = format(date, 'MMM/yy', { locale: ptBR });
 
       // Calcular receita prevista para este mês (incluindo recorrentes)
       const specificIncome = plannedIncome
@@ -112,7 +122,7 @@ export const EnhancedBudgetProjectionChart: React.FC = () => {
     }
 
     return data;
-  }, [plannedIncome, plannedExpenses]);
+  }, [plannedIncome, plannedExpenses, startDate, endDate]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {
@@ -306,7 +316,10 @@ export const EnhancedBudgetProjectionChart: React.FC = () => {
           <div className="text-center">
             <p className="text-sm text-muted-foreground">Média Mensal</p>
             <p className="text-lg font-bold" style={{ color: '#f59e0b' }}>
-              {formatCurrency((projectionData[projectionData.length - 1]?.saldoAcumulado || 0) / 12)}
+              {formatCurrency(projectionData.length > 0 
+                ? (projectionData[projectionData.length - 1]?.saldoAcumulado || 0) / projectionData.length 
+                : 0
+              )}
             </p>
           </div>
         </div>
