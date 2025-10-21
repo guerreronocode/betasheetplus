@@ -7,6 +7,14 @@ import { usePlannedIncome } from '@/hooks/usePlannedIncome';
 import { usePlannedExpenses } from '@/hooks/usePlannedExpenses';
 import { useExpenses } from '@/hooks/useExpenses';
 import { useIncome } from '@/hooks/useIncome';
+import { Button } from '@/components/ui/button';
+import { Eye } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 interface BudgetTableViewProps {
   type: 'income' | 'expense';
@@ -23,6 +31,9 @@ const BudgetTableView: React.FC<BudgetTableViewProps> = ({
   const { plannedExpenses } = usePlannedExpenses();
   const { expenses } = useExpenses();
   const { income } = useIncome();
+  
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
+  const [detailsCategory, setDetailsCategory] = useState<string | null>(null);
 
   // Gerar meses do período filtrado
   const months = useMemo(() => {
@@ -93,10 +104,16 @@ const BudgetTableView: React.FC<BudgetTableViewProps> = ({
     );
   }
 
+  // Get planned items for a specific category
+  const getCategoryPlannedItems = (category: string) => {
+    const planned = type === 'income' ? plannedIncome : plannedExpenses;
+    return planned.filter(item => item.category === category);
+  };
+
   return (
     <div className="space-y-4">
       <Card className="overflow-hidden">
-        <div className="flex">
+        <div className="flex overflow-x-auto">
           {/* Tabela fixa da esquerda */}
           <div className="flex-shrink-0 border-r border-border">
             <table className="text-xs">
@@ -112,9 +129,23 @@ const BudgetTableView: React.FC<BudgetTableViewProps> = ({
                     <tr className="border-b-0">
                       <td 
                         rowSpan={2} 
-                        className="px-2 py-1 font-medium border-b align-middle"
+                        className="px-2 py-1 font-medium border-b align-middle relative group"
+                        onMouseEnter={() => setHoveredCategory(category)}
+                        onMouseLeave={() => setHoveredCategory(null)}
                       >
-                        {category}
+                        <div className="flex items-center justify-between gap-2">
+                          <span>{category}</span>
+                          {hoveredCategory === category && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 w-6 p-0"
+                              onClick={() => setDetailsCategory(category)}
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
                       </td>
                       <td className="px-2 py-1 text-center text-xs bg-blue-50/50 font-medium">
                         Planejado
@@ -187,6 +218,57 @@ const BudgetTableView: React.FC<BudgetTableViewProps> = ({
           </div>
         </div>
       </Card>
+
+      {/* Dialog de detalhes */}
+      <Dialog open={!!detailsCategory} onOpenChange={() => setDetailsCategory(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Detalhes de {type === 'income' ? 'Receitas' : 'Despesas'} Planejadas - {detailsCategory}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 mt-4">
+            {detailsCategory && getCategoryPlannedItems(detailsCategory).map((item, idx) => (
+              <div key={idx} className="p-4 border rounded-lg bg-card">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Valor:</span>
+                    <span className="ml-2 font-semibold">{formatCurrency(item.planned_amount)}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Mês:</span>
+                    <span className="ml-2 font-medium">
+                      {format(new Date(item.month), 'MMM/yyyy', { locale: ptBR })}
+                    </span>
+                  </div>
+                  {item.is_recurring && (
+                    <>
+                      <div>
+                        <span className="text-muted-foreground">Tipo:</span>
+                        <span className="ml-2 font-medium">Recorrente</span>
+                      </div>
+                      {item.recurring_end_month && (
+                        <div>
+                          <span className="text-muted-foreground">Até:</span>
+                          <span className="ml-2 font-medium">
+                            {format(new Date(item.recurring_end_month), 'MMM/yyyy', { locale: ptBR })}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {item.description && (
+                    <div className="col-span-2">
+                      <span className="text-muted-foreground">Descrição:</span>
+                      <p className="mt-1 text-sm">{item.description}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

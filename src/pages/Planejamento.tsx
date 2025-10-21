@@ -97,7 +97,7 @@ const Planejamento = () => {
 
               {/* Tabelas de receitas e despesas */}
               <Tabs defaultValue="expenses" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 max-w-md">
+                <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="expenses">Despesas</TabsTrigger>
                   <TabsTrigger value="income">Receitas</TabsTrigger>
                 </TabsList>
