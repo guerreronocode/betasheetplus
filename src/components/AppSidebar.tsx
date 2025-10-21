@@ -75,7 +75,7 @@ const patrimonioItems = [
 
 const planejamentoItems = [
   { title: "Orçamento & Projeção", icon: Calendar, path: "/" },
-  { title: "Objetivos & Metas", icon: Goal, path: "/" },
+  { title: "Objetivos & Metas", icon: Goal, path: "/metas" },
 ]
 
 const mainSections = [
