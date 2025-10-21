@@ -52,39 +52,11 @@ const PatrimonyForm: React.FC<PatrimonyFormProps> = ({
 
   return (
     <form onSubmit={validateBeforeSubmit} className="space-y-2 border rounded p-4 mt-2 bg-gray-50">
-      <div className="flex gap-2 mb-3">
-        <Button
-          type="button"
-          variant={entryType === "asset" ? "default" : "outline"}
-          onClick={() => {
-            if (onEntryTypeChange) {
-              onEntryTypeChange("asset");
-            } else {
-              onChange({ ...form, entryType: "asset" });
-            }
-          }}
-        >
-          Ativo
+      {form.isEdit && onCancelEdit && (
+        <Button type="button" variant="secondary" className="mb-3" onClick={onCancelEdit}>
+          Cancelar edição
         </Button>
-        <Button
-          type="button"
-          variant={entryType === "liability" ? "default" : "outline"}
-          onClick={() => {
-            if (onEntryTypeChange) {
-              onEntryTypeChange("liability");
-            } else {
-              onChange({ ...form, entryType: "liability" });
-            }
-          }}
-        >
-          Passivo
-        </Button>
-        {form.isEdit && onCancelEdit && (
-          <Button type="button" variant="secondary" className="ml-2" onClick={onCancelEdit}>
-            Cancelar edição
-          </Button>
-        )}
-      </div>
+      )}
       {(localError) && (
         <div className="bg-red-100 text-red-600 border-l-4 border-red-400 p-2 text-xs rounded">
           {localError}
