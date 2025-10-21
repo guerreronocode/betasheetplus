@@ -1,14 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Target, TrendingUp, CheckCircle, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Target, TrendingUp, CheckCircle, AlertCircle, Plus } from 'lucide-react';
 import { useGoals } from '@/hooks/useGoals';
-import GoalForm from './GoalForm';
+import GoalFormDialog from './GoalFormDialog';
 import { GoalCard } from './GoalCard';
 import { formatCurrency } from '@/utils/formatters';
 
 export const GoalsManager = () => {
   const { goals, isLoading } = useGoals();
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -95,24 +97,21 @@ export const GoalsManager = () => {
         </Card>
       </div>
 
-      {/* Formulário para Nova Meta */}
-      <GoalForm />
+      {/* Botão para Nova Meta */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-xl font-semibold">Suas Metas</h2>
+        <Button onClick={() => setIsFormOpen(true)} size="sm">
+          <Plus className="w-4 h-4 mr-2" />
+          Nova Meta
+        </Button>
+      </div>
 
       {/* Lista de Metas */}
       {goals.length > 0 ? (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold">Suas Metas</h2>
-            <Badge variant="secondary">
-              {completedGoals}/{totalGoals} concluídas
-            </Badge>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {goals.map((goal) => (
-              <GoalCard key={goal.id} goal={goal} />
-            ))}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {goals.map((goal) => (
+            <GoalCard key={goal.id} goal={goal} />
+          ))}
         </div>
       ) : (
         <Card>
@@ -125,6 +124,8 @@ export const GoalsManager = () => {
           </CardContent>
         </Card>
       )}
+
+      <GoalFormDialog open={isFormOpen} onOpenChange={setIsFormOpen} />
     </div>
   );
 };

@@ -11,6 +11,7 @@ export interface Goal {
   deadline?: string;
   completed: boolean;
   color: string;
+  image_url?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -38,6 +39,7 @@ export interface CreateGoalData {
 export interface UpdateGoalData extends Partial<CreateGoalData> {
   id: string;
   completed?: boolean;
+  image_url?: string | null;
 }
 
 export const useGoals = () => {
@@ -186,6 +188,7 @@ export const useGoals = () => {
           deadline: goalData.deadline || null,
           color: goalData.color,
           completed: goalData.completed,
+          image_url: goalData.image_url,
         })
         .eq('id', id)
         .select()

@@ -734,6 +734,7 @@ export type Database = {
           created_at: string
           deadline: string | null
           id: string
+          image_url: string | null
           target_amount: number
           title: string
           updated_at: string
@@ -745,6 +746,7 @@ export type Database = {
           created_at?: string
           deadline?: string | null
           id?: string
+          image_url?: string | null
           target_amount: number
           title: string
           updated_at?: string
@@ -756,6 +758,7 @@ export type Database = {
           created_at?: string
           deadline?: string | null
           id?: string
+          image_url?: string | null
           target_amount?: number
           title?: string
           updated_at?: string
