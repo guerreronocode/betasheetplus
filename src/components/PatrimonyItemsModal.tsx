@@ -73,65 +73,66 @@ export const PatrimonyItemsModal: React.FC<PatrimonyItemsModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex-1 overflow-y-auto space-y-2 pr-2">
-          {currentItems.map((item) => (
-            <Card
-              key={item.id}
-              className={`p-4 ${
-                isAsset ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
-              }`}
-            >
-              <div className="flex justify-between items-start gap-4">
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-foreground truncate">
-                    {item.name}
-                  </h4>
-                  
-                  {item.category && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {item.category}
-                    </p>
-                  )}
-                  
-                  {item.description && (
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                      {item.description}
-                    </p>
-                  )}
-                  
-                  {(item.isDebt || item.isCreditCard || item.source === 'credit_card_debt') && (
-                    <div className="text-xs text-blue-600 mt-2 font-medium">
-                      Sincronizado automaticamente
+        <div className="flex-1 overflow-y-auto pr-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {currentItems.map((item) => {
+              const showCategory = item.category && !item.source;
+              const sourceLabel = 
+                item.source === 'bank_account' ? 'Conta bancária' :
+                item.source === 'investment' ? 'Investimento' :
+                item.source === 'debt' ? 'Dívida' :
+                item.source === 'credit_card_debt' ? 'Cartão de crédito' :
+                null;
+              
+              return (
+                <Card
+                  key={item.id}
+                  className={`p-3 ${
+                    isAsset ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                  }`}
+                >
+                  <div className="flex justify-between items-start gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-sm text-foreground truncate">
+                        {item.name}
+                      </h4>
+                      
+                      {showCategory && (
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {item.category}
+                        </p>
+                      )}
+                      
+                      {sourceLabel && (
+                        <div className="text-xs text-primary mt-0.5 flex items-center gap-1">
+                          <span>{sourceLabel}</span>
+                          {(item.isDebt || item.isCreditCard || item.source === 'credit_card_debt') && (
+                            <span className="text-blue-600">(Auto)</span>
+                          )}
+                        </div>
+                      )}
+                      
+                      {item.liquidity && (
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {item.liquidity === 'daily' && 'Liq. diária'}
+                          {item.liquidity === 'monthly' && 'Liq. mensal'}
+                          {item.liquidity === 'annual' && 'Liq. anual'}
+                        </div>
+                      )}
                     </div>
-                  )}
-                  
-                  {item.isLinked && item.source && (
-                    <div className="text-xs text-primary mt-2">
-                      {item.source === 'bank_account' && 'Conta bancária'}
-                      {item.source === 'investment' && 'Investimento'}
-                      {item.source === 'debt' && 'Dívida'}
-                    </div>
-                  )}
-                </div>
 
-                <div className="text-right">
-                  <div className={`text-xl font-bold ${
-                    isAsset ? 'text-green-700' : 'text-red-700'
-                  }`}>
-                    {formatCurrency(item.current_value ?? item.remaining_amount ?? 0)}
-                  </div>
-                  
-                  {item.liquidity && (
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {item.liquidity === 'daily' && 'Liquidez diária'}
-                      {item.liquidity === 'monthly' && 'Liquidez mensal'}
-                      {item.liquidity === 'annual' && 'Liquidez anual'}
+                    <div className="text-right shrink-0">
+                      <div className={`text-base font-bold ${
+                        isAsset ? 'text-green-700' : 'text-red-700'
+                      }`}>
+                        {formatCurrency(item.current_value ?? item.remaining_amount ?? 0, { compact: true })}
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
-            </Card>
-          ))}
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
         </div>
 
         {/* Controles de paginação */}
