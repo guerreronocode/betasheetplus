@@ -126,8 +126,8 @@ export const GoalCard = ({ goal }: GoalCardProps) => {
 
   return (
     <>
-      <div className="relative bg-card border rounded-lg overflow-hidden transition-all duration-200 hover:shadow-lg">
-        <div className="flex gap-4 p-4">
+      <div className="relative bg-card border rounded-lg overflow-hidden transition-all duration-200 hover:shadow-lg h-full min-h-[240px]">
+        <div className="flex gap-4 p-6 h-full">
           {/* Imagem */}
           <div 
             className="relative w-32 h-32 flex-shrink-0 bg-muted rounded-lg overflow-hidden cursor-pointer group"
