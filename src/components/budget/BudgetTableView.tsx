@@ -46,12 +46,13 @@ const BudgetTableView: React.FC<BudgetTableViewProps> = ({
         // Filtrar por categoria primeiro
         if (item.category !== category) return false;
         
-        const itemMonth = item.month;
+        // Extrair apenas ano-mês do campo item.month (formato: "2025-10-01" -> "2025-10")
+        const itemMonth = item.month.substring(0, 7);
         
         // Para itens recorrentes
         if (item.is_recurring) {
-          const startMonth = item.recurring_start_month || item.month;
-          const endMonth = item.recurring_end_month;
+          const startMonth = (item.recurring_start_month || item.month).substring(0, 7);
+          const endMonth = item.recurring_end_month?.substring(0, 7);
           
           if (endMonth) {
             return monthStr >= startMonth && monthStr <= endMonth;
