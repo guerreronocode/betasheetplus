@@ -24,6 +24,7 @@ import InvestmentsPage from "./pages/InvestmentsPage";
 import DebtsPage from "./pages/DebtsPage";
 import PatrimonyPage from "./pages/PatrimonyPage";
 import Metas from "./pages/Metas";
+import Planejamento from "./pages/Planejamento";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -117,6 +118,11 @@ const App: React.FC = () => {
               <Route path="/metas" element={
                 <ProtectedRoute>
                   <Metas />
+                </ProtectedRoute>
+              } />
+              <Route path="/planejamento" element={
+                <ProtectedRoute>
+                  <Planejamento />
                 </ProtectedRoute>
               } />
               <Route path="/style-guide" element={<StyleGuide />} />
